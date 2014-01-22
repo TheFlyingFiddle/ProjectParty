@@ -1,3 +1,6 @@
 # Directories
 Debug/
 Release/
+
+#Binary Visual Studio file
+*.suo
