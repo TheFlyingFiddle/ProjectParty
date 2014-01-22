@@ -1,0 +1,55 @@
+map = 
+{
+	width  = 800
+	height = 600
+}
+
+snakes =
+[
+	{	
+		posx = 400
+		posy = 10
+		dirx = 1
+		diry = 0
+		color = 42131241
+		leftKey = 65
+		rightKey = 68
+	},
+	{
+		posx = 100
+		posy = 50
+		dirx = 1
+		diry = 0
+		color = 51231241
+		leftKey = 263
+		rightKey = 262
+	},
+	{
+		posx = 200
+		posy = 75
+		dirx = 1
+		diry = 0
+		color = 0xFF0000cc
+		leftKey = 264
+		rightKey = 265
+	}
+]
+
+turnSpeed = 0.1
+snakeSize = 4
+title = |Achtung|
+resetKey = 82
+
+hole = 
+{
+	min = 0.1
+	max = 0.4
+}
+
+seed = 0
+
+minInvis = 0.2
+maxInvis = 0.4
+
+minVis = 1.5
+maxVis = 4.5
