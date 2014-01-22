@@ -1,7 +1,7 @@
 module math.vector;
 
 import std.string : format;
-import std.traits : isFloatingPoint, CommonType;
+import std.traits : isFloatingPoint, CommonType, isNumeric;
 
 alias float2 = Vector!(2, float);
 alias int2   = Vector!(2, int);
@@ -19,7 +19,7 @@ struct Vector(size_t size, T)
 {
 	private T[size] data;
 
-	this(U)(U u)
+	this(U)(U u) if (isNumeric!U)
 	{
 		foreach(i; staticIota!(0, size))
 			this.data[i] = cast(T)u;
@@ -64,7 +64,7 @@ struct Vector(size_t size, T)
 	}
 
 	Vector!(size, T) opBinary(string s, U)(auto ref Vector!(size, U) vec) 
-		if(is(U : T) && s == "+" || s == "-" || s == "*")
+		if(is(U : T) && (s == "+" || s == "-" || s == "*"))
 		{
 			Vector!(size, T) res;
 			foreach(i; staticIota!(0, size))
@@ -73,7 +73,7 @@ struct Vector(size_t size, T)
 		}
 
 	Vector!(size, T) opBinary(string op, U)(U u)
-		if(is(U : T) && op == "+" || op == "-" || op == "/" || op == "*")
+		if(isNumeric!U && is(U : T) && (op == "+" || op == "-" || op == "/" || op == "*"))
 		{
 			Vector!(size, T) res;
 			foreach(i; staticIota!(0, size))
@@ -168,7 +168,7 @@ auto magnitude(size_t N, T)(auto ref Vector!(N,T) vec)
 	return sqrt(cast(float)dot(vec, vec));
 }
 
-Vector!(size, T) normalized(size_t N, T)(auto ref Vector!(N,T) vec)
+Vector!(N, T) normalized(size_t N, T)(auto ref Vector!(N,T) vec)
 {
 	return vec / vec.magnitude();
 }

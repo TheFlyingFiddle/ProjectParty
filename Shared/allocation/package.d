@@ -3,6 +3,7 @@ module allocation;
 public import allocation.native;
 public import allocation.region;
 public import allocation.stack;
+public import allocation.gc;
 
 
 interface IAllocator
@@ -34,4 +35,11 @@ final class CAllocator(T) : IAllocator
 	{
 		return _allocator.deallocate(memory);
 	}
+}
+
+import std.traits;
+T allocateT(A, T)(ref A allocator, size_t size) if (isArray!T)
+{
+    T t;
+    return cast(T) allocator.allocate(size * typeof(t[0]).sizeof, typeof(t[0]).alignof);
 }

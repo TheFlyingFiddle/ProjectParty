@@ -5,15 +5,22 @@ import std.socket;
 import std.array;
 import content.sdl;
 import std.concurrency;
+import allocation.gc;
 
 __gshared Tid loggerTid;
 
-void initialize(const(char[]) configFile)
+void initialize(string configFile)
 {
+    struct NetConfig
+	{
+        ushort port;
+        string ip;
+	}
 	import std.file;
-	string text = readText(configFile);
-	auto obj = fromSDL(text);
-	loggerTid = spawn(&loggingSender, obj.IPAddress.string_, cast(ushort)obj.port.number);
+    {
+    	auto obj = fromSDLFile!NetConfig(GCAllocator.it, configFile);
+    	loggerTid = spawn(&loggingSender, obj.ip, obj.port);
+    }
 }
 
 
@@ -43,7 +50,8 @@ void loggingSender(string ip, ushort port)
 					(string channel, Verbosity verbosity, string msg, string file, size_t line) {
 						try 
 						{
-							toSDL(Msg(channel, msg, file, line, verbosity), sink);
+        //TODO: fix
+							//toSDL(Msg(channel, msg, file, line, verbosity), sink);
 							socket.send(sink.data);
 							sink.clear();
 						}

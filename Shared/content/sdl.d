@@ -2,8 +2,14 @@ module content.sdl;
 
 import std.exception;
 import std.conv : to;
-import std.range;
 import std.traits;
+import std.bitmanip;
+import std.file;
+import std.c.string :memcpy;
+import std.string;
+import allocation;
+
+alias TypeID = SDLObject.Type;
 
 enum stringSeperator = '|';
 enum arrayOpener = '[';
@@ -12,295 +18,445 @@ enum arraySeparator = ',';
 enum objectOpener = '{';
 enum objectCloser = '}';
 
+
 struct SDLObject
 {
-	//An array item is an item in an array (it has no name)
-	enum Type { number, string_, array, object, integer }
+    enum Type { _float, _string, _int, _parent}
+    mixin(bitfields!(
+                     uint,  "nameIndex",    23,
+                     uint,  "objectIndex",  23,
+                     Type,  "type",         2,
+                     ushort, "nextIndex",   16
+                         ));
 
-	string name; //Not used by stuff in array. (Could do it some other way but meh)
-	union
-	{		
-		double				_number = 0;
-        long                _integer;
-		string				string_;
-		SDLObject[]			collection;
+    string toString()
+	{
+        import std.conv : text;
+        return text("name: ", nameIndex, 
+					"\tobj: ", objectIndex, 
+					"\ttype: ", type, 
+					"\tnext: ", nextIndex, "\n");
+	}
+}
+
+struct SDLIterator
+{
+    SDLContainer* over;
+    ushort currentIndex;
+
+
+    ref SDLIterator opDispatch(string name)()
+	{
+        goToChild!name;
+        return this;
+	}
+	/**
+    //I kind of wanted to do this, but it seems to be impossible.
+    T opDispatch(string name, T)()
+	{
+	goToChild!name;
+	return over.root[currentIndex].as!T;
+	}
+	*/  
+
+    @property
+		bool empty() {
+			return !over.root[currentIndex].nextIndex;
+		}
+
+    @property
+		size_t walkLength() {
+			ushort savedIndex = currentIndex;
+			goToChild();
+			size_t size = 1;
+			while(!empty) {
+				size++;
+				goToNext();
+			}
+			currentIndex = savedIndex;
+			return size;
+		}
+
+    void goToChild(string name = "")()
+	{
+        auto range = mixin(curObjObjRange);
+        auto obj = over.root[currentIndex];//Get current object, if it doesn't exist, tough luck.
+        enforce(obj.type == TypeID._parent, "Foolishly tried to get children of "
+				~range.readIdentifier~ 
+				" of typeID "~std.conv.to!string(obj.type)~".");
+        currentIndex = cast(ushort)obj.objectIndex;
+        static if (name != "")
+            goToNext!name;
 	}
 
-	Type type;
-
-	@property double number()
+    void goToNext(string name)()
 	{
-		if(type == Type.integer)
-			return integer;
-		else if(type == Type.number) 
-			return _number;
+        auto range = mixin(curObjObjRange);
+        while(currentIndex)//An index of zero is analogous to null.
+		{ 
+            SDLObject obj = over.root[currentIndex];
+            range.position = cast(size_t)obj.nameIndex;
 
-		assert(0, "The SDLObject is a " ~ type.to!string ~ " " ~ "and not a number!");
+            if(range.readIdentifier == name) {
+                return;
+			}
+			currentIndex = cast(ushort)obj.nextIndex;
+		} 
+        assert(0, "Couldn't find object " ~ name);
 	}
 
-	@property long integer()
+    void goToNext()
 	{
-		assert(type == Type.integer);
-		return _integer;
+        SDLObject obj = over.root[currentIndex];
+        auto next = cast(ushort)obj.nextIndex;
+        if(!next)
+            enforce(0, "Index out of bounds.");
+        currentIndex = next;
 	}
 
-	@property size_t length()
+    private enum curObjObjRange = "ForwardRange(over.root[currentIndex].objectIndex,
+		over.source)";
+
+	private T as(T)() if(isNumeric!T)
 	{
-		assert(type == SDLObject.Type.array ||
-			   type == SDLObject.Type.object);
-		return collection.length;
+        static if(isIntegral!T)
+			enforce(over.root[currentIndex].type == TypeID._int,
+					"SDLObject wasn't an integer, which was requested.");
+        else static if(isFloatingPoint!T)
+			enforce(over.root[currentIndex].type == TypeID._float ||
+					over.root[currentIndex].type == TypeID._int,
+					"SDLObject wasn't a floating point value, "~
+					"which was requested.");
+        auto range = mixin(curObjObjRange);
+        if(over.root[currentIndex].type == TypeID._int)
+            return cast(T)readNumber!long(range);
+        else
+            return cast(T)readNumber!double(range);
 	}
 
-
-	this(long value, string name) 
+    private T as(T, A)(ref A allocator) if(isSomeString!T)
 	{
-		this.type   = Type.integer;
-		this.name   = name;
-		this._integer= value;
+        assert(over.root[currentIndex].type == TypeID._string);
+
+        auto range = mixin(curObjObjRange);
+        string str = readString!T(range);
+        char[] s = allocateT!(A, char[])(allocator, str.length);
+        s[] = str;
+        return cast(T)s;
 	}
 
-	this(double value, string name)
-	{
-		this.type   = Type.number;
-		this.name	= name;
-		this._number	= value;
+    private T as(T, A)(ref A allocator) if(isArray!T && !isSomeString!T)
+    {
+        static if(is(T t == A[], A)) {
+            auto arr = allocator.allocate!T(walkLength);
+            goToChild();
+
+            foreach(ref elem; arr) {
+                auto obj = over.root[currentIndex]; //  Can only traverse the tree downwards
+                auto next = obj.nextIndex;          //  So we need to save this index to not
+				//  get lost.
+                elem = as!A;
+                currentIndex = next;
+			}
+            return arr;
+		} else {
+            static assert(0, T.stringof ~ " is not an array type!");
+		}
 	}
 
-	this(string value, string name)
+    import math.vector, math.traits;
+    private Vec as(Vec)() if(isVector!Vec)
 	{
-		this.type    = Type.string_;
-		this.name    = name;
-		this.string_ = value;
+		static if (is(Vec v == Vector!(len, U), int len, U)) {
+			enum dimensions = ["x","y","z","w"]; // This is at the same time the vector rep and the file rep. Change.
+			auto toReturn = Vec();
+            goToChild();
+			foreach(i;math.vector.staticIota!(0, len)) {  
+				//  Can only traverse the tree downwards
+				//  So we need to save this index to not
+				//  get lost.
+				auto firstIndex = currentIndex;
+                goToNext!(dimensions[i]);
+                auto range = mixin(curObjObjRange);
+                mixin("toReturn." ~ dimensions[i]) = readNumber!U(range);
+
+				// We want to search the whole object for every name.
+				currentIndex = firstIndex;
+			}
+			return toReturn;
+		} else assert(0, Vec.stringof ~ " is not a vector type.");
 	}
 
-	this(string name)
+    T as(T, Allocator)(ref Allocator a) if (!(isNumeric!T ||
+					isSomeString!T ||
+					isArray!T ||
+					isVector!T))
 	{
-		this.type = Type.object;
-		this.name = name;
-		this.collection.length = 0;
-	}
+        goToChild();
+        T toReturn;
 
-	this(SDLObject[] array, string name)
-	{
-		this.type = Type.array;
-		this.name = name;
-		this.collection = array;
-	}
+        foreach(member; __traits(allMembers, T)) {                
+            //  Can only traverse the tree downwards
+            //  So we need to save this index to not
+            //  get lost.
+            auto firstIndex = currentIndex;
+            goToNext!member; //Changes the index to point to the member we want.
 
-	this(SDLObject obj, string name)
-	{
-		this.type = obj.type;
-		this.name = name;
-		this.collection = obj.collection;
-	}
+            alias type = typeof(__traits(getMember, toReturn, member));
 
-	this(T)(T val, string name)
-	{
-		this.type = Type.array;
-		this.name = name;
-		this.collection = new SDLObject[val.length];
-		foreach(i, ref item; collection)
-			item = SDLObject(val[i], ""); 
-	}
-
-	ref SDLObject opIndex(size_t index) 
-	{
-		enforce(type == Type.array);
-		return collection[index];
-	}
-
-	void opDispatch(string name, T)(T value)
-	{
-		set(name, value);
-	}
-
-	ref SDLObject opDispatch(string name)()
-	{
-		enforce(type == Type.object);
-		foreach(ref item; collection)
-			if(item.name == name)
-				return item;
-
-		enforce(0, "Item not found");
-		assert(0);
-	}
-
-	void set(T)(string name, T value)
-	{
-		enforce(type == Type.object);
-		foreach(ref item; collection)
-			if(item.name == name) {
-				item = SDLObject(value, name);
-				return;
+            static if(isArray!type) {
+				// TODO: There has to be a better way of doing this...
+				__traits(getMember, toReturn, member) = 
+					as!type(a);
+			} else {
+            // TODO: There has to be a better way of doing this...
+            __traits(getMember, toReturn, member) = 
+                as!(type);
 			}
 
-		this.collection ~= SDLObject(value, name);
+            // We want to search the whole object for every name.
+            currentIndex = firstIndex;
+        }
+        return toReturn;
 	}
 
-    import std.typecons;
-    import math.vector;
-    import math.traits;
-
-	Vec get(Vec)() if ( isVector!Vec)
+	T as(T)() if (!(isNumeric!T ||
+                  isSomeString!T ||
+                  isArray!T ||
+                  isVector!T))
 	{
-        static if (is(Vec v == Vector!(len, U), int len, U)) {
-            enum dimensions = ["x","y","z","w"]; // This is at the same time the vector rep and the file rep. Change.
-            auto toReturn = Vec();
-            foreach(i;math.vector.staticIota!(0, len)) {
-                foreach(ref item; collection) {
-                    if(item.name == dimensions[i]) {
-                        static if (isFloatingPoint!U) 
-                            mixin("toReturn." ~ dimensions[i]) =  cast(U)item.number;
-                        else 
-                            mixin("toReturn." ~ dimensions[i]) =  cast(U)item.integer;
-                    }
-                }
-            }
-            return toReturn;
-        } else assert(0, Vec.stringof ~ " is not a vector type.");
+        goToChild();
+        T toReturn;
+
+        foreach(member; __traits(allMembers, T)) {                
+            //  Can only traverse the tree downwards
+            //  So we need to save this index to not
+            //  get lost.
+            auto firstIndex = currentIndex;
+            goToNext!member; //Changes the index to point to the member we want.
+
+            alias type = typeof(__traits(getMember, toReturn, member));
+
+            // TODO: There has to be a better way of doing this...
+            __traits(getMember, toReturn, member) = 
+                as!(type);
+
+            // We want to search the whole object for every name.
+            currentIndex = firstIndex;
+        }
+        return toReturn;
 	}
 
-    unittest {
-		import std.stdio;
-        auto obj = fromSDL("
-                           pos = 
-                           {
-						   x = 4
-						   y = 5
-                           }
-                           floats =
-                           {
-						   x = 234.2
-						   y = 123.4
-                           }"
-                           );
 
-        auto vec = obj.pos.get!int2;
-        auto vecFloat = obj.floats.get!float2;
-        assert(vec == int2(4,5));
-        assert(vecFloat == float2(234.2f,123.4f));
+    ref SDLIterator opIndex(size_t index)
+    {
+        goToChild();
+        foreach(i; 0..index) {
+            goToNext();
+		}
+        return this;
+	}
+}
+
+struct SDLContainer
+{
+    private SDLObject* root;
+    private string source;
+
+    @disable this(this);
+
+    @property
+		SDLIterator opDispatch(string s)()
+	{
+        auto it = SDLIterator();
+        it.over = &this;
+		it.goToChild!s;
+        return it;
+	}
+
+    @property
+		T as(T, A)(ref A allocator)
+	{
+        return SDLIterator(&this, 0).as!T(allocator);
+	}
+
+	@property
+		T as(T)()
+	{
+        return SDLIterator(&this, 0).as!T;
+	}
+
+    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T == struct))
+    {
+        if(level != 0) {
+            sink.put('\n');
+            sink.put('\t'.repeat(level - 1));
+            sink.put(objectOpener);
+        }
+
+        foreach(i, field; value.tupleof) {
+            sink.put('\n');
+            sink.put('\t'.repeat(level));
+            sink.put(__traits(identifier, T.tupleof[i]));
+            sink.put("=");
+            toSDL(field, sink, level + 1);
+        }
+
+        if(level != 0){
+            sink.put('\n');
+            sink.put('\t'.repeat(level - 1));
+            sink.put(objectCloser);
+        }
     }
+
+    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T == string))
+    {
+        sink.put(stringSeperator);
+        sink.put(value);
+        sink.put(stringSeperator);
+    }
+
+    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T : double))
+    {
+        sink.put(value.to!string);
+    }
+
+    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(isArray!T && !is(T == string))
+    {
+        sink.put(arrayOpener);
+        foreach(i; 0 .. value.length) {
+            toSDL(value[i], sink, level);
+            if(i != value.length - 1)
+                sink.put(',');
+        }
+        sink.put(arrayCloser);
+    }
+
+    void toSDL(Sink)(SDLObject obj, Sink sink)
+    {
+        alias T = TypeID;
+
+        if(obj.name != "") {
+            sink.put(obj.name);
+            sink.put('=');
+        }
+        final switch(obj.type) 
+        {
+            case T.number:
+                sink.put( obj.number.to!string );
+                break;
+            case T.string_:
+                sink.put(stringSeperator);
+                sink.put( obj.string_);
+                sink.put(stringSeperator);
+                break;
+            case T.array  :
+            case T.object :
+                toSDL_inner(obj, sink);
+                break;
+        }
+    }
+
+    void toSDL_inner(Sink)(SDLObject obj, Sink sink)
+    {
+        alias T = TypeID;
+        final switch(obj.type)
+        {
+            case T.number:
+                sink.put( obj.number.to!string); //Allocates :S
+                break;
+            case T.string_:
+                sink.put(stringSeperator);
+                sink.put( obj.string_);
+                sink.put(stringSeperator);
+                break;
+            case T.array:
+                sink.put(arrayOpener);
+                scope(exit) sink.put(arrayCloser);
+                foreach(i, item; obj.collection) {
+                    toSDL_inner(item, sink);	
+                    if(i != obj.collection.length - 1)
+                        sink.put(arraySeparator);
+                }
+                break;
+            case T.object:
+                if(obj.name != "")
+                    sink.put(objectOpener);
+                foreach(item; obj.collection) {
+                    sink.put(item.name);
+                    sink.put('=');
+                    toSDL_inner(item, sink);
+                }
+                if(obj.name != "")
+                    sink.put(objectCloser);
+                break;
+        }
+
+    }
+
+
+
 }
 
-void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T == struct))
-{
-	if(level != 0) {
-		sink.put('\n');
-		sink.put('\t'.repeat(level - 1));
-		sink.put(objectOpener);
-	}
-
-	foreach(i, field; value.tupleof) {
-		sink.put('\n');
-		sink.put('\t'.repeat(level));
-		sink.put(__traits(identifier, T.tupleof[i]));
-		sink.put("=");
-		toSDL(field, sink, level + 1);
-	}
-
-	if(level != 0){
-		sink.put('\n');
-		sink.put('\t'.repeat(level - 1));
-		sink.put(objectCloser);
-	}
+unittest {
+	auto buf = new void[1024];
+	auto alloc = RegionAllocator(buf);
+    auto app = RegionAppender!SDLObject(alloc);
+	auto obj = fromSDL(app,
+					   "pos = "
+					   ~"{"
+					   ~"x = 4 "
+					   ~"y = 5"
+					   ~"}"
+					   ~"floats ="
+					   ~"{"
+					   ~"x = 234.2 "
+					   ~"y = 123.4"
+					   ~"}"
+					   );
+    import math.vector;
+	auto vec = obj.pos.as!int2;
+	auto vecFloat = obj.floats.as!float2;
+	assert(vec == int2(4,5));
+	assert(vecFloat == float2(234.2f,123.4f));
 }
 
-void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T == string))
+struct ForwardRange
 {
-	sink.put(stringSeperator);
-	sink.put(value);
-	sink.put(stringSeperator);
-}
+	size_t position;
+	string over;
 
-void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T : double))
-{
-	sink.put(value.to!string);
-}
-
-void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(isArray!T && !is(T == string))
-{
-	sink.put(arrayOpener);
-	foreach(i; 0 .. value.length) {
-		toSDL(value[i], sink, level);
-		if(i != value.length - 1)
-			sink.put(',');
+	@property ForwardRange save() 
+	{ 
+		return ForwardRange(position, over); 
 	}
-	sink.put(arrayCloser);
-}
 
-void toSDL(Sink)(SDLObject obj, Sink sink)
-{
-	alias T = SDLObject.Type;
-
-	if(obj.name != "") {
-		sink.put(obj.name);
-		sink.put('=');
+	@property bool empty() 
+	{ 
+		return over.length == position; 
 	}
-	final switch(obj.type) 
+
+	void popFront() 
 	{
-		case T.number:
-			sink.put( obj.number.to!string );
-			break;
-		case T.string_:
-			sink.put(stringSeperator);
-			sink.put( obj.string_);
-			sink.put(stringSeperator);
-			break;
-		case T.array  :
-		case T.object :
-			toSDL_inner(obj, sink);
-			break;
+		position++; 
+	}
+
+	@property char front() { return over[position]; }
+
+	this(size_t position, string over)
+	{
+		this.position = position;
+		this.over = over;
+	}
+
+	this(string over)
+	{
+		this.position = 0;
+		this.over = over;
 	}
 }
 
-void toSDL_inner(Sink)(SDLObject obj, Sink sink)
-{
-	alias T = SDLObject.Type;
-	final switch(obj.type)
-	{
-		case T.number:
-			sink.put( obj.number.to!string); //Allocates :S
-			break;
-		case T.string_:
-			sink.put(stringSeperator);
-			sink.put( obj.string_);
-			sink.put(stringSeperator);
-			break;
-		case T.array:
-			sink.put(arrayOpener);
-			scope(exit) sink.put(arrayCloser);
-			foreach(i, item; obj.collection) {
-				toSDL_inner(item, sink);	
-				if(i != obj.collection.length - 1)
-					sink.put(arraySeparator);
-			}
-			break;
-		case T.object:
-			if(obj.name != "")
-				sink.put(objectOpener);
-			foreach(item; obj.collection) {
-				sink.put(item.name);
-				sink.put('=');
-				toSDL_inner(item, sink);
-			}
-			if(obj.name != "")
-				sink.put(objectCloser);
-			break;
-	}
-
-}
-
-void skipLine(Range)(ref Range range)
-{
-	while(!range.empty && 
-		  range.front != '\n' &&
-		  range.front != '\r')
-	{
-		range.popFront();
-	}	
-}	
-
-void skipWhitespace(Range)(ref Range range)
+void skipWhitespace(ref ForwardRange range)
 {
 	while(!range.empty && (
 						   range.front == '\n' ||
@@ -318,125 +474,50 @@ void skipWhitespace(Range)(ref Range range)
 	}
 }
 
-SDLObject fromSDL(string source)
+void skipLine(ref ForwardRange range)
 {
-	return fromSDL(ForwardRange(source));
-}
-
-SDLObject fromSDL(Range)(Range range)
-{
-	range.skipWhitespace();
-	SDLObject root = range.readObject();
-	return root;
-}
-
-SDLObject readObject(Range)(ref Range range)
-{
-	SDLObject obj;
-	obj.type = SDLObject.Type.object;
-
-	string ident;
-	while(!range.empty)
+	while(!range.empty && 
+		  range.front != '\n' &&
+		  range.front != '\r')
 	{
-		range.skipWhitespace();
-		if(range.front == objectCloser) {
-			range.popFront();
-			return obj;
-		}
-
-		ident = range.readIdentifier();
-		range.skipWhitespace();
-		enforce(range.front == '=');
 		range.popFront();
+	}	
+}	
 
-		skipWhitespace(range);
-
-        auto c = range.front;
-
-		switch(c)
-		{
-			case objectOpener:
-				range.popFront();
-				obj.set(ident, range.readObject());
-				break;
-			case arrayOpener:
-				range.popFront();
-				obj.set(ident, range.readArray());
-				break;
-			case '0' : .. case '9':
-            case '-' :
-			case '.' :
-				readNumber(range, obj, ident);
-				//obj.set(ident, range.readNumber());
-				break;
-			case stringSeperator:
-				obj.set(ident, range.readString());
-				break;
-			case '/':
-				skipLine(range);
-				break;
-
-			default :
-				enforce(0, "Unrecognized char while parsing array.");		
-		}
-
-		range.skipWhitespace();
-	}
-
-	return obj;
-}
-
-SDLObject[] readArray(Range)(ref Range range)
+template isStringOrVoid(T)
 {
-	SDLObject[] arr;
-	while(!range.empty)
-	{
-		range.skipWhitespace();		
-		if(range.front == arrayCloser) {
-			range.popFront();
-			return arr;
+	enum isStringOrVoid = is(T == void) || isSomeString!T;
+}
+StringOrVoid readString(StringOrVoid = string)(ref ForwardRange range)
+if (isStringOrVoid!StringOrVoid)
+{
+	enforce(range.front == stringSeperator);
+	range.popFront();
+	static if(isSomeString!StringOrVoid)
+		auto saved = range.save();
+	while(!range.empty) {
+		if(range.front == stringSeperator)  {
+			static if (isSomeString!StringOrVoid) {
+				string s = str(saved, range);
+				range.popFront();
+				return s;
+			} else {
+				range.popFront();
+				return;
+			}
 		}
-		char c = range.front;
-		switch(range.front)
-		{
-			case objectOpener:
-				range.popFront();
-				arr ~= range.readObject();
-				break;
-			case arrayOpener:
-				range.popFront();
-				arr ~= SDLObject(range.readArray(), "");
-				break;
-			case '0' : .. case '9':
-			case '.' :
-				//arr ~= SDLObject(range.readNumber(), "");
-                auto obj = SDLObject();
-                readNumber(range, obj, "");
-                arr ~= obj;
-				break;
-			case stringSeperator:
-				arr ~= SDLObject(range.readString(), "");
-				break;
-			case arraySeparator:
-				range.popFront();
-				break;
-			case '/':
-				skipLine(range);
-				break;
-			default :
-				enforce(0, "Unrecognized char");		
-		}
-
-        range.skipWhitespace();
+		range.popFront();
 	}
 
-	enforce(0, "EOF reached while parsing array");
+	enforce(0, "Eof reached while parsing string!");
 	assert(0);
 }
 
-string readIdentifier(Range)(ref Range range)
+StringOrVoid readIdentifier(StringOrVoid = string)(ref ForwardRange range)
+if (isStringOrVoid!StringOrVoid)
 {
-	auto saved = range.save();
+	static if(isSomeString!StringOrVoid)
+		auto saved = range.save();
 	while(!range.empty)
 	{
 		char c = range.front;
@@ -444,7 +525,10 @@ string readIdentifier(Range)(ref Range range)
 		   || c == '\r' || c == ' ' || 
 		   c == '='||
 		   c == '/') {
-			   return str(saved, range);
+			   static if(isSomeString!StringOrVoid)
+				   return str(saved, range);
+			   else
+				   return;
 		   }
 
 		range.popFront();
@@ -454,25 +538,11 @@ string readIdentifier(Range)(ref Range range)
 	assert(0);
 }
 
-string readString(Range)(ref Range range)
-{
-	enforce(range.front == stringSeperator);
-	range.popFront();
-	auto saved = range.save();
-	while(!range.empty) {
-		if(range.front == stringSeperator)  {
-			string s = str(saved, range);
-			range.popFront();
-			return s;
-		}
-		range.popFront();
-	}
-
-	enforce(0, "Eof reached while parsing string!");
-	assert(0);
+template isNumericVoidOrType(T) {
+	enum isNumericVoidOrType = is(T==void) || is(T==TypeID) || isNumeric!T;
 }
-
-void readNumber(Range)(ref Range range, ref SDLObject obj, string identifier)
+NumericVoidOrType readNumber(NumericVoidOrType, Range)(ref Range range)
+if (isNumericVoidOrType!NumericVoidOrType)
 {
 	size_t state;
 	switch(range.front)
@@ -481,8 +551,8 @@ void readNumber(Range)(ref Range range, ref SDLObject obj, string identifier)
 			state = 0;
 			break;
 		case '0':
-            state = 7;
-            break;
+			state = 7;
+			break;
 		case '1': .. case '9':
 			state = 1;
 			break;
@@ -495,7 +565,8 @@ void readNumber(Range)(ref Range range, ref SDLObject obj, string identifier)
 	}	
 
 	bool shouldEnd = false;
-	auto saved = range;
+	static if (isNumeric!NumericVoidOrType)
+		auto saved = range;
 	range.popFront();
 	while(!range.empty)
 	{
@@ -549,6 +620,7 @@ void readNumber(Range)(ref Range range, ref SDLObject obj, string identifier)
 						break;
 					case '.':
 						enforce(0, "error reading number!");
+                        break;
 					default :
 						shouldEnd = true;
 				}
@@ -587,48 +659,48 @@ void readNumber(Range)(ref Range range, ref SDLObject obj, string identifier)
 						break;
 				}
 				break;
-            case 7:
-                switch(c)
-				{
-                    case '0': .. case '9':
-                        state = 1;
-                        break;
-                    case '.':
-                        state = 3;
-                        break;
-                    case 'x':
-                    case 'X':
-                        state = 8;
-                        break;
-                    default:
-                        shouldEnd = true;
-                        break;
-				}
-                break;
-            case 8:
-                switch(c)
+			case 7:
+				switch(c)
 				{
 					case '0': .. case '9':
-                    case 'a': .. case 'f':
-                    case 'A': .. case 'F':
-                        state = 9;
-                        break;
+						state = 1;
+						break;
+					case '.':
+						state = 3;
+						break;
+					case 'x':
+					case 'X':
+						state = 8;
+						break;
+					default:
+						shouldEnd = true;
+						break;
+				}
+				break;
+			case 8:
+				switch(c)
+				{
+					case '0': .. case '9':
+					case 'a': .. case 'f':
+					case 'A': .. case 'F':
+						state = 9;
+						break;
 					default:
 						enforce(0, "error reading number!");
 				}
-                break;
-            case 9:
-                switch(c)
+				break;
+			case 9:
+				switch(c)
 				{
-                    case '0': .. case '9':
-                    case 'a': .. case 'f':
-                    case 'A': .. case 'F':
-                        break;
-                    default:
-                        shouldEnd = true;
-                        break;
+					case '0': .. case '9':
+					case 'a': .. case 'f':
+					case 'A': .. case 'F':
+						break;
+					default:
+						shouldEnd = true;
+						break;
 				}
-                break;
+				break;
 			default:
 				enforce(0, "WTF");
 		}
@@ -639,111 +711,321 @@ void readNumber(Range)(ref Range range, ref SDLObject obj, string identifier)
 		range.popFront();
 	}
 
-    import std.conv;
-    switch (state) {
-        case 1:
-        case 7://Integer
-            obj.set(identifier, number!long(saved, range));
-            break;
-        case 9://Hexadecimal
-            string s = saved.over[saved.position .. range.position];
-			obj.set(identifier, parseHex(s));
-            break;
-        case 3:
-        case 6://Floating point
-            obj.set(identifier, number!double(saved, range));
-            break;
-        default:
-			assert(0, "Invalid number parsing state: " ~ to!string(state));
+	static if(is(NumericVoidOrType==void)) {
+		return;
+	} else {
+		import std.conv;
+		switch (state) {
+			case 1:
+			case 7://Integer
+				static if(is(NumericVoidOrType==TypeID))
+					return TypeID._int;
+                else static if(isIntegral!NumericVoidOrType) {
+				    return number!NumericVoidOrType(saved, range);
+				}
+			case 9://Hexadecimal
+				static if(is(NumericVoidOrType==TypeID))
+					return TypeID._int;
+				else static if(isIntegral!NumericVoidOrType) {
+                    return cast(NumericVoidOrType)parseHex(saved, range);
+				}
+			case 3:
+			case 6://Floating point
+				static if(is(NumericVoidOrType==TypeID))
+					return TypeID._float;
+				else static if(isFloatingPoint!NumericVoidOrType) {
+                    return number!NumericVoidOrType(saved, range);
+				}
+			default:
+				assert(0, "Invalid number parsing state: " ~ to!string(state));
+		}
 	}
-
 } unittest {
-    import std.stdio;
-    auto obj = fromSDL("
-					   numberone 	    = 123456
-					   numbertwo 	    = 1234.234
-					   numberthree      = 1234.34e234
-					   numberfour 	    = 1234.34E-234
-					   numberfive 	    = -1234
-					   numbersix 	    = 0xfF
-					   numberseven 	    = 0x10000"
-                       );
+    auto buf = new void[1024];
+    auto alloc = RegionAllocator(buf);
+    auto app = RegionAppender!SDLObject(alloc);
+	auto obj = fromSDL(app, 
+									   "numberone 	    = 123456
+									   numbertwo 	    = 1234.234
+									   numberthree      = 1234.34e234
+									   numberfour 	    = 1234.34E-234
+									   numberfive 	    = -1234
+									   numbersix 	    = 0xfF
+									   numberseven 	    = 0x10000"
+									   );
 
-	assert(obj.numberone 	 .integer    == 123456);
-	assert(obj.numbertwo 	 .number     == 1234.234);
-	assert(obj.numberthree   .number     == 1234.34e234);
-	assert(obj.numberfour 	 .number     == 1234.34E-234);
-	assert(obj.numberfive 	 .integer    == -1234);
-	assert(obj.numbersix 	 .integer    == 0xfF);
-	assert(obj.numberseven 	 .integer    == 0x10000);
+	assert(obj.numberone 	 .as!int    == 123456);
+	assert(obj.numbertwo 	 .as!double     == 1234.234);
+	assert(obj.numberthree   .as!double     == 1234.34e234);
+	assert(obj.numberfour 	 .as!double     == 1234.34E-234);
+	assert(obj.numberfive 	 .as!int    == -1234);
+	assert(obj.numbersix 	 .as!int    == 0xfF);
+	assert(obj.numberseven 	 .as!int    == 0x10000);
 }
 
-string str(Range)(Range a, Range b)
+string str(ForwardRange a, ForwardRange b)
 {
 	return a.over[a.position .. b.position];
 }
 
-T number(T, Range)(Range a, Range b)
+T number(T)(ForwardRange a, ForwardRange b)
 if(isNumeric!T)
 {
 	return a.over[a.position .. b.position].to!T;
 }
 
-long parseHex(string a)
+long parseHex(ForwardRange saved, ForwardRange range)
 {
-    enforce(a[0] == '0', "Hexadecimal strings should start with 0");
-    enforce(a[1] == 'x' || a[1] == 'X');
-    long acc = 0;
-    for(int i = 2; i<a.length; i++) {
-        auto c =  a[i];
-        switch ( c) {
-            case '0': .. case '9':
-                acc += to!long(c - '0') * 16^^(a.length - 1 - i);
-                break;
-            case 'a': .. case 'f':
-                acc += to!long(c - 'a' + 10) * 16^^(a.length - 1 - i);
-                break;
-            case 'A': .. case 'F':
-                acc += to!long(c - 'A' + 10) * 16^^(a.length - 1 - i);
-                break;
-            default:
-                assert(0, "Invalid hexadecimal digit: " ~ to!string(c));
+	enforce(saved.front == '0', "Hexadecimal strings should start with 0");
+	saved.popFront();
+	enforce(saved.front == 'x' || saved.front == 'X');
+    saved.popFront();
+	long acc = 0;
+    size_t length = range.position - saved.position;
+	for(size_t i = length-1;i<=length;saved.popFront(), i--) {
+		auto c = saved.front; 
+		switch (c) {
+			case '0': .. case '9':
+				acc += to!long(c - '0') * 16^^(i);
+				break;
+			case 'a': .. case 'f':
+				acc += to!long(c - 'a' + 10) * 16^^(i);
+				break;
+			case 'A': .. case 'F':
+				acc += to!long(c - 'A' + 10) * 16^^(i);
+				break;
+			default:
+				return acc;
 		}
 	}
-    return acc;
+	return acc;
 }
 
-struct ForwardRange
+T fromSDLFile(T, A)(ref A allocator, string filePath)
 {
-	size_t position;
-	string over;
+    import allocation.native;
+    auto app = MallocAppender!SDLObject(1024);
+    string source = readText(filePath);
+    auto cont = fromSDL(app, source);
+    return cont.as!T(allocator);
+}
 
-	@property ForwardRange save() 
-	{ 
-		return ForwardRange(position, over); 
+
+SDLContainer fromSDL(Sink)(ref Sink sink, string source)
+{
+    auto container = SDLContainer();
+    auto root = SDLObject();
+	root.type = TypeID._parent;
+    root.objectIndex = 1;
+    root.nextIndex = 0;
+    sink.put(root);
+    container.source = source;
+    ushort numObjects = 1;
+    auto range = ForwardRange(source);
+    readObject(sink, range, numObjects); 
+    enforce(numObjects>1, "Read from empty sdl");
+
+    auto list = sink.data();
+    container.root = list.buffer;
+    return container;
+}
+
+
+
+//Only used to build the tree of SDLObjects from the file.
+private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacantIndex)
+{
+
+    range.skipWhitespace();
+    if(range.front == objectCloser) {
+        range.popFront();
+        return;
+    }
+
+    auto objIndex = sink.put(SDLObject());
+    nextVacantIndex++;
+    sink[objIndex].nameIndex = cast(uint)range.position;
+    range.readIdentifier!void;//Don't care about the name, we are just building the tree
+    range.skipWhitespace();
+    enforce(range.front == '=');
+    range.popFront();
+
+    skipWhitespace(range);
+
+    auto c = range.front;
+
+    switch(c)
+    {
+        case objectOpener:
+            range.popFront();
+            sink[objIndex].type = TypeID._parent;
+            sink[objIndex].objectIndex = nextVacantIndex;
+            readObject(sink, range, nextVacantIndex);
+            if (sink[objIndex].objectIndex == nextVacantIndex)
+                sink[objIndex].objectIndex = 0; // If the child was empty, we basically emulate null
+            break;
+        case arrayOpener:
+            range.popFront();
+            sink[objIndex].type = TypeID._parent;
+            sink[objIndex].objectIndex = nextVacantIndex;
+            readArray(sink, range, nextVacantIndex);
+            if (sink[objIndex].objectIndex == nextVacantIndex)
+                sink[objIndex].objectIndex = 0; // If the array was empty, we basically emulate null
+            break;
+        case '0' : .. case '9':
+        case '-' :
+        case '.' :
+            sink[objIndex].objectIndex = cast(uint)range.position;
+            sink[objIndex].type = range.readNumber!TypeID;
+            break;
+        case stringSeperator:
+            sink[objIndex].type = TypeID._string;
+            sink[objIndex].objectIndex = cast(uint)range.position;
+            range.readString!void;
+            break;
+        case '/':
+            skipLine(range);
+            break;
+
+        default :
+            enforce(0, "Unrecognized char while parsing object.");		
+    }
+
+    range.skipWhitespace();
+    if (!range.empty) {
+        sink[objIndex].nextIndex = nextVacantIndex;
+        readObject(sink, range, nextVacantIndex);
+		if (sink[objIndex].nextIndex == nextVacantIndex)
+			sink[objIndex].nextIndex = 0; // If the object was empty, we basically emulate null
+	}
+}
+
+void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacantIndex)
+{
+	range.skipWhitespace();
+
+    //Defend against empty arrays.
+	if(range.front == arrayCloser) {
+		range.popFront(); 
+		return;
 	}
 
-	@property bool empty() 
-	{ 
-		return over.length == position; 
+    auto objIndex = sink.put(SDLObject());
+    nextVacantIndex++;
+
+    //In readobject we would read the name here, but array elements have no names.
+
+    skipWhitespace(range);
+
+    auto c = range.front;
+
+    switch(c)
+    {
+        case objectOpener:
+            range.popFront();
+            sink[objIndex].type = TypeID._parent;
+            sink[objIndex].objectIndex = nextVacantIndex;
+            readObject(sink, range, nextVacantIndex);
+            if (sink[objIndex].objectIndex == nextVacantIndex)
+                sink[objIndex].objectIndex = 0; // If the child was empty, we basically emulate null
+            break;
+        case arrayOpener: // This is exactly the same as the above case...
+            range.popFront();
+            sink[objIndex].type = TypeID._parent;
+            sink[objIndex].objectIndex = nextVacantIndex;
+            readArray(sink, range, nextVacantIndex);
+            if (sink[objIndex].objectIndex == nextVacantIndex)
+                sink[objIndex].objectIndex = 0; // If the array was empty, we basically emulate null
+            break;
+        case '0' : .. case '9':
+        case '-' :
+        case '.' :
+            sink[objIndex].objectIndex = cast(uint)range.position;
+            sink[objIndex].type = range.readNumber!TypeID;
+            break;
+        case stringSeperator:
+            sink[objIndex].type = TypeID._string;
+            sink[objIndex].objectIndex = cast(uint)range.position;
+            range.readString!void;
+            break;
+        case '/':
+            skipLine(range);
+            break;
+
+        default :
+            enforce(0, "Unrecognized char while parsing array.");		
+    }
+    range.skipWhitespace();
+    if (range.front == arraySeparator) {
+        range.popFront();
+        sink[objIndex].nextIndex = nextVacantIndex;
+        readArray(sink, range, nextVacantIndex);
+		if (sink[objIndex].nextIndex == nextVacantIndex) {
+			// Nothing was allocated, arraycloser found when expecting object
+            enforce(0, "Empty slot in array (arraycloser following arrayseparator).");
+		}	
+	} else if(range.front == arrayCloser) {
+		range.popFront();
+		return;
 	}
 
-	void popFront() 
-	{
-		position++; 
-	}
+} unittest {
 
-	@property char front() { return over[position]; }
+    auto buf = new void[1024];
+    auto alloc = RegionAllocator(buf);
+    auto app = RegionAppender!SDLObject(alloc);
+	auto obj = fromSDL(app, 
+									   "
+									   map = 
+									   {
+									   width  = 800
+									   height = 600
+	                                   }
 
-	this(size_t position, string over)
-	{
-		this.position = position;
-		this.over = over;
-	}
+									   snakes =
+									   [
+									   {	
+									   posx = 400
+									   posy = 10
+									   dirx = 1
+									   diry = 0.
+									   color = 42131241
+									   leftKey = 65
+									   rightKey = 68
+									   },
+									   {
+									   posx = 100
+									   posy = 50
+									   dirx = 1.
+									   diry = 0
+									   color = 51231241
+									   leftKey = 263
+									   rightKey = 262
+									   }
+	                                   ]
+									   turnSpeed = 0.02
+									   freeColor = 0"
+									   );
 
-	this(string over)
-	{
-		this.position = 0;
-		this.over = over;
-	}
+    assert(obj.map.width            .as!int     ==  800);
+    assert(obj.map.height           .as!int     ==  600);
+
+	assert(obj.snakes[0].posx    	.as!int     ==  400);
+	assert(obj.snakes[0].posy       .as!int     ==  10);
+	assert(obj.snakes[0].dirx       .as!double  ==  1.);
+	assert(obj.snakes[0].diry       .as!double  ==  0);
+	assert(obj.snakes[0].color 	    .as!int     ==  42131241);
+	assert(obj.snakes[0].leftKey 	.as!int     ==  65);
+	assert(obj.snakes[0].rightKey   .as!int     ==  68);
+
+	assert(obj.snakes[1].posx    	.as!int     ==  100);
+	assert(obj.snakes[1].posy       .as!int     ==  50);
+	assert(obj.snakes[1].dirx       .as!double  ==  1.);
+	assert(obj.snakes[1].diry       .as!double  ==  0);
+	assert(obj.snakes[1].color 	    .as!int     ==  51231241);
+	assert(obj.snakes[1].leftKey 	.as!int     ==  263);
+	assert(obj.snakes[1].rightKey   .as!int     ==  262);
+
+    assert(obj.turnSpeed            .as!double  ==  0.02);
+    assert(obj.freeColor            .as!int     ==  0);
 }

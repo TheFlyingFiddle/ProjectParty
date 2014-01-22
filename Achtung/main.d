@@ -11,6 +11,7 @@ import std.exception;
 import graphics.common;
 import achtung;
 import game;
+import math;
 
 pragma(lib, "DerelictGLFW3.lib");
 pragma(lib, "DerelictGL3.lib");
@@ -19,14 +20,20 @@ pragma(lib, "Shared.lib");
 
 GLFWwindow* window;
 
+RegionAllocator tlsAllocator ;
+
+static this()
+{
+    tlsAllocator = RegionAllocator(Mallocator.it, 1024*1024, 8);
+}
+
 void main()
 {
 	logger = &writeLogger;
 
 	try
 	{	
-		auto config = fromSDL(readText("Config.sdl"));
-		run(config);
+		run();
 	}
 	catch(Throwable t)
 	{
@@ -43,29 +50,35 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 
 
 
-void init(Allocator)(ref Allocator allocator, SDLObject config)
+void init(Allocator)(ref Allocator allocator, string sdlPath)
 {
+    struct WindowConfig
+	{
+        uint2 dim;
+        string title;
+	}
 	DerelictGL3.load();
-	DerelictGLFW3.load("..\\dll\\win32\\glfw3.dll");
+	DerelictGLFW3.load("..\\dll\\win64\\glfw3.dll");
 
 	enforce(glfwInit(), "GLFW init problem");
 
-	auto w = cast(uint)config.map.width.integer,
-		h = cast(uint)config.map.height.integer;
 
-	window = glfwCreateWindow(w, h, toCString(config.title.string_), null, null);
+    import allocation.gc;
+    auto config = fromSDLFile!WindowConfig(GCAllocator.it, sdlPath);
+    auto dim = config.dim;
+    window = glfwCreateWindow(dim.x, dim.y, toCString(config.title), null, null);
 	glfwMakeContextCurrent(window);
 	DerelictGL3.reload();
 
-	achtung.init(allocator, config);
+	achtung.init(allocator, "Config.sdl");
 }
 
-void run(SDLObject config)
+void run()
 {
 	auto allocator = RegionAllocator(Mallocator.it, 1024 * 1024, 8);
 	auto stack     = ScopeStack(allocator);
 
-	init(stack, config);
+	init(stack, "Window.sdl");
 
 	Game.shouldRun = &shouldRun;
 	Game.update    = &update;

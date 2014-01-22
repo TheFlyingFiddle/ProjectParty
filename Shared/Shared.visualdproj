@@ -271,13 +271,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles />
+  <libfiles>DerelictGL3.lib DerelictGLFW3.lib DerelictUtil.lib</libfiles>
   <libpaths>..\lib\win64;</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions>-main</additionalOptions>
+  <additionalOptions>-main -unittest</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
@@ -378,6 +378,7 @@
  </Config>
  <Folder name="Shared">
   <Folder name="allocation">
+   <File path="allocation\gc.d" />
    <File path="allocation\native.d" />
    <File path="allocation\package.d" />
    <File path="allocation\region.d" />

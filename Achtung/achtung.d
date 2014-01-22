@@ -21,36 +21,38 @@ AchtungRenderer renderer;
 List!Snake alive;
 List!Timer timers;
 List!SnakeControl controls;
-int visibleSnakes, snakeSize;
-float minInvis, maxInvis, minVis, maxVis;
-float turnSpeed;
+int visibleSnakes;
+AchtungConfig config;
 
-
-void init(Allocator)(ref Allocator allocator, SDLObject config)
+struct AchtungConfig
 {
-	auto w = cast(uint)config.map.width.integer,
-		h = cast(uint)config.map.height.integer,
-		snakeLen = config.snakes.length;
-
-	alive      = List!Snake(allocator, snakeLen);
-	timers     = List!Timer(allocator, snakeLen);
-	controls   = List!SnakeControl(allocator, snakeLen);
-
-	map		   = Grid!bool(allocator,w,h);
-	renderer   = AchtungRenderer(allocator, snakeLen, w, h);
-	stream     = EventStream(allocator, 1024);
-
-	minInvis   = config.minInvis.number;
-	maxInvis   = config.maxInvis.number;
-	minVis     = config.minVis.number;
-	maxVis     = config.maxVis.number;
-	turnSpeed  = config.turnSpeed.number;
-	snakeSize  = cast(uint)config.snakeSize.integer;
-
-	reset(config);
+    float minInvis, maxInvis, minVis, maxVis, turnSpeed;
+    int snakeSize;
+    SnakeProperties[] snakes;
+    uint2 mapDim;
 }
 
-void reset(SDLObject config)
+struct SnakeProperties
+{
+    uint color, leftKey, rightKey;
+}
+
+void init(Allocator)(ref Allocator allocator, string configPath)
+{
+    config = fromSDLFile!AchtungConfig(allocator, configPath);
+
+	alive      = List!Snake(allocator, config.snakes.length);
+	timers     = List!Timer(allocator, config.snakes.length);
+	controls   = List!SnakeControl(allocator, config.snakes.length);
+
+	map		   = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
+	renderer   = AchtungRenderer(allocator, config.snakes.length, config.mapDim.x, config.mapDim.y);
+	stream     = EventStream(allocator, 1024);
+
+	reset();
+}
+
+void reset()
 {
 	alive.clear();
 	timers.clear();
@@ -63,16 +65,14 @@ void reset(SDLObject config)
 	foreach(i; 0 .. alive.capacity)
 	{
 		Snake snake;
-		snake.pos =float2(config.snakes[i].posx.number,
-						  config.snakes[i].posy.number);
-		snake.dir = float2(config.snakes[i].dirx.number,
-						   config.snakes[i].diry.number);
-		snake.color    = Color(cast(uint)config.snakes[i].color.number);
+		snake.pos = float2(uniform(50, config.mapDim.x -50), uniform(50, config.mapDim.y -50));
+		snake.dir = ( float2(config.mapDim/2) - snake.pos).normalized;
+		snake.color = Color(config.snakes[i].color);
 		alive ~= snake;
 
 		controls ~= SnakeControl(snake.color, 
-								 cast(uint)config.snakes[i].leftKey.number,
-								 cast(uint)config.snakes[i].rightKey.number);
+								 config.snakes[i].leftKey,
+								 config.snakes[i].rightKey);
 
 		timers ~= Timer(1, snake.color, true);
 	}
@@ -83,9 +83,9 @@ void reset(SDLObject config)
 void update()
 {
 	generateInputEvents(controls, stream, window);
-	handleInput(alive, stream, turnSpeed);
+	handleInput(alive, stream, config.turnSpeed);
 	updateTimers(timers, alive, Time.delta);
-	moveSnakes(alive, map, stream, snakeSize);
+	moveSnakes(alive, map, stream, config.snakeSize);
 	doGameLogic(alive, controls, map, stream);
 
 	stream.clear();
@@ -135,12 +135,12 @@ void updateTimers(ref List!Timer timers, ref List!Snake snakes, float elapsed)
 			timer.visible = !timer.visible;
 			if(timer.visible)
 			{
-				timer.time = uniform(minVis,maxVis);
+				timer.time = uniform(config.minVis,config.maxVis);
 				visibleSnakes++;
 			} 
 			else 
 			{
-				timer.time = uniform(minInvis,maxInvis);
+				timer.time = uniform(config.minInvis,config.maxInvis);
 				visibleSnakes--;
 			}
 		}
@@ -222,7 +222,7 @@ void doGameLogic(ref List!Snake alive,
 {
 	foreach(collision; stream.over!CollisionEvent)
 	{
-		if(collision.numPixels < snakeSize / 2 + 1) continue;
+		if(collision.numPixels < config.snakeSize / 2 + 1) continue;
 
 		assert(alive.remove!(x => x.color    == collision.color));
 		assert(controls.remove!(x => x.color == collision.color));

@@ -1,7 +1,7 @@
-map = 
+mapDim = 
 {
-	width  = 800
-	height = 600
+	x  = 800
+	y = 600
 }
 
 snakes =

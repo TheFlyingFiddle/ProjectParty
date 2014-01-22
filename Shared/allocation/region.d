@@ -155,10 +155,11 @@ struct RegionAppender(T)
 		return list;
 	}
 
-	void put(T value)
+	size_t put(T value)
 	{
 		assert(_offset < _capacity);
 		_buffer[_offset++] = value;
+        return _offset - 1;
 	}
 
 	void put(T[] value)
@@ -176,6 +177,18 @@ struct RegionAppender(T)
 	void clear()
 	{
 		_offset = 0;
+	}
+
+    ref T opIndex(size_t index)
+	{
+        assert(index < _capacity, "Index out of bounds");
+        return _buffer[index];
+	}
+
+    void opIndexAssign(ref T value, size_t index)
+	{
+        assert(index < _capacity, "Index out of bounds");
+        _buffer[index] = value;
 	}
 
 	@disable this(this);

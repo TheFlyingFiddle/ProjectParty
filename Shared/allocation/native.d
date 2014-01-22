@@ -102,3 +102,53 @@ version(X86_64)
 		__gshared static Mallocator it;
 	}
 }
+
+
+struct MallocAppender(T)
+{
+    T* _buffer;
+    uint _capacity;
+    uint _offset;
+
+    size_t put(T value)
+	{
+        if (_offset == _capacity)
+            grow();
+        _buffer[_offset++] = value;
+        return _offset - 1;
+	}
+
+    ref T opIndex(size_t index)
+	{
+        return _buffer[index];
+	}
+
+    this(size_t initialCapacity)
+	{
+        _buffer = cast(T*) Mallocator.it.allocate(cast(uint)initialCapacity * T.sizeof, T.alignof).ptr;
+        _capacity = cast(uint)initialCapacity;
+        _offset = 0;
+    }
+
+    void grow()
+	{
+        auto b = cast(T*) Mallocator.it.allocate((_capacity * 2 + 10) * T.sizeof, T.alignof).ptr;
+        b[0.._capacity] = _buffer[0.._capacity];
+        Mallocator.it.deallocate(_buffer[0.._capacity]);
+        _capacity = _capacity * 2 + 10;
+        _buffer = b;
+	}
+
+    import collections.list;
+    List!T data()
+	{
+        return List!T(_buffer[0.._offset]);
+	}
+    
+    @disable this(this);
+
+    ~this()
+	{
+        Mallocator.it.deallocate(_buffer[0.._capacity]);
+	}
+}
