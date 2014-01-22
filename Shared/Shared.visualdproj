@@ -271,7 +271,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictUtil.lib DerelictGL3.lib</libfiles>
+  <libfiles />
   <libpaths>..\lib\win64;</libpaths>
   <deffile />
   <resfile />
