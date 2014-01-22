@@ -47,14 +47,21 @@ struct AchtungRenderer
 		fbo = FBO.create();
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
-		auto tex = Texture2DMultisample.create(InternalFormat.rgba8,
-											   32,
-											   cast(uint)mapHeight,
-											   cast(uint)mapWidth,
-											   true);
+		//auto tex = Texture2DMultisample.create(InternalFormat.rgba8,
+		//									   32,
+		//									   cast(uint)mapHeight,
+		//									   cast(uint)mapWidth,
+		//									   true);
+
+		auto tex = Texture2D.create(ColorFormat.rgba, 
+											 ColorType.ubyte_,
+											 InternalFormat.rgba8,
+											 cast(uint)mapHeight,
+											 cast(uint)mapWidth,
+											 null);
 
 		fbo.attachTexture(FrameBufferAttachement.color0, 
-						  tex);
+						  tex, 0);
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 	}
