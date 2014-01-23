@@ -58,7 +58,7 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
         string title;
 	}
 	DerelictGL3.load();
-	DerelictGLFW3.load("..\\dll\\win64\\glfw3.dll");
+	DerelictGLFW3.load("..\\dll\\win32\\glfw3.dll");
 
 	enforce(glfwInit(), "GLFW init problem");
 
