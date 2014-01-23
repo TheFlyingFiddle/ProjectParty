@@ -34,6 +34,3 @@ LINK : fatal error LNK1181: cannot open input file 'user32.lib' and are using th
 1. Locate the sc.ini file. It is at %D_INSTAL_DIR%\dmd2\windows\bin\sc.ini by default.
 2. At the bottom of the page there is the text ; Platform libraries (Windows SDK 8)
    change the path under that line to LIB=%LIB%;"%WindowsSdkDir%\Lib\winv6.3\um\x64"
-
-
-   Trollolloolololollololloolool ^^
