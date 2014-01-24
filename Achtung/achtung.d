@@ -20,6 +20,7 @@ AchtungRenderer renderer;
 
 List!Snake alive;
 List!Timer timers;
+List!Score scores;
 List!SnakeControl controls;
 int visibleSnakes;
 AchtungConfig config;
@@ -44,6 +45,13 @@ void init(Allocator)(ref Allocator allocator, string configPath)
 	alive      = List!Snake(allocator, config.snakes.length);
 	timers     = List!Timer(allocator, config.snakes.length);
 	controls   = List!SnakeControl(allocator, config.snakes.length);
+	scores	   = List!Score(allocator, config.snakes.length);
+
+	foreach(i; 0 .. config.snakes.length)
+	{
+		scores ~= Score(Color(config.snakes[i].color), 0);
+	}
+
 
 	map		   = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
 	renderer   = AchtungRenderer(allocator, config.snakes.length, config.mapDim.x, config.mapDim.y);
@@ -54,6 +62,9 @@ void init(Allocator)(ref Allocator allocator, string configPath)
 
 void reset()
 {
+
+	writeScores();
+
 	alive.clear();
 	timers.clear();
 	controls.clear();
@@ -80,13 +91,21 @@ void reset()
 	visibleSnakes = alive.length;
 }
 
+void writeScores()
+{
+	foreach(score; scores)
+	{
+		info(score.score);
+	}
+}
+
 void update()
 {
 	generateInputEvents(controls, stream, window);
 	handleInput(alive, stream, config.turnSpeed);
 	updateTimers(timers, alive, Time.delta);
 	moveSnakes(alive, map, stream, config.snakeSize);
-	doGameLogic(alive, controls, map, stream);
+	handleCollision(alive, controls, map, stream, timers, scores);
 
 	stream.clear();
 }
@@ -215,10 +234,13 @@ bool hitWall(uint2 position, ref Grid!bool map)
 		position.y >= map.height;
 }
 
-void doGameLogic(ref List!Snake alive, 
+void handleCollision(
+				 ref List!Snake alive, 
 				 ref List!SnakeControl controls,
 				 ref Grid!bool map, 
-				 ref EventStream stream)
+				 ref EventStream stream,
+				 ref List!Timer timers,
+				 ref List!Score scores)
 {
 	foreach(collision; stream.over!CollisionEvent)
 	{
@@ -228,6 +250,13 @@ void doGameLogic(ref List!Snake alive,
 		assert(controls.remove!(x => x.color == collision.color));
 		assert(timers.remove!(x => x.color   == collision.color));
 		visibleSnakes--;
+		auto toGet = alive.capacity - alive.length;
+		size_t index = scores.countUntil!(x => x.color == collision.color);
+		scores[index].score += toGet;
+		if(alive.length == 1){
+			reset();
+		}
+
 	}
 }
 
@@ -236,4 +265,10 @@ void renderFrame(ref AchtungRenderer buffer, ref List!Snake snakes)
 	mat4 proj = mat4.CreateOrthographic(0, 800,600,0,1,-1);
 	List!Snake visible = snakes[0 .. visibleSnakes];
 	buffer.draw(proj, visible, 4);
+}
+
+struct Score
+{
+	Color color;
+	int score;
 }
