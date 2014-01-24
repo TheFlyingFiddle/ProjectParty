@@ -6,7 +6,7 @@ import math;
 import types;
 import rendering;
 import content.sdl;
-import graphics.color;
+import graphics;
 import derelict.glfw3.glfw3;
 import event;
 import std.random;
@@ -264,7 +264,7 @@ void renderFrame(ref AchtungRenderer buffer, ref List!Snake snakes)
 {
 	mat4 proj = mat4.CreateOrthographic(0, 800,600,0,1,-1);
 	List!Snake visible = snakes[0 .. visibleSnakes];
-	buffer.draw(proj, visible, 4);
+	buffer.draw(proj, visible, config.snakeSize);
 }
 
 struct Score

@@ -9,61 +9,52 @@ import types;
 **/
 struct AchtungRenderer
 {
-	struct Vertex
-	{
-		float2 pos;
-		Color color;
-	}
-
-	private VBO vbo;
-	private VAO vao;
-
-	private Program program;
+	private SpriteBuffer buffer;
+	private Frame snakeFrame;
 	private FBO fbo;
 
-	this(Allocator)(ref Allocator allocator, 
+	this(Allocator)(ref Allocator allocator,
 					size_t bufferSize, 
 					size_t mapHeight,
 					size_t mapWidth)
 	{
 
-		auto vShader = Shader(ShaderType.vertex, achtungVS),
-			fShader = Shader(ShaderType.fragment, achtungFS);
 
-		this.program = Program(allocator, vShader, fShader);
+		Color[4] c = [Color.white, Color.white, Color.white, Color.white];
+		auto snakeTex = Texture2D.create(ColorFormat.rgba, ColorType.ubyte_, InternalFormat.rgba8,
+									2, 2, c);
+		snakeFrame = Frame(snakeTex);
 
-		vShader.destroy();
-		fShader.destroy();
-
-		vbo = VBO.create(BufferHint.streamDraw);
-		gl.bindBuffer(vbo.target, vbo.glName);
-		vbo.initialize(cast(uint)(bufferSize * Vertex.sizeof * 6));
-
-		gl.useProgram(program.glName);
-		vao = VAO.create();
-		gl.bindVertexArray(vao.glName);
-		vao.bindAttributesOfType!Vertex(program);
+		//auto vShader = Shader(ShaderType.vertex, achtungVS),
+		//    fShader = Shader(ShaderType.fragment, achtungFS);
+		//
+		//this.program = Program(allocator, vShader, fShader);
+		//
+		//vShader.destroy();
+		//fShader.destroy();
+		//
+		//vbo = VBO.create(BufferHint.streamDraw);
+		//gl.bindBuffer(vbo.target, vbo.glName);
+		//vbo.initialize(cast(uint)(bufferSize * Vertex.sizeof * 6));
+		//
+		//gl.useProgram(program.glName);
+		//vao = VAO.create();
+		//gl.bindVertexArray(vao.glName);
+		//vao.bindAttributesOfType!Vertex(program);
 
 		fbo = FBO.create();
-
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
-		//auto tex = Texture2DMultisample.create(InternalFormat.rgba8,
-		//									   32,
-		//									   cast(uint)mapHeight,
-		//									   cast(uint)mapWidth,
-		//									   true);
-
 		auto tex = Texture2D.create(ColorFormat.rgba, 
 											 ColorType.ubyte_,
 											 InternalFormat.rgba8,
 											 cast(uint)mapHeight,
 											 cast(uint)mapWidth,
 											 null);
-
 		fbo.attachTexture(FrameBufferAttachement.color0, 
 						  tex, 0);
-
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
+
+		buffer = SpriteBuffer(bufferSize, allocator);
 	}
 
 	void clear(Color c)
@@ -76,31 +67,20 @@ struct AchtungRenderer
 
 	void draw(ref mat4 transform, ref List!Snake snakes, float size)
 	{
-		gl.bindBuffer(vbo.target, vbo.glName);
-		import derelict.opengl3.gl3;
-
-		auto verts = cast(Vertex*)gl.mapBuffer(vbo.target, GL_WRITE_ONLY);
-		auto origin = float2(size / 2, size / 2);
-		foreach(i, snake; snakes) {
-			verts[i * 6 + 0] = Vertex(snake.pos - origin, snake.color);
-			verts[i * 6 + 1] = Vertex(snake.pos - origin + float2(size, size), snake.color);
-			verts[i * 6 + 2] = Vertex(snake.pos - origin + float2(size, 0), snake.color);
-
-			verts[i * 6 + 3] = Vertex(snake.pos - origin + float2(0, size), snake.color);
-			verts[i * 6 + 4] = Vertex(snake.pos - origin + float2(0, 0), snake.color);
-			verts[i * 6 + 5] = Vertex(snake.pos - origin + float2(size, size), snake.color);
-		}
-		gl.unmapBuffer(vbo.target);
-
-
-		gl.bindVertexArray(vao.glName);
-		gl.useProgram(program.glName);
-
-
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
 
-		program.uniform["transform"] = transform;
-		gl.DrawArrays(PrimitiveType.triangles, 0, cast(uint)(snakes.length * 6));
+
+		auto origin = float2(size / 2, size / 2);
+		foreach(i, snake; snakes) {
+			buffer.addFrame(snakeFrame, 
+			 		 float4(snake.pos.x, snake.pos.y, size, size), 
+					        snake.color, 
+							origin);
+		}
+
+		buffer.flush();
+		buffer.draw(transform);
+		buffer.clear();
 
 		blitToBackbuffer(fbo, uint4(0,0, 800, 600),
 						 uint4(0,0, 800, 600),

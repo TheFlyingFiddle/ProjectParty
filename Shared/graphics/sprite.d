@@ -9,7 +9,8 @@ struct SpriteBuffer
 	private VBO vbo;
 	private VAO vao;
 
-	private static Program program;
+	private static Program defaultProgram;
+	private Program program;
 
 	private Vertex[]    vertices;
 	private Texture2D[] textures;
@@ -43,7 +44,10 @@ struct SpriteBuffer
 			vShader  = Shader(ShaderType.vertex,   vs),
 			fShader  = Shader(ShaderType.fragment, fs);
 
-		program = Program(allocator, gShader, vShader, fShader);
+		if(defaultProgram.glName == 0)
+			defaultProgram = Program(allocator, gShader, vShader, fShader);
+
+		program = defaultProgram;
 
 		gl.useProgram(program.glName);
 		program.uniform["sampler"] = 0;
@@ -277,8 +281,6 @@ struct SpriteBuffer
 
 		return pos.w > 0 && pos.z > 0;
 	}
-
-
 
 	void flush()
 	{

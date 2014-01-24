@@ -10,7 +10,7 @@ struct gl
 	{
 		enum glName = "gl" ~ name[0].toUpper.to!string ~ name[1 .. $];
 
-		scope(exit) checkGLError(name);
+		debug scope(exit) checkGLError(name);
 		mixin("return " ~ glName ~ "(args);");
 	}
 }
