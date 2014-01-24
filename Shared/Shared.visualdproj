@@ -410,6 +410,7 @@
    <File path="graphics\color.d" />
    <File path="graphics\common.d" />
    <File path="graphics\context.d" />
+   <File path="graphics\convinience.d" />
    <File path="graphics\enums.d" />
    <File path="graphics\frame.d" />
    <File path="graphics\framebuffer.d" />
