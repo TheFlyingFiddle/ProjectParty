@@ -402,6 +402,7 @@
   </Folder>
   <Folder name="game">
    <File path="game\package.d" />
+   <File path="game\state.d" />
    <File path="game\time.d" />
   </Folder>
   <Folder name="graphics">

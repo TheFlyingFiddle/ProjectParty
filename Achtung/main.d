@@ -84,9 +84,11 @@ void run()
 
 	init(stack, "Window.sdl");
 
+	Game.gameStateMachine = GameStateFSM(stack, 10);
+	Game.gameStateMachine.addState(new AchtungGameState(), "Achtung");
+	Game.gameStateMachine.transitionTo("Achtung");
+
 	Game.shouldRun = &shouldRun;
-	Game.update    = &update;
-	Game.render    = &render;
 	Game.swap      = &swapBuffers;
 
 	import std.datetime;
@@ -102,4 +104,22 @@ void swapBuffers()
 {
 	glfwPollEvents();
 	glfwSwapBuffers(window);
+}
+
+final class AchtungGameState : IGameState
+{
+	void enter() { } 
+	void exit()  { }
+	void init()  { }
+	void handleInput() { }
+
+	void update()
+	{
+		achtung.update();
+	}
+
+	void render()
+	{
+		achtung.render();
+	}
 }

@@ -1,8 +1,10 @@
 module game;
 
+public import game.time;
+public import game.state;
+
 import core.time, std.datetime,
-	core.thread, std.algorithm,
-	game.time;
+	core.thread, std.algorithm;
 
 enum Timestep
 {
@@ -10,17 +12,17 @@ enum Timestep
 	fixed
 }
 
+alias GameStateFSM = FSM!(IGameState, string);
+
 struct Game
 {
 	static void function() swap;
-	static void function() update;
-	static void function() render;
 	static bool function() shouldRun;
-
+	static GameStateFSM gameStateMachine;
+		
 	static void run(Timestep timestep, Duration target = 0.msecs)
 	{
-		assert(swap && update && render && shouldRun, "Need to specify functions the game should run");
-
+		assert(swap && shouldRun, "Need to specify functions the game should run");
 
 		StopWatch watch;
 		watch.start();
@@ -31,9 +33,9 @@ struct Game
 			Time._delta = cast(Duration)(curr - last);
 			Time._total += Time._delta;
 			last = curr;
-
-			update();
-			render();
+			
+			gameStateMachine.update();
+			gameStateMachine.render();
 			swap();
 
 			if(timestep == Timestep.fixed) {
