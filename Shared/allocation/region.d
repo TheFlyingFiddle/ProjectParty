@@ -147,7 +147,7 @@ struct RegionAppender(T)
 	{
 		auto list = List!T(_buffer, cast(uint)_offset, cast(uint)_offset);
 
-		_rewindPos = &_buffer[_offset];
+		_rewindPos = cast(void*)&_buffer[_offset];
 		_buffer    = cast(T*)_rewindPos;
 		_offset    = 0;
 		_capacity -= _offset;
@@ -166,12 +166,13 @@ struct RegionAppender(T)
 	{
 		assert(_offset + value.length < _capacity);
 		_buffer[_offset .. _offset + value.length] = value;
+		_offset += value.length;
 	}
 
 	void put(Range)(Range range) if(isInputRange!Range && is(ElementType!Range : T))
 	{
 		foreach(ref elem; range)
-			put(elem);
+			this.put(elem);
 	}
 
 	void clear()

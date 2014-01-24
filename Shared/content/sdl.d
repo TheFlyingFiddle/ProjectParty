@@ -7,6 +7,7 @@ import std.bitmanip;
 import std.file;
 import std.c.string :memcpy;
 import std.string;
+import std.range : repeat;
 import allocation;
 
 alias TypeID = SDLObject.Type;
@@ -114,10 +115,10 @@ struct SDLIterator
         currentIndex = next;
 	}
 
-    private enum curObjObjRange = "ForwardRange(over.root[currentIndex].objectIndex,
+    enum curObjObjRange = "ForwardRange(over.root[currentIndex].objectIndex,
 		over.source)";
 
-	private T as(T)() if(isNumeric!T)
+	T as(T)() if(isNumeric!T)
 	{
         static if(isIntegral!T)
 			enforce(over.root[currentIndex].type == TypeID._int,
@@ -134,7 +135,15 @@ struct SDLIterator
             return cast(T)readNumber!double(range);
 	}
 
-    private T as(T, A)(ref A allocator) if(isSomeString!T)
+	T as(T)() if(is(T==bool))
+	{
+		assert(over.root[currentIndex].type == TypeID._int,
+			   "SDLObject wasn't a boolean, which was requested");
+		auto range = mixin(curObjObjRange);
+		return readBool(range);
+	}
+
+    T as(T, A)(ref A allocator) if(isSomeString!T)
 	{
         assert(over.root[currentIndex].type == TypeID._string);
 
@@ -145,7 +154,7 @@ struct SDLIterator
         return cast(T)s;
 	}
 
-    private T as(T, A)(ref A allocator) if(isArray!T && !isSomeString!T)
+    T as(T, A)(ref A allocator) if(isArray!T && !isSomeString!T)
     {
         static if(is(T t == A[], A)) {
             auto arr = allocator.allocate!T(walkLength);
@@ -165,7 +174,7 @@ struct SDLIterator
 	}
 
     import math.vector, math.traits;
-    private Vec as(Vec)() if(isVector!Vec)
+    Vec as(Vec)() if(isVector!Vec)
 	{
 		static if (is(Vec v == Vector!(len, U), int len, U)) {
 			enum dimensions = ["x","y","z","w"]; // This is at the same time the vector rep and the file rep. Change.
@@ -223,7 +232,8 @@ struct SDLIterator
 	T as(T)() if (!(isNumeric!T ||
                   isSomeString!T ||
                   isArray!T ||
-                  isVector!T))
+                  isVector!T ||
+					is(T==bool)))
 	{
         goToChild();
         T toReturn;
@@ -286,117 +296,152 @@ struct SDLContainer
         return SDLIterator(&this, 0).as!T;
 	}
 
-    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T == struct))
-    {
-        if(level != 0) {
-            sink.put('\n');
-            sink.put('\t'.repeat(level - 1));
-            sink.put(objectOpener);
-        }
-
-        foreach(i, field; value.tupleof) {
-            sink.put('\n');
-            sink.put('\t'.repeat(level));
-            sink.put(__traits(identifier, T.tupleof[i]));
-            sink.put("=");
-            toSDL(field, sink, level + 1);
-        }
-
-        if(level != 0){
-            sink.put('\n');
-            sink.put('\t'.repeat(level - 1));
-            sink.put(objectCloser);
-        }
-    }
-
-    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T == string))
-    {
-        sink.put(stringSeperator);
-        sink.put(value);
-        sink.put(stringSeperator);
-    }
-
-    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(is(T : double))
-    {
-        sink.put(value.to!string);
-    }
-
-    void toSDL(T, Sink)(T value, Sink sink, int level = 0) if(isArray!T && !is(T == string))
-    {
-        sink.put(arrayOpener);
-        foreach(i; 0 .. value.length) {
-            toSDL(value[i], sink, level);
-            if(i != value.length - 1)
-                sink.put(',');
-        }
-        sink.put(arrayCloser);
-    }
-
-    void toSDL(Sink)(SDLObject obj, Sink sink)
-    {
-        alias T = TypeID;
-
-        if(obj.name != "") {
-            sink.put(obj.name);
-            sink.put('=');
-        }
-        final switch(obj.type) 
-        {
-            case T.number:
-                sink.put( obj.number.to!string );
-                break;
-            case T.string_:
-                sink.put(stringSeperator);
-                sink.put( obj.string_);
-                sink.put(stringSeperator);
-                break;
-            case T.array  :
-            case T.object :
-                toSDL_inner(obj, sink);
-                break;
-        }
-    }
-
-    void toSDL_inner(Sink)(SDLObject obj, Sink sink)
-    {
-        alias T = TypeID;
-        final switch(obj.type)
-        {
-            case T.number:
-                sink.put( obj.number.to!string); //Allocates :S
-                break;
-            case T.string_:
-                sink.put(stringSeperator);
-                sink.put( obj.string_);
-                sink.put(stringSeperator);
-                break;
-            case T.array:
-                sink.put(arrayOpener);
-                scope(exit) sink.put(arrayCloser);
-                foreach(i, item; obj.collection) {
-                    toSDL_inner(item, sink);	
-                    if(i != obj.collection.length - 1)
-                        sink.put(arraySeparator);
-                }
-                break;
-            case T.object:
-                if(obj.name != "")
-                    sink.put(objectOpener);
-                foreach(item; obj.collection) {
-                    sink.put(item.name);
-                    sink.put('=');
-                    toSDL_inner(item, sink);
-                }
-                if(obj.name != "")
-                    sink.put(objectCloser);
-                break;
-        }
-
-    }
-
-
-
 }
+
+
+void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(is(T == struct))
+{
+	if(level != 0) {
+		sink.put('\n');
+		sink.put('\t'.repeat(level - 1));
+		sink.put(objectOpener);
+	}
+	
+	import math;
+	static if (is(T vec == Vector!(len, U), int len, U)) {
+		enum dimensions = ['x','y','z','w']; // This is at the same time the vector rep and the file rep. TODO: DRY.
+		foreach(i;staticIota!(0, len)) {  
+			sink.put('\n');
+			sink.put('\t'.repeat(level));
+			sink.put(dimensions[i]);
+			sink.put('=');
+			sink.put(cast(char[])(mixin("value." ~ dimensions[i]).to!string));
+		}
+	} else {
+		foreach(i, field; value.tupleof) {
+			sink.put('\n');
+			sink.put('\t'.repeat(level));
+			sink.put(cast(char[])__traits(identifier, T.tupleof[i]));
+			sink.put('=');
+			toSDL(field, sink, level + 1);
+		}
+	}
+//Quick note about casts to char[]
+//These exists since a non-trivial
+//amount of the underlying implementations
+//of sinks require mutability.
+
+	if(level != 0){
+		sink.put('\n');
+		sink.put('\t'.repeat(level - 1));
+		sink.put(objectCloser);
+	}
+}
+
+void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(is(T == string))
+{
+	sink.put(stringSeperator);
+	sink.put(cast(char[])value);
+	sink.put(stringSeperator);
+}
+
+void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isNumeric!T)
+{
+	sink.put(cast(char[])value.to!string);
+	static if(isFloatingPoint!T) {
+		if(std.math.floor(value) == value)	// Is integer
+			sink.put('.');
+	}
+}
+
+void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isArray!T && !is(T == string))
+{
+	sink.put(arrayOpener);
+	foreach(i; 0 .. value.length) {
+		toSDL(value[i], sink, level);
+		if(i != value.length - 1)
+			sink.put(',');
+	}
+	sink.put(arrayCloser);
+}
+
+//ToSDL Test
+unittest {
+	struct Snake
+	{
+		long posx;
+		long posy;
+		double dirx;
+		double diry;
+		long color;
+		long leftKey;
+		long rightKey;
+
+	}
+	import math.vector;
+	struct AchtungConfig
+	{
+		int2 map;
+		Snake[] snakes;
+		double turnSpeed;
+		long freeColor;
+	}
+
+	Snake s1 = Snake(400, 10, 1, 0., 42131241, 65, 68);
+	Snake s2 = Snake(100, 50, 1., 0., 51231241, 263, 262);
+
+	auto config = AchtungConfig(int2(800,600), [s1,s2], 0.02, 0);
+
+    auto buf = new void[1024];
+    auto alloc = RegionAllocator(buf);
+    auto app = RegionAppender!char(alloc);
+	toSDL(config, app);
+	auto source = app.data;
+	import collections.list;
+	std.stdio.writeln(source);
+	auto checkSource = "
+map=
+{
+	x=800
+	y=600
+}
+snakes=[
+{
+	posx=400
+	posy=10
+	dirx=1.
+	diry=0.
+	color=42131241
+	leftKey=65
+	rightKey=68
+},
+{
+	posx=100
+	posy=50
+	dirx=1.
+	diry=0.
+	color=51231241
+	leftKey=263
+	rightKey=262
+}]
+turnSpeed=0.02
+freeColor=0";
+	List!(T) from(T)(T[] content) {
+		return List!T(content.ptr, cast(uint)content.length, cast(uint)content.length);
+	}
+	bool listEquals(List)(List a, List b) {
+		foreach(i, elem; a) {
+			if (elem != b[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	auto check = from(cast(char[])checkSource);
+	std.stdio.writeln(check);
+	assert(listEquals(check, source));
+}
+
 
 unittest {
 	auto buf = new void[1024];
@@ -456,13 +501,17 @@ struct ForwardRange
 	}
 }
 
+bool isWhiteSpace(char c)
+{
+	return	c == '\n' ||
+			c == '\r' ||
+			c == '\t' ||
+			c == ' ';
+}
+
 void skipWhitespace(ref ForwardRange range)
 {
-	while(!range.empty && (
-						   range.front == '\n' ||
-						   range.front == '\r' ||
-						   range.front == '\t' ||
-						   range.front == ' '))
+	while(!range.empty && isWhiteSpace(range.front))
 	{
 		range.popFront();
 	}
@@ -538,6 +587,36 @@ if (isStringOrVoid!StringOrVoid)
 	assert(0);
 }
 
+template isBoolOrVoid(T) {
+    enum isBoolOrVoid = is(T==void) || is(T==bool);
+}
+
+BoolOrVoid readBool(BoolOrVoid = bool, Range)(ref Range range)
+if (isBoolOrVoid!BoolOrVoid)
+{
+	static if (is(BoolOrVoid==bool))
+		auto saved = range.save;
+	while(!isWhiteSpace(range.front)) {
+		range.popFront;
+	}
+	static if(is(BoolOrVoid==void)) 
+		return;
+
+	static if (is(BoolOrVoid==bool)) {
+		import std.string : capitalize;
+		string trueOrFalse = str(saved, range);
+		if (trueOrFalse == "False" ||
+			trueOrFalse == "false")
+			return  false;
+		if (trueOrFalse == "True" ||
+			trueOrFalse == "true")
+			return  true;
+		enforce(0, "Invalid bool " ~ trueOrFalse);
+	}
+	assert(0, "Invalid codepath in readBool.");
+}
+
+
 template isNumericVoidOrType(T) {
 	enum isNumericVoidOrType = is(T==void) || is(T==TypeID) || isNumeric!T;
 }
@@ -571,6 +650,12 @@ if (isNumericVoidOrType!NumericVoidOrType)
 	while(!range.empty)
 	{
 		char c = range.front;
+
+		if(c == '_') { // Support for underscores in numbers.
+			range.popFront(); // TODO:	A lot of numbers which might not actually be legal
+			continue;			//		such as -__1234__23214_ are accepted...	
+		}
+
 		switch(state)
 		{
 			case 0:
@@ -770,8 +855,20 @@ string str(ForwardRange a, ForwardRange b)
 
 T number(T)(ForwardRange a, ForwardRange b)
 if(isNumeric!T)
-{
-	return a.over[a.position .. b.position].to!T;
+{//BY THE GODS THIS SUCKS
+//TODO: No string allocs.
+//Only alternatives I see right now is to either pass appenders/allocators
+//Or write your own parsers of integers and floats (very hard!)
+	auto numSlice = a.over[a.position .. b.position];
+	size_t properLength = b.position - a.position;
+	string no_ = "";
+	while(a.position != b.position) {
+		if(a.front != '_') {
+			no_ ~= a.front;
+		}
+		a.popFront();
+	}
+	return no_.to!T;
 }
 
 long parseHex(ForwardRange saved, ForwardRange range)
@@ -781,22 +878,27 @@ long parseHex(ForwardRange saved, ForwardRange range)
 	enforce(saved.front == 'x' || saved.front == 'X');
     saved.popFront();
 	long acc = 0;
-    size_t length = range.position - saved.position;
-	for(size_t i = length-1;i<=length;saved.popFront(), i--) {
-		auto c = saved.front; 
+	size_t currentPosition = 0;
+	while( saved.position - 1 != range.position) {
+		range.position--;
+		auto c = range.front; 
 		switch (c) {
 			case '0': .. case '9':
-				acc += to!long(c - '0') * 16^^(i);
+				acc += to!long(c - '0') * 16^^(currentPosition);
 				break;
 			case 'a': .. case 'f':
-				acc += to!long(c - 'a' + 10) * 16^^(i);
+				acc += to!long(c - 'a' + 10) * 16^^(currentPosition);
 				break;
 			case 'A': .. case 'F':
-				acc += to!long(c - 'A' + 10) * 16^^(i);
+				acc += to!long(c - 'A' + 10) * 16^^(currentPosition);
+				break;
+			case '_':
+				continue;
 				break;
 			default:
 				return acc;
 		}
+		currentPosition++;
 	}
 	return acc;
 }
@@ -829,8 +931,6 @@ SDLContainer fromSDL(Sink)(ref Sink sink, string source)
     container.root = list.buffer;
     return container;
 }
-
-
 
 //Only used to build the tree of SDLObjects from the file.
 private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacantIndex)
@@ -883,6 +983,14 @@ private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort 
             sink[objIndex].objectIndex = cast(uint)range.position;
             range.readString!void;
             break;
+		case 't':
+		case 'T':
+		case 'f':
+		case 'F':
+			sink[objIndex].objectIndex = cast(uint)range.position;
+			sink[objIndex].type = TypeID._int;
+			range.readBool!void;
+			break;
         case '/':
             skipLine(range);
             break;
@@ -1028,4 +1136,53 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
 
     assert(obj.turnSpeed            .as!double  ==  0.02);
     assert(obj.freeColor            .as!int     ==  0);
+}
+
+unittest {
+
+    auto buf = new void[1024];
+    auto alloc = RegionAllocator(buf);
+    auto app = RegionAppender!SDLObject(alloc);
+	auto obj = fromSDL(app, 
+					   "
+					   booleans =
+					   [
+					   {	
+					   testfalse = false
+					   testFalse = False
+					   },
+					   {
+					   testtrue = true
+					   testTrue = True
+					   }
+					   ]"
+					   );
+
+    assert(obj.booleans[0].testfalse.as!bool == false);
+    assert(obj.booleans[0].testFalse.as!bool == false);
+    assert(obj.booleans[1].testtrue.as!bool == true);
+    assert(obj.booleans[1].testTrue.as!bool == true);
+}
+
+unittest {
+    auto buf = new void[1024];
+    auto alloc = RegionAllocator(buf);
+    auto app = RegionAppender!SDLObject(alloc);
+	auto obj = fromSDL(app, 
+					   "numberone 	    = 123_456
+					   numbertwo 	    = 1_234.234
+					   numberthree      = 1_234._3_4e2_34
+					   numberfour 	    = 123_4.3_4E-23_4
+					   numberfive 	    = -1_234
+					   numbersix 	    = 0xf_F
+					   numberseven 	    = 0x10_000"
+					   );
+
+	assert(obj.numberone 	 .as!int    == 123456);
+	assert(obj.numbertwo 	 .as!double     == 1234.234);
+	assert(obj.numberthree   .as!double     == 1234.34e234);
+	assert(obj.numberfour 	 .as!double     == 1234.34E-234);
+	assert(obj.numberfive 	 .as!int    == -1234);
+	assert(obj.numbersix 	 .as!int    == 0xfF);
+	assert(obj.numberseven 	 .as!int    == 0x10000);
 }

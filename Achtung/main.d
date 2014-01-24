@@ -68,8 +68,12 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
     auto dim = config.dim;
     window = glfwCreateWindow(dim.x, dim.y, toCString(config.title), null, null);
 	glfwMakeContextCurrent(window);
-	DerelictGL3.reload();
 
+    try {
+	DerelictGL3.reload();
+	} catch (Throwable t) {
+	    error(t); // Some errors thrown by derelict on 
+	}
 	achtung.init(allocator, "Config.sdl");
 }
 
