@@ -3,6 +3,7 @@ module main;
 import std.file;
 import derelict.glfw3.glfw3;
 import derelict.opengl3.gl3;
+import derelict.freeimage.freeimage;
 
 import logging;
 import content.sdl;
@@ -13,9 +14,22 @@ import achtung;
 import game;
 import math;
 
-pragma(lib, "DerelictGLFW3.lib");
-pragma(lib, "DerelictGL3.lib");
-pragma(lib, "DerelictUtil.lib");
+
+version(X86) 
+{
+	enum dllPath = "..\\dll\\win32\\";
+	enum libPath = "..\\lib\\win32\\";
+}
+version(X86_64) 
+{
+	enum dllPath = "..\\dll\\win64\\";
+	enum libPath = "..\\lib\\win32\\";
+}
+
+pragma(lib, libPath ~ "DerelictGLFW3.lib");
+pragma(lib, libPath ~ "DerelictGL3.lib");
+pragma(lib, libPath ~ "DerelictUtil.lib");
+pragma(lib, libPath ~ "DerelictFI.lib");
 pragma(lib, "Shared.lib");
 
 GLFWwindow* window;
@@ -58,7 +72,9 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
         string title;
 	}
 	DerelictGL3.load();
-	DerelictGLFW3.load("..\\dll\\win32\\glfw3.dll");
+	DerelictGLFW3.load(dllPath ~ "glfw3.dll");
+	DerelictFI.load(dllPath ~ "FreeImage.dll");
+
 
 	enforce(glfwInit(), "GLFW init problem");
 

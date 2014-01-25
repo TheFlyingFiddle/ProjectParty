@@ -84,7 +84,7 @@
   <objfiles />
   <linkswitches />
   <libfiles />
-  <libpaths>..\lib\win32\; ..\Shared\Debug</libpaths>
+  <libpaths>..\Shared\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
