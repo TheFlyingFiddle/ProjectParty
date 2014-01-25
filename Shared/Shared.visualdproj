@@ -394,6 +394,7 @@
   <Folder name="content">
    <File path="content\package.d" />
    <File path="content\sdl.d" />
+   <File path="content\texture.d" />
   </Folder>
   <Folder name="event">
    <File path="event\package.d" />

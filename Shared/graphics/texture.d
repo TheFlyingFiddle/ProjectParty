@@ -236,4 +236,4 @@ void compressedSubTexImage(TextureTarget target, uint mipLevel, InternalFormat i
 }
 
 
-template isTexture(T) { enum isTexture = is(T == Texture1D) || is(T == Texture2D); }
+template isTexture(T) { enum isTexture = is(T == Texture1D) || is(T == Texture2D) || is(T == Texture2DMultisample); }

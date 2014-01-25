@@ -62,8 +62,6 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
 }
 
-
-
 void init(Allocator)(ref Allocator allocator, string sdlPath)
 {
     struct WindowConfig

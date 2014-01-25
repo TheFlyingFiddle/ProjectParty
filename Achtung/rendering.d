@@ -4,6 +4,7 @@ import graphics;
 import graphics.convinience;
 import math;
 import collections;
+import content;
 import types;
 
 /** Very simple renderer that stores everything that has been drawn into a rendertarget. **/
@@ -18,8 +19,11 @@ struct AchtungRenderer
 					uint mapWidth,
 					uint mapHeight)
 	{
-		Color[4] c = [Color.white, Color.white, Color.white, Color.white];
-		auto snakeTex = createStandardTexture(2, 2, c);
+		//Color[4] c = [Color.white, Color.white, Color.white, Color.white];
+		//auto snakeTex = createStandardTexture(2, 2, c);
+		
+		auto snakeTex = loadTexture("..\\resources\\textures\\pixel.png");
+			
 		snakeFrame = Frame(snakeTex);
 
 		fbo = createSimpleFBO(mapWidth, mapHeight);
