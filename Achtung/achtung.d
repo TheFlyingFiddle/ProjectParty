@@ -54,7 +54,7 @@ void init(Allocator)(ref Allocator allocator, string configPath)
 
 
 	map		   = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
-	renderer   = AchtungRenderer(allocator, config.snakes.length, config.mapDim.x, config.mapDim.y);
+	renderer   = AchtungRenderer(allocator, cast(uint)config.snakes.length, config.mapDim.x, config.mapDim.y);
 	stream     = EventStream(allocator, 1024);
 
 	reset();

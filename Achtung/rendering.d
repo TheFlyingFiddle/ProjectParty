@@ -14,9 +14,9 @@ struct AchtungRenderer
 	private FBO fbo;
 
 	this(Allocator)(ref Allocator allocator,
-					size_t bufferSize, 
-					size_t mapWidth,
-					size_t mapHeight)
+					uint bufferSize, 
+					uint mapWidth,
+					uint mapHeight)
 	{
 		Color[4] c = [Color.white, Color.white, Color.white, Color.white];
 		auto snakeTex = createStandardTexture(2, 2, c);

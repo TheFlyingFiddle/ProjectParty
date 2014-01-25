@@ -20,7 +20,7 @@ version(X86)
 			void* allocated = malloc(bytes + aligner);
 			size_t addr = cast(size_t)allocated;
 
-			allocated = cast(void*)((cast(size_t)allocated + aligner) & ~(alignment - 1));
+			allocated = cast(void*)((cast(size_t)allocated + aligner) & ~(aligner - 1));
 			
 			//Store ptr at begining of allocation block.
 			size_t* ptr = cast(size_t*)allocated;
