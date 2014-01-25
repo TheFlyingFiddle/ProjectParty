@@ -73,11 +73,3 @@ struct FSM(T, ID)
 		mixin("this._currentState.state." ~ name ~ "(args);");
 	}
 }	
-
-unittest
-{
-	alias GameStateFSM = FSM!(IGameState, string);
-
-	GSFSM fsm;
-	fsm.update();
-}

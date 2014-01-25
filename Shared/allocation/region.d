@@ -39,9 +39,15 @@ struct RegionAllocator
 	
 	void rewind(void* rewindPos)
 	{
-		assert(cast(size_t)rewindPos <= cast(size_t)_offset);
+		assert(cast(size_t)rewindPos <= cast(size_t)_offset &&
+			   cast(size_t)rewindPos >= cast(size_t)_buffer);
 		
 		this._offset = rewindPos;
+	}
+
+	void deallocate(void[] mem)
+	{
+		rewind(mem.ptr);
 	}
 
 	@disable this(this);
@@ -50,48 +56,6 @@ struct RegionAllocator
 void* aligned(void* ptr, size_t alignment)
 {
 	return cast(void*)((cast(size_t)ptr + (alignment - 1)) & ~(alignment - 1));
-}
-
-
-//Shared memory bugg #0001
-//The bugg caused allocations to 
-//return to little memory 16 bytes for 
-//any allocation.
-unittest
-{
-	import allocation;
-	auto region = RegionAllocator(Mallocator.it, 1024, 0);
-
-	ubyte[] first  = cast(ubyte[])region.allocate(128, 16);
-	ubyte[] second = cast(ubyte[])region.allocate(128, 16);
-
-	first[]  = 1;
-	second[] = 2;
-
-	foreach(i; 0 .. 128)
-		assert(first[i] != second[i]);
-}
-
-
-//Test if alignment is properly handled for good alignments.
-unittest 
-{
-	import allocation, std.conv;
-	auto region = RegionAllocator(Mallocator.it, 1024 * 1024, 0);
-	uint[] alignments = [2,4,8,16,32,64, 128];
-	foreach(elem; alignments) {
-		ubyte[] d = cast(ubyte[])region.allocate(643, elem);
-		assert(cast(size_t)(d.ptr) % elem == 0, d.ptr.to!string ~ " " ~ elem.to!string);
-	}
-}
-
-//Test if out of memory assertion works.
-unittest
-{
-	import allocation;
-	import std.exception, core.exception;
-	auto region = RegionAllocator(Mallocator.it, 1024, 0);
-	assertThrown!(AssertError)(region.allocate(1025, 16));
 }
 
 unittest
@@ -104,7 +68,6 @@ unittest
 	assert(region.bytesAllocated() == 1024);
 	assert(region.bytesRemaining() == 0);
 }
-
 
 struct RegionAppender(T)
 {
@@ -224,3 +187,4 @@ unittest
 
 	assertThrown!AssertError(app.put(1));
 }
+

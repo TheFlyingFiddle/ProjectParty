@@ -92,9 +92,12 @@ struct FrameBuffer
 
 }	
 
-static void blit(FrameBuffer from, FrameBuffer to,
-				 uint4 fromRect, uint4 toRect, 
-				 BlitMode mode, BlitFilter filter)
+static void blit(FrameBuffer from, 
+				 FrameBuffer to,
+				 uint4 fromRect, 
+				 uint4 toRect, 
+				 BlitMode mode, 
+				 BlitFilter filter)
 {
 
 	gl.bindFramebuffer(FrameBufferTarget.read, from.glName);
@@ -106,8 +109,11 @@ static void blit(FrameBuffer from, FrameBuffer to,
 }
 
 
-static void blitToBackbuffer(FrameBuffer from,uint4 fromRect, uint4 toRect, 
-							 BlitMode mode, BlitFilter filter)
+static void blitToBackbuffer(FrameBuffer from,
+							 uint4 fromRect, 
+							 uint4 toRect, 
+							 BlitMode mode, 
+							 BlitFilter filter)
 {
 
 	gl.bindFramebuffer(FrameBufferTarget.read, from.glName);

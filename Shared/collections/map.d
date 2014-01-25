@@ -94,6 +94,7 @@ private struct Hash(K,V, alias hashFunc)
 		if(fr.dataIndex != endOfList)
 			return fr.dataIndex;
 
+
 		uint index = addEntry(key);
 		if(fr.dataPrev == endOfList)
 			_hashes[fr.hashIndex] = index;
@@ -170,7 +171,9 @@ private struct Hash(K,V, alias hashFunc)
 											capacity, Entry.alignof);
 
 		uint[] hashBuffer = cast(uint[])mapData[0 .. uint.sizeof * capacity];
+		hashBuffer[] = endOfList;
 		Entry[] entryBuffer = cast(Entry[])mapData[uint.sizeof * capacity + extra .. $];
+		entryBuffer[] = Entry(V.init, K.init, endOfList);
 
 		return Hash!(K,V, hashFunc)(hashBuffer, entryBuffer);
 	}
@@ -509,12 +512,13 @@ unittest
 	rng.seed!()(seed);
 
 	Map map = Map(new CAllocator!(Mallocator)(Mallocator.it), 1000);
-	foreach(ref u; rng.take(100))
+	foreach(ref u; 0 .. 100)
 		map["String" ~ u.to!string] = u;
 
 	rng.seed!()(seed);
+
 	uint count;
-	foreach(ref u; rng.take(100)) {
+	foreach(ref u; 0 .. 100) {
 		assert(map["String" ~ u.to!string] == u);
 		count++;
 	}
@@ -529,14 +533,16 @@ unittest
 	auto rng = rndGen();
 	auto seed = rng.front;
 	rng.seed!()(seed);
+	
 
 	Map map = Map(new CAllocator!Mallocator(Mallocator.it), 100);
 	assert(map.capacity == 100);
-	foreach(ref u; rng.take(200))
+	foreach(ref int u; rng.take(200)) {
 		map["String" ~ u.to!string] = u;
+	}
 
 	rng.seed!()(seed);
-	foreach(ref u; rng.take(200))
+	foreach(ref int u; rng.take(200))
 		assert(map["String" ~ u.to!string] == u);
 }
 
