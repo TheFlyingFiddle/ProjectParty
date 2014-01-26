@@ -6,8 +6,7 @@ import derelict.opengl3.gl3;
 import derelict.freeimage.freeimage;
 
 import logging;
-import content.sdl;
-import content.texture;
+import content;
 import allocation;
 import std.exception;
 import std.concurrency;
@@ -15,7 +14,6 @@ import graphics.common;
 import achtung;
 import game;
 import math;
-import util.file_watcher;
 import core.sys.windows.windows;
 import std.datetime;
 
@@ -58,6 +56,8 @@ void main()
 	{
 		error(t);
 	}
+
+	std.c.stdlib.exit(0);
 }
 
 void writeLogger(string chan, Verbosity v, string msg, string file, size_t line) nothrow
@@ -81,8 +81,6 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
 
 	enforce(glfwInit(), "GLFW init problem");
 
-	spawn(&listenOnDir, thisTid, r"C:\Users\Gustav\Documents\GitHub\ProjectParty\resources\textures");
-
     import allocation.gc;
     auto config = fromSDLFile!WindowConfig(GCAllocator.it, sdlPath);
     auto dim = config.dim;
@@ -102,7 +100,9 @@ void run()
 	auto allocator = RegionAllocator(Mallocator.it, 1024 * 1024, 8);
 	auto stack     = ScopeStack(allocator);
 
+	ContentReloader.init(stack, 100, 50);
 	TextureManager.init(stack, 100);
+
 	init(stack, "Window.sdl");
 
 	Game.gameStateMachine = GameStateFSM(stack, 10);
@@ -125,24 +125,6 @@ void swapBuffers()
 {
 	glfwPollEvents();
 	glfwSwapBuffers(window);
-	receiveTimeout(0.msecs,
-			(shared(void)* ptr)
-			{
-
-				auto info = cast(FILE_NOTIFY_INFORMATION*) ptr;
-				if((&info.FileName)[0..info.FileNameLength/WCHAR.sizeof]
-					== "pixel.psd"w) {
-						TextureManager.reload("..\\resources\\textures\\pixel.psd");
-				}
-
-				while(info.NextEntryOffset != 0) {
-					info = cast(FILE_NOTIFY_INFORMATION*) (cast(size_t)info + info.NextEntryOffset);
-					if((&info.FileName)[0..info.FileNameLength/WCHAR.sizeof]
-					   == "pixel.psd"w) {
-						   TextureManager.reload("..\\resources\\textures\\pixel.psd");
-					   }
-				}
-			});
 }
 
 final class AchtungGameState : IGameState

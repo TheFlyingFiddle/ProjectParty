@@ -22,7 +22,7 @@ struct AchtungRenderer
 		//Color[4] c = [Color.white, Color.white, Color.white, Color.white];
 		//auto snakeTex = createStandardTexture(2, 2, c);
 		
-		auto snakeTex = TextureManager.load("..\\resources\\textures\\pixel.psd");
+		auto snakeTex = TextureManager.load("textures\\pixel.png");
 			
 		snakeFrame = Frame(snakeTex);
 

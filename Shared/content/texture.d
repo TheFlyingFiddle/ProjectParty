@@ -1,5 +1,6 @@
 module content.texture;
 
+import content;
 import graphics.common;
 import graphics.texture;
 import derelict.freeimage.freeimage;
@@ -26,11 +27,31 @@ struct TextureManager
 	{
 		textures = List!Texture2D(allocator, capacity);
 		ids = List!uint(allocator, capacity);
+	
+		import content.reloading;
+
+		FileExtention[7] exts =
+		[FileExtention.bmp,
+		 FileExtention.dds,
+		 FileExtention.jpg,
+		 FileExtention.jp2,
+		 FileExtention.png,
+		 FileExtention.psd,
+		 FileExtention.tiff];
+
+		ContentReloader.registerReloader(exts, &auto_reload);
+	}
+
+	void auto_reload(string path)
+	{
+		reload(path, 0, Flag!"generateMipMaps".no);
 	}
 
 	static TextureID load(string path, int loadingParam = 0, 
 				   Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
 	{
+		ContentReloader.registerResource(path);
+
 		auto texture = loadTexture(path, loadingParam, flag);
 		return addToTextures(texture, path);
 	}
@@ -80,16 +101,25 @@ struct TextureManager
 						 textures[index].width, textures[index].height);
 	}
 
+
+	
 	static Texture2D lookup(TextureID id)
 	{
 		return textures[id.index];
 	}
+
+	static bool isLoaded(uint hashID)
+	{
+		import std.algorithm;
+		return ids.canFind!(x => x == hashID);
+	}	
 }
 
 private Texture2D loadTexture(string path, uint paramConfig = 0, 
 					  Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
 {
-	const(char*) c_str = path.toCString();
+	import std.path;
+	const(char*) c_str = buildPath(resourceDir, path).toCString();
 	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_str);
 	if(format == FIF_UNKNOWN)
 	{

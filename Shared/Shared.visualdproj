@@ -31,7 +31,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>1</useUnitTests>
+  <useUnitTests>0</useUnitTests>
   <useInline>0</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
@@ -393,6 +393,7 @@
   </Folder>
   <Folder name="content">
    <File path="content\package.d" />
+   <File path="content\reloading.d" />
    <File path="content\sdl.d" />
    <File path="content\texture.d" />
   </Folder>
@@ -434,7 +435,6 @@
    <File path="math\vector.d" />
   </Folder>
   <Folder name="util">
-   <File path="util\file_watcher.d" />
    <File path="util\hash.d" />
    <File path="util\profile.d" />
    <File path="util\strings.d" />
