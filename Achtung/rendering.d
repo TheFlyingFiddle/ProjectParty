@@ -12,6 +12,7 @@ struct AchtungRenderer
 {
 	private SpriteBuffer buffer;
 	private Frame snakeFrame;
+	private Font font;
 	private FBO fbo;
 
 	this(Allocator)(ref Allocator allocator,
@@ -23,11 +24,12 @@ struct AchtungRenderer
 		//auto snakeTex = createStandardTexture(2, 2, c);
 		
 		auto snakeTex = TextureManager.load("textures\\pixel.png");
-			
+		font     = loadFont(allocator, r"C:\Git\ProjectParty\resources\fonts\Arial32.fnt");
+
 		snakeFrame = Frame(snakeTex);
 
 		fbo = createSimpleFBO(mapWidth, mapHeight);
-		buffer = SpriteBuffer(bufferSize, allocator);
+		buffer = SpriteBuffer(512, allocator);
 	}
 
 	void clear(Color c)
@@ -60,5 +62,11 @@ struct AchtungRenderer
 						 BlitFilter.nearest);
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
+
+
+		buffer.addText(font, "Hello", float2.zero);
+		buffer.flush();
+		buffer.draw(transform);
+		buffer.clear();
 	}
 }

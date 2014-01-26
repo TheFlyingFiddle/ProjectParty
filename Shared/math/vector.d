@@ -245,11 +245,6 @@ template staticIota(size_t s, size_t e)
 
 unittest
 {
-	alias float2 = Vector!(2, float);
-	alias float3 = Vector!(3, float);
-	alias float4 = Vector!(4, float);
-	//alias uint2  = Vector!(2, uint);
-
 	float2 a = float2(1), b = float2(2);
 
 	a.x = 2;

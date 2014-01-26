@@ -149,7 +149,7 @@ struct SDLIterator
 
         auto range = mixin(curObjObjRange);
         string str = readString!T(range);
-        char[] s = allocateT!(A, char[])(allocator, str.length);
+        char[] s = allocate!(A, char[])(allocator, str.length);
         s[] = str;
         return cast(T)s;
 	}

@@ -25,6 +25,7 @@ List!SnakeControl controls;
 int visibleSnakes;
 AchtungConfig config;
 
+
 struct AchtungConfig
 {
     float minInvis, maxInvis, minVis, maxVis, turnSpeed;

@@ -151,7 +151,7 @@ struct SpriteBuffer
 			if(elements + text.length > vertices.length)
 				throw new Exception("SpriteBuffer full");
 
-			textures[elements .. elements + text.length] = font.page;
+			textures[elements .. elements + text.length] = TextureManager.lookup(font.page.texture);
 
 			float2 cursor = float2(0,0);
 			foreach(wchar c; text)
@@ -186,7 +186,6 @@ struct SpriteBuffer
 
 				cursor.x += info.advance * scale.x;
 			}
-			return this;
 		}
 
 	void addText(T)(Font font,

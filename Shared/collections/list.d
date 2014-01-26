@@ -128,7 +128,7 @@ bool remove(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, auto ref T
 	return list.remove!(x => x == value)();
 }
 
-bool remove(alias pred,SwapStrategy s = SwapStrategy.stable, T)(ref List!T list)
+bool remove(alias pred, SwapStrategy s = SwapStrategy.stable, T)(ref List!T list)
 {
 	auto index = list.countUntil!(pred);
 	if(index == -1) return false;

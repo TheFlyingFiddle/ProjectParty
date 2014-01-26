@@ -12,3 +12,4 @@ public import graphics.sprite;
 public import graphics.texture;
 public import graphics.vertex;
 public import graphics.framebuffer;
+public import graphics.font;

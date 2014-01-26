@@ -20,6 +20,13 @@ struct Blob
 		this.capacity = cast(uint)buffer.length;
 		this.length   = 0;
 	}
+	
+	this(void* buffer, uint length, uint capacity)
+	{
+		this.buffer   = buffer;
+		this.length   = length;
+		this.capacity = capacity;
+	}
 
 	void opOpAssign(string op, T)(auto ref T value) if(!hasIndirections!T &&  op == "~")
 	{

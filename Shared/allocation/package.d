@@ -38,7 +38,7 @@ final class CAllocator(T) : IAllocator
 }
 
 import std.traits;
-T allocateT(A, T)(ref A allocator, size_t size) if (isArray!T)
+T allocate(A, T)(ref A allocator, size_t size) if (isArray!T)
 {
     T t;
     return cast(T) allocator.allocate(size * typeof(t[0]).sizeof, typeof(t[0]).alignof);

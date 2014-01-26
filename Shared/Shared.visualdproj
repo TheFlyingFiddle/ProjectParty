@@ -31,7 +31,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>0</useUnitTests>
+  <useUnitTests>1</useUnitTests>
   <useInline>0</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
@@ -83,13 +83,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictUtil.lib DerelictGL3.lib</libfiles>
+  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib</libfiles>
   <libpaths>..\lib\win32</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions />
+  <additionalOptions>-main</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
@@ -392,6 +392,7 @@
    <File path="collections\package.d" />
   </Folder>
   <Folder name="content">
+   <File path="content\font.d" />
    <File path="content\package.d" />
    <File path="content\reloading.d" />
    <File path="content\sdl.d" />
@@ -414,6 +415,7 @@
    <File path="graphics\context.d" />
    <File path="graphics\convinience.d" />
    <File path="graphics\enums.d" />
+   <File path="graphics\font.d" />
    <File path="graphics\frame.d" />
    <File path="graphics\framebuffer.d" />
    <File path="graphics\package.d" />

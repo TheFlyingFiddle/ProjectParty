@@ -5,7 +5,7 @@ import content;
 struct ReloadHandler
 {
 	FileExtention extention;
-	void function(string path) reload;
+	void function(const(char)[] path) reload;
 }
 
 struct ContentReloader
@@ -23,13 +23,13 @@ struct ContentReloader
 	}
 
 
-	static void registerReloader(FileExtention[] extentions, void function(string path) reload)
+	static void registerReloader(FileExtention[] extentions, void function(const(char)[] path) reload)
 	{
 		foreach(ext; extentions) 
 			registerReloader(ext, reload);
 	}
 
-	static void registerReloader(FileExtention extention, void function(string path) reload)
+	static void registerReloader(FileExtention extention, void function(const(char)[] path) reload)
 	{
 		reloadFunctions ~= ReloadHandler(extention, reload);
 	}
@@ -39,9 +39,14 @@ struct ContentReloader
 		loadedResources ~= filePath;
 	}
 
-	static void unregisterResource(string filePath)
+	static void registerResource(const(char)[] filePath)
 	{
-		loadedResources.remove(filePath);
+		loadedResources ~= filePath.idup;
+	}
+
+	static void unregisterResource(const(char)[] filePath)
+	{
+		loadedResources.remove!(x => x == filePath);
 	}
 	
 	static void processReloadRequests()

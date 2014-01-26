@@ -1,6 +1,18 @@
 import std.stdio;
 import std.socket;
 
+
+void main()
+{
+	auto v = new void[1024];
+	//v[1] = cast(void)120;
+
+	auto v2 = new void[1024];
+	v2[] = v;
+
+}
+
+
 void mai()
 {
 	Socket server = new Socket(AddressFamily.INET,

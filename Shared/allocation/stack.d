@@ -86,6 +86,11 @@ struct ScopeStack
 		return e[0 .. size];
 	}
 
+	void[] allocate(size_t size, size_t alignment)
+	{
+		return _allocator.allocate(size, alignment);
+	}
+
 	~this()
 	{
 		for(auto fin = _chain; fin; fin = fin.chain)

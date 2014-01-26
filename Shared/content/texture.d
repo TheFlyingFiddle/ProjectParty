@@ -7,29 +7,26 @@ import derelict.freeimage.freeimage;
 import graphics.enums;
 import std.traits;
 import util.hash;
-import collections.list;
+import std.algorithm;
 import logging;
 
 struct TextureID
 {
 	private uint index;
-	private uint idHash;
 	uint width;
 	uint height;
 }
 
 struct TextureManager
 {
-	private static List!Texture2D	textures;
-	private static List!uint		ids;
- 
+	alias Table = ResourceTable!(Texture2D, graphics.texture.obliterate!Texture2D); 
+	private static Table resources;
+
 	static init(A)(ref A allocator, uint capacity)
 	{
-		textures = List!Texture2D(allocator, capacity);
-		ids = List!uint(allocator, capacity);
-	
-		import content.reloading;
+		resources = Table(allocator, capacity);
 
+		import content.reloading;
 		FileExtention[7] exts =
 		[FileExtention.bmp,
 		 FileExtention.dds,
@@ -42,80 +39,58 @@ struct TextureManager
 		ContentReloader.registerReloader(exts, &auto_reload);
 	}
 
-	void auto_reload(string path)
+	void auto_reload(const(char)[] path)
 	{
 		reload(path, 0, Flag!"generateMipMaps".no);
 	}
 
-	static TextureID load(string path, int loadingParam = 0, 
+	static TextureID load(const(char)[] path, int loadingParam = 0, 
 				   Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
 	{
-		ContentReloader.registerResource(path);
+		auto index = resources.indexOf(path);
+		if(index != -1)
+			return TextureID(index, resources[index].width, resources[index].height);
 
 		auto texture = loadTexture(path, loadingParam, flag);
-		return addToTextures(texture, path);
-	}
-	
-	static private TextureID addToTextures(Texture2D texture, string path)
-	{
-		auto hash = bytesHash(path.ptr, path.length);
-		foreach(i, t; textures) {
-			if (t.glName == 0) {
-				auto id = TextureID(i, hash, texture.width, texture.height);
-				textures[i] = texture;
-				ids ~= hash;
-				return id;
-			}
-		}
-		textures ~= texture;
-		ids ~= hash;
-		
-		return TextureID(textures.length-1, hash, texture.width, texture.height);
+		index = resources.add(texture, path);
+		return TextureID(index, resources[index].width, resources[index].height);
+
 	}
 
-	static void unload(TextureID id)
+	static void unload(const(char)[] path)
 	{
-		auto texture = textures[id.index];
-		if (texture.glName == 0) {
-			warn("Trying to remove non-existant texture");
-			return;
-		}
-		texture.obliterate();
-		textures[id.index] = Texture2D(0,0,0);
-		ids[id.index] = 0;
+		resources.remove(path);
 	}
 
-	static TextureID reload(string path, uint paramConfig = 0, 
+	static TextureID reload(const(char)[] path, uint paramConfig = 0, 
 					 Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
 	{
-		auto hash = bytesHash(path.ptr, path.length);
-		auto index = ids.countUntil!(x => x == hash);
+		auto index = resources.indexOf(path);
 		if (index == -1) {
 			warn("Trying to reload unloaded texture: " ~ path);
 			return load(path);
 		}
 		
-		textures[index].obliterate();
-		textures[index] = loadTexture(path, paramConfig, flag);
-		return TextureID(index, hash, 
-						 textures[index].width, textures[index].height);
+		auto tex = loadTexture(path, paramConfig, flag);
+		resources.replace(tex, path);
+		
+		return TextureID(index, resources[index].width, resources[index].height);
 	}
 
-
-	
-	static Texture2D lookup(TextureID id)
-	{
-		return textures[id.index];
-	}
-
-	static bool isLoaded(uint hashID)
+	static bool isLoaded(const(char)[] path)
 	{
 		import std.algorithm;
-		return ids.canFind!(x => x == hashID);
+		return resources.indexOf(path) != -1;
 	}	
+
+	static Texture2D lookup(TextureID id)
+	{
+		return resources[id.index];
+	}
+
 }
 
-private Texture2D loadTexture(string path, uint paramConfig = 0, 
+private Texture2D loadTexture(const(char)[] path, uint paramConfig = 0, 
 					  Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
 {
 	import std.path;
