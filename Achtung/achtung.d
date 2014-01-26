@@ -255,6 +255,7 @@ void handleCollision(
 		scores[index].score += toGet;
 		if(alive.length == 1){
 			reset();
+			return;
 		}
 
 	}

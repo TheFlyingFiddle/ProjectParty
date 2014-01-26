@@ -1,7 +1,7 @@
 import std.stdio;
 import std.socket;
 
-void main()
+void mai()
 {
 	Socket server = new Socket(AddressFamily.INET,
 										SocketType.STREAM,

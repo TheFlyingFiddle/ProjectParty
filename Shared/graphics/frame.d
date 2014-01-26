@@ -1,11 +1,11 @@
 module graphics.frame;
 
-import graphics.texture;
 import math.vector;
+import content.texture;
 
 struct Frame
 {
-	Texture2D texture;
+	TextureID texture;
 	float4 _srcRect;
 	float4 coords;
 
@@ -14,14 +14,14 @@ struct Frame
 		return _srcRect;
 	} 
 
-	this(Texture2D texture)
+	this(TextureID texture)
 	{
 		this.texture = texture;
 		this.coords = float4(0,0,1,1);
 		this._srcRect = float4(0, 0, 1, 1);
 	}
 
-	this(Texture2D texture, float4 srcRect)
+	this(TextureID texture, float4 srcRect)
 	{
 		this.texture = texture;
 		this._srcRect = srcRect;

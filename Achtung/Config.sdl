@@ -6,30 +6,33 @@ mapDim =
 
 snakes =
 [
-	{	
-		posx = 400
-		posy = 10
-		dirx = 1
-		diry = 0
-		color = 42131241
+	{
+		color = 0xFF00cc00
 		leftKey = 65
 		rightKey = 68
 	},
 	{
-		posx = 100
-		posy = 50
-		dirx = 1
-		diry = 0
-		color = 51231241
+		color = 0xFFcc0000
 		leftKey = 263
 		rightKey = 262
 	},
 	{
-		posx = 200
-		posy = 75
-		dirx = 1
-		diry = 0
-		color = 0xFF0000cc
+		color = 0xFF4400cc
+		leftKey = 264
+		rightKey = 265
+	},
+	{
+		color = 0xFFFFFFFF
+		leftKey = 264
+		rightKey = 265
+	},
+	{
+		color = 0xFF0044cc
+		leftKey = 264
+		rightKey = 265
+	},
+	{
+		color = 0xFF0440cc
 		leftKey = 264
 		rightKey = 265
 	}

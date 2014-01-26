@@ -73,12 +73,12 @@ struct Sampler
 
 bool deleted(T)() if(isTexture!T)
 {
-	return glIsTexture(glName) == GL_FALSE;
+	return gl.isTexture(glName) == GL_FALSE;
 }
 
-void destory(T)(T t) if(isTexture!T) 
+void obliterate(T)(T t) if(isTexture!T) 
 {
-	glDeleteTextures(1, &t.glName);
+	gl.deleteTextures(1, &t.glName);
 }
 
 static uint createTexture()

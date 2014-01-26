@@ -3,6 +3,7 @@ module graphics.sprite;
 import math;
 import graphics;
 import std.algorithm;
+import content.texture;
 
 struct SpriteBuffer 
 {
@@ -82,7 +83,7 @@ struct SpriteBuffer
 									color,
 									rotation);
 
-		textures[elements++] = frame.texture;
+		textures[elements++] = TextureManager.lookup(frame.texture);
 	}
 
 	void addFrame(Frame frame,
@@ -108,7 +109,7 @@ struct SpriteBuffer
 										color,
 										rotation);
 
-			textures[elements++] = frame.texture;
+			textures[elements++] = TextureManager.lookup(frame.texture);
 		}
 	}
 
@@ -135,7 +136,7 @@ struct SpriteBuffer
 									color,
 									rotation);
 
-		textures[elements++] = frame.texture;
+		textures[elements++] = TextureManager.lookup(frame.texture);
 	}
 
 	void addText(T)(Font font,
