@@ -382,5 +382,6 @@
   <File path="main.d" />
   <File path="rendering.d" />
   <File path="types.d" />
+  <File path="Window.sdl" />
  </Folder>
 </DProject>

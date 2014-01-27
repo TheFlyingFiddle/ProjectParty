@@ -36,3 +36,9 @@ struct InputEvent
 	Color color;
 	Input input;
 }
+
+struct Score
+{
+	Color color;
+	int score;
+}

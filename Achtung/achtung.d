@@ -113,7 +113,7 @@ void update()
 
 void render()
 {
-	renderFrame(renderer, alive);
+	renderFrame(renderer, alive,scores);
 }
 
 void generateInputEvents(ref List!SnakeControl controls, ref EventStream stream, GLFWwindow* window) // <-- This is wierd and very much not ok.
@@ -262,15 +262,10 @@ void handleCollision(
 	}
 }
 
-void renderFrame(ref AchtungRenderer buffer, ref List!Snake snakes)
+void renderFrame(ref AchtungRenderer buffer, ref List!Snake snakes, ref List!Score scores)
 {
 	mat4 proj = mat4.CreateOrthographic(0, 800,600,0,1,-1);
 	List!Snake visible = snakes[0 .. visibleSnakes];
-	buffer.draw(proj, visible, config.snakeSize);
+	buffer.draw(proj, visible, config.snakeSize, scores);
 }
 
-struct Score
-{
-	Color color;
-	int score;
-}

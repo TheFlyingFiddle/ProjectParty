@@ -24,7 +24,7 @@ struct AchtungRenderer
 		//auto snakeTex = createStandardTexture(2, 2, c);
 		
 		auto snakeTex = TextureManager.load("textures\\pixel.png");
-		font     = loadFont(allocator, "..\\resources\\fonts\\Arial32.fnt");
+		font = loadFont(allocator, "..\\resources\\fonts\\Arial32.fnt");
 
 		snakeFrame = Frame(snakeTex);
 
@@ -40,7 +40,7 @@ struct AchtungRenderer
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 	}
 
-	void draw(ref mat4 transform, ref List!Snake snakes, float size)
+	void draw(ref mat4 transform, ref List!Snake snakes, float size, ref List!Score scores)
 	{
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
 
@@ -63,8 +63,9 @@ struct AchtungRenderer
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 
-
-		buffer.addText(font, "Hello", float2.zero);
+		foreach(i; 0..scores.length){
+			buffer.addText(font, scores[i].to!string, float2(620, (550 - i*100)), scores[i].color);
+		}
 		buffer.flush();
 		buffer.draw(transform);
 		buffer.clear();
