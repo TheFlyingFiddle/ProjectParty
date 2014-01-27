@@ -8,33 +8,33 @@ snakes =
 [
 	{
 		color = 0xFF00cc00
-		leftKey = 65
-		rightKey = 68
+		leftKey = 81
+		rightKey = 65
 	},
 	{
 		color = 0xFFcc0000
+		leftKey = 340
+		rightKey = 341
+	},
+	{
+		color = 0xFF4400cc
+		leftKey = 88
+		rightKey = 67
+	},
+	{
+		color = 0xFFFFFFFF
 		leftKey = 263
 		rightKey = 262
 	},
 	{
-		color = 0xFF4400cc
-		leftKey = 264
-		rightKey = 265
-	},
-	{
-		color = 0xFFFFFFFF
-		leftKey = 264
-		rightKey = 265
-	},
-	{
 		color = 0xFF0044cc
-		leftKey = 264
-		rightKey = 265
+		leftKey = 320
+		rightKey = 321
 	},
 	{
-		color = 0xFF0440cc
-		leftKey = 264
-		rightKey = 265
+		color = 0xFFAA40cc
+		leftKey = 334
+		rightKey = 333
 	}
 ]
 
