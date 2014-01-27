@@ -255,6 +255,9 @@ void handleCollision(
 		size_t index = scores.countUntil!(x => x.color == collision.color);
 		scores[index].score += toGet;
 		if(alive.length == 1){
+			index = scores.countUntil!(x => x.color == alive[0].color);
+			scores[index].score += alive.capacity;
+
 			reset();
 			return;
 		}

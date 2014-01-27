@@ -56,15 +56,16 @@ struct AchtungRenderer
 		buffer.draw(transform);
 		buffer.clear();
 
-		blitToBackbuffer(fbo, uint4(0,0, 800, 600),
-						 uint4(0,0, 800, 600),
+		blitToBackbuffer(fbo, 
+						 uint4(0,0, 600, 600),
+						 uint4(0,0, 600, 600),
 						 BlitMode.color,
 						 BlitFilter.nearest);
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 
 		foreach(i; 0..scores.length){
-			buffer.addText(font, scores[i].to!string, float2(620, (550 - i*100)), scores[i].color);
+			buffer.addText(font, scores[i].score.to!string, float2(620, (550 - i*100)), scores[i].color);
 		}
 		buffer.flush();
 		buffer.draw(transform);
