@@ -7,7 +7,7 @@ public import content.font;
 
 
 
-string resourceDir = "C:\\Git\\ProjectParty\\resources";
+string resourceDir = "..\\resources";
 
 
 struct ResourceTable(Resource, alias obliterator)
