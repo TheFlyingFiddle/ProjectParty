@@ -37,13 +37,6 @@ pragma(lib, "Shared.lib");
 
 GLFWwindow* window;
 
-RegionAllocator tlsAllocator ;
-
-static this()
-{
-    tlsAllocator = RegionAllocator(Mallocator.it, 1024*1024, 8);
-}
-
 void main()
 {
 	logger = &writeLogger;
@@ -77,6 +70,7 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
 	DerelictGL3.load();
 	DerelictGLFW3.load(dllPath ~ "glfw3.dll");
 	DerelictFI.load(dllPath ~ "FreeImage.dll");
+	FreeImage_Initialise();
 
 
 	enforce(glfwInit(), "GLFW init problem");

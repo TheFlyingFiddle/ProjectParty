@@ -24,7 +24,7 @@ struct AchtungRenderer
 		//auto snakeTex = createStandardTexture(2, 2, c);
 		
 		auto snakeTex = TextureManager.load("textures\\pixel.png");
-		font     = loadFont(allocator, r"C:\Git\ProjectParty\resources\fonts\Arial32.fnt");
+		font     = loadFont(allocator, "..\\resources\\fonts\\Arial32.fnt");
 
 		snakeFrame = Frame(snakeTex);
 
