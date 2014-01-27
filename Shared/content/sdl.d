@@ -840,9 +840,11 @@ if (isNumericVoidOrType!NumericVoidOrType)
 									   );
 
 	assert(obj.numberone 	 .as!int    == 123456);
-	assert(obj.numbertwo 	 .as!double     == 1234.234);
-	assert(obj.numberthree   .as!double     == 1234.34e234);
-	assert(obj.numberfour 	 .as!double     == 1234.34E-234);
+	
+	import std.math : approxEqual;
+	assert(approxEqual(obj.numbertwo.as!double, 1234.234));
+	assert(approxEqual(obj.numberthree.as!double, 1234.34e234));
+	assert(approxEqual(obj.numberfour.as!double, 1234.34E-234));
 	assert(obj.numberfive 	 .as!int    == -1234);
 	assert(obj.numbersix 	 .as!int    == 0xfF);
 	assert(obj.numberseven 	 .as!int    == 0x10000);
@@ -1120,21 +1122,23 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
 
 	assert(obj.snakes[0].posx    	.as!int     ==  400);
 	assert(obj.snakes[0].posy       .as!int     ==  10);
-	assert(obj.snakes[0].dirx       .as!double  ==  1.);
-	assert(obj.snakes[0].diry       .as!double  ==  0);
+	
+	import std.math : approxEqual;
+	assert(approxEqual(obj.snakes[0].dirx       .as!double, 1.));
+	assert(approxEqual(obj.snakes[0].diry       .as!double, 0));
 	assert(obj.snakes[0].color 	    .as!int     ==  42131241);
 	assert(obj.snakes[0].leftKey 	.as!int     ==  65);
 	assert(obj.snakes[0].rightKey   .as!int     ==  68);
 
 	assert(obj.snakes[1].posx    	.as!int     ==  100);
 	assert(obj.snakes[1].posy       .as!int     ==  50);
-	assert(obj.snakes[1].dirx       .as!double  ==  1.);
-	assert(obj.snakes[1].diry       .as!double  ==  0);
+	assert(approxEqual(obj.snakes[1].dirx       .as!double, 1.));
+	assert(approxEqual(obj.snakes[1].diry       .as!double, 0));
 	assert(obj.snakes[1].color 	    .as!int     ==  51231241);
 	assert(obj.snakes[1].leftKey 	.as!int     ==  263);
 	assert(obj.snakes[1].rightKey   .as!int     ==  262);
 
-    assert(obj.turnSpeed            .as!double  ==  0.02);
+    assert(approxEqual(obj.turnSpeed.as!double, 0.02));
     assert(obj.freeColor            .as!int     ==  0);
 }
 
@@ -1179,9 +1183,11 @@ unittest {
 					   );
 
 	assert(obj.numberone 	 .as!int    == 123456);
-	assert(obj.numbertwo 	 .as!double     == 1234.234);
-	assert(obj.numberthree   .as!double     == 1234.34e234);
-	assert(obj.numberfour 	 .as!double     == 1234.34E-234);
+
+	import std.math : approxEqual;
+	assert(approxEqual(obj.numbertwo 	 .as!double, 1234.234));
+	assert(approxEqual(obj.numberthree   .as!double, 1234.34e234));
+	assert(approxEqual(obj.numberfour 	 .as!double, 1234.34E-234));
 	assert(obj.numberfive 	 .as!int    == -1234);
 	assert(obj.numbersix 	 .as!int    == 0xfF);
 	assert(obj.numberseven 	 .as!int    == 0x10000);
