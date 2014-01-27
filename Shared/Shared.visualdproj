@@ -191,7 +191,7 @@
  <Config name="Debug" platform="x64">
   <obj>0</obj>
   <link>0</link>
-  <lib>0</lib>
+  <lib>1</lib>
   <subsystem>0</subsystem>
   <multiobj>0</multiobj>
   <singleFileCompilation>0</singleFileCompilation>
@@ -219,7 +219,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>1</useUnitTests>
+  <useUnitTests>0</useUnitTests>
   <useInline>0</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
@@ -271,7 +271,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictGL3.lib DerelictUtil.lib</libfiles>
+  <libfiles>DerelictGL3.lib DerelictUtil.lib DerelictFI.lib</libfiles>
   <libpaths>..\lib\win64;</libpaths>
   <deffile />
   <resfile />

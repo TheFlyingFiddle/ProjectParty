@@ -27,366 +27,305 @@ DEALINGS IN THE SOFTWARE.
 */
 module derelict.freeimage.functions;
 
-private
-{
+private {
     import core.stdc.config;
     import core.stdc.stddef;
     import derelict.freeimage.types;
     import derelict.util.system;
 }
 
-extern(System)
-{
-    alias nothrow void function(BOOL load_local_plugins_only = FALSE) da_FreeImage_Initialise;
-    alias nothrow void function() da_FreeImage_DeInitialise;
-    alias nothrow const(char)* function() da_FreeImage_GetVersion;
-    alias nothrow const(char)* function() da_FreeImage_GetCopyrightMessage;
+extern( System ) nothrow {
+    alias da_FreeImage_Initialise = void function( BOOL load_local_plugins_only = FALSE );
+    alias da_FreeImage_DeInitialise = void function();
+    alias da_FreeImage_GetVersion = const( char )* function();
+    alias da_FreeImage_GetCopyrightMessage = const( char )* function();
 
-    // Message output functions -------------------------------------------------
+    alias da_FreeImage_SetOutputMessageStdCall = void function( FreeImage_OutputMessageFunctionStdCall omf );
+    alias da_FreeImage_SetOutputMessage = void function( FreeImage_OutputMessageFunction omf );
 
-    alias nothrow void function(FreeImage_OutputMessageFunctionStdCall omf) da_FreeImage_SetOutputMessageStdCall;
-    alias nothrow void function(FreeImage_OutputMessageFunction omf) da_FreeImage_SetOutputMessage;
+    alias da_FreeImage_OutputMessageProc = void function( int fif, const( char )* fmt, ... );
 
-    // interacts badly with stdcall mangling
-    alias nothrow void function(int fif, const(char)* fmt, ...) da_FreeImage_OutputMessageProc;
+    alias da_FreeImage_Allocate = FIBITMAP* function( int width, int height, int bpp, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0 );
+    alias da_FreeImage_AllocateT = FIBITMAP* function( FREE_IMAGE_TYPE type, int width, int height, int bpp = 8, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0 );
+    alias da_FreeImage_Clone = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_Unload = void function( FIBITMAP* dib );
 
-    // Allocate / Clone / Unload routines ---------------------------------------
+    alias da_FreeImage_HasPixels = BOOL function( FIBITMAP* dib );
 
-    alias nothrow FIBITMAP* function(int width, int height, int bpp, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0) da_FreeImage_Allocate;
-    alias nothrow FIBITMAP* function(FREE_IMAGE_TYPE type, int width, int height, int bpp = 8, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0) da_FreeImage_AllocateT;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_Clone;
-    alias nothrow void function(FIBITMAP* dib) da_FreeImage_Unload;
+    alias da_FreeImage_Load = FIBITMAP* function( FREE_IMAGE_FORMAT fif, const( char )* filename, int flags = 0 );
+    alias da_FreeImage_LoadU = FIBITMAP* function( FREE_IMAGE_FORMAT fif, const( wchar_t )* filename, int flags = 0 );
+    alias da_FreeImage_LoadFromHandle = FIBITMAP* function( FREE_IMAGE_FORMAT fif, FreeImageIO* io, fi_handle handle, int flags = 0 );
+    alias da_FreeImage_Save = BOOL function( FREE_IMAGE_FORMAT fif, FIBITMAP* dib, const( char )* filename, int flags = 0 );
+    alias da_FreeImage_SaveU = BOOL function( FREE_IMAGE_FORMAT fif, FIBITMAP* dib, const( wchar_t )* filename, int flags = 0 );
+    alias da_FreeImage_SaveToHandle = BOOL function( FREE_IMAGE_FORMAT fif, FIBITMAP* dib, FreeImageIO* io, fi_handle handle, int flags = 0 );
 
-    // Header loading routines
-    alias nothrow BOOL function(FIBITMAP* dib) da_FreeImage_HasPixels;
+    alias da_FreeImage_OpenMemory = FIMEMORY* function( BYTE* data = null, DWORD size_in_bytes = 0 );
+    alias da_FreeImage_CloseMemory = void function( FIMEMORY* stream );
+    alias da_FreeImage_LoadFromMemory = FIBITMAP* function( FREE_IMAGE_FORMAT fif, FIMEMORY* stream, int flags = 0 );
+    alias da_FreeImage_SaveToMemory = BOOL function( FREE_IMAGE_FORMAT fif, FIBITMAP* dib, FIMEMORY* stream, int flags = 0 );
+    alias da_FreeImage_TellMemory = c_long function( FIMEMORY* stream );
+    alias da_FreeImage_SeekMemory = BOOL function( FIMEMORY* stream, c_long offset, int origin );
+    alias da_FreeImage_AcquireMemory = BOOL function( FIMEMORY* stream, BYTE**data, DWORD* size_in_bytes );
+    alias da_FreeImage_ReadMemory = uint function( void* buffer, uint size, uint count, FIMEMORY* stream );
+    alias da_FreeImage_WriteMemory = uint function( const( void* ) buffer, uint size, uint count, FIMEMORY* stream );
 
-    // Load / Save routines -----------------------------------------------------
+    alias da_FreeImage_LoadMultiBitmapFromMemory = FIMULTIBITMAP* function( FREE_IMAGE_FORMAT fif, FIMEMORY* stream, int flags = 0 );
+    alias da_FreeImage_SaveMultiBitmapToMemory = BOOL function( FREE_IMAGE_FORMAT fif, FIMULTIBITMAP* bitmap, FIMEMORY* stream, int flags );
 
-    alias nothrow FIBITMAP* function(FREE_IMAGE_FORMAT fif, const(char)* filename, int flags = 0) da_FreeImage_Load;
-    alias nothrow FIBITMAP* function(FREE_IMAGE_FORMAT fif, const(wchar_t)* filename, int flags = 0) da_FreeImage_LoadU;
-    alias nothrow FIBITMAP* function(FREE_IMAGE_FORMAT fif, FreeImageIO* io, fi_handle handle, int flags = 0) da_FreeImage_LoadFromHandle;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, FIBITMAP* dib, const(char)* filename, int flags = 0) da_FreeImage_Save;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, FIBITMAP* dib, const(wchar_t)* filename, int flags = 0) da_FreeImage_SaveU;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, FIBITMAP* dib, FreeImageIO* io, fi_handle handle, int flags = 0) da_FreeImage_SaveToHandle;
+    alias da_FreeImage_RegisterLocalPlugin = FREE_IMAGE_FORMAT function( FI_InitProc proc_address, const( char )* format = null, const( char )* description = null, const( char )* extension = null, const( char )* regexpr = null );
 
-    // Memory I/O stream routines -----------------------------------------------
+    static if ( Derelict_OS_Windows )
+        alias  da_FreeImage_RegisterExternalPlugin = FREE_IMAGE_FORMAT function( const( char )* path, const( char )* format = null, const( char )* description = null, const( char )* extension = null, const( char )* regexpr = null );
 
-    alias nothrow FIMEMORY*  function(BYTE* data = null, DWORD size_in_bytes = 0) da_FreeImage_OpenMemory;
-    alias nothrow void function(FIMEMORY* stream) da_FreeImage_CloseMemory;
-    alias nothrow FIBITMAP* function(FREE_IMAGE_FORMAT fif, FIMEMORY* stream, int flags = 0) da_FreeImage_LoadFromMemory;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, FIBITMAP* dib, FIMEMORY* stream, int flags = 0) da_FreeImage_SaveToMemory;
-    alias nothrow c_long function(FIMEMORY* stream) da_FreeImage_TellMemory;
-    alias nothrow BOOL function(FIMEMORY* stream, c_long offset, int origin) da_FreeImage_SeekMemory;
-    alias nothrow BOOL function(FIMEMORY* stream, BYTE**data, DWORD* size_in_bytes) da_FreeImage_AcquireMemory;
-    alias nothrow uint function(void* buffer, uint size, uint count, FIMEMORY* stream) da_FreeImage_ReadMemory;
-    alias nothrow uint function(const(void*) buffer, uint size, uint count, FIMEMORY* stream) da_FreeImage_WriteMemory;
+    alias da_FreeImage_GetFIFCount = int function();
+    alias da_FreeImage_SetPluginEnabled = int function( FREE_IMAGE_FORMAT fif, BOOL enable );
+    alias da_FreeImage_IsPluginEnabled = int function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_GetFIFFromFormat = FREE_IMAGE_FORMAT function( const( char )* format );
+    alias da_FreeImage_GetFIFFromMime = FREE_IMAGE_FORMAT function( const( char )* mime );
+    alias da_FreeImage_GetFormatFromFIF = const( char )* function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_GetFIFExtensionList = const( char )* function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_GetFIFDescription = const( char )* function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_GetFIFRegExpr = const( char )* function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_GetFIFMimeType = const( char )* function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_GetFIFFromFilename = FREE_IMAGE_FORMAT function( const( char )* filename );
+    alias da_FreeImage_GetFIFFromFilenameU = FREE_IMAGE_FORMAT function( const( wchar_t )* filename );
+    alias da_FreeImage_FIFSupportsReading = BOOL function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_FIFSupportsWriting = BOOL function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_FIFSupportsExportBPP = BOOL function( FREE_IMAGE_FORMAT fif, int bpp );
+    alias da_FreeImage_FIFSupportsExportType = BOOL function( FREE_IMAGE_FORMAT fif, FREE_IMAGE_TYPE type );
+    alias da_FreeImage_FIFSupportsICCProfiles = BOOL function( FREE_IMAGE_FORMAT fif );
+    alias da_FreeImage_FIFSupportsNoPixels = BOOL function( FREE_IMAGE_FORMAT fif );
 
-    alias nothrow FIMULTIBITMAP*  function(FREE_IMAGE_FORMAT fif, FIMEMORY* stream, int flags = 0) da_FreeImage_LoadMultiBitmapFromMemory;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, FIMULTIBITMAP* bitmap, FIMEMORY* stream, int flags) da_FreeImage_SaveMultiBitmapToMemory;
+    alias da_FreeImage_OpenMultiBitmap = FIMULTIBITMAP* function( FREE_IMAGE_FORMAT fif, const( char )* filename, BOOL create_new, BOOL read_only, BOOL keep_cache_in_memory = FALSE, int flags = 0 );
+    alias da_FreeImage_OpenMultiBitmapFromHandle = FIMULTIBITMAP* function( FREE_IMAGE_FORMAT fif, FreeImageIO* io, fi_handle handle, int flags = 0 );
+    alias da_FreeImage_SaveMultiBitmapToHandle = BOOL function( FREE_IMAGE_FORMAT fif, FIMULTIBITMAP* bitmap, FreeImageIO* io, fi_handle handle, int flags = 0 );
+    alias da_FreeImage_CloseMultiBitmap = BOOL function( FIMULTIBITMAP* bitmap, int flags = 0 );
+    alias da_FreeImage_GetPageCount = int function( FIMULTIBITMAP* bitmap );
+    alias da_FreeImage_AppendPage = void function( FIMULTIBITMAP* bitmap, FIBITMAP*data );
+    alias da_FreeImage_InsertPage = void function( FIMULTIBITMAP* bitmap, int page, FIBITMAP*data );
+    alias da_FreeImage_DeletePage = void function( FIMULTIBITMAP* bitmap, int page );
+    alias da_FreeImage_LockPage = FIBITMAP* function( FIMULTIBITMAP* bitmap, int page );
+    alias da_FreeImage_UnlockPage = void function( FIMULTIBITMAP* bitmap, FIBITMAP*data, BOOL changed );
+    alias da_FreeImage_MovePage = BOOL function( FIMULTIBITMAP* bitmap, int target, int source );
+    alias da_FreeImage_GetLockedPageNumbers = BOOL function( FIMULTIBITMAP* bitmap, int* pages, int* count );
 
-    // Plugin Interface ---------------------------------------------------------
+    alias da_FreeImage_GetFileType = FREE_IMAGE_FORMAT function( const( char )* filename, int size = 0 );
+    alias da_FreeImage_GetFileTypeU = FREE_IMAGE_FORMAT function( const( wchar_t )* filename, int size = 0 );
+    alias da_FreeImage_GetFileTypeFromHandle = FREE_IMAGE_FORMAT function( FreeImageIO* io, fi_handle handle, int size = 0 );
+    alias da_FreeImage_GetFileTypeFromMemory = FREE_IMAGE_FORMAT function( FIMEMORY* stream, int size = 0 );
 
-    alias nothrow FREE_IMAGE_FORMAT function(FI_InitProc proc_address, const(char)* format = null, const(char)* description = null, const(char)* extension = null, const(char)* regexpr = null) da_FreeImage_RegisterLocalPlugin;
+    alias da_FreeImage_GetImageType = FREE_IMAGE_TYPE function( FIBITMAP* dib );
 
-    static if (Derelict_OS_Windows)
-        alias nothrow FREE_IMAGE_FORMAT function(const(char)* path, const(char)* format = null, const(char)* description = null, const(char)* extension = null, const(char)* regexpr = null) da_FreeImage_RegisterExternalPlugin;
+    alias da_FreeImage_IsLittleEndian = BOOL function();
+    alias da_FreeImage_LookupX11Color = BOOL function( const( char )* szColor, BYTE* nRed, BYTE* nGreen, BYTE* nBlue );
+    alias da_FreeImage_LookupSVGColor = BOOL function( const( char )* szColor, BYTE* nRed, BYTE* nGreen, BYTE* nBlue );
 
-    alias nothrow int function() da_FreeImage_GetFIFCount;
-    alias nothrow int function(FREE_IMAGE_FORMAT fif, BOOL enable) da_FreeImage_SetPluginEnabled;
-    alias nothrow int function(FREE_IMAGE_FORMAT fif) da_FreeImage_IsPluginEnabled;
-    alias nothrow FREE_IMAGE_FORMAT function (const(char)* format) da_FreeImage_GetFIFFromFormat;
-    alias nothrow FREE_IMAGE_FORMAT function (const(char)* mime) da_FreeImage_GetFIFFromMime;
-    alias nothrow const(char)* function (FREE_IMAGE_FORMAT fif) da_FreeImage_GetFormatFromFIF;
-    alias nothrow const(char)* function (FREE_IMAGE_FORMAT fif) da_FreeImage_GetFIFExtensionList;
-    alias nothrow const(char)* function (FREE_IMAGE_FORMAT fif) da_FreeImage_GetFIFDescription;
-    alias nothrow const(char)* function (FREE_IMAGE_FORMAT fif) da_FreeImage_GetFIFRegExpr;
-    alias nothrow const(char)* function (FREE_IMAGE_FORMAT fif) da_FreeImage_GetFIFMimeType;
-    alias nothrow FREE_IMAGE_FORMAT function(const(char)* filename) da_FreeImage_GetFIFFromFilename;
-    alias nothrow FREE_IMAGE_FORMAT function(const(wchar_t)* filename) da_FreeImage_GetFIFFromFilenameU;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif) da_FreeImage_FIFSupportsReading;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif) da_FreeImage_FIFSupportsWriting;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, int bpp) da_FreeImage_FIFSupportsExportBPP;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, FREE_IMAGE_TYPE type) da_FreeImage_FIFSupportsExportType;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif) da_FreeImage_FIFSupportsICCProfiles;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif) da_FreeImage_FIFSupportsNoPixels;
+    alias da_FreeImage_GetBits = BYTE* function( FIBITMAP* dib );
+    alias da_FreeImage_GetScanLine = BYTE* function( FIBITMAP* dib, int scanline );
 
-    // Multipaging interface ----------------------------------------------------
+    alias da_FreeImage_GetPixelIndex = BOOL function( FIBITMAP* dib, uint x, uint y, BYTE* value );
+    alias da_FreeImage_GetPixelColor = BOOL function( FIBITMAP* dib, uint x, uint y, RGBQUAD* value );
+    alias da_FreeImage_SetPixelIndex = BOOL function( FIBITMAP* dib, uint x, uint y, BYTE* value );
+    alias da_FreeImage_SetPixelColor = BOOL function( FIBITMAP* dib, uint x, uint y, RGBQUAD* value );
 
-    alias nothrow FIMULTIBITMAP* function(FREE_IMAGE_FORMAT fif, const(char)* filename, BOOL create_new, BOOL read_only, BOOL keep_cache_in_memory = FALSE, int flags = 0) da_FreeImage_OpenMultiBitmap;
-    alias nothrow FIMULTIBITMAP* function(FREE_IMAGE_FORMAT fif, FreeImageIO* io, fi_handle handle, int flags = 0) da_FreeImage_OpenMultiBitmapFromHandle;
-    alias nothrow BOOL function(FREE_IMAGE_FORMAT fif, FIMULTIBITMAP* bitmap, FreeImageIO* io, fi_handle handle, int flags = 0) da_FreeImage_SaveMultiBitmapToHandle;
-    alias nothrow BOOL function(FIMULTIBITMAP* bitmap, int flags = 0) da_FreeImage_CloseMultiBitmap;
-    alias nothrow int function(FIMULTIBITMAP* bitmap) da_FreeImage_GetPageCount;
-    alias nothrow void function(FIMULTIBITMAP* bitmap, FIBITMAP*data) da_FreeImage_AppendPage;
-    alias nothrow void function(FIMULTIBITMAP* bitmap, int page, FIBITMAP*data) da_FreeImage_InsertPage;
-    alias nothrow void function(FIMULTIBITMAP* bitmap, int page) da_FreeImage_DeletePage;
-    alias nothrow FIBITMAP* function(FIMULTIBITMAP* bitmap, int page) da_FreeImage_LockPage;
-    alias nothrow void function(FIMULTIBITMAP* bitmap, FIBITMAP*data, BOOL changed) da_FreeImage_UnlockPage;
-    alias nothrow BOOL function(FIMULTIBITMAP* bitmap, int target, int source) da_FreeImage_MovePage;
-    alias nothrow BOOL function(FIMULTIBITMAP* bitmap, int* pages, int* count) da_FreeImage_GetLockedPageNumbers;
+    alias da_FreeImage_GetColorsUsed = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetBPP = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetWidth = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetHeight = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetLine = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetPitch = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetDIBSize = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetPalette = RGBQUAD* function( FIBITMAP* dib );
 
-    // Filetype request routines ------------------------------------------------
+    alias da_FreeImage_GetDotsPerMeterX = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetDotsPerMeterY = uint function( FIBITMAP* dib );
+    alias da_FreeImage_SetDotsPerMeterX = void function( FIBITMAP* dib, uint res );
+    alias da_FreeImage_SetDotsPerMeterY = void function( FIBITMAP* dib, uint res );
 
-    alias nothrow FREE_IMAGE_FORMAT function(const(char)* filename, int size = 0) da_FreeImage_GetFileType;
-    alias nothrow FREE_IMAGE_FORMAT function(const(wchar_t)* filename, int size = 0) da_FreeImage_GetFileTypeU;
-    alias nothrow FREE_IMAGE_FORMAT function(FreeImageIO* io, fi_handle handle, int size = 0) da_FreeImage_GetFileTypeFromHandle;
-    alias nothrow FREE_IMAGE_FORMAT function(FIMEMORY* stream, int size = 0) da_FreeImage_GetFileTypeFromMemory;
+    alias da_FreeImage_GetInfoHeader = BITMAPINFOHEADER* function( FIBITMAP* dib );
+    alias da_FreeImage_GetInfo = BITMAPINFO* function( FIBITMAP* dib );
+    alias da_FreeImage_GetColorType = FREE_IMAGE_COLOR_TYPE function( FIBITMAP* dib );
 
-    // Image type request routine -----------------------------------------------
+    alias da_FreeImage_GetRedMask = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetGreenMask = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetBlueMask = uint function( FIBITMAP* dib );
 
-    alias nothrow FREE_IMAGE_TYPE function(FIBITMAP* dib) da_FreeImage_GetImageType;
+    alias da_FreeImage_GetTransparencyCount = uint function( FIBITMAP* dib );
+    alias da_FreeImage_GetTransparencyTable = BYTE* function( FIBITMAP* dib );
+    alias da_FreeImage_SetTransparent = void function( FIBITMAP* dib, BOOL enabled );
+    alias da_FreeImage_SetTransparencyTable = void function( FIBITMAP* dib, BYTE* table, int count );
+    alias da_FreeImage_IsTransparent = BOOL function( FIBITMAP* dib );
+    alias da_FreeImage_SetTransparentIndex = void function( FIBITMAP* dib, int index );
+    alias da_FreeImage_GetTransparentIndex = int function( FIBITMAP* dib );
 
-    // FreeImage helper routines ------------------------------------------------
+    alias da_FreeImage_HasBackgroundColor = BOOL function( FIBITMAP* dib );
+    alias da_FreeImage_GetBackgroundColor = BOOL function( FIBITMAP* dib, RGBQUAD* bkcolor );
+    alias da_FreeImage_SetBackgroundColor = BOOL function( FIBITMAP* dib, RGBQUAD* bkcolor );
 
-    alias nothrow BOOL function() da_FreeImage_IsLittleEndian;
-    alias nothrow BOOL function(const(char)* szColor, BYTE* nRed, BYTE* nGreen, BYTE* nBlue) da_FreeImage_LookupX11Color;
-    alias nothrow BOOL function(const(char)* szColor, BYTE* nRed, BYTE* nGreen, BYTE* nBlue) da_FreeImage_LookupSVGColor;
+    alias da_FreeImage_GetThumbnail = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_SetThumbnail = BOOL function( FIBITMAP* dib, FIBITMAP*thumbnail );
 
-    // Pixel access routines ----------------------------------------------------
+    alias da_FreeImage_GetICCProfile = FIICCPROFILE* function( FIBITMAP* dib );
+    alias da_FreeImage_CreateICCProfile = FIICCPROFILE* function( FIBITMAP* dib, void* data, c_long size );
+    alias da_FreeImage_DestroyICCProfile = void function( FIBITMAP* dib );
 
-    alias nothrow BYTE*  function(FIBITMAP* dib) da_FreeImage_GetBits;
-    alias nothrow BYTE*  function(FIBITMAP* dib, int scanline) da_FreeImage_GetScanLine;
+    alias da_FreeImage_ConvertLine1To4 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine8To4 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine16To4_555 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine16To4_565 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine24To4 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine32To4 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine1To8 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine4To8 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine16To8_555 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine16To8_565 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine24To8 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine32To8 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine1To16_555 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine4To16_555 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine8To16_555 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine16_565_To16_555 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine24To16_555 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine32To16_555 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine1To16_565 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine4To16_565 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine8To16_565 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine16_555_To16_565 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine24To16_565 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine32To16_565 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine1To24 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine4To24 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine8To24 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine16To24_555 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine16To24_565 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine32To24 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine1To32 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine4To32 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine8To32 = void function( BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette );
+    alias da_FreeImage_ConvertLine16To32_555 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine16To32_565 = void function( BYTE* target, BYTE* source, int width_in_pixels );
+    alias da_FreeImage_ConvertLine24To32 = void function( BYTE* target, BYTE* source, int width_in_pixels );
 
-    alias nothrow BOOL function(FIBITMAP* dib, uint x, uint y, BYTE* value) da_FreeImage_GetPixelIndex;
-    alias nothrow BOOL function(FIBITMAP* dib, uint x, uint y, RGBQUAD* value) da_FreeImage_GetPixelColor;
-    alias nothrow BOOL function(FIBITMAP* dib, uint x, uint y, BYTE* value) da_FreeImage_SetPixelIndex;
-    alias nothrow BOOL function(FIBITMAP* dib, uint x, uint y, RGBQUAD* value) da_FreeImage_SetPixelColor;
+    alias da_FreeImage_ConvertTo4Bits = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertTo8Bits = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertToGreyscale = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertTo16Bits555 = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertTo16Bits565 = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertTo24Bits = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertTo32Bits = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ColorQuantize = FIBITMAP* function( FIBITMAP* dib, FREE_IMAGE_QUANTIZE quantize );
+    alias da_FreeImage_ColorQuantizeEx = FIBITMAP* function( FIBITMAP* dib, FREE_IMAGE_QUANTIZE quantize = FIQ_WUQUANT, int PaletteSize = 256, int ReserveSize = 0, RGBQUAD* ReservePalette = null );
+    alias da_FreeImage_Threshold = FIBITMAP* function( FIBITMAP* dib, BYTE T );
+    alias da_FreeImage_Dither = FIBITMAP* function( FIBITMAP* dib, FREE_IMAGE_DITHER algorithm );
 
-    // DIB info routines --------------------------------------------------------
+    alias da_FreeImage_ConvertFromRawBits = FIBITMAP* function( BYTE* bits, int width, int height, int pitch, uint bpp, uint red_mask, uint green_mask, uint blue_mask, BOOL topdown = FALSE );
+    alias da_FreeImage_ConvertToRawBits = void function( BYTE* bits, FIBITMAP* dib, int pitch, uint bpp, uint red_mask, uint green_mask, uint blue_mask, BOOL topdown = FALSE );
 
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetColorsUsed;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetBPP;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetWidth;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetHeight;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetLine;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetPitch;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetDIBSize;
-    alias nothrow RGBQUAD* function(FIBITMAP* dib) da_FreeImage_GetPalette;
+    alias da_FreeImage_ConvertToFloat = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertToRGBF = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertToUINT16 = FIBITMAP* function( FIBITMAP* dib );
+    alias da_FreeImage_ConvertToRGB16 = FIBITMAP* function( FIBITMAP* dib );
 
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetDotsPerMeterX;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetDotsPerMeterY;
-    alias nothrow void function(FIBITMAP* dib, uint res) da_FreeImage_SetDotsPerMeterX;
-    alias nothrow void function(FIBITMAP* dib, uint res) da_FreeImage_SetDotsPerMeterY;
+    alias da_FreeImage_ConvertToStandardType = FIBITMAP* function( FIBITMAP* src, BOOL scale_linear = TRUE );
+    alias da_FreeImage_ConvertToType = FIBITMAP* function( FIBITMAP* src, FREE_IMAGE_TYPE dst_type, BOOL scale_linear = TRUE );
 
-    alias nothrow BITMAPINFOHEADER* function(FIBITMAP* dib) da_FreeImage_GetInfoHeader;
-    alias nothrow BITMAPINFO* function(FIBITMAP* dib) da_FreeImage_GetInfo;
-    alias nothrow FREE_IMAGE_COLOR_TYPE function(FIBITMAP* dib) da_FreeImage_GetColorType;
+    alias da_FreeImage_ToneMapping = FIBITMAP* function( FIBITMAP* dib, FREE_IMAGE_TMO tmo, double first_param = 0, double second_param = 0 );
+    alias da_FreeImage_TmoDrago03 = FIBITMAP* function( FIBITMAP* src, double gamma = 2.2, double exposure = 0 );
+    alias da_FreeImage_TmoReinhard05 = FIBITMAP* function( FIBITMAP* src, double intensity = 0, double contrast = 0 );
+    alias da_FreeImage_TmoReinhard05Ex = FIBITMAP* function( FIBITMAP* src, double intensity = 0, double contrast = 0, double adaptation = 1, double color_correction = 0 );
 
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetRedMask;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetGreenMask;
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetBlueMask;
+    alias da_FreeImage_TmoFattal02 = FIBITMAP* function( FIBITMAP* src, double color_saturation = 0.5, double attenuation = 0.85 );
 
-    alias nothrow uint function(FIBITMAP* dib) da_FreeImage_GetTransparencyCount;
-    alias nothrow BYTE*  function(FIBITMAP* dib) da_FreeImage_GetTransparencyTable;
-    alias nothrow void function(FIBITMAP* dib, BOOL enabled) da_FreeImage_SetTransparent;
-    alias nothrow void function(FIBITMAP* dib, BYTE* table, int count) da_FreeImage_SetTransparencyTable;
-    alias nothrow BOOL function(FIBITMAP* dib) da_FreeImage_IsTransparent;
-    alias nothrow void function(FIBITMAP* dib, int index) da_FreeImage_SetTransparentIndex;
-    alias nothrow int function(FIBITMAP* dib) da_FreeImage_GetTransparentIndex;
+    alias da_FreeImage_ZLibCompress = DWORD function( BYTE* target, DWORD target_size, BYTE* source, DWORD source_size );
+    alias da_FreeImage_ZLibUncompress = DWORD function( BYTE* target, DWORD target_size, BYTE* source, DWORD source_size );
+    alias da_FreeImage_ZLibGZip = DWORD function( BYTE* target, DWORD target_size, BYTE* source, DWORD source_size );
+    alias da_FreeImage_ZLibGUnzip = DWORD function( BYTE* target, DWORD target_size, BYTE* source, DWORD source_size );
+    alias da_FreeImage_ZLibCRC32 = DWORD function( DWORD crc, BYTE* source, DWORD source_size );
 
-    alias nothrow BOOL function(FIBITMAP* dib) da_FreeImage_HasBackgroundColor;
-    alias nothrow BOOL function(FIBITMAP* dib, RGBQUAD* bkcolor) da_FreeImage_GetBackgroundColor;
-    alias nothrow BOOL function(FIBITMAP* dib, RGBQUAD* bkcolor) da_FreeImage_SetBackgroundColor;
+    alias da_FreeImage_CreateTag = FITAG* function();
+    alias da_FreeImage_DeleteTag = void function( FITAG* tag );
+    alias da_FreeImage_CloneTag = FITAG* function( FITAG* tag );
 
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_GetThumbnail;
-    alias nothrow BOOL function(FIBITMAP* dib, FIBITMAP*thumbnail) da_FreeImage_SetThumbnail;
+    alias da_FreeImage_GetTagKey = const( char )* function( FITAG* tag );
+    alias da_FreeImage_GetTagDescription = const( char )* function( FITAG* tag );
+    alias da_FreeImage_GetTagID = WORD function( FITAG* tag );
+    alias da_FreeImage_GetTagType = FREE_IMAGE_MDTYPE function( FITAG* tag );
+    alias da_FreeImage_GetTagCount = DWORD function( FITAG* tag );
+    alias da_FreeImage_GetTagLength = DWORD function( FITAG* tag );
+    alias da_FreeImage_GetTagValue = const( void )* function( FITAG* tag );
 
-    // ICC profile routines -----------------------------------------------------
+    alias da_FreeImage_SetTagKey = BOOL function( FITAG* tag, const( char )* key );
+    alias da_FreeImage_SetTagDescription = BOOL function( FITAG* tag, const( char )* description );
+    alias da_FreeImage_SetTagID = BOOL function( FITAG* tag, WORD id );
+    alias da_FreeImage_SetTagType = BOOL function( FITAG* tag, FREE_IMAGE_MDTYPE type );
+    alias da_FreeImage_SetTagCount = BOOL function( FITAG* tag, DWORD count );
+    alias da_FreeImage_SetTagLength = BOOL function( FITAG* tag, DWORD length );
+    alias da_FreeImage_SetTagValue = BOOL function( FITAG* tag, const( void )* value );
 
-    alias nothrow FIICCPROFILE* function(FIBITMAP* dib) da_FreeImage_GetICCProfile;
-    alias nothrow FIICCPROFILE* function(FIBITMAP* dib, void* data, c_long size) da_FreeImage_CreateICCProfile;
-    alias nothrow void function(FIBITMAP* dib) da_FreeImage_DestroyICCProfile;
+    alias da_FreeImage_FindFirstMetadata = FIMETADATA* function( FREE_IMAGE_MDMODEL model, FIBITMAP* dib, FITAG** tag );
+    alias da_FreeImage_FindNextMetadata = BOOL function( FIMETADATA* mdhandle, FITAG** tag );
+    alias da_FreeImage_FindCloseMetadata = void function( FIMETADATA* mdhandle );
 
-    // Line conversion routines -------------------------------------------------
+    alias da_FreeImage_GetMetadata = BOOL function( FREE_IMAGE_MDMODEL model, FIBITMAP* dib, const( char )* key, FITAG** tag );
+    alias da_FreeImage_SetMetadata = BOOL function( FREE_IMAGE_MDMODEL model, FIBITMAP* dib, const( char )* key, FITAG* tag );
 
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine1To4;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine8To4;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To4_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To4_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine24To4;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine32To4;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine1To8;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine4To8;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To8_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To8_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine24To8;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine32To8;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine1To16_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine4To16_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine8To16_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16_565_To16_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine24To16_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine32To16_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine1To16_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine4To16_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine8To16_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16_555_To16_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine24To16_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine32To16_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine1To24;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine4To24;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine8To24;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To24_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To24_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine32To24;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine1To32;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine4To32;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels, RGBQUAD* palette) da_FreeImage_ConvertLine8To32;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To32_555;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine16To32_565;
-    alias nothrow void function(BYTE* target, BYTE* source, int width_in_pixels) da_FreeImage_ConvertLine24To32;
+    alias da_FreeImage_GetMetadataCount = uint function( FREE_IMAGE_MDMODEL model, FIBITMAP* dib );
+    alias da_FreeImage_CloneMetadata = BOOL function( FIBITMAP* dst, FIBITMAP* src );
 
-    // Smart conversion routines ------------------------------------------------
+    alias da_FreeImage_TagToString = const( char )* function( FREE_IMAGE_MDMODEL model, FITAG* tag, char* Make = null );
 
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertTo4Bits;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertTo8Bits;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertToGreyscale;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertTo16Bits555;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertTo16Bits565;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertTo24Bits;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertTo32Bits;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, FREE_IMAGE_QUANTIZE quantize) da_FreeImage_ColorQuantize;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, FREE_IMAGE_QUANTIZE quantize = FIQ_WUQUANT, int PaletteSize = 256, int ReserveSize = 0, RGBQUAD* ReservePalette = null) da_FreeImage_ColorQuantizeEx;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, BYTE T) da_FreeImage_Threshold;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, FREE_IMAGE_DITHER algorithm) da_FreeImage_Dither;
+    alias da_FreeImage_RotateClassic = FIBITMAP* function( FIBITMAP* dib, double angle );
+    alias da_FreeImage_Rotate = FIBITMAP* function( FIBITMAP* dib, double angle, const( void* ) bkcolor = null );
+    alias da_FreeImage_RotateEx = FIBITMAP* function( FIBITMAP* dib, double angle, double x_shift, double y_shift, double x_origin, double y_origin, BOOL use_mask );
+    alias da_FreeImage_FlipHorizontal = BOOL function( FIBITMAP* dib );
+    alias da_FreeImage_FlipVertical = BOOL function( FIBITMAP* dib );
+    alias da_FreeImage_JPEGTransform = BOOL function( const( char )* src_file, const( char )* dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect = FALSE );
+    alias da_FreeImage_JPEGTransformU = BOOL function( const( wchar_t )* src_file, const( wchar_t )* dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect = FALSE );
 
-    alias nothrow FIBITMAP* function(BYTE* bits, int width, int height, int pitch, uint bpp, uint red_mask, uint green_mask, uint blue_mask, BOOL topdown = FALSE) da_FreeImage_ConvertFromRawBits;
-    alias nothrow void function(BYTE* bits, FIBITMAP* dib, int pitch, uint bpp, uint red_mask, uint green_mask, uint blue_mask, BOOL topdown = FALSE) da_FreeImage_ConvertToRawBits;
+    alias da_FreeImage_Rescale = FIBITMAP* function( FIBITMAP* dib, int dst_width, int dst_height, FREE_IMAGE_FILTER filter );
+    alias da_FreeImage_MakeThumbnail = FIBITMAP* function( FIBITMAP* dib, int max_pixel_size, BOOL convert = TRUE );
 
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertToFloat;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertToRGBF;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertToUINT16;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib) da_FreeImage_ConvertToRGB16;
+    alias da_FreeImage_AdjustCurve = BOOL function( FIBITMAP* dib, BYTE* LUT, FREE_IMAGE_COLOR_CHANNEL channel );
+    alias da_FreeImage_AdjustGamma = BOOL function( FIBITMAP* dib, double gamma );
+    alias da_FreeImage_AdjustBrightness = BOOL function( FIBITMAP* dib, double percentage );
+    alias da_FreeImage_AdjustContrast = BOOL function( FIBITMAP* dib, double percentage );
+    alias da_FreeImage_Invert = BOOL function( FIBITMAP* dib );
+    alias da_FreeImage_GetHistogram = BOOL function( FIBITMAP* dib, DWORD* histo, FREE_IMAGE_COLOR_CHANNEL channel = FICC_BLACK );
+    alias da_FreeImage_GetAdjustColorsLookupTable = int function( BYTE* LUT, double brightness, double contrast, double gamma, BOOL invert );
+    alias da_FreeImage_AdjustColors = BOOL function( FIBITMAP* dib, double brightness, double contrast, double gamma, BOOL invert = FALSE );
+    alias da_FreeImage_ApplyColorMapping = uint function( FIBITMAP* dib, RGBQUAD* srccolors, RGBQUAD* dstcolors, uint count, BOOL ignore_alpha, BOOL swap );
+    alias da_FreeImage_SwapColors = uint function( FIBITMAP* dib, RGBQUAD* color_a, RGBQUAD* color_b, BOOL ignore_alpha );
+    alias da_FreeImage_ApplyPaletteIndexMapping = uint function( FIBITMAP* dib, BYTE* srcindices,   BYTE* dstindices, uint count, BOOL swap );
+    alias da_FreeImage_SwapPaletteIndices = uint function( FIBITMAP* dib, BYTE* index_a, BYTE* index_b );
 
-    alias nothrow FIBITMAP* function(FIBITMAP* src, BOOL scale_linear = TRUE) da_FreeImage_ConvertToStandardType;
-    alias nothrow FIBITMAP* function(FIBITMAP* src, FREE_IMAGE_TYPE dst_type, BOOL scale_linear = TRUE) da_FreeImage_ConvertToType;
+    alias da_FreeImage_GetChannel = FIBITMAP* function( FIBITMAP* dib, FREE_IMAGE_COLOR_CHANNEL channel );
+    alias da_FreeImage_SetChannel = BOOL function( FIBITMAP*dst, FIBITMAP*src, FREE_IMAGE_COLOR_CHANNEL channel );
+    alias da_FreeImage_GetComplexChannel = FIBITMAP* function( FIBITMAP*src, FREE_IMAGE_COLOR_CHANNEL channel );
+    alias da_FreeImage_SetComplexChannel = BOOL function( FIBITMAP*dst, FIBITMAP*src, FREE_IMAGE_COLOR_CHANNEL channel );
 
-    // tone mapping operators
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, FREE_IMAGE_TMO tmo, double first_param = 0, double second_param = 0) da_FreeImage_ToneMapping;
-    alias nothrow FIBITMAP* function(FIBITMAP* src, double gamma = 2.2, double exposure = 0) da_FreeImage_TmoDrago03;
-    alias nothrow FIBITMAP* function(FIBITMAP* src, double intensity = 0, double contrast = 0) da_FreeImage_TmoReinhard05;
-    alias nothrow FIBITMAP* function(FIBITMAP* src, double intensity = 0, double contrast = 0, double adaptation = 1, double color_correction = 0) da_FreeImage_TmoReinhard05Ex;
+    alias da_FreeImage_Copy = FIBITMAP* function( FIBITMAP* dib, int left, int top, int right, int bottom );
+    alias da_FreeImage_Paste = BOOL function( FIBITMAP*dst, FIBITMAP*src, int left, int top, int alpha );
+    alias da_FreeImage_Composite = FIBITMAP* function( FIBITMAP*fg, BOOL useFileBkg = FALSE, RGBQUAD* appBkColor = null, FIBITMAP*bg = null );
+    alias da_FreeImage_JPEGCrop = BOOL function( const( char )* src_file, const( char )* dst_file, int left, int top, int right, int bottom );
+    alias da_FreeImage_JPEGCropU = BOOL function( const( wchar_t )* src_file, const( wchar_t )* dst_file, int left, int top, int right, int bottom );
+    alias da_FreeImage_PreMultiplyWithAlpha = BOOL function( FIBITMAP* dib );
 
-    alias nothrow FIBITMAP* function(FIBITMAP* src, double color_saturation = 0.5, double attenuation = 0.85) da_FreeImage_TmoFattal02;
+    alias da_FreeImage_FillBackground = BOOL function( FIBITMAP* dib, const( void* ) color, int options = 0 );
+    alias da_FreeImage_EnlargeCanvas = FIBITMAP* function( FIBITMAP*src, int left, int top, int right, int bottom, const( void* ) color, int options = 0 );
+    alias da_FreeImage_AllocateEx = FIBITMAP* function( int width, int height, int bpp, const( RGBQUAD )* color, int options = 0, const( RGBQUAD )* palette = null, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0 );
+    alias da_FreeImage_AllocateExT = FIBITMAP* function( FREE_IMAGE_TYPE type, int width, int height, int bpp, const( void* ) color, int options = 0, const( RGBQUAD )* palette = null, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0 );
 
-    // ZLib interface -----------------------------------------------------------
-
-    alias nothrow DWORD function(BYTE* target, DWORD target_size, BYTE* source, DWORD source_size) da_FreeImage_ZLibCompress;
-    alias nothrow DWORD function(BYTE* target, DWORD target_size, BYTE* source, DWORD source_size) da_FreeImage_ZLibUncompress;
-    alias nothrow DWORD function(BYTE* target, DWORD target_size, BYTE* source, DWORD source_size) da_FreeImage_ZLibGZip;
-    alias nothrow DWORD function(BYTE* target, DWORD target_size, BYTE* source, DWORD source_size) da_FreeImage_ZLibGUnzip;
-    alias nothrow DWORD function(DWORD crc, BYTE* source, DWORD source_size) da_FreeImage_ZLibCRC32;
-
-    // --------------------------------------------------------------------------
-    // Metadata routines --------------------------------------------------------
-    // --------------------------------------------------------------------------
-
-    // tag creation / destruction
-    alias nothrow FITAG* function() da_FreeImage_CreateTag;
-    alias nothrow void function(FITAG* tag) da_FreeImage_DeleteTag;
-    alias nothrow FITAG* function(FITAG* tag) da_FreeImage_CloneTag;
-
-    // tag getters and setters
-    alias nothrow const(char)* function(FITAG* tag) da_FreeImage_GetTagKey;
-    alias nothrow const(char)* function(FITAG* tag) da_FreeImage_GetTagDescription;
-    alias nothrow WORD function(FITAG* tag) da_FreeImage_GetTagID;
-    alias nothrow FREE_IMAGE_MDTYPE function(FITAG* tag) da_FreeImage_GetTagType;
-    alias nothrow DWORD function(FITAG* tag) da_FreeImage_GetTagCount;
-    alias nothrow DWORD function(FITAG* tag) da_FreeImage_GetTagLength;
-    alias nothrow const(void)* function(FITAG* tag) da_FreeImage_GetTagValue;
-
-    alias nothrow BOOL function (FITAG* tag, const(char)* key) da_FreeImage_SetTagKey;
-    alias nothrow BOOL function (FITAG* tag, const(char)* description) da_FreeImage_SetTagDescription;
-    alias nothrow BOOL function (FITAG* tag, WORD id) da_FreeImage_SetTagID;
-    alias nothrow BOOL function (FITAG* tag, FREE_IMAGE_MDTYPE type) da_FreeImage_SetTagType;
-    alias nothrow BOOL function (FITAG* tag, DWORD count) da_FreeImage_SetTagCount;
-    alias nothrow BOOL function (FITAG* tag, DWORD length) da_FreeImage_SetTagLength;
-    alias nothrow BOOL function (FITAG* tag, const(void)* value) da_FreeImage_SetTagValue;
-
-    // iterator
-    alias nothrow FIMETADATA* function(FREE_IMAGE_MDMODEL model, FIBITMAP* dib, FITAG** tag) da_FreeImage_FindFirstMetadata;
-    alias nothrow BOOL function(FIMETADATA* mdhandle, FITAG** tag) da_FreeImage_FindNextMetadata;
-    alias nothrow void function(FIMETADATA* mdhandle) da_FreeImage_FindCloseMetadata;
-
-    // metadata setter and getter
-    alias nothrow BOOL function(FREE_IMAGE_MDMODEL model, FIBITMAP* dib, const(char)* key, FITAG** tag) da_FreeImage_GetMetadata;
-    alias nothrow BOOL function(FREE_IMAGE_MDMODEL model, FIBITMAP* dib, const(char)* key, FITAG* tag) da_FreeImage_SetMetadata;
-
-    // helpers
-    alias nothrow uint function(FREE_IMAGE_MDMODEL model, FIBITMAP* dib) da_FreeImage_GetMetadataCount;
-    alias nothrow BOOL function(FIBITMAP* dst, FIBITMAP* src) da_FreeImage_CloneMetadata;
-
-    // tag to C string conversion
-    alias nothrow const(char)* function(FREE_IMAGE_MDMODEL model, FITAG* tag, char* Make = null) da_FreeImage_TagToString;
-
-    // --------------------------------------------------------------------------
-    // Image manipulation toolkit -----------------------------------------------
-    // --------------------------------------------------------------------------
-
-    // rotation and flipping
-    /// @deprecated see FreeImage_Rotate
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, double angle) da_FreeImage_RotateClassic;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, double angle, const(void*) bkcolor = null) da_FreeImage_Rotate;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, double angle, double x_shift, double y_shift, double x_origin, double y_origin, BOOL use_mask) da_FreeImage_RotateEx;
-    alias nothrow BOOL function(FIBITMAP* dib) da_FreeImage_FlipHorizontal;
-    alias nothrow BOOL function(FIBITMAP* dib) da_FreeImage_FlipVertical;
-    alias nothrow BOOL function(const(char)* src_file, const(char)* dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect = FALSE) da_FreeImage_JPEGTransform;
-    alias nothrow BOOL function(const(wchar_t)* src_file, const(wchar_t)* dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect = FALSE) da_FreeImage_JPEGTransformU;
-
-    // upsampling / downsampling
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, int dst_width, int dst_height, FREE_IMAGE_FILTER filter) da_FreeImage_Rescale;
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, int max_pixel_size, BOOL convert = TRUE) da_FreeImage_MakeThumbnail;
-
-    // color manipulation routines (point operations)
-    alias nothrow BOOL function(FIBITMAP* dib, BYTE* LUT, FREE_IMAGE_COLOR_CHANNEL channel) da_FreeImage_AdjustCurve;
-    alias nothrow BOOL function(FIBITMAP* dib, double gamma) da_FreeImage_AdjustGamma;
-    alias nothrow BOOL function(FIBITMAP* dib, double percentage) da_FreeImage_AdjustBrightness;
-    alias nothrow BOOL function(FIBITMAP* dib, double percentage) da_FreeImage_AdjustContrast;
-    alias nothrow BOOL function(FIBITMAP* dib) da_FreeImage_Invert;
-    alias nothrow BOOL function(FIBITMAP* dib, DWORD* histo, FREE_IMAGE_COLOR_CHANNEL channel = FICC_BLACK) da_FreeImage_GetHistogram;
-    alias nothrow int function(BYTE* LUT, double brightness, double contrast, double gamma, BOOL invert) da_FreeImage_GetAdjustColorsLookupTable;
-    alias nothrow BOOL function(FIBITMAP* dib, double brightness, double contrast, double gamma, BOOL invert = FALSE) da_FreeImage_AdjustColors;
-    alias nothrow uint function(FIBITMAP* dib, RGBQUAD* srccolors, RGBQUAD* dstcolors, uint count, BOOL ignore_alpha, BOOL swap) da_FreeImage_ApplyColorMapping;
-    alias nothrow uint function(FIBITMAP* dib, RGBQUAD* color_a, RGBQUAD* color_b, BOOL ignore_alpha) da_FreeImage_SwapColors;
-    alias nothrow uint function(FIBITMAP* dib, BYTE* srcindices,   BYTE* dstindices, uint count, BOOL swap) da_FreeImage_ApplyPaletteIndexMapping;
-    alias nothrow uint function(FIBITMAP* dib, BYTE* index_a, BYTE* index_b) da_FreeImage_SwapPaletteIndices;
-
-    // channel processing routines
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, FREE_IMAGE_COLOR_CHANNEL channel) da_FreeImage_GetChannel;
-    alias nothrow BOOL function(FIBITMAP*dst, FIBITMAP*src, FREE_IMAGE_COLOR_CHANNEL channel) da_FreeImage_SetChannel;
-    alias nothrow FIBITMAP* function(FIBITMAP*src, FREE_IMAGE_COLOR_CHANNEL channel) da_FreeImage_GetComplexChannel;
-    alias nothrow BOOL function(FIBITMAP*dst, FIBITMAP*src, FREE_IMAGE_COLOR_CHANNEL channel) da_FreeImage_SetComplexChannel;
-
-    // copy / paste / composite routines
-    alias nothrow FIBITMAP* function(FIBITMAP* dib, int left, int top, int right, int bottom) da_FreeImage_Copy;
-    alias nothrow BOOL function(FIBITMAP*dst, FIBITMAP*src, int left, int top, int alpha) da_FreeImage_Paste;
-    alias nothrow FIBITMAP* function(FIBITMAP*fg, BOOL useFileBkg = FALSE, RGBQUAD* appBkColor = null, FIBITMAP*bg = null) da_FreeImage_Composite;
-    alias nothrow BOOL function(const(char)* src_file, const(char)* dst_file, int left, int top, int right, int bottom) da_FreeImage_JPEGCrop;
-    alias nothrow BOOL function(const(wchar_t)* src_file, const(wchar_t)* dst_file, int left, int top, int right, int bottom) da_FreeImage_JPEGCropU;
-    alias nothrow BOOL function(FIBITMAP* dib) da_FreeImage_PreMultiplyWithAlpha;
-
-    // background filling routines
-    alias nothrow BOOL function(FIBITMAP* dib, const(void*) color, int options = 0) da_FreeImage_FillBackground;
-    alias nothrow FIBITMAP* function(FIBITMAP*src, int left, int top, int right, int bottom, const(void*) color, int options = 0) da_FreeImage_EnlargeCanvas;
-    alias nothrow FIBITMAP* function(int width, int height, int bpp, const(RGBQUAD)* color, int options = 0, const(RGBQUAD)* palette = null, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0) da_FreeImage_AllocateEx;
-    alias nothrow FIBITMAP* function(FREE_IMAGE_TYPE type, int width, int height, int bpp, const(void*) color, int options = 0, const(RGBQUAD)* palette = null, uint red_mask = 0, uint green_mask = 0, uint blue_mask = 0) da_FreeImage_AllocateExT;
-
-    // miscellaneous algorithms
-    alias nothrow FIBITMAP* function(FIBITMAP*Laplacian, int ncycle = 3) da_FreeImage_MultigridPoissonSolver;
+    alias da_FreeImage_MultigridPoissonSolver = FIBITMAP* function( FIBITMAP*Laplacian, int ncycle = 3 );
 }
 
-__gshared
-{
+__gshared {
     da_FreeImage_Initialise FreeImage_Initialise;
     da_FreeImage_DeInitialise FreeImage_DeInitialise;
     da_FreeImage_GetVersion FreeImage_GetVersion;
     da_FreeImage_GetCopyrightMessage FreeImage_GetCopyrightMessage;
     da_FreeImage_SetOutputMessageStdCall FreeImage_SetOutputMessageStdCall;
     da_FreeImage_SetOutputMessage FreeImage_SetOutputMessage;
-
-    // interacts badly with stdcall mangling
     da_FreeImage_OutputMessageProc FreeImage_OutputMessageProc;
-
     da_FreeImage_Allocate FreeImage_Allocate;
     da_FreeImage_AllocateT FreeImage_AllocateT;
     da_FreeImage_Clone FreeImage_Clone;
@@ -411,7 +350,7 @@ __gshared
     da_FreeImage_SaveMultiBitmapToMemory FreeImage_SaveMultiBitmapToMemory;
     da_FreeImage_RegisterLocalPlugin FreeImage_RegisterLocalPlugin;
 
-    static if (Derelict_OS_Windows)
+    static if ( Derelict_OS_Windows )
         da_FreeImage_RegisterExternalPlugin FreeImage_RegisterExternalPlugin;
 
     da_FreeImage_GetFIFCount FreeImage_GetFIFCount;
@@ -557,8 +496,6 @@ __gshared
     da_FreeImage_ZLibGUnzip FreeImage_ZLibGUnzip;
     da_FreeImage_ZLibCRC32 FreeImage_ZLibCRC32;
 
-    // Commented out because of weird "Error: forward reference of FITAG"
-
     da_FreeImage_CreateTag FreeImage_CreateTag;
     da_FreeImage_DeleteTag FreeImage_DeleteTag;
     da_FreeImage_CloneTag FreeImage_CloneTag;
@@ -584,7 +521,6 @@ __gshared
     da_FreeImage_GetMetadataCount FreeImage_GetMetadataCount;
     da_FreeImage_CloneMetadata FreeImage_CloneMetadata;
     da_FreeImage_TagToString FreeImage_TagToString;
-
 
     da_FreeImage_RotateClassic FreeImage_RotateClassic;
     da_FreeImage_Rotate FreeImage_Rotate;

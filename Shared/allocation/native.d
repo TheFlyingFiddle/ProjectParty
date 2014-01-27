@@ -34,8 +34,8 @@ version(X86)
 			bytesAllocated -= memory.length;
 			numAllocations--;
 
-			size_t* ptr = cast(size_t*)(memory.ptr);
-			void* toFree = (--ptr);
+			size_t* ptr  = cast(size_t*)(memory.ptr);
+			void* toFree = cast(void*)(*(--ptr));
 			free(toFree);
 		}
 

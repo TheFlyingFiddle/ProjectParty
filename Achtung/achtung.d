@@ -39,6 +39,12 @@ struct SnakeProperties
     uint color, leftKey, rightKey;
 }
 
+struct Score
+{
+	Color color;
+	int score;
+}
+
 void init(Allocator)(ref Allocator allocator, string configPath)
 {
     config = fromSDLFile!AchtungConfig(allocator, configPath);
@@ -271,4 +277,3 @@ void renderFrame(ref AchtungRenderer buffer, ref List!Snake snakes, ref List!Sco
 	List!Snake visible = snakes[0 .. visibleSnakes];
 	buffer.draw(proj, visible, config.snakeSize, scores);
 }
-

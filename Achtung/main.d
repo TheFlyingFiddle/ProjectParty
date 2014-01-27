@@ -26,7 +26,7 @@ version(X86)
 version(X86_64) 
 {
 	enum dllPath = "..\\dll\\win64\\";
-	enum libPath = "..\\lib\\win32\\";
+	enum libPath = "..\\lib\\win64\\";
 }
 
 pragma(lib, libPath ~ "DerelictGLFW3.lib");
@@ -60,6 +60,16 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
 }
 
+
+import derelict.util.exception;
+
+bool missingSymFunc(string libName, string symName)
+{
+	error(libName,"   ", symName);
+	return true;
+}
+
+
 void init(Allocator)(ref Allocator allocator, string sdlPath)
 {
     struct WindowConfig
@@ -67,8 +77,14 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
         uint2 dim;
         string title;
 	}
+
+	import derelict.util.exception;
+
+	Derelict_SetMissingSymbolCallback(&missingSymFunc);
+
 	DerelictGL3.load();
 	DerelictGLFW3.load(dllPath ~ "glfw3.dll");
+
 	DerelictFI.load(dllPath ~ "FreeImage.dll");
 	FreeImage_Initialise();
 
@@ -78,14 +94,12 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
     import allocation.gc;
     auto config = fromSDLFile!WindowConfig(GCAllocator.it, sdlPath);
     auto dim = config.dim;
+
+	glfwWindowHint(GLFW_SAMPLES, 4);
     window = glfwCreateWindow(dim.x, dim.y, toCString(config.title), null, null);
 	glfwMakeContextCurrent(window);
 
-    try {
 	DerelictGL3.reload();
-	} catch (Throwable t) {
-	    error(t); // Some errors thrown by derelict on 
-	}
 	achtung.init(allocator, "Config.sdl");
 }
 

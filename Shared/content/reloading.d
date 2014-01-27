@@ -163,7 +163,7 @@ version(Windows)
 
 		while(true)
 		{
-			if(ReadDirectoryChangesW(handle, buffer.ptr, buffer.length, true,
+			if(ReadDirectoryChangesW(handle, buffer.ptr, cast(uint)buffer.length, true,
 									 FILE_NOTIFY_CHANGE_LAST_WRITE |
 									 FILE_NOTIFY_CHANGE_FILE_NAME  |
 									 FILE_NOTIFY_CHANGE_CREATION,

@@ -33,7 +33,7 @@ struct GCAllocator
 		numAllocations--;
 
 		size_t* ptr = cast(size_t*)(memory.ptr);
-		void* toFree = (--ptr);
+		void* toFree = cast(void*)(*(--ptr));
 		GC.free(toFree);
 	}
 

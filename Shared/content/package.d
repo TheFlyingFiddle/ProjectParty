@@ -30,7 +30,7 @@ struct ResourceTable(Resource, alias obliterator)
 		auto id = bytesHash(path.ptr, path.length);
 
 		auto index = ids.countUntil!(x => x == id);
-		if(index != -1) return index;
+		if(index != -1) return cast(uint)index;
 
 		ContentReloader.registerResource(path);
 
@@ -39,7 +39,7 @@ struct ResourceTable(Resource, alias obliterator)
 
 		resources[index] = resource;
 		ids[index]       = id;
-		return index;
+		return cast(uint)index;
 	}
 
 	bool remove(const(char)[] path)
@@ -65,18 +65,18 @@ struct ResourceTable(Resource, alias obliterator)
 		auto id    = bytesHash(path.ptr, path.length);
 		auto index = ids.countUntil!(x => x == id);
 		if(index == -1) {
-			return index;
+			return cast(uint)index;
 		}
 
 		obliterator(resources[index]);
 		resources[index] = resource;
-		return index;
+		return cast(uint)index;
 	}
 
 	uint indexOf(const(char)[] path)
 	{
 		auto id = bytesHash(path.ptr, path.length);
-		return ids.countUntil!(x => x == id);
+		return cast(uint)ids.countUntil!(x => x == id);
 	}
 
 	ref Resource opIndex(uint index)

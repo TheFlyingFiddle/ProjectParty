@@ -21,11 +21,11 @@ struct Blob
 		this.length   = 0;
 	}
 	
-	this(void* buffer, uint length, uint capacity)
+	this(void* buffer, size_t length, size_t capacity)
 	{
 		this.buffer   = buffer;
-		this.length   = length;
-		this.capacity = capacity;
+		this.length   = cast(uint)length;
+		this.capacity = cast(uint)capacity;
 	}
 
 	void opOpAssign(string op, T)(auto ref T value) if(!hasIndirections!T &&  op == "~")
@@ -77,7 +77,7 @@ struct Blob
 		return *p;
 	}
 
-	void skip(uint numBytes)
+	void skip(size_t numBytes)
 	{
 		buffer = cast(void*)(cast(size_t)buffer + numBytes);
 		length -= numBytes;
@@ -104,7 +104,7 @@ struct Blob
 		return t;
 	}
 
-	void[] readBytes(uint count)
+	void[] readBytes(size_t count)
 	{	
 		assert(length >= count);
 		void[] p = buffer[0 .. count];

@@ -39,57 +39,44 @@ enum FREEIMAGE_MAJOR_VERSION = 3,
 enum FREEIMAGE_COLORORDER_BGR = 0,
      FREEIMAGE_COLORORDER_RGB = 1;
 
-version(LittleEndian)
-{
+version( LittleEndian ) {
     version = FREEIMAGE_COLORORDER_BGR;
 }
-else
-{
+else {
     version = FREEIMAGE_COLORORDER_RGB;
 }
 
-
-// Bitmap types -------------------------------------------------------------
-
-struct FIBITMAP
-{
+struct FIBITMAP {
     void *data;
 }
 
-struct FIMULTIBITMAP
-{
+struct FIMULTIBITMAP {
     void *data;
 }
 
-enum FALSE = 0,
-     TRUE = 1,
-     NULL = 0;
-
-enum
-{
+enum {
+    FALSE = 0,
+    TRUE = 1,
+    NULL = 0,
     SEEK_SET = 0,
     SEEK_CUR = 1,
     SEEK_END = 2
 }
 
-alias uint BOOL;
-alias ubyte BYTE;
-alias ushort WORD;
-alias c_ulong DWORD;
-alias int LONG;
-alias long FIINT64;
-alias ulong FIUINT64;
+alias BOOL = uint;
+alias BYTE = ubyte;
+alias WORD = ushort;
+alias DWORD = c_ulong;
+alias LONG = int;
+alias FIINT64 = long;
+alias FIUINT64 = ulong;
 
-align(1) struct RGBQUAD
-{
-    version(FREEIMAGE_COLORORDER_BGR)
-    {
+align( 1 ) struct RGBQUAD {
+    version( FREEIMAGE_COLORORDER_BGR ) {
         BYTE rgbBlue;
         BYTE rgbGreen;
         BYTE rgbRed;
-    }
-    else
-    {
+    } else {
         BYTE rgbRed;
         BYTE rgbGreen;
         BYTE rgbBlue;
@@ -97,24 +84,19 @@ align(1) struct RGBQUAD
     BYTE rgbReserved;
 }
 
-align(1) struct RGBTRIPLE
-{
-    version(FREEIMAGE_COLORORDER_BGR)
-    {
+align( 1 ) struct RGBTRIPLE {
+    version( FREEIMAGE_COLORORDER_BGR ) {
         BYTE rgbtBlue;
         BYTE rgbtGreen;
         BYTE rgbtRed;
-    }
-    else
-    {
+    } else {
         BYTE rgbtRed;
         BYTE rgbtGreen;
         BYTE rgbtBlue;
     }
 }
 
-align(1) struct BITMAPINFOHEADER
-{
+align( 1 ) struct BITMAPINFOHEADER {
     DWORD biSize;
     LONG  biWidth;
     LONG  biHeight;
@@ -130,87 +112,55 @@ align(1) struct BITMAPINFOHEADER
 
 alias BITMAPINFOHEADER* PBITMAPINFOHEADER;
 
-align(1) struct BITMAPINFO
-{
+align( 1 ) struct BITMAPINFO {
     BITMAPINFOHEADER bmiHeader;
     RGBQUAD          bmiColors[1];
 }
 
 alias BITMAPINFO* PBITMAPINFO;
 
-// Types used in the library (specific to FreeImage) ------------------------
-
-/** 48-bit RGB
-*/
-align(1) struct FIRGB16
-{
+align( 1 ) struct FIRGB16 {
     WORD red;
     WORD green;
     WORD blue;
 }
 
-/** 64-bit RGBA
-*/
-align(1) struct FIRGBA16
-{
+align( 1 ) struct FIRGBA16 {
     WORD red;
     WORD green;
     WORD blue;
     WORD alpha;
 }
 
-/** 96-bit RGB Float
-*/
-align(1) struct FIRGBF
-{
+align( 1 ) struct FIRGBF {
     float red;
     float green;
     float blue;
 }
 
-/** 128-bit RGBA Float
-*/
-align(1) struct FIRGBAF
-{
+align( 1 ) struct FIRGBAF {
     float red;
     float green;
     float blue;
     float alpha;
 }
 
-/** Data structure for COMPLEX type (complex number)
-*/
-align(1) struct FICOMPLEX
-{
-    /// real part
+align( 1 ) struct FICOMPLEX {
     double r;
-    /// imaginary part
     double i;
 }
 
-// Handle to a metadata model
-struct FIMETADATA
-{
+struct FIMETADATA {
     void* data;
 }
 
-// Handle to a FreeImage tag
-struct FITAG
-{
+struct FITAG {
     void* data;
 }
 
-
-// Indexes for byte arrays, masks and shifts for treating pixels as words ---
-// These coincide with the order of RGBQUAD and RGBTRIPLE -------------------
-
-version(LittleEndian)
-{
-    version(FREEIMAGE_COLORORDER_BGR)
-    {
-        // Little Endian (x86 / MS Windows, Linux) : BGR(A) order
-        enum
-        {
+version( LittleEndian ) {
+    version( FREEIMAGE_COLORORDER_BGR ) {
+        enum {
             FI_RGBA_RED           = 2,
             FI_RGBA_GREEN         = 1,
             FI_RGBA_BLUE          = 0,
@@ -224,10 +174,7 @@ version(LittleEndian)
             FI_RGBA_BLUE_SHIFT    = 0,
             FI_RGBA_ALPHA_SHIFT   = 24
         }
-    }
-    else
-    {
-        // Little Endian (x86 / MaxOSX) : RGB(A) order
+    } else {
         enum
         {
             FI_RGBA_RED           = 0,
@@ -245,13 +192,9 @@ version(LittleEndian)
         }
     }
 }
-else
-{
-    version(FREEIMAGE_COLORORDER_BGR)
-    {
-        // Big Endian (PPC / none) : BGR(A) order
-        enum
-        {
+else {
+    version( FREEIMAGE_COLORORDER_BGR ) {
+        enum {
             FI_RGBA_RED           = 2,
             FI_RGBA_GREEN         = 1,
             FI_RGBA_BLUE          = 0,
@@ -266,11 +209,8 @@ else
             FI_RGBA_ALPHA_SHIFT   = 0
         }
     }
-    else
-    {
-        // Big Endian (PPC / Linux, MaxOSX) : RGB(A) order
-        enum
-        {
+    else {
+        enum {
             FI_RGBA_RED           = 0,
             FI_RGBA_GREEN         = 1,
             FI_RGBA_BLUE          = 2,
@@ -289,9 +229,7 @@ else
 
 enum FI_RGBA_RGB_MASK = FI_RGBA_RED_MASK | FI_RGBA_GREEN_MASK | FI_RGBA_BLUE_MASK;
 
-// The 16bit macros only include masks and shifts, since each color element is not byte aligned
-enum
-{
+enum {
     FI16_555_RED_MASK     = 0x7C00,
     FI16_555_GREEN_MASK   = 0x03E0,
     FI16_555_BLUE_MASK    = 0x001F,
@@ -306,28 +244,19 @@ enum
     FI16_565_BLUE_SHIFT   = 0
 }
 
-// ICC profile support ------------------------------------------------------
-
-enum
-{
+enum {
     FIICC_DEFAULT       = 0x00,
     FIICC_COLOR_IS_CMYK = 0x01
 }
 
-struct FIICCPROFILE
-{
+struct FIICCPROFILE {
     WORD  flags;    // info flag
     DWORD  size;    // profile's size measured in bytes
     void  *data;    // points to a block of contiguous memory containing the profile
 }
 
-// Important enums ----------------------------------------------------------
-
-/** I/O image format identifiers.
-*/
 alias int FREE_IMAGE_FORMAT;
-enum : FREE_IMAGE_FORMAT
-{
+enum : FREE_IMAGE_FORMAT {
     FIF_UNKNOWN = -1,
     FIF_BMP     = 0,
     FIF_ICO     = 1,
@@ -367,223 +296,173 @@ enum : FREE_IMAGE_FORMAT
     FIF_RAW     = 34
 }
 
-/** Image type used in FreeImage.
-*/
 alias int FREE_IMAGE_TYPE;
-enum : FREE_IMAGE_TYPE
-{
-    FIT_UNKNOWN = 0,    // unknown type
-    FIT_BITMAP  = 1,    // standard image           : 1-, 4-, 8-, 16-, 24-, 32-bit
-    FIT_UINT16  = 2,    // array of unsigned short  : unsigned 16-bit
-    FIT_INT16   = 3,    // array of short           : signed 16-bit
-    FIT_UINT32  = 4,    // array of unsigned long   : unsigned 32-bit
-    FIT_INT32   = 5,    // array of long            : signed 32-bit
-    FIT_FLOAT   = 6,    // array of float           : 32-bit IEEE floating point
-    FIT_DOUBLE  = 7,    // array of double          : 64-bit IEEE floating point
-    FIT_COMPLEX = 8,    // array of FICOMPLEX       : 2 x 64-bit IEEE floating point
-    FIT_RGB16   = 9,    // 48-bit RGB image         : 3 x 16-bit
-    FIT_RGBA16  = 10,   // 64-bit RGBA image        : 4 x 16-bit
-    FIT_RGBF    = 11,   // 96-bit RGB float image   : 3 x 32-bit IEEE floating point
-    FIT_RGBAF   = 12    // 128-bit RGBA float image : 4 x 32-bit IEEE floating point
+enum : FREE_IMAGE_TYPE {
+    FIT_UNKNOWN = 0,
+    FIT_BITMAP  = 1,
+    FIT_UINT16  = 2,
+    FIT_INT16   = 3,
+    FIT_UINT32  = 4,
+    FIT_INT32   = 5,
+    FIT_FLOAT   = 6,
+    FIT_DOUBLE  = 7,
+    FIT_COMPLEX = 8,
+    FIT_RGB16   = 9,
+    FIT_RGBA16  = 10,
+    FIT_RGBF    = 11,
+    FIT_RGBAF   = 12
 }
 
-/** Image color type used in FreeImage.
-*/
 alias int FREE_IMAGE_COLOR_TYPE;
-enum : FREE_IMAGE_COLOR_TYPE
-{
-    FIC_MINISWHITE = 0,     // min value is white
-    FIC_MINISBLACK = 1,     // min value is black
-    FIC_RGB        = 2,     // RGB color model
-    FIC_PALETTE    = 3,     // color map indexed
-    FIC_RGBALPHA   = 4,     // RGB color model with alpha channel
-    FIC_CMYK       = 5      // CMYK color model
+enum : FREE_IMAGE_COLOR_TYPE {
+    FIC_MINISWHITE = 0,
+    FIC_MINISBLACK = 1,
+    FIC_RGB        = 2,
+    FIC_PALETTE    = 3,
+    FIC_RGBALPHA   = 4,
+    FIC_CMYK       = 5
 }
 
-/** Color quantization algorithms.
-Constants used in FreeImage_ColorQuantize.
-*/
 alias int FREE_IMAGE_QUANTIZE;
-enum : FREE_IMAGE_QUANTIZE
-{
-    FIQ_WUQUANT = 0,        // Xiaolin Wu color quantization algorithm
-    FIQ_NNQUANT = 1         // NeuQuant neural-net quantization algorithm by Anthony Dekker
+enum : FREE_IMAGE_QUANTIZE {
+    FIQ_WUQUANT = 0,
+    FIQ_NNQUANT = 1
 }
 
-/** Dithering algorithms.
-Constants used in FreeImage_Dither.
-*/
 alias int FREE_IMAGE_DITHER;
-enum : FREE_IMAGE_DITHER
-{
-    FID_FS          = 0,    // Floyd & Steinberg error diffusion
-    FID_BAYER4x4    = 1,    // Bayer ordered dispersed dot dithering (order 2 dithering matrix)
-    FID_BAYER8x8    = 2,    // Bayer ordered dispersed dot dithering (order 3 dithering matrix)
-    FID_CLUSTER6x6  = 3,    // Ordered clustered dot dithering (order 3 - 6x6 matrix)
-    FID_CLUSTER8x8  = 4,    // Ordered clustered dot dithering (order 4 - 8x8 matrix)
-    FID_CLUSTER16x16= 5,    // Ordered clustered dot dithering (order 8 - 16x16 matrix)
-    FID_BAYER16x16  = 6     // Bayer ordered dispersed dot dithering (order 4 dithering matrix)
+enum : FREE_IMAGE_DITHER {
+    FID_FS          = 0,
+    FID_BAYER4x4    = 1,
+    FID_BAYER8x8    = 2,
+    FID_CLUSTER6x6  = 3,
+    FID_CLUSTER8x8  = 4,
+    FID_CLUSTER16x16= 5,
+    FID_BAYER16x16  = 6
 }
 
-/** Lossless JPEG transformations
-Constants used in FreeImage_JPEGTransform
-*/
 alias int FREE_IMAGE_JPEG_OPERATION;
 enum : FREE_IMAGE_JPEG_OPERATION
 {
-    FIJPEG_OP_NONE          = 0,    // no transformation
-    FIJPEG_OP_FLIP_H        = 1,    // horizontal flip
-    FIJPEG_OP_FLIP_V        = 2,    // vertical flip
-    FIJPEG_OP_TRANSPOSE     = 3,    // transpose across UL-to-LR axis
-    FIJPEG_OP_TRANSVERSE    = 4,    // transpose across UR-to-LL axis
-    FIJPEG_OP_ROTATE_90     = 5,    // 90-degree clockwise rotation
-    FIJPEG_OP_ROTATE_180    = 6,    // 180-degree rotation
-    FIJPEG_OP_ROTATE_270    = 7     // 270-degree clockwise (or 90 ccw)
+    FIJPEG_OP_NONE          = 0,
+    FIJPEG_OP_FLIP_H        = 1,
+    FIJPEG_OP_FLIP_V        = 2,
+    FIJPEG_OP_TRANSPOSE     = 3,
+    FIJPEG_OP_TRANSVERSE    = 4,
+    FIJPEG_OP_ROTATE_90     = 5,
+    FIJPEG_OP_ROTATE_180    = 6,
+    FIJPEG_OP_ROTATE_270    = 7
 }
 
-/** Tone mapping operators.
-Constants used in FreeImage_ToneMapping.
-*/
 alias int FREE_IMAGE_TMO;
-enum : FREE_IMAGE_TMO
-{
-    FITMO_DRAGO03    = 0,   // Adaptive logarithmic mapping (F. Drago, 2003)
-    FITMO_REINHARD05 = 1,   // Dynamic range reduction inspired by photoreceptor physiology (E. Reinhard, 2005)
-    FITMO_FATTAL02   = 2    // Gradient domain high dynamic range compression (R. Fattal, 2002)
+enum : FREE_IMAGE_TMO {
+    FITMO_DRAGO03    = 0,
+    FITMO_REINHARD05 = 1,
+    FITMO_FATTAL02   = 2
 }
 
-/** Upsampling / downsampling filters.
-Constants used in FreeImage_Rescale.
-*/
 alias int FREE_IMAGE_FILTER;
-enum : FREE_IMAGE_FILTER
-{
-    FILTER_BOX        = 0,  // Box, pulse, Fourier window, 1st order (constant) b-spline
-    FILTER_BICUBIC    = 1,  // Mitchell & Netravali's two-param cubic filter
-    FILTER_BILINEAR   = 2,  // Bilinear filter
-    FILTER_BSPLINE    = 3,  // 4th order (cubic) b-spline
-    FILTER_CATMULLROM = 4,  // Catmull-Rom spline, Overhauser spline
-    FILTER_LANCZOS3   = 5   // Lanczos3 filter
+enum : FREE_IMAGE_FILTER {
+    FILTER_BOX        = 0,
+    FILTER_BICUBIC    = 1,
+    FILTER_BILINEAR   = 2,
+    FILTER_BSPLINE    = 3,
+    FILTER_CATMULLROM = 4,
+    FILTER_LANCZOS3   = 5
 }
 
-/** Color channels.
-Constants used in color manipulation routines.
-*/
 alias int FREE_IMAGE_COLOR_CHANNEL;
 enum : FREE_IMAGE_COLOR_CHANNEL
 {
-    FICC_RGB    = 0,    // Use red, green and blue channels
-    FICC_RED    = 1,    // Use red channel
-    FICC_GREEN  = 2,    // Use green channel
-    FICC_BLUE   = 3,    // Use blue channel
-    FICC_ALPHA  = 4,    // Use alpha channel
-    FICC_BLACK  = 5,    // Use black channel
-    FICC_REAL   = 6,    // Complex images: use real part
-    FICC_IMAG   = 7,    // Complex images: use imaginary part
-    FICC_MAG    = 8,    // Complex images: use magnitude
-    FICC_PHASE  = 9     // Complex images: use phase
+    FICC_RGB    = 0,
+    FICC_RED    = 1,
+    FICC_GREEN  = 2,
+    FICC_BLUE   = 3,
+    FICC_ALPHA  = 4,
+    FICC_BLACK  = 5,
+    FICC_REAL   = 6,
+    FICC_IMAG   = 7,
+    FICC_MAG    = 8,
+    FICC_PHASE  = 9
 }
 
-// Metadata support ---------------------------------------------------------
-
-/**
-  Tag data type information (based on TIFF specifications)
-
-  Note: RATIONALs are the ratio of two 32-bit integer values.
-*/
 alias int FREE_IMAGE_MDTYPE;
-enum : FREE_IMAGE_MDTYPE
-{
-    FIDT_NOTYPE     = 0,    // placeholder
-    FIDT_BYTE       = 1,    // 8-bit unsigned integer
-    FIDT_ASCII      = 2,    // 8-bit bytes w/ last byte null
-    FIDT_SHORT      = 3,    // 16-bit unsigned integer
-    FIDT_LONG       = 4,    // 32-bit unsigned integer
-    FIDT_RATIONAL   = 5,    // 64-bit unsigned fraction
-    FIDT_SBYTE      = 6,    // 8-bit signed integer
-    FIDT_UNDEFINED  = 7,    // 8-bit untyped data
-    FIDT_SSHORT     = 8,    // 16-bit signed integer
-    FIDT_SLONG      = 9,    // 32-bit signed integer
-    FIDT_SRATIONAL  = 10,   // 64-bit signed fraction
-    FIDT_FLOAT      = 11,   // 32-bit IEEE floating point
-    FIDT_DOUBLE     = 12,   // 64-bit IEEE floating point
-    FIDT_IFD        = 13,   // 32-bit unsigned integer (offset)
-    FIDT_PALETTE    = 14,   // 32-bit RGBQUAD
-    FIDT_LONG8      = 16,   // 64-bit unsigned integer
-    FIDT_SLONG8     = 17,   // 64-bit signed integer
-    FIDT_IFD8       = 18    // 64-bit unsigned integer (offset)
+enum : FREE_IMAGE_MDTYPE {
+    FIDT_NOTYPE     = 0,
+    FIDT_BYTE       = 1,
+    FIDT_ASCII      = 2,
+    FIDT_SHORT      = 3,
+    FIDT_LONG       = 4,
+    FIDT_RATIONAL   = 5,
+    FIDT_SBYTE      = 6,
+    FIDT_UNDEFINED  = 7,
+    FIDT_SSHORT     = 8,
+    FIDT_SLONG      = 9,
+    FIDT_SRATIONAL  = 10,
+    FIDT_FLOAT      = 11,
+    FIDT_DOUBLE     = 12,
+    FIDT_IFD        = 13,
+    FIDT_PALETTE    = 14,
+    FIDT_LONG8      = 16,
+    FIDT_SLONG8     = 17,
+    FIDT_IFD8       = 18
 }
 
-/**
-  Metadata models supported by FreeImage
-*/
 alias int FREE_IMAGE_MDMODEL;
-enum : FREE_IMAGE_MDMODEL
-{
+enum : FREE_IMAGE_MDMODEL {
     FIMD_NODATA         = -1,
-    FIMD_COMMENTS       = 0,    // single comment or keywords
-    FIMD_EXIF_MAIN      = 1,    // Exif-TIFF metadata
-    FIMD_EXIF_EXIF      = 2,    // Exif-specific metadata
-    FIMD_EXIF_GPS       = 3,    // Exif GPS metadata
-    FIMD_EXIF_MAKERNOTE = 4,    // Exif maker note metadata
-    FIMD_EXIF_INTEROP   = 5,    // Exif interoperability metadata
-    FIMD_IPTC           = 6,    // IPTC/NAA metadata
-    FIMD_XMP            = 7,    // Abobe XMP metadata
-    FIMD_GEOTIFF        = 8,    // GeoTIFF metadata
-    FIMD_ANIMATION      = 9,    // Animation metadata
-    FIMD_CUSTOM         = 10,   // Used to attach other metadata types to a dib
-    FIMD_EXIF_RAW       = 11    // Exif metadata as a raw buffer
+    FIMD_COMMENTS       = 0,
+    FIMD_EXIF_MAIN      = 1,
+    FIMD_EXIF_EXIF      = 2,
+    FIMD_EXIF_GPS       = 3,
+    FIMD_EXIF_MAKERNOTE = 4,
+    FIMD_EXIF_INTEROP   = 5,
+    FIMD_IPTC           = 6,
+    FIMD_XMP            = 7,
+    FIMD_GEOTIFF        = 8,
+    FIMD_ANIMATION      = 9,
+    FIMD_CUSTOM         = 10,
+    FIMD_EXIF_RAW       = 11
 }
-
-// File IO routines ---------------------------------------------------------
 
 alias void* fi_handle;
-extern(System)
-{
-    alias nothrow uint function(void *buffer, uint size, uint count, fi_handle handle) FI_ReadProc;
-    alias nothrow uint function(void *buffer, uint size, uint count, fi_handle handle) FI_WriteProc;
-    alias nothrow int function(fi_handle handle, c_long offset, int origin) FI_SeekProc;
-    alias nothrow c_long function(fi_handle handle) FI_TellProc;
+extern( System ) nothrow {
+    alias FI_ReadProc = uint function( void *buffer, uint size, uint count, fi_handle handle );
+    alias FI_WriteProc = uint function( void *buffer, uint size, uint count, fi_handle handle );
+    alias FI_SeekProc = int function( fi_handle handle, c_long offset, int origin );
+    alias FI_TellProc = c_long function( fi_handle handle );
 }
 
-align(1) struct FreeImageIO
-{
-    FI_ReadProc  read_proc;     // pointer to the function used to read data
-    FI_WriteProc write_proc;    // pointer to the function used to write data
-    FI_SeekProc  seek_proc;     // pointer to the function used to seek
-    FI_TellProc  tell_proc;     // pointer to the function used to aquire the current position
+align( 1 ) struct FreeImageIO {
+    FI_ReadProc  read_proc;
+    FI_WriteProc write_proc;
+    FI_SeekProc  seek_proc;
+    FI_TellProc  tell_proc;
 }
 
-/**
-Handle to a memory I/O stream
-*/
-struct FIMEMORY
-{
+struct FIMEMORY {
     void *data;
 }
 
+extern(  C  ) nothrow {
+    alias FI_FormatProc = const( char )* function( char )* function();
+    alias FI_DescriptionProc = const( char )* function( char )* function();
+    alias FI_ExtensionListProc = const( char )* function( char )* function();
+    alias FI_RegExprProc = const( char )* function( char )* function();
+    alias FI_OpenProc = void* function( FreeImageIO *io, fi_handle handle, BOOL read );
+    alias FI_CloseProc = void function( FreeImageIO *io, fi_handle handle, void *data );
+    alias FI_PageCountProc = int function( FreeImageIO *io, fi_handle handle, void *data );
+    alias FI_PageCapabilityProc = int function( FreeImageIO *io, fi_handle handle, void *data );
+    alias FI_LoadProc = FIBITMAP* function( FreeImageIO *io, fi_handle handle, int page, int flags, void *data );
+    alias FI_SaveProc = BOOL function( FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data );
+    alias FI_ValidateProc = BOOL function( FreeImageIO *io, fi_handle handle );
+    alias FI_MimeProc = const( char ) function( char ) function();
+    alias FI_SupportsExportBPPProc = BOOL function( int bpp );
+    alias FI_SupportsExportTypeProc = BOOL function( FREE_IMAGE_TYPE type );
+    alias FI_SupportsICCProfilesProc = BOOL function();
+    alias FI_SupportsNoPixelsProc = BOOL function();
+}
 
-// Plugin routines ----------------------------------------------------------
-
-alias extern(C) const(char)* function() FI_FormatProc;
-alias extern(C) const(char)* function() FI_DescriptionProc;
-alias extern(C) const(char)* function() FI_ExtensionListProc;
-alias extern(C) const(char)* function() FI_RegExprProc;
-alias extern(C) void* function(FreeImageIO *io, fi_handle handle, BOOL read) FI_OpenProc;
-alias extern(C) void function(FreeImageIO *io, fi_handle handle, void *data) FI_CloseProc;
-alias extern(C) int function(FreeImageIO *io, fi_handle handle, void *data) FI_PageCountProc;
-alias extern(C) int function(FreeImageIO *io, fi_handle handle, void *data) FI_PageCapabilityProc;
-alias extern(C) FIBITMAP* function(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) FI_LoadProc;
-alias extern(C) BOOL function(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void *data) FI_SaveProc;
-alias extern(C) BOOL function(FreeImageIO *io, fi_handle handle) FI_ValidateProc;
-alias extern(C) const(char) function() FI_MimeProc;
-alias extern(C) BOOL function(int bpp) FI_SupportsExportBPPProc;
-alias extern(C) BOOL function(FREE_IMAGE_TYPE type) FI_SupportsExportTypeProc;
-alias extern(C) BOOL function() FI_SupportsICCProfilesProc;
-alias extern(C) BOOL function() FI_SupportsNoPixelsProc;
-
-struct Plugin
-{
+struct Plugin {
     FI_FormatProc format_proc;
     FI_DescriptionProc description_proc;
     FI_ExtensionListProc extension_proc;
@@ -603,109 +482,108 @@ struct Plugin
 }
 
 
-alias extern(C) void function(Plugin *plugin, int format_id) FI_InitProc;
+extern( C ) nothrow alias FI_InitProc =void function( Plugin *plugin, int format_id );
 
 
 // Load / Save flag constants -----------------------------------------------
 
-enum
-     FIF_LOAD_NOPIXELS   = 0x8000,   // loading: load the image header only (not supported by all plugins)
+enum {
+     FIF_LOAD_NOPIXELS   = 0x8000,
      BMP_DEFAULT         = 0,
      BMP_SAVE_RLE        = 1,
      CUT_DEFAULT         = 0,
      DDS_DEFAULT         = 0,
-     EXR_DEFAULT         = 0,        // save data as half with piz-based wavelet compression
-     EXR_FLOAT           = 0x0001,   // save data as float instead of as half (not recommended)
-     EXR_NONE            = 0x0002,   // save with no compression
-     EXR_ZIP             = 0x0004,   // save with zlib compression, in blocks of 16 scan lines
-     EXR_PIZ             = 0x0008,   // save with piz-based wavelet compression
-     EXR_PXR24           = 0x0010,   // save with lossy 24-bit float compression
-     EXR_B44             = 0x0020,   // save with lossy 44% float compression - goes to 22% when combined with EXR_LC
-     EXR_LC              = 0x0040,   // save images with one luminance and two chroma channels, rather than as RGB (lossy compression)
+     EXR_DEFAULT         = 0,
+     EXR_FLOAT           = 0x0001,
+     EXR_NONE            = 0x0002,
+     EXR_ZIP             = 0x0004,
+     EXR_PIZ             = 0x0008,
+     EXR_PXR24           = 0x0010,
+     EXR_B44             = 0x0020,
+     EXR_LC              = 0x0040,
      FAXG3_DEFAULT       = 0,
      GIF_DEFAULT         = 0,
-     GIF_LOAD256         = 1,        // Load the image as a 256 color image with ununsed palette entries, if it's 16 or 2 color
-     GIF_PLAYBACK        = 2,        // 'Play' the GIF to generate each frame (as 32bpp) instead of returning raw frame data when loading
+     GIF_LOAD256         = 1,
+     GIF_PLAYBACK        = 2,
      HDR_DEFAULT         = 0,
      ICO_DEFAULT         = 0,
-     ICO_MAKEALPHA       = 1,        // convert to 32bpp and create an alpha channel from the AND-mask when loading
+     ICO_MAKEALPHA       = 1,
      IFF_DEFAULT         = 0,
-     J2K_DEFAULT         = 0,        // save with a 16:1 rate
-     JP2_DEFAULT         = 0,        // save with a 16:1 rate
-     JPEG_DEFAULT        = 0,        // loading (see JPEG_FAST); saving (see JPEG_QUALITYGOOD|JPEG_SUBSAMPLING_420)
-     JPEG_FAST           = 0x0001,   // load the file as fast as possible, sacrificing some quality
-     JPEG_ACCURATE       = 0x0002,   // load the file with the best quality, sacrificing some speed
-     JPEG_CMYK           = 0x0004,   // load separated CMYK "as is" (use | to combine with other load flags)
-     JPEG_EXIFROTATE     = 0x0008,   // load and rotate according to Exif 'Orientation' tag if available
-     JPEG_QUALITYSUPERB  = 0x80,     // save with superb quality (100:1)
-     JPEG_QUALITYGOOD    = 0x0100,   // save with good quality (75:1)
-     JPEG_QUALITYNORMAL  = 0x0200,   // save with normal quality (50:1)
-     JPEG_QUALITYAVERAGE = 0x0400,   // save with average quality (25:1)
-     JPEG_QUALITYBAD     = 0x0800,   // save with bad quality (10:1)
-     JPEG_PROGRESSIVE    = 0x2000,   // save as a progressive-JPEG (use | to combine with other save flags)
+     J2K_DEFAULT         = 0,
+     JP2_DEFAULT         = 0,
+     JPEG_DEFAULT        = 0,
+     JPEG_FAST           = 0x0001,
+     JPEG_ACCURATE       = 0x0002,
+     JPEG_CMYK           = 0x0004,
+     JPEG_EXIFROTATE     = 0x0008,
+     JPEG_QUALITYSUPERB  = 0x80,
+     JPEG_QUALITYGOOD    = 0x0100,
+     JPEG_QUALITYNORMAL  = 0x0200,
+     JPEG_QUALITYAVERAGE = 0x0400,
+     JPEG_QUALITYBAD     = 0x0800,
+     JPEG_PROGRESSIVE    = 0x2000,
 
-     JPEG_SUBSAMPLING_411 = 0x1000,  // save with high 4x1 chroma subsampling (4:1:1)
-     JPEG_SUBSAMPLING_420 = 0x4000,  // save with medium 2x2 medium chroma subsampling (4:2:0) - default value
-     JPEG_SUBSAMPLING_422 = 0x8000,  // save with low 2x1 chroma subsampling (4:2:2)
-     JPEG_SUBSAMPLING_444 = 0x10000, // save with no chroma subsampling (4:4:4)
-     JPEG_OPTIMIZE        = 0x20000, // on saving, compute optimal Huffman coding tables (can reduce a few percent of file size)
-     JPEG_BASELINE       = 0x40000,  // save basic JPEG, without metadata or any markers
+     JPEG_SUBSAMPLING_411 = 0x1000,
+     JPEG_SUBSAMPLING_420 = 0x4000,
+     JPEG_SUBSAMPLING_422 = 0x8000,
+     JPEG_SUBSAMPLING_444 = 0x10000,
+     JPEG_OPTIMIZE        = 0x20000,
+     JPEG_BASELINE       = 0x40000,
      KOALA_DEFAULT       = 0,
      LBM_DEFAULT         = 0,
      MNG_DEFAULT         = 0,
      PCD_DEFAULT         = 0,
-     PCD_BASE            = 1,        // load the bitmap sized 768 x 512
-     PCD_BASEDIV4        = 2,        // load the bitmap sized 384 x 256
-     PCD_BASEDIV16       = 3,        // load the bitmap sized 192 x 128
+     PCD_BASE            = 1,
+     PCD_BASEDIV4        = 2,
+     PCD_BASEDIV16       = 3,
      PCX_DEFAULT         = 0,
      PFM_DEFAULT         = 0,
      PICT_DEFAULT        = 0,
      PNG_DEFAULT         = 0,
-     PNG_IGNOREGAMMA     = 1,        // loading: avoid gamma correction
-     PNG_Z_BEST_SPEED    = 0x0001,   // save using ZLib level 1 compression flag (default value is 6)
-     PNG_Z_DEFAULT_COMPRESSION = 0x0006,  // save using ZLib level 6 compression flag (default recommended value)
-     PNG_Z_BEST_COMPRESSION    = 0x0009,  // save using ZLib level 9 compression flag (default value is 6)
-     PNG_Z_NO_COMPRESSION      = 0x0100,  // save without ZLib compression
-     PNG_INTERLACED            = 0x0200,  // save using Adam7 interlacing (use | to combine with other save flags)
+     PNG_IGNOREGAMMA     = 1,
+     PNG_Z_BEST_SPEED    = 0x0001,
+     PNG_Z_DEFAULT_COMPRESSION = 0x0006,
+     PNG_Z_BEST_COMPRESSION    = 0x0009,
+     PNG_Z_NO_COMPRESSION      = 0x0100,
+     PNG_INTERLACED            = 0x0200,
      PNM_DEFAULT         = 0,
-     PNM_SAVE_RAW        = 0,        // If set the writer saves in RAW format (i.e. P4, P5 or P6)
-     PNM_SAVE_ASCII      = 1,        // If set the writer saves in ASCII format (i.e. P1, P2 or P3)
+     PNM_SAVE_RAW        = 0,
+     PNM_SAVE_ASCII      = 1,
      PSD_DEFAULT         = 0,
-     PSD_CMYK            = 1,        // reads tags for separated CMYK (default is conversion to RGB)
-     PSD_LAB             = 2,        // reads tags for CIELab (default is conversion to RGB)
+     PSD_CMYK            = 1,
+     PSD_LAB             = 2,
      RAS_DEFAULT         = 0,
-     RAW_DEFAULT         = 0,        // load the file as linear RGB 48-bit
-     RAW_PREVIEW         = 1,        // try to load the embedded JPEG preview with included Exif Data or default to RGB 24-bit
-     RAW_DISPLAY         = 2,        // load the file as RGB 24-bit
-     RAW_HALFSIZE        = 4,        // output a half-size color image
+     RAW_DEFAULT         = 0,
+     RAW_PREVIEW         = 1,
+     RAW_DISPLAY         = 2,
+     RAW_HALFSIZE        = 4,
      SGI_DEFAULT         = 0,
      TARGA_DEFAULT       = 0,
-     TARGA_LOAD_RGB888   = 1,        // If set the loader converts RGB555 and ARGB8888 -> RGB888.
-     TARGA_SAVE_RLE      = 2,        // If set, the writer saves with RLE compression
+     TARGA_LOAD_RGB888   = 1,
+     TARGA_SAVE_RLE      = 2,
      TIFF_DEFAULT        = 0,
-     TIFF_CMYK           = 0x0001,   // reads/stores tags for separated CMYK (use | to combine with compression flags)
-     TIFF_PACKBITS       = 0x0100,   // save using PACKBITS compression
-     TIFF_DEFLATE        = 0x0200,   // save using DEFLATE compression (a.k.a. ZLIB compression)
-     TIFF_ADOBE_DEFLATE  = 0x0400,   // save using ADOBE DEFLATE compression
-     TIFF_NONE           = 0x0800,   // save without any compression
-     TIFF_CCITTFAX3      = 0x1000,   // save using CCITT Group 3 fax encoding
-     TIFF_CCITTFAX4      = 0x2000,   // save using CCITT Group 4 fax encoding
-     TIFF_LZW            = 0x4000,   // save using LZW compression
-     TIFF_JPEG           = 0x8000,   // save using JPEG compression
-     TIFF_LOGLUV         = 0x10000,  // save using LogLuv compression
+     TIFF_CMYK           = 0x0001,
+     TIFF_PACKBITS       = 0x0100,
+     TIFF_DEFLATE        = 0x0200,
+     TIFF_ADOBE_DEFLATE  = 0x0400,
+     TIFF_NONE           = 0x0800,
+     TIFF_CCITTFAX3      = 0x1000,
+     TIFF_CCITTFAX4      = 0x2000,
+     TIFF_LZW            = 0x4000,
+     TIFF_JPEG           = 0x8000,
+     TIFF_LOGLUV         = 0x10000,
      WBMP_DEFAULT        = 0,
      XBM_DEFAULT         = 0,
-     XPM_DEFAULT         = 0;
+     XPM_DEFAULT         = 0
+ }
 
-// Background filling options ---------------------------------------------------------
-// Constants used in FreeImage_FillBackground and FreeImage_EnlargeCanvas
+enum {
+    FI_COLOR_IS_RGB_COLOR        = 0x00,
+    FI_COLOR_IS_RGBA_COLOR       = 0x01,
+    FI_COLOR_FIND_EQUAL_COLOR    = 0x02,
+    FI_COLOR_ALPHA_IS_INDEX      = 0x04,
+    FI_COLOR_PALETTE_SEARCH_MASK = ( FI_COLOR_FIND_EQUAL_COLOR | FI_COLOR_ALPHA_IS_INDEX )
+}
 
-enum FI_COLOR_IS_RGB_COLOR        = 0x00,  // RGBQUAD color is a RGB color (contains no valid alpha channel)
-     FI_COLOR_IS_RGBA_COLOR       = 0x01,  // RGBQUAD color is a RGBA color (contains a valid alpha channel)
-     FI_COLOR_FIND_EQUAL_COLOR    = 0x02,  // For palettized images: lookup equal RGB color from palette
-     FI_COLOR_ALPHA_IS_INDEX      = 0x04,  // The color's rgbReserved member (alpha) contains the palette index to be used
-     FI_COLOR_PALETTE_SEARCH_MASK = (FI_COLOR_FIND_EQUAL_COLOR | FI_COLOR_ALPHA_IS_INDEX);  // No color lookup is performed
-
-
-alias extern(C) nothrow void function(FREE_IMAGE_FORMAT fif, const(char)* msg) FreeImage_OutputMessageFunction;
-alias extern(Windows) nothrow void function(FREE_IMAGE_FORMAT fif, const(char)* msg) FreeImage_OutputMessageFunctionStdCall;
+extern( C ) nothrow alias FreeImage_OutputMessageFunction = void function( FREE_IMAGE_FORMAT fif, const( char )* msg );
+extern( Windows ) nothrow alias FreeImage_OutputMessageFunctionStdCall = void function( FREE_IMAGE_FORMAT fif, const( char )* msg );
