@@ -51,7 +51,11 @@ struct TextureManager
 		if(index != -1)
 			return TextureID(index, resources[index].width, resources[index].height);
 
-		auto texture = loadTexture(path, loadingParam, flag);
+
+		import std.path;
+		const(char)* c_path = buildPath(resourceDir, path).toCString();
+
+		auto texture = loadTexture(c_path, loadingParam, flag);
 		index = resources.add(texture, path);
 		return TextureID(index, resources[index].width, resources[index].height);
 
@@ -67,11 +71,14 @@ struct TextureManager
 	{
 		auto index = resources.indexOf(path);
 		if (index == -1) {
-			warn("Trying to reload unloaded texture: " ~ path);
+			logChnl.warn("Trying to reload non-loaded texture: " ~ path);
 			return load(path);
 		}
-		
-		auto tex = loadTexture(path, paramConfig, flag);
+
+		import std.path;
+		const(char)* c_path = buildPath(resourceDir, path).toCString();
+
+		auto tex = loadTexture(c_path, paramConfig, flag);
 		resources.replace(tex, path);
 		
 		return TextureID(index, resources[index].width, resources[index].height);
@@ -90,19 +97,16 @@ struct TextureManager
 
 }
 
-private Texture2D loadTexture(const(char)[] path, uint paramConfig = 0, 
+private Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0, 
 					  Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
 {
-	import std.path;
-	const(char*) c_str = buildPath(resourceDir, path).toCString();
-	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_str);
+	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_path);
 	if(format == FIF_UNKNOWN)
 	{
-		format = FreeImage_GetFIFFromFilename(c_str);
+		format = FreeImage_GetFIFFromFilename(c_path);
 	}
 
-
-	FIBITMAP* bitmap = FreeImage_Load(format, c_str, paramConfig);
+	FIBITMAP* bitmap = FreeImage_Load(format, c_path, paramConfig);
 	scope(exit) FreeImage_Unload(bitmap);
 
 	uint width  = FreeImage_GetWidth(bitmap);
@@ -130,4 +134,11 @@ private Texture2D loadTexture(const(char)[] path, uint paramConfig = 0,
 	return Texture2D.create(cFormat, cType, iFormat,
 									width, height, bits[0 .. bpp / 8 * width * height],
 									flag);
+}
+
+
+LogChannel logChnl;
+shared static this()
+{
+	logChnl = LogChannel(content.logChnl, "FONT");
 }

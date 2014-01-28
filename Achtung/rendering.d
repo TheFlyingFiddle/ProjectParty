@@ -11,9 +11,9 @@ import types;
 struct AchtungRenderer
 {
 	private SpriteBuffer buffer;
-	private Frame snakeFrame;
-	private Font font;
-	private FBO fbo;
+	private Frame        snakeFrame;
+	private FontID       font;
+	private FBO	         fbo;
 
 	this(Allocator)(ref Allocator allocator,
 					uint bufferSize, 
@@ -24,11 +24,12 @@ struct AchtungRenderer
 		//auto snakeTex = createStandardTexture(2, 2, c);
 		
 		auto snakeTex = TextureManager.load("textures\\pixel.png");
-		font = loadFont(allocator, "..\\resources\\fonts\\Arial32.fnt");
+		font		  = FontManager.load("fonts\\Arial32.fnt");
 
 		snakeFrame = Frame(snakeTex);
 
-		fbo = createSimpleFBO(mapWidth, mapHeight);
+
+		fbo    = createSimpleFBO(mapWidth, mapHeight);
 		buffer = SpriteBuffer(512, allocator);
 	}
 
@@ -63,6 +64,11 @@ struct AchtungRenderer
 						 BlitFilter.nearest);
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
+
+
+		import derelict.opengl3.gl3;
+		gl.enable(GL_BLEND);
+		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		foreach(i; 0..scores.length){
 			buffer.addText(font, scores[i].score.to!string, float2(620, (550 - i*100)), scores[i].color);

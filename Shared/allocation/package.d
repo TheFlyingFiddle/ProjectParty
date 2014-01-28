@@ -5,6 +5,8 @@ public import allocation.region;
 public import allocation.stack;
 public import allocation.gc;
 
+import logging;
+auto logChnl = LogChannel("ALLOCATION");
 
 interface IAllocator
 {

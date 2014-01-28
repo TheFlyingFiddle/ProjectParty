@@ -27,9 +27,6 @@ static void initialize(Buffer)(ref Buffer buffer, uint size)
 
 static void bufferSubData(T, Buffer)(ref Buffer buffer, T[] data, uint unitOffset) 
 {
-	import logging;
-	info(buffer.size, " ", data.length * T.sizeof + unitOffset);
-
 	gl.bufferSubData(buffer.target, T.sizeof * unitOffset, T.sizeof * data.length , data.ptr);
 }
 

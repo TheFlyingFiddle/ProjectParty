@@ -47,7 +47,8 @@ void main()
 	}
 	catch(Throwable t)
 	{
-		error(t);
+		auto logChnl = LogChannel("MAIN");
+		logChnl.error(t);
 	}
 
 	std.c.stdlib.exit(0);
@@ -55,6 +56,8 @@ void main()
 
 void writeLogger(string chan, Verbosity v, string msg, string file, size_t line) nothrow
 {
+	if(chan != "ALLOCATION") return;
+
 	import std.stdio;
 	scope(failure) return; //Needed since writeln can potentially throw.
 	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
@@ -65,7 +68,8 @@ import derelict.util.exception;
 
 bool missingSymFunc(string libName, string symName)
 {
-	error(libName,"   ", symName);
+	auto logChnl = LogChannel("DERELICT");
+	logChnl.warn(libName,"   ", symName);
 	return true;
 }
 
@@ -105,11 +109,12 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
 
 void run()
 {
-	auto allocator = RegionAllocator(Mallocator.it, 1024 * 1024, 8);
+	auto allocator = RegionAllocator(GCAllocator.it, 1024 * 1024, 8);
 	auto stack     = ScopeStack(allocator);
 
 	ContentReloader.init(stack, 100, 50);
 	TextureManager.init(stack, 100);
+	FontManager.init(stack, Mallocator.cit, 100);
 
 	init(stack, "Window.sdl");
 

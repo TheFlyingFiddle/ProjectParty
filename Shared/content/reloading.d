@@ -33,11 +33,6 @@ struct ContentReloader
 	{
 		reloadFunctions ~= ReloadHandler(extention, reload);
 	}
-	
-	static void registerResource(string filePath)
-	{
-		loadedResources ~= filePath;
-	}
 
 	static void registerResource(const(char)[] filePath)
 	{
@@ -59,13 +54,16 @@ struct ContentReloader
 			received = receiveTimeout(0.msecs,
 			(FileChangedEvent fileChanged)
 			{
+				import logging;
+				auto logChannel = LogChannel("RELOADING");
+				logChannel.info("File Changed", fileChanged.filePath);
+				foreach(r; loadedResources) logChannel.info("Loaded: ", r);
 				if(loadedResources.canFind!(x => x == fileChanged.filePath))
 				{
 					auto fileExt = getFileExt(fileChanged.filePath);
 					if(fileExt == FileExtention.unknown)
 					{
-						import logging;
-						warn("File extention for file" ~ fileChanged.filePath ~ " is unkown");
+						logChnl.warn("File extention for file" ~ fileChanged.filePath ~ " is unkown");
 						return;
 					}
 
@@ -88,6 +86,7 @@ enum FileExtention
 	tiff,
 	vert,
 	frag,
+	fnt,
 	unknown
 }
 

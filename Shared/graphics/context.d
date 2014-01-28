@@ -17,29 +17,29 @@ struct gl
 
 void checkGLError(string name)
 {
-
+	auto logChnl = LogChannel("OPENGL");
 	auto err = glGetError();
 	if(err)
 	{
 		switch(err)
 		{
 			case GL_INVALID_ENUM: 
-				error("Got GL_INVALID_ENUM error when calling " ~ name);
+				logChnl.error("Got GL_INVALID_ENUM error when calling " ~ name);
 				break;
 			case GL_INVALID_VALUE:
-				error("Got GL_INVALID_VALUE error when calling " ~ name);
+				logChnl.error("Got GL_INVALID_VALUE error when calling " ~ name);
 				break;
 			case GL_INVALID_OPERATION:
-				error("Got GL_INVALID_OPERATION error when calling " ~ name);
+				logChnl.error("Got GL_INVALID_OPERATION error when calling " ~ name);
 				break;
 			case GL_INVALID_FRAMEBUFFER_OPERATION:
-				error("Got GL_INVALID_FRAMEBUFFER_OPERATION error when calling " ~ name);
+				logChnl.error("Got GL_INVALID_FRAMEBUFFER_OPERATION error when calling " ~ name);
 				break;
 			case GL_OUT_OF_MEMORY:
-				error("Got GL_OUT_OF_MEMORY error when calling " ~ name);
+				logChnl.error("Got GL_OUT_OF_MEMORY error when calling " ~ name);
 				break;
 			default:
-				error("IDK");
+				logChnl.error("IDK");
 				break;
 		}	
 

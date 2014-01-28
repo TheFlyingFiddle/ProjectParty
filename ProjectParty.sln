@@ -10,6 +10,8 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Achtung", "Achtung\Achtung.
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Learning", "Learning\Learning.visualdproj", "{FD6F4DCE-B225-4B84-80DB-1A9876CB928A}"
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Client", "Client\Client.visualdproj", "{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -40,6 +42,12 @@ Global
 		{FD6F4DCE-B225-4B84-80DB-1A9876CB928A}.Release|Win32.ActiveCfg = Release|Win32
 		{FD6F4DCE-B225-4B84-80DB-1A9876CB928A}.Release|Win32.Build.0 = Release|Win32
 		{FD6F4DCE-B225-4B84-80DB-1A9876CB928A}.Release|x64.ActiveCfg = Release|Win32
+		{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}.Debug|Win32.Build.0 = Debug|Win32
+		{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}.Debug|x64.ActiveCfg = Debug|Win32
+		{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}.Release|Win32.ActiveCfg = Release|Win32
+		{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}.Release|Win32.Build.0 = Release|Win32
+		{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

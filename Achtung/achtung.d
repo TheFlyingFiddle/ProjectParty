@@ -64,9 +64,6 @@ void init(Allocator)(ref Allocator allocator, string configPath)
 
 void reset()
 {
-
-	writeScores();
-
 	alive.clear();
 	timers.clear();
 	controls.clear();
@@ -91,14 +88,6 @@ void reset()
 	}
 
 	visibleSnakes = alive.length;
-}
-
-void writeScores()
-{
-	foreach(score; scores)
-	{
-		info(score.score);
-	}
 }
 
 void update()
@@ -270,6 +259,8 @@ void handleCollision(
 
 void renderFrame(ref AchtungRenderer buffer, ref List!Snake snakes, ref List!Score scores)
 {
+	gl.clear(ClearFlags.color);
+
 	mat4 proj = mat4.CreateOrthographic(0, 800,600,0,1,-1);
 	List!Snake visible = snakes[0 .. visibleSnakes];
 	buffer.draw(proj, visible, config.snakeSize, scores);

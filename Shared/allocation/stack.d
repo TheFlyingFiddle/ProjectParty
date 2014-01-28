@@ -2,7 +2,8 @@ module allocation.stack;
 
 import std.traits;
 import logging;
-import allocation.region;
+import allocation.region,
+	   allocation : logChnl;
 
 struct Finalizer
 {
@@ -23,10 +24,6 @@ void destructor(T)(void* ptr)
 	T* t = cast(T*)ptr;
 	t.__dtor();
 }
-
-
-auto chan = LogChannel("SCOPE_ALLOCATION");
-
 
 struct ScopeStack
 {
@@ -51,7 +48,7 @@ struct ScopeStack
 	T* allocate(T, Args...)(ref auto Args args) 
 		if(hasElaborateDestructor!T && !isArray!T)
 		{
-			chan.info("Allocated RAII Object: Type = ", T.stringof);
+			logChnl.info("Allocated RAII Object: Type = ", T.stringof);
 
 			void[] mem = _allocator.allocate(T.sizeof + Finalizer.sizeof, T.alignof);
 			auto obj = emplace!(T)(mem[Finalizer.sizeof .. $], args);
@@ -63,7 +60,7 @@ struct ScopeStack
 	auto allocate(T, Args...)(ref auto Args args) 
 		if(!hasElaborateDestructor!T && !isArray!T)
 		{
-			chan.info("Allocated POD: Type = ", T.stringof);
+			logChnl.info("Allocated POD: Type = ", T.stringof);
 
 			static if(is(T == class))
 				void[] mem = allocator.allocate(__traits(classInstanceSize, T));
@@ -78,7 +75,7 @@ struct ScopeStack
 	{
 		import std.range;
 		alias E = ElementType!T;
-		chan.info("Array: Type ", E.stringof, " Count = ", size);
+		logChnl.info("Array: Type ", E.stringof, " Count = ", size);
 
 		void[] mem = _allocator.allocate(E.sizeof * size, E.alignof);
 

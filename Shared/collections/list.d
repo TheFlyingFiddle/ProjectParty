@@ -1,5 +1,6 @@
 module collections.list;
 
+
 struct List(T)
 {
 	T* buffer;

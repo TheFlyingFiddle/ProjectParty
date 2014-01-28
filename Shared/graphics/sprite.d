@@ -3,7 +3,8 @@ module graphics.sprite;
 import math;
 import graphics;
 import std.algorithm;
-import content.texture;
+import content.texture, 
+	   content.font;
 
 struct SpriteBuffer 
 {
@@ -139,7 +140,7 @@ struct SpriteBuffer
 		textures[elements++] = TextureManager.lookup(frame.texture);
 	}
 
-	void addText(T)(Font font,
+	void addText(T)(FontID fontID,
 					const (T)[] text, 
 					float2 pos,
 					Color color = Color.white,
@@ -151,6 +152,7 @@ struct SpriteBuffer
 			if(elements + text.length > vertices.length)
 				throw new Exception("SpriteBuffer full");
 
+			Font font = FontManager.lookup(fontID);
 			textures[elements .. elements + text.length] = TextureManager.lookup(font.page.texture);
 
 			float2 cursor = float2(0,0);
@@ -188,13 +190,16 @@ struct SpriteBuffer
 			}
 		}
 
-	void addText(T)(Font font,
+	void addText(T)(FontID fontID,
 					const (T)[] text, 
 					float2 pos,
 					float4 scissor,
 					Color color = Color.white)
 		if(is(T == char) || is(T == wchar) || is(T == dchar))
 		{
+			Font font = FontManager.lookup(fontID);
+			Texture2D page = TextureManager.lookup(font.page.texture);
+
 			float2 cursor = float2(0,0);
 			foreach(wchar c; text)
 			{
@@ -230,7 +235,7 @@ struct SpriteBuffer
 												color,
 												0);
 
-					textures[elements++] = font.page;
+					textures[elements++] = page;
 				}
 			}
 			return this;

@@ -1,5 +1,7 @@
 module allocation.native;
 
+import allocation : CAllocator, logChnl;
+
 version(X86)
 {
 	struct Mallocator
@@ -18,6 +20,7 @@ version(X86)
 			size_t aligner = alignment > 8 ? alignment : 8;
 
 			void* allocated = malloc(bytes + aligner);
+			void* mp = allocated;
 			size_t addr = cast(size_t)allocated;
 
 			allocated = cast(void*)((cast(size_t)allocated + aligner) & ~(aligner - 1));
@@ -26,6 +29,7 @@ version(X86)
 			size_t* ptr = cast(size_t*)allocated;
 			*(--ptr) = addr;
 
+			logChnl.info(bytes + aligner," bytes allocated by Mallocator at " , cast(void*)addr);
 			return allocated[0 .. bytes];
 		}	
 
@@ -35,14 +39,23 @@ version(X86)
 			numAllocations--;
 
 			size_t* ptr  = cast(size_t*)(memory.ptr);
-			void* toFree = cast(void*)(*(--ptr));
+			size_t addr  = *(--ptr);
+			void* toFree = cast(void*)addr;
 			free(toFree);
+
+			logChnl.info(cast(size_t)memory.ptr - addr + memory.length, " bytes deallocated by Mallocator at ", cast(void*)addr);
 		}
 
 
 		__gshared static Mallocator it;
+		__gshared static CAllocator!Mallocator cit;
 	}
 } 
+
+shared static this()
+{
+	Mallocator.cit = new CAllocator!Mallocator(Mallocator.it);
+}
 
 version(X86_64)
 {

@@ -7,8 +7,11 @@ public import content.font;
 
 
 
+
 string resourceDir = "..\\resources";
 
+import logging;
+auto logChnl = LogChannel("RESOURCE");
 
 struct ResourceTable(Resource, alias obliterator)
 {
@@ -48,8 +51,7 @@ struct ResourceTable(Resource, alias obliterator)
 		auto index = ids.countUntil!(x => x == id);	
 		if(index == -1) 
 		{
-			import logging;
-			warn("Trying to unload a resource that is not loaded! " ~ path);
+			logChnl.warn("Trying to unload a resource that is not loaded! " ~ path);
 			return false;
 		}
 

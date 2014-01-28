@@ -4,18 +4,19 @@ import graphics.font;
 import graphics.frame;
 import math;
 import std.exception;
-import content.texture;
+import std.path;
 import content;
-
+import allocation;
+import logging;
 
 unittest
 {
 	import allocation;
-	auto path = r"C:\Git\ProjectParty\resources\fonts\Arial32.fnt";
+	auto path = r"..\resources\fonts\Arial32.fnt";
 	auto allocator = Mallocator.it;
-	Font f = loadFont(allocator, path);
+	//Font f = loadFont(allocator, path, "");
 
-	auto x = f.lineHeight;
+	//auto x = f.lineHeight;
 }
 
 struct FontID
@@ -23,47 +24,67 @@ struct FontID
 	private uint index;
 }
 
-//struct FontManager 
-//{
-//    alias Table = ResourceTable!(Font, obliterateFont);
-//    private Table resources;
-//    private IAllocator fontAllocator;
-//
-//    void init(A)(ref A allocator, IAllocator fAllocator, size_t capacity)
-//    {
-//        resources	  = Table(allocator, capacity);
-//        fontAllocator = fAllocator;
-//
-//        ContentReloader.registerReloader(FileExtention.fnt, &auto_reloader);
-//    }
-//
-//    FontID load(const(char[]) path)
-//    {
-//        auto index = resources.indexOf(path);
-//        if(index == -1)
-//            return index;
-//
-//        auto font = loadFont(fontAllocator, path);
-//        index = resources.add(font, path);
-//        return FontID(index);
-//    }
-//
-//    void unload(const(char[]) path)
-//    {
-//        resources.remove(path);
-//    }
-//    
-//    void reload(const(char[]) path)
-//    {
-//        auto index = resouces.indexOf(path);
-//        if(index == -1) {
-//            return load(path);
-//        }
-//    }
-//}
+struct FontManager 
+{
+	alias Table = ResourceTable!(Font, obliterateFont);
+	private static Table resources;
+	private static IAllocator fontAllocator;
+
+	static void init(A)(ref A allocator, IAllocator fAllocator, size_t capacity)
+	{
+		resources	  = Table(allocator, capacity);
+		fontAllocator = fAllocator;
+
+		ContentReloader.registerReloader(FileExtention.fnt, &auto_reload);
+	}
+
+	static void auto_reload(const(char)[] path)
+	{
+		reload(path);
+	}	
+
+	static FontID load(const(char)[] path)
+	{
+		auto index = resources.indexOf(path);
+		if(index != -1)
+			return FontID(index);
+
+		auto font = loadFont(fontAllocator, buildPath(resourceDir, path), path);
+		index = resources.add(font, path);
+		return FontID(index);
+	}
+
+	static void unload(const(char)[] path)
+	{	
+		resources.remove(path);
+	}
+
+	static FontID reload(const(char)[] path)
+	{
+		auto index = resources.indexOf(path);
+		if(index == -1) {
+			logChnl.warn("Trying to reload non-loaded font: " ~ path);
+			return load(path);
+		}
+
+		auto font = loadFont(fontAllocator, buildPath(resourceDir, path), path);
+		resources.replace(font, path);
+		return FontID(index);
+	}
+
+	static void obliterateFont(ref Font font)
+	{
+		fontAllocator.deallocate(font.chars);
+	}
+
+	static Font lookup(FontID id)
+	{
+		return resources[id.index];
+	}
+}
 
 
-Font loadFont(A)(ref A allocator, string filePath)
+private Font loadFont(A)(ref A allocator, const(char)[] filePath, const(char)[] relative)
 {
 	import allocation;
 	import std.file, collections.blob;
@@ -113,7 +134,7 @@ Font loadFont(A)(ref A allocator, string filePath)
 	
 	import std.path;
 
-	auto texturePath = buildPath(filePath.dirName, pageName); 
+	auto texturePath = buildPath(relative.dirName, pageName); 
 
 	auto texID = TextureManager.load(texturePath);
 	Frame page = Frame(texID);
@@ -210,4 +231,11 @@ align(1)
 		chars  = 4,
 		kerningPairs = 5
 	}
+}
+
+
+LogChannel logChnl;
+shared static this()
+{
+	logChnl = LogChannel(content.logChnl, "FONT");
 }
