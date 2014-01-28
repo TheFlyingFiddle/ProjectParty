@@ -368,7 +368,7 @@ void main()
         vec4 color;
         vec2 origin;
         float rotation;
-		} vertex[1];
+		} vertex[];
 
 		out vertData 
 		{
@@ -396,7 +396,7 @@ void main()
 	void main()
 		{
         float sinus   = sin(vertex[0].rotation),
-		cosinus = cos(vertex[0].rotation);
+		  cosinus = cos(vertex[0].rotation);
 
         vec4 pos      =  vertex[0].pos;
         vec4 texCoord =  vertex[0].texCoord;
@@ -411,8 +411,6 @@ void main()
 
 	enum fs =
 		"#version 330
-
-
 		in vertData {
         vec4 color;
         vec2 texCoord;
@@ -425,5 +423,5 @@ void main()
 		void main()
 		{
         fragColor = texture2D(sampler, vertIn.texCoord) * vertIn.color;
-}
+		}
 	";

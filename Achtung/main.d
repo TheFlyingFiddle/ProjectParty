@@ -114,8 +114,9 @@ void run()
 	init(stack, "Window.sdl");
 
 	Game.gameStateMachine = GameStateFSM(stack, 10);
+	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");
 	Game.gameStateMachine.addState(new AchtungGameState(), "Achtung");
-	Game.gameStateMachine.transitionTo("Achtung");
+	Game.gameStateMachine.transitionTo("MainMenu");
 
 	Game.shouldRun = &shouldRun;
 	Game.swap      = &swapBuffers;
@@ -137,7 +138,10 @@ void swapBuffers()
 
 final class AchtungGameState : IGameState
 {
-	void enter() { } 
+	void enter() 
+	{
+		int a;
+	} 
 	void exit()  { }
 	void init()  { }
 	void handleInput() { }
@@ -150,5 +154,28 @@ final class AchtungGameState : IGameState
 	void render()
 	{
 		achtung.render();
+	}
+}
+
+
+final class MainMenu : IGameState
+{
+	void enter() 
+	{
+	} 
+	void exit()  { }
+	void init()  { }
+	void handleInput() 
+	{
+	}
+
+	void update()
+	{
+		if(glfwGetKey(window, GLFW_KEY_ENTER))
+			Game.gameStateMachine.transitionTo("Achtung");
+	}
+
+	void render()
+	{
 	}
 }

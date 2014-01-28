@@ -39,11 +39,6 @@ struct SnakeProperties
     uint color, leftKey, rightKey;
 }
 
-struct Score
-{
-	Color color;
-	int score;
-}
 
 void init(Allocator)(ref Allocator allocator, string configPath)
 {
@@ -263,6 +258,8 @@ void handleCollision(
 		if(alive.length == 1){
 			index = scores.countUntil!(x => x.color == alive[0].color);
 			scores[index].score += alive.capacity;
+
+			
 
 			reset();
 			return;
