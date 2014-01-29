@@ -13,6 +13,7 @@ import std.random;
 import logging;
 import std.algorithm;
 import game;
+import std.variant;
 
 struct AchtungConfig
 {
@@ -66,22 +67,23 @@ class AchtungGameState :IGameState
 		stream     = EventStream(allocator, 1024);
 	}
 
-	void enter()
+	void enter(Variant x)
 	{
 		reset();
+		foreach(ref score; scores) 
+			score.score = 0;
 	}
 
 	void exit()
 	{
-		foreach(ref score; scores) 
-			score.score = 0;
+	
 	}
 
 	void reset()
 	{
 		foreach(s; scores) if(s.score > config.winningScore)
 		{
-			Game.gameStateMachine.transitionTo("GameOverState");
+			Game.gameStateMachine.transitionTo("GameOver", Variant(scores));
 			return;
 		}
 	

@@ -16,6 +16,8 @@ import game;
 import math;
 import core.sys.windows.windows;
 import std.datetime;
+import game_over;
+import main_menu;
 
 
 version(X86) 
@@ -121,7 +123,10 @@ void run()
 	Game.gameStateMachine = GameStateFSM(stack, 10);
 	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");
 	Game.gameStateMachine.addState(ags, "Achtung");
-	Game.gameStateMachine.transitionTo("MainMenu");
+	Game.gameStateMachine.addState(new GameOverGameState(), "GameOver");
+	Game.gameStateMachine.transitionTo("MainMenu", Variant());
+
+
 
 	Game.shouldRun = &shouldRun;
 	Game.swap      = &swapBuffers;
@@ -142,24 +147,3 @@ void swapBuffers()
 }
 
 
-final class MainMenu : IGameState
-{
-	void enter() 
-	{
-	} 
-	void exit()  { }
-	void init()  { }
-	void handleInput() 
-	{
-	}
-
-	void update()
-	{
-		if(glfwGetKey(window, GLFW_KEY_ENTER))
-			Game.gameStateMachine.transitionTo("Achtung");
-	}
-
-	void render()
-	{
-	}
-}
