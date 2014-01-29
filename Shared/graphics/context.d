@@ -3,6 +3,7 @@ module graphics.context;
 import derelict.opengl3.gl3;
 import logging;
 
+auto logChnl = LogChannel("OPENGL");
 struct gl
 {
 	import std.string, std.conv;
@@ -10,6 +11,7 @@ struct gl
 	{
 		enum glName = "gl" ~ name[0].toUpper.to!string ~ name[1 .. $];
 
+		logChnl.info("Calling: " , glName,"(", args, ")");
 		debug scope(exit) checkGLError(name);
 		mixin("return " ~ glName ~ "(args);");
 	}
@@ -17,7 +19,7 @@ struct gl
 
 void checkGLError(string name)
 {
-	auto logChnl = LogChannel("OPENGL");
+	logChnl.info("Got here: " , name);
 	auto err = glGetError();
 	if(err)
 	{

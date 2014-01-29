@@ -55,6 +55,12 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 	import std.stdio;
 	scope(failure) return; //Needed since writeln can potentially throw.
 	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
+
+	if(v == Verbosity.error)
+	{
+		import std.file;
+		write("ERROR.txt", msg);
+	}
 }
 
 
@@ -72,6 +78,7 @@ void init(Allocator)(ref Allocator allocator)
 
 
 	AchtungGameState ags = new AchtungGameState();
+
 	ags.init(allocator, "Config.sdl");
 
 	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");

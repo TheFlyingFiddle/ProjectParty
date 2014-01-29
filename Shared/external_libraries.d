@@ -21,17 +21,16 @@ version(X86_64)
 enum GLFW_DLL_PATH       = dllPath ~ "glfw3.dll";
 enum FREE_IMAGE_DLL_PATH = dllPath ~ "FreeImage.dll"; 
 
-pragma(lib, libPath ~ "DerelictGLFW3.lib");
-pragma(lib, libPath ~ "DerelictGL3.lib");
-pragma(lib, libPath ~ "DerelictUtil.lib");
-pragma(lib, libPath ~ "DerelictFI.lib");
+//pragma(lib, libPath ~ "DerelictGLFW3.lib");
+//pragma(lib, libPath ~ "DerelictGL3.lib");
+//pragma(lib, libPath ~ "DerelictUtil.lib");
+//pragma(lib, libPath ~ "DerelictFI.lib");
 
 void init_dlls()
 {	
-
+	DerelictGL3.load();
 	DerelictGLFW3.load(GLFW_DLL_PATH);
 	DerelictFI.load(FREE_IMAGE_DLL_PATH);
-	DerelictGL3.load();
 
 	FreeImage_Initialise();
 

@@ -141,6 +141,7 @@ struct Texture2D
 		gl.texImage2D(TextureTarget.texture2D, 0, internalFormat, width, height, 0, format, type, data.ptr);
 		gl.texParameteri(TextureTarget.texture2D, TextureParameter.baseLevel, 0);
 
+		
 		if(!flag)
 			gl.texParameteri(TextureTarget.texture2D, TextureParameter.maxLevel, 0);
 		else 

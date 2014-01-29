@@ -47,8 +47,8 @@ struct WindowManager
 	//Used to create fullscreen windows. 
 	static Window create(uint2 size, const(char)[] title, Monitor monitor, bool blocking)
 	{
-		auto window = glfwCreateWindow(size.x, size.y, title.toCString(), null, null);
-		//enforce(window, "Failed to create window");
+		auto window = glfwCreateWindow(size.x, size.y, title.toCString(), monitor._monitor, null);
+		enforce(window, "Failed to create window");
 		logChnl.info("Window created");
 
 		if(windows.length == 0)
