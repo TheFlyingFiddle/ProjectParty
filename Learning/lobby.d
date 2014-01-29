@@ -96,8 +96,8 @@ struct Lobby
 			//A new connection has been asstablished. (It might be a recconect but at this point we don't care)
 			//We send the uuid as a string connection. As UTF-8 ofc.
 			UUID uuid = randomUUID();
-			char[36] parsed;
-			uuid.toString((x) { parsed[] = x; });
+			char[37] parsed; parsed[36] = '\0';
+			uuid.toString((x) { parsed[0 .. 36] = x; });
 			s.send(parsed);
 
 			activeConnections ~= PhoneConnection(s, uuid);
