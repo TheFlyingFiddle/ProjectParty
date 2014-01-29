@@ -56,8 +56,6 @@ void main()
 
 void writeLogger(string chan, Verbosity v, string msg, string file, size_t line) nothrow
 {
-	if(chan != "ALLOCATION") return;
-
 	import std.stdio;
 	scope(failure) return; //Needed since writeln can potentially throw.
 	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
@@ -104,7 +102,6 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
 	glfwMakeContextCurrent(window);
 
 	DerelictGL3.reload();
-	achtung.init(allocator, "Config.sdl");
 }
 
 void run()
@@ -118,9 +115,12 @@ void run()
 
 	init(stack, "Window.sdl");
 
+	AchtungGameState ags = new AchtungGameState();
+	ags.init(stack, "Config.sdl");
+
 	Game.gameStateMachine = GameStateFSM(stack, 10);
 	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");
-	Game.gameStateMachine.addState(new AchtungGameState(), "Achtung");
+	Game.gameStateMachine.addState(ags, "Achtung");
 	Game.gameStateMachine.transitionTo("MainMenu");
 
 	Game.shouldRun = &shouldRun;
@@ -139,27 +139,6 @@ void swapBuffers()
 {
 	glfwPollEvents();
 	glfwSwapBuffers(window);
-}
-
-final class AchtungGameState : IGameState
-{
-	void enter() 
-	{
-		int a;
-	} 
-	void exit()  { }
-	void init()  { }
-	void handleInput() { }
-
-	void update()
-	{
-		achtung.update();
-	}
-
-	void render()
-	{
-		achtung.render();
-	}
 }
 
 

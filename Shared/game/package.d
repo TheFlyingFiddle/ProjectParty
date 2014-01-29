@@ -53,7 +53,7 @@ struct Game
 			if(timestep == Timestep.fixed) {
 				auto frametime = watch.peek() - last;
 				Duration sleeptime = max(0.msecs, target - frametime);
-				Thread.sleep(sleeptime);
+				//Thread.sleep(sleeptime);
 			}
 		}
 	}

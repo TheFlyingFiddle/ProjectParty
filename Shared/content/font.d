@@ -22,6 +22,11 @@ unittest
 struct FontID
 {
 	private uint index;
+
+	@property float size()
+	{
+		return FontManager.lookup(this).size;
+	}
 }
 
 struct FontManager 
