@@ -16,6 +16,8 @@ import game;
 import math;
 import core.sys.windows.windows;
 import std.datetime;
+import game_over;
+import main_menu;
 
 
 version(X86) 
@@ -56,8 +58,6 @@ void main()
 
 void writeLogger(string chan, Verbosity v, string msg, string file, size_t line) nothrow
 {
-	if(chan != "ALLOCATION") return;
-
 	import std.stdio;
 	scope(failure) return; //Needed since writeln can potentially throw.
 	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
@@ -104,7 +104,6 @@ void init(Allocator)(ref Allocator allocator, string sdlPath)
 	glfwMakeContextCurrent(window);
 
 	DerelictGL3.reload();
-	achtung.init(allocator, "Config.sdl");
 }
 
 void run()
@@ -118,10 +117,16 @@ void run()
 
 	init(stack, "Window.sdl");
 
+	AchtungGameState ags = new AchtungGameState();
+	ags.init(stack, "Config.sdl");
+
 	Game.gameStateMachine = GameStateFSM(stack, 10);
 	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");
-	Game.gameStateMachine.addState(new AchtungGameState(), "Achtung");
-	Game.gameStateMachine.transitionTo("MainMenu");
+	Game.gameStateMachine.addState(ags, "Achtung");
+	Game.gameStateMachine.addState(new GameOverGameState(), "GameOver");
+	Game.gameStateMachine.transitionTo("MainMenu", Variant());
+
+
 
 	Game.shouldRun = &shouldRun;
 	Game.swap      = &swapBuffers;
@@ -141,46 +146,4 @@ void swapBuffers()
 	glfwSwapBuffers(window);
 }
 
-final class AchtungGameState : IGameState
-{
-	void enter() 
-	{
-		int a;
-	} 
-	void exit()  { }
-	void init()  { }
-	void handleInput() { }
 
-	void update()
-	{
-		achtung.update();
-	}
-
-	void render()
-	{
-		achtung.render();
-	}
-}
-
-
-final class MainMenu : IGameState
-{
-	void enter() 
-	{
-	} 
-	void exit()  { }
-	void init()  { }
-	void handleInput() 
-	{
-	}
-
-	void update()
-	{
-		if(glfwGetKey(window, GLFW_KEY_ENTER))
-			Game.gameStateMachine.transitionTo("Achtung");
-	}
-
-	void render()
-	{
-	}
-}

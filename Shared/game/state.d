@@ -1,12 +1,13 @@
 module game.state;
 import collections.list;
+import std.variant;
 
 
 interface IGameState
 {
 	void init();
 
-	void enter();
+	void enter(Variant x);
 	void exit();
 
 	void handleInput();
@@ -20,7 +21,7 @@ template isState(T)
 	enum isState = __traits(compiles, 
 	{
 		T t;
-		t.enter();
+		t.enter(Variant());
 		t.exit();
 	});
 }
@@ -49,7 +50,7 @@ struct FSM(T, ID)
 		states = List!State(allocator, numStates);
 	}
 	
-	void transitionTo(ID id)
+	void transitionTo(ID id, Variant x)
 	{
 		assert(states.canFind!(x => x.id == id), 
 				 "Trying to transition to a state that does not exist!");
@@ -58,7 +59,7 @@ struct FSM(T, ID)
 			_currentState.state.exit();
 
 		_currentState = states.find!(x => x.id == id).front;
-		_currentState.state.enter();
+		_currentState.state.enter(x);
 	}
 
 	void addState(T _state, ID id)

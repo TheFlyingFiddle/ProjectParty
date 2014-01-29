@@ -35,6 +35,37 @@ snakes =
 		color = 0xFFAA40cc
 		leftKey = 334
 		rightKey = 333
+	},
+
+	{
+		color = 0xFF00cc00
+		leftKey = 81
+		rightKey = 65
+	},
+	{
+		color = 0xFFcc0000
+		leftKey = 340
+		rightKey = 341
+	},
+	{
+		color = 0xFF4400cc
+		leftKey = 88
+		rightKey = 67
+	},
+	{
+		color = 0xFFFFFFFF
+		leftKey = 263
+		rightKey = 262
+	},
+	{
+		color = 0xFF0044cc
+		leftKey = 320
+		rightKey = 321
+	},
+	{
+		color = 0xFFAA40cc
+		leftKey = 334
+		rightKey = 333
 	}
 ]
 
@@ -42,6 +73,7 @@ turnSpeed = 0.1
 snakeSize = 4
 title = |Achtung|
 resetKey = 82
+winningScore = 40
 
 hole = 
 {
