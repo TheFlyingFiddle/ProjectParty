@@ -2,6 +2,7 @@ module graphics.shader;
 import graphics.context;
 import graphics.enums;
 import graphics.common;
+import util.strings;
 
 /**
 * Authors: Lukas B

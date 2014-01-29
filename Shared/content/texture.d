@@ -1,7 +1,7 @@
 module content.texture;
 
-import content;
-import graphics.common;
+import content.common, content.reloading;
+import util.strings;
 import graphics.texture;
 import derelict.freeimage.freeimage;
 import graphics.enums;
@@ -9,6 +9,9 @@ import std.traits;
 import util.hash;
 import std.algorithm;
 import logging;
+
+
+private LogChannel logChnl = LogChannel("RESOURCES.TEXTURE");
 
 struct TextureID
 {
@@ -136,9 +139,3 @@ private Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0,
 									flag);
 }
 
-
-LogChannel logChnl;
-shared static this()
-{
-	logChnl = LogChannel(content.logChnl, "FONT");
-}

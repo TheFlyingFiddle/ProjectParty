@@ -5,9 +5,13 @@ import graphics.frame;
 import math;
 import std.exception;
 import std.path;
-import content;
+import content.reloading,
+	   content.common,
+	   content.texture;
 import allocation;
 import logging;
+
+LogChannel logChnl = LogChannel("RESOURCES.FONT");
 
 unittest
 {
@@ -241,11 +245,4 @@ align(1)
 		chars  = 4,
 		kerningPairs = 5
 	}
-}
-
-
-LogChannel logChnl;
-shared static this()
-{
-	logChnl = LogChannel(content.logChnl, "FONT");
 }

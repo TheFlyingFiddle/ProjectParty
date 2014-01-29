@@ -1,5 +1,9 @@
-dim = {
+size = {
 	x=800 
 	y=600
 }
+
+fullScreen = false
+blocking   = false
+
 title = |ACHTUNG MASTER GAME|

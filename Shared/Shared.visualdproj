@@ -83,13 +83,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib</libfiles>
+  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib</libfiles>
   <libpaths>..\lib\win32</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions>-main</additionalOptions>
+  <additionalOptions>-main -unittest</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
@@ -392,6 +392,7 @@
    <File path="collections\package.d" />
   </Folder>
   <Folder name="content">
+   <File path="content\common.d" />
    <File path="content\font.d" />
    <File path="content\package.d" />
    <File path="content\reloading.d" />
@@ -404,9 +405,11 @@
    <File path="event\traits.d" />
   </Folder>
   <Folder name="game">
+   <File path="game\input.d" />
    <File path="game\package.d" />
    <File path="game\state.d" />
    <File path="game\time.d" />
+   <File path="game\window.d" />
   </Folder>
   <Folder name="graphics">
    <File path="graphics\buffer.d" />
@@ -441,5 +444,6 @@
    <File path="util\profile.d" />
    <File path="util\strings.d" />
   </Folder>
+  <File path="external_libraries.d" />
  </Folder>
 </DProject>

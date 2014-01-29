@@ -4,6 +4,15 @@ import util.hash;
 import std.conv;
 import std.exception;
 
+
+static char[1024] c_buffer;
+char* toCString(const char[] str, char[] output = c_buffer) 
+{
+	output[0 .. str.length] = str[];
+	output[str.length] = '\0';
+	return output.ptr;
+}
+
 //Should not be gc collected? Or maby it should.
 //Should this be __gshared?
 __gshared string[uint] strings;

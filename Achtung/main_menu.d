@@ -19,7 +19,7 @@ final class MainMenu : IGameState
 
 	void update()
 	{
-		if(glfwGetKey(window, GLFW_KEY_ENTER))
+		if(Keyboard.isDown(Key.enter))
 			Game.gameStateMachine.transitionTo("Achtung", Variant());
 	}
 

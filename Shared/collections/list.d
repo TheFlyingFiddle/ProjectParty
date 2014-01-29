@@ -150,6 +150,26 @@ bool remove(alias pred, SwapStrategy s = SwapStrategy.stable, T)(ref List!T list
 	return true;
 }
 
+bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t index)
+{
+	assert(index < list.length); 
+
+	static if(s == SwapStrategy.unstable)
+	{
+		swap(list[$ - 1], list[index]);
+		list.length--;
+	}
+	else 
+	{
+		foreach(i; index .. list.length - 1)
+			list[i] = list[i + 1];
+
+		list.length--;
+	}
+	return true;
+}
+	
+
 unittest
 {
 	List!int i;

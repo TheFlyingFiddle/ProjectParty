@@ -7,13 +7,13 @@ import types;
 import rendering;
 import content.sdl;
 import graphics;
-import derelict.glfw3.glfw3;
 import event;
 import std.random;
 import logging;
 import std.algorithm;
 import game;
 import std.variant;
+
 
 struct AchtungConfig
 {
@@ -115,7 +115,7 @@ class AchtungGameState :IGameState
 
 	void update()
 	{
-		generateInputEvents(controls, stream, window);
+		generateInputEvents(controls, stream);
 		handleInput(alive, stream, config.turnSpeed);
 		updateTimers(timers, alive, Time.delta);
 		moveSnakes(alive, map, stream, config.snakeSize);
@@ -129,13 +129,13 @@ class AchtungGameState :IGameState
 		renderFrame(renderer, alive,scores);
 	}
 
-	void generateInputEvents(ref List!SnakeControl controls, ref EventStream stream, GLFWwindow* window) // <-- This is wierd and very much not ok.
+	void generateInputEvents(ref List!SnakeControl controls, ref EventStream stream) // <-- This is wierd and very much not ok.
 	{
 		foreach(c; controls)
 		{
-			if(glfwGetKey(window, c.leftKey) == GLFW_PRESS)
+			if(Keyboard.isDown(cast(Key)c.leftKey))
 				stream.push(InputEvent(c.color, Input.Left));
-			if(glfwGetKey(window, c.rightKey) == GLFW_PRESS)
+			if(Keyboard.isDown(cast(Key)c.rightKey))
 				stream.push(InputEvent(c.color, Input.Right));
 		}
 	}

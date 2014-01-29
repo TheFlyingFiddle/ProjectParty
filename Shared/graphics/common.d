@@ -4,15 +4,6 @@ import derelict.opengl3.gl3;
 import math.vector;
 import graphics.color;
 
-//Does not work with shader souces > 512 should fix.
-static char[1024] c_buffer;
-
-char* toCString(const char[] str, char[] output = c_buffer) 
-{
-	output[0 .. str.length] = str[];
-	output[str.length] = '\0';
-	return output.ptr;
-}
 
 import math.vector;
 import std.traits;

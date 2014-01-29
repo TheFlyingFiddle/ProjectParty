@@ -18,18 +18,13 @@ import core.sys.windows.windows;
 import std.datetime;
 import game_over;
 import main_menu;
-
+import external_libraries;
 
 version(X86) 
-{
-	enum dllPath = "..\\dll\\win32\\";
 	enum libPath = "..\\lib\\win32\\";
-}
 version(X86_64) 
-{
-	enum dllPath = "..\\dll\\win64\\";
 	enum libPath = "..\\lib\\win64\\";
-}
+
 
 pragma(lib, libPath ~ "DerelictGLFW3.lib");
 pragma(lib, libPath ~ "DerelictGL3.lib");
@@ -37,12 +32,11 @@ pragma(lib, libPath ~ "DerelictUtil.lib");
 pragma(lib, libPath ~ "DerelictFI.lib");
 pragma(lib, "Shared.lib");
 
-GLFWwindow* window;
 
 void main()
 {
 	logger = &writeLogger;
-
+	init_dlls();
 	try
 	{	
 		run();
@@ -64,46 +58,26 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 }
 
 
-import derelict.util.exception;
 
-bool missingSymFunc(string libName, string symName)
+void init(Allocator)(ref Allocator allocator)
 {
-	auto logChnl = LogChannel("DERELICT");
-	logChnl.warn(libName,"   ", symName);
-	return true;
-}
+	ContentReloader.init(allocator, 100, 50);
+	TextureManager.init(allocator, 100);
+	FontManager.init(allocator, Mallocator.cit, 100);
+	WindowManager.init(allocator, 10);
 
 
-void init(Allocator)(ref Allocator allocator, string sdlPath)
-{
-    struct WindowConfig
-	{
-        uint2 dim;
-        string title;
-	}
-
-	import derelict.util.exception;
-
-	Derelict_SetMissingSymbolCallback(&missingSymFunc);
-
-	DerelictGL3.load();
-	DerelictGLFW3.load(dllPath ~ "glfw3.dll");
-
-	DerelictFI.load(dllPath ~ "FreeImage.dll");
-	FreeImage_Initialise();
+	auto config = fromSDLFile!WindowConfig(GCAllocator.it, "Window.sdl");
+	Game.init(allocator, 10, config);
 
 
-	enforce(glfwInit(), "GLFW init problem");
+	AchtungGameState ags = new AchtungGameState();
+	ags.init(allocator, "Config.sdl");
 
-    import allocation.gc;
-    auto config = fromSDLFile!WindowConfig(GCAllocator.it, sdlPath);
-    auto dim = config.dim;
-
-	glfwWindowHint(GLFW_SAMPLES, 4);
-    window = glfwCreateWindow(dim.x, dim.y, toCString(config.title), null, null);
-	glfwMakeContextCurrent(window);
-
-	DerelictGL3.reload();
+	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");
+	Game.gameStateMachine.addState(ags, "Achtung");
+	Game.gameStateMachine.addState(new GameOverGameState(), "GameOver");
+	Game.gameStateMachine.transitionTo("MainMenu", Variant());
 }
 
 void run()
@@ -111,39 +85,8 @@ void run()
 	auto allocator = RegionAllocator(GCAllocator.it, 1024 * 1024, 8);
 	auto stack     = ScopeStack(allocator);
 
-	ContentReloader.init(stack, 100, 50);
-	TextureManager.init(stack, 100);
-	FontManager.init(stack, Mallocator.cit, 100);
-
-	init(stack, "Window.sdl");
-
-	AchtungGameState ags = new AchtungGameState();
-	ags.init(stack, "Config.sdl");
-
-	Game.gameStateMachine = GameStateFSM(stack, 10);
-	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");
-	Game.gameStateMachine.addState(ags, "Achtung");
-	Game.gameStateMachine.addState(new GameOverGameState(), "GameOver");
-	Game.gameStateMachine.transitionTo("MainMenu", Variant());
-
-
-
-	Game.shouldRun = &shouldRun;
-	Game.swap      = &swapBuffers;
+	init(stack);
 
 	import std.datetime;
 	Game.run(Timestep.fixed, 16.msecs);
 }
-
-bool shouldRun()
-{
-	return !glfwWindowShouldClose(window);
-}
-
-void swapBuffers()
-{
-	glfwPollEvents();
-	glfwSwapBuffers(window);
-}
-
-

@@ -39,23 +39,26 @@ struct LogChannel
 	string name;
 	mixin Make!("name");
 
-	this(string name) { this.name = name; }
-	this(LogChannel base, string name)
-	{
-		this.name = base.name ~ "." ~ name;
+	nothrow this(string name)
+	{ 
+		this.name = name; 
 	}
 }
 
-private void makeMsg(T...)(string channel, Verbosity verbosity, string file, size_t line,  T t)
+private void makeMsg(T...)(string channel, Verbosity verbosity, string file, size_t line,  T t) nothrow
 {
 	import std.conv;
+	scope(failure) return;
+
 	string msg = text(t); //Note to self improve this to use an allocator instead.
 	logger(channel, verbosity, msg, file, line);
 }
 
-private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, string file, size_t line, T t)
+private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, string file, size_t line, T t) nothrow
 {
 	import std.format;
+	scope(failure) return; //We were unable to log what to do?
+
 	auto appender = std.array.Appender!string;
 	formattedWrite(appender, f, t);
 	logger(channel, verbosity, appender.data, file, line);

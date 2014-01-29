@@ -83,7 +83,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles />
+  <libfiles>Shared.lib</libfiles>
   <libpaths>..\Shared\Debug</libpaths>
   <deffile />
   <resfile />

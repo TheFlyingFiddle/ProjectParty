@@ -9,6 +9,7 @@ import types;
 import content.sdl;
 import derelict.glfw3.glfw3;
 import main;
+import game;
 
 /** Very simple renderer that stores everything that has been drawn into a rendertarget. **/
 struct AchtungRenderer
@@ -23,15 +24,10 @@ struct AchtungRenderer
 					uint mapWidth,
 					uint mapHeight)
 	{
-		//Color[4] c = [Color.white, Color.white, Color.white, Color.white];
-		//auto snakeTex = createStandardTexture(2, 2, c);
-		
 		auto snakeTex = TextureManager.load("textures\\pixel.png");
 		font		  = FontManager.load("fonts\\Arial32.fnt");
-
 		snakeFrame = Frame(snakeTex);
-
-
+		
 		fbo    = createSimpleFBO(mapWidth, mapHeight);
 		buffer = SpriteBuffer(512, allocator);
 	}
@@ -67,11 +63,10 @@ struct AchtungRenderer
 						 BlitFilter.nearest);
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
-
-		int x,y;
-		glfwGetWindowSize(window, &x, &y);
+		
+		uint2 winSize = Game.window.size;
 		buffer.addFrame(snakeFrame,
-						float4(x * 0.8, 0, 2, y), 
+						float4(winSize.x * 0.8, 0, 2, winSize.y), 
 						Color.white, 
 						origin);
 
@@ -80,7 +75,9 @@ struct AchtungRenderer
 		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		foreach(i; 0..scores.length){
-			buffer.addText(font, scores[i].score.to!string, float2(x * 0.9, (y- font.size) - i*(y/scores.length)), scores[i].color);
+			buffer.addText(font, scores[i].score.to!string, 
+						   float2(winSize.x * 0.9, (winSize.y - font.size) - i*(winSize.y /  scores.length)),
+							      scores[i].color);
 		}
 		buffer.flush();
 		buffer.draw(transform);
