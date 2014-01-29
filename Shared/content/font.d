@@ -11,11 +11,16 @@ import logging;
 
 unittest
 {
-	import allocation;
-	auto path = r"..\resources\fonts\Arial32.fnt";
-	auto allocator = Mallocator.it;
-	//Font f = loadFont(allocator, path, "");
+	//This unittest is no longer possible 
+	//Since Fonts have been integrated into the 
+	//Content system and cannot be loaded outside 
+	//of this. (This was done by design)
+	
 
+	//import allocation;
+	//auto path = r"..\resources\fonts\Arial32.fnt";
+	//auto allocator = Mallocator.it;
+	//Font f = loadFont(allocator, path, "");
 	//auto x = f.lineHeight;
 }
 
