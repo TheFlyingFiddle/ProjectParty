@@ -1,18 +1,21 @@
-module game.input;
+module game.input.keyboard;
 
 import derelict.glfw3.glfw3;
 
 struct Keyboard
 {
-	//Only support one window to start with.
-	package static GLFWwindow* _handle;
+	//GLFW Keyboard Support is integrated to be 
+	//reliant on a spacific window... This is kind of annoying.
+	//Maby i should just have keyboard in window?
+	//Then this will be resolved. (Group dessision is in order)
+	//This is also static so uagh
+	static GLFWwindow* _handle;
+
 	static bool isDown(Key key)
 	{
 		return glfwGetKey(_handle, key) == GLFW_PRESS;
 	}
 }
-
-
 
 enum Key
 {
@@ -35,7 +38,7 @@ enum Key
 	nine        = GLFW_KEY_9,
 	semicololon = GLFW_KEY_SEMICOLON,
 	equal       = GLFW_KEY_EQUAL,
-	
+
 	a = GLFW_KEY_A,
 	b = GLFW_KEY_B,
 	c = GLFW_KEY_C,
@@ -63,7 +66,7 @@ enum Key
 	y = GLFW_KEY_Y,
 	z = GLFW_KEY_Z,
 
-	
+
 	leftBracket  = GLFW_KEY_LEFT_BRACKET,
 	rightBracket = GLFW_KEY_RIGHT_BRACKET,
 	backslash    = GLFW_KEY_BACKSLASH,
@@ -128,7 +131,7 @@ enum Key
 	kp7 = GLFW_KEY_KP_7,
 	kp8 = GLFW_KEY_KP_8,
 	kp9 = GLFW_KEY_KP_9,
-	
+
 	kpDecimal  = GLFW_KEY_KP_DECIMAL,
 	kpDivide   = GLFW_KEY_KP_DIVIDE,
 	kpMultiply = GLFW_KEY_KP_MULTIPLY,

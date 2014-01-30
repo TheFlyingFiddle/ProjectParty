@@ -84,6 +84,15 @@ void init(Allocator)(ref Allocator allocator)
 	Game.gameStateMachine.addState(ags, "Achtung");
 	Game.gameStateMachine.addState(new GameOverGameState(), "GameOver");
 	Game.gameStateMachine.transitionTo("MainMenu", Variant());
+
+	Game.window.onPositionChanged = &positionChanged;
+}
+
+
+void positionChanged(int x, int y)
+{
+	auto logChnl = LogChannel("WINDOW");
+	logChnl.info("Position changed!", x, " ", y);
 }
 
 void run()

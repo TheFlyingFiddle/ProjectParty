@@ -405,7 +405,12 @@
    <File path="event\traits.d" />
   </Folder>
   <Folder name="game">
-   <File path="game\input.d" />
+   <Folder name="input">
+    <File path="game\input\keyboard.d" />
+    <File path="game\input\mouse.d" />
+    <File path="game\input\package.d" />
+    <File path="game\input\phone.d" />
+   </Folder>
    <File path="game\package.d" />
    <File path="game\state.d" />
    <File path="game\time.d" />

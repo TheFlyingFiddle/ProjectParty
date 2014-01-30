@@ -27,7 +27,6 @@ struct WindowManager
 	{
 		foreach(window; windows) 
 			window.obliterate();
-
 	}
 
 	static Window create(WindowConfig config)
@@ -37,7 +36,6 @@ struct WindowManager
 		else
 			return create(config.size, config.title, config.blocking);
 	}
-
 
 	static Window create(uint2 size, const(char)[] title, bool blocking)
 	{
@@ -55,12 +53,14 @@ struct WindowManager
 		if(windows.length == 0)
 		{
 			glfwMakeContextCurrent(glfwWindow);
+			DerelictGL3.reload();
 			//After a window has been created the context must be set for that window.
 			//But there should only be one context. 
 			//So at this moment opengl does not work well with 
 			//multiple windows. (As in it is broken)
-			DerelictGL3.reload();
-		}
+			//I am not sure of the best way to resolve this so for now
+			//only a single window is allowed.
+		} else assert(0, "Only a single window is supported at this point.");
 
 		windows   ~= window;
 		callbacks ~= WindowCallbacks(); 
@@ -77,7 +77,7 @@ struct WindowManager
 		if(monitor._monitor is null)
 		{
 			uint2 msize = Monitor.primary.mode.size;
-			window.position = msize / 2 - size / 2;
+			window.position = int2(msize / 2 - size / 2);
 		}
 
 
@@ -393,14 +393,14 @@ struct Window
 		return uint2(s);
 	}
 
-	@property uint2 position()
+	@property int2 position()
 	{
 		int2 p;
 		glfwGetWindowPos(_windowHandle,&p.x, &p.y);
-		return uint2(p);
+		return p;
 	}
 
-	@property void position(uint2 value)
+	@property void position(int2 value)
 	{
 		glfwSetWindowPos(_windowHandle, value.x, value.y);
 	}
