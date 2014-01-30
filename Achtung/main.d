@@ -64,7 +64,6 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 }
 
 
-
 void init(Allocator)(ref Allocator allocator)
 {
 	ContentReloader.init(allocator, 100, 50);

@@ -44,35 +44,48 @@ struct WindowManager
 		return create(size, title, Monitor(), blocking);
 	}
 
-	//Used to create fullscreen windows. 
 	static Window create(uint2 size, const(char)[] title, Monitor monitor, bool blocking)
 	{
-		auto window = glfwCreateWindow(size.x, size.y, title.toCString(), monitor._monitor, null);
-		enforce(window, "Failed to create window");
+		auto glfwWindow = glfwCreateWindow(size.x, size.y, title.toCString(), monitor._monitor, null);
+		auto window = Window(glfwWindow);
+
+		enforce(glfwWindow, "Failed to create window");
 		logChnl.info("Window created");
 
 		if(windows.length == 0)
 		{
-			glfwMakeContextCurrent(window);
+			glfwMakeContextCurrent(glfwWindow);
+			//After a window has been created the context must be set for that window.
+			//But there should only be one context. 
+			//So at this moment opengl does not work well with 
+			//multiple windows. (As in it is broken)
 			DerelictGL3.reload();
 		}
 
-		windows   ~= Window(window);
+		windows   ~= window;
 		callbacks ~= WindowCallbacks(); 
 
-		glfwSetWindowPosCallback(window, &positionChanged);
-		glfwSetWindowSizeCallback(window, &sizeChanged);
-		glfwSetFramebufferSizeCallback(window, &fboSizeChanged);
-		glfwSetWindowCloseCallback(window, &close);
-		glfwSetWindowFocusCallback(window, &focus);
-		glfwSetWindowRefreshCallback(window, &refresh);
-		glfwSetWindowIconifyCallback(window, &iconify);
+		glfwSetWindowPosCallback(glfwWindow, &positionChanged);
+		glfwSetWindowSizeCallback(glfwWindow, &sizeChanged);
+		glfwSetFramebufferSizeCallback(glfwWindow, &fboSizeChanged);
+		glfwSetWindowCloseCallback(glfwWindow, &close);
+		glfwSetWindowFocusCallback(glfwWindow, &focus);
+		glfwSetWindowRefreshCallback(glfwWindow, &refresh);
+		glfwSetWindowIconifyCallback(glfwWindow, &iconify);
+
+		//Move window to center of screen. (If it's not a fullscreen window!)
+		if(monitor._monitor is null)
+		{
+			uint2 msize = Monitor.primary.mode.size;
+			window.position = msize / 2 - size / 2;
+		}
 
 
 		//Hack needs to be done correcly.
-		Keyboard._handle = window;
+		//But what is correct? I don't know.
+		Keyboard._handle = glfwWindow;
 
-		return Window(window);
+		return window;
 	}
 
 	static void obliterate(Window window)
@@ -275,6 +288,12 @@ struct Monitor
 		return uint2(size);
 	}
 
+	@property VideoMode mode()
+	{
+		auto _mode = glfwGetVideoMode(_monitor);
+		return VideoMode(_mode);
+	}
+
 	@property const(char)* name()
 	{
 		return glfwGetMonitorName(_monitor);
@@ -355,11 +374,11 @@ struct Window
 		WindowManager.callbacks[index].iconifyCB = cb;
 	}
 
-	@property int2 size()
+	@property uint2 size()
 	{
 		int2 s;
 		glfwGetWindowSize(_windowHandle, &s.x, &s.y);
-		return s;
+		return uint2(s);
 	}
 
 	@property void size(int2 value)
@@ -367,21 +386,21 @@ struct Window
 		glfwSetWindowSize(_windowHandle, value.x, value.y);
 	}
 
-	@property int2 fboSize()
+	@property uint2 fboSize()
 	{
 		int2 s;
 		glfwGetFramebufferSize(_windowHandle,&s.x, &s.y);
-		return s;
+		return uint2(s);
 	}
 
-	@property int2 position()
+	@property uint2 position()
 	{
 		int2 p;
 		glfwGetWindowPos(_windowHandle,&p.x, &p.y);
-		return p;
+		return uint2(p);
 	}
 
-	@property void position(int2 value)
+	@property void position(uint2 value)
 	{
 		glfwSetWindowPos(_windowHandle, value.x, value.y);
 	}

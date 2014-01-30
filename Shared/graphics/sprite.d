@@ -3,6 +3,7 @@ module graphics.sprite;
 import math;
 import graphics;
 import std.algorithm;
+import std.exception;
 import content.texture, 
 	   content.font;
 
@@ -70,8 +71,7 @@ struct SpriteBuffer
 				  float rotation = 0,
 				  bool mirror = false)
 	{
-		if(elements > vertices.length)
-			throw new Exception("SpriteBuffer full");
+		enforce(elements < vertices.length, "SpriteBuffer full");
 
 		float4 coords = frame.coords;
 		if(mirror) {
@@ -95,8 +95,7 @@ struct SpriteBuffer
 				  float rotation = 0,
 				  bool mirror = false)
 	{
-		if(elements > vertices.length)
-			throw new Exception("SpriteBuffer full");
+		enforce(elements < vertices.length, "SpriteBuffer full");
 
 		float4 coords = frame.coords;
 		if(mirror) {
@@ -122,8 +121,7 @@ struct SpriteBuffer
 				  float rotation = 0,
 				  bool mirror = false)
 	{
-		if(elements > vertices.length)
-			throw new Exception("SpriteBuffer full");
+		enforce(elements < vertices.length, "SpriteBuffer full");
 
 		float4 coords = frame.coords;
 		if(mirror) {
@@ -149,8 +147,7 @@ struct SpriteBuffer
 					float rotation = 0)
 		if(is(T == char) || is(T == wchar) || is(T == dchar))
 		{
-			if(elements + text.length > vertices.length)
-				throw new Exception("SpriteBuffer full");
+			enforce(elements + text.length < vertices.length, "SpriteBuffer full");
 
 			Font font = FontManager.lookup(fontID);
 			textures[elements .. elements + text.length] = TextureManager.lookup(font.page.texture);
@@ -197,6 +194,8 @@ struct SpriteBuffer
 					Color color = Color.white)
 		if(is(T == char) || is(T == wchar) || is(T == dchar))
 		{
+			enforce(elements + text.length < vertices.length, "SpriteBuffer full");
+
 			Font font = FontManager.lookup(fontID);
 			Texture2D page = TextureManager.lookup(font.page.texture);
 
@@ -333,7 +332,6 @@ struct SpriteBuffer
 	@disable this(this);
 }
 
-
 enum vs =
 "#version 330
 in vec4  pos;
@@ -359,7 +357,7 @@ void main()
         vertex.origin   = origin;
         vertex.rotation = rotation;
 }
-	";
+";
 
 	enum gs =
 		"#version 330
