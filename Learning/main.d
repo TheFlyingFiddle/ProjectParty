@@ -23,6 +23,8 @@ interface B { void foo(); }
 class C : A, B
 {
 	void foo() { }
+=======
+>>>>>>> Uncommented logging
 }
 
 
