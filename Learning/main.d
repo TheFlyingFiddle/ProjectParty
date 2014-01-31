@@ -17,17 +17,6 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
 }
 
-interface A { void foo(); }
-interface B { void foo(); }
-
-class C : A, B
-{
-	void foo() { }
-=======
->>>>>>> Uncommented logging
-}
-
-
 int main()
 {
 	logger = &writeLogger;
