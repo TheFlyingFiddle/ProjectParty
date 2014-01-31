@@ -1,5 +1,6 @@
 core.exception.AssertError@collections.list(73): Assertion failure
 ----------------
+<<<<<<< HEAD
 0x0045ECA3 in onAssertError
 0x0040CD16 in collectionslistList at C:\Github\ProjectParty\Achtung\..\Shared\collections\list.d(74)
 0x004031EA in achtungAchtungGameStaterenderFrame at C:\Github\ProjectParty\Achtung\achtung.d(296)
@@ -16,3 +17,21 @@ core.exception.AssertError@collections.list(73): Assertion failure
 0x76F3495D in BaseThreadInitThunk
 0x77B998EE in RtlInitializeExceptionChain
 0x77B998C4 in RtlInitializeExceptionChain
+=======
+0x0045829B in onAssertError
+0x0040C18E in collectionslistList at C:\Git\ProjectParty\Achtung\..\Shared\collections\list.d(74)
+0x004030B6 in achtungAchtungGameStaterenderFrame at C:\Git\ProjectParty\Achtung\achtung.d(289)
+0x00402777 in achtungAchtungGameStaterender at C:\Git\ProjectParty\Achtung\achtung.d(130)
+0x00431C23 in gamestateFSM at C:\Git\ProjectParty\Shared\game\state.d(75)
+0x00427873 in gameGamerun
+0x0040731C in mainrun at C:\Git\ProjectParty\Achtung\main.d(106)
+0x00407112 in D at C:\Git\ProjectParty\Achtung\main.d(42)
+0x0044F6F8 in rtdmain2_d_run_mainrunAll__lambda1
+0x0044F6CB in rtdmain2_d_run_mainrunAll
+0x0044F5E3 in _d_run_main
+0x00426430 in main at C:\Git\ProjectParty\Achtung\..\Shared\event\stream.d(3)
+0x0047CC95 in mainCRTStartup
+0x778D495D in BaseThreadInitThunk
+0x77BE98EE in RtlInitializeExceptionChain
+0x77BE98C4 in RtlInitializeExceptionChain
+>>>>>>> resolved
