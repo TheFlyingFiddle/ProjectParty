@@ -14,7 +14,15 @@ void writeLogger(string chan, Verbosity v, string msg, string file, size_t line)
 
 	import std.stdio;
 	scope(failure) return; //Needed since writeln can potentially throw.
-	//writeln(chan, "   ", msg, "       ", file, "(", line, ")");
+	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
+}
+
+interface A { void foo(); }
+interface B { void foo(); }
+
+class C : A, B
+{
+	void foo() { }
 }
 
 
