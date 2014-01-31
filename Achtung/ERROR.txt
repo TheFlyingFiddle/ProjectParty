@@ -1,6 +1,4 @@
-core.exception.AssertError@collections.list(73): Assertion failure
-----------------
-<<<<<<< HEAD
+
 0x0045ECA3 in onAssertError
 0x0040CD16 in collectionslistList at C:\Github\ProjectParty\Achtung\..\Shared\collections\list.d(74)
 0x004031EA in achtungAchtungGameStaterenderFrame at C:\Github\ProjectParty\Achtung\achtung.d(296)
@@ -17,7 +15,7 @@ core.exception.AssertError@collections.list(73): Assertion failure
 0x76F3495D in BaseThreadInitThunk
 0x77B998EE in RtlInitializeExceptionChain
 0x77B998C4 in RtlInitializeExceptionChain
-=======
+
 0x0045829B in onAssertError
 0x0040C18E in collectionslistList at C:\Git\ProjectParty\Achtung\..\Shared\collections\list.d(74)
 0x004030B6 in achtungAchtungGameStaterenderFrame at C:\Git\ProjectParty\Achtung\achtung.d(289)
@@ -34,4 +32,3 @@ core.exception.AssertError@collections.list(73): Assertion failure
 0x778D495D in BaseThreadInitThunk
 0x77BE98EE in RtlInitializeExceptionChain
 0x77BE98C4 in RtlInitializeExceptionChain
->>>>>>> resolved

@@ -365,106 +365,6 @@ void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isArray!T && !is(T
 	sink.put(arrayCloser);
 }
 
-//ToSDL Test
-unittest {
-	struct Snake
-	{
-		long posx;
-		long posy;
-		double dirx;
-		double diry;
-		long color;
-		long leftKey;
-		long rightKey;
-
-	}
-	import math.vector;
-	struct AchtungConfig
-	{
-		int2 map;
-		Snake[] snakes;
-		double turnSpeed;
-		long freeColor;
-	}
-
-	Snake s1 = Snake(400, 10, 1, 0., 42131241, 65, 68);
-	Snake s2 = Snake(100, 50, 1., 0., 51231241, 263, 262);
-
-	auto config = AchtungConfig(int2(800,600), [s1,s2], 0.02, 0);
-
-    auto buf = new void[1024];
-    auto alloc = RegionAllocator(buf);
-    auto app = RegionAppender!char(alloc);
-	toSDL(config, app);
-	auto source = app.data;
-	import collections.list;
-	std.stdio.writeln(source);
-	auto checkSource = "
-map=
-{
-	x=800
-	y=600
-}
-snakes=[
-{
-	posx=400
-	posy=10
-	dirx=1.
-	diry=0.
-	color=42131241
-	leftKey=65
-	rightKey=68
-},
-{
-	posx=100
-	posy=50
-	dirx=1.
-	diry=0.
-	color=51231241
-	leftKey=263
-	rightKey=262
-}]
-turnSpeed=0.02
-freeColor=0";
-	List!(T) from(T)(T[] content) {
-		return List!T(content.ptr, cast(uint)content.length, cast(uint)content.length);
-	}
-	bool listEquals(List)(List a, List b) {
-		foreach(i, elem; a) {
-			if (elem != b[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-	auto check = from(cast(char[])checkSource);
-	std.stdio.writeln(check);
-	assert(listEquals(check, source));
-}
-
-
-unittest {
-	auto buf = new void[1024];
-	auto alloc = RegionAllocator(buf);
-    auto app = RegionAppender!SDLObject(alloc);
-	auto obj = fromSDL(app,
-					   "pos = "
-					   ~"{"
-					   ~"x = 4 "
-					   ~"y = 5"
-					   ~"}"
-					   ~"floats ="
-					   ~"{"
-					   ~"x = 234.2 "
-					   ~"y = 123.4"
-					   ~"}"
-					   );
-    import math.vector;
-	auto vec = obj.pos.as!int2;
-	auto vecFloat = obj.floats.as!float2;
-	assert(vec == int2(4,5));
-	assert(vecFloat == float2(234.2f,123.4f));
-}
 
 struct ForwardRange
 {
@@ -825,29 +725,6 @@ if (isNumericVoidOrType!NumericVoidOrType)
 				assert(0, "Invalid number parsing state: " ~ to!string(state));
 		}
 	}
-} unittest {
-    auto buf = new void[1024];
-    auto alloc = RegionAllocator(buf);
-    auto app = RegionAppender!SDLObject(alloc);
-	auto obj = fromSDL(app, 
-									   "numberone 	    = 123456
-									   numbertwo 	    = 1234.234
-									   numberthree      = 1234.34e234
-									   numberfour 	    = 1234.34E-234
-									   numberfive 	    = -1234
-									   numbersix 	    = 0xfF
-									   numberseven 	    = 0x10000"
-									   );
-
-	assert(obj.numberone 	 .as!int    == 123456);
-	
-	import std.math : approxEqual;
-	assert(approxEqual(obj.numbertwo.as!double, 1234.234));
-	assert(approxEqual(obj.numberthree.as!double, 1234.34e234));
-	assert(approxEqual(obj.numberfour.as!double, 1234.34E-234));
-	assert(obj.numberfive 	 .as!int    == -1234);
-	assert(obj.numbersix 	 .as!int    == 0xfF);
-	assert(obj.numberseven 	 .as!int    == 0x10000);
 }
 
 string str(ForwardRange a, ForwardRange b)
@@ -1079,116 +956,255 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
 		return;
 	}
 
-} unittest {
+} 
 
-    auto buf = new void[1024];
-    auto alloc = RegionAllocator(buf);
-    auto app = RegionAppender!SDLObject(alloc);
-	auto obj = fromSDL(app, 
-									   "
-									   map = 
-									   {
-									   width  = 800
-									   height = 600
-	                                   }
+class TestSDL {
 
-									   snakes =
-									   [
-									   {	
-									   posx = 400
-									   posy = 10
-									   dirx = 1
-									   diry = 0.
-									   color = 42131241
-									   leftKey = 65
-									   rightKey = 68
-									   },
-									   {
-									   posx = 100
-									   posy = 50
-									   dirx = 1.
-									   diry = 0
-									   color = 51231241
-									   leftKey = 263
-									   rightKey = 262
-									   }
-	                                   ]
-									   turnSpeed = 0.02
-									   freeColor = 0"
-									   );
+	import dunit;
 
-    assert(obj.map.width            .as!int     ==  800);
-    assert(obj.map.height           .as!int     ==  600);
+	mixin UnitTest;
 
-	assert(obj.snakes[0].posx    	.as!int     ==  400);
-	assert(obj.snakes[0].posy       .as!int     ==  10);
-	
-	import std.math : approxEqual;
-	assert(approxEqual(obj.snakes[0].dirx       .as!double, 1.));
-	assert(approxEqual(obj.snakes[0].diry       .as!double, 0));
-	assert(obj.snakes[0].color 	    .as!int     ==  42131241);
-	assert(obj.snakes[0].leftKey 	.as!int     ==  65);
-	assert(obj.snakes[0].rightKey   .as!int     ==  68);
 
-	assert(obj.snakes[1].posx    	.as!int     ==  100);
-	assert(obj.snakes[1].posy       .as!int     ==  50);
-	assert(approxEqual(obj.snakes[1].dirx       .as!double, 1.));
-	assert(approxEqual(obj.snakes[1].diry       .as!double, 0));
-	assert(obj.snakes[1].color 	    .as!int     ==  51231241);
-	assert(obj.snakes[1].leftKey 	.as!int     ==  263);
-	assert(obj.snakes[1].rightKey   .as!int     ==  262);
+	@Test public void testNumbers() {
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, 
+						   "numberone 	    = 123456
+						   numbertwo 	    = 1234.234
+						   numberthree      = 1234.34e234
+						   numberfour 	    = 1234.34E-234
+						   numberfive 	    = -1234
+						   numbersix 	    = 0xfF
+						   numberseven 	    = 0x10000"
+						   );
 
-    assert(approxEqual(obj.turnSpeed.as!double, 0.02));
-    assert(obj.freeColor            .as!int     ==  0);
+		assertEquals(obj.numberone 	 .as!int, 123456);
+
+		import std.math : approxEqual;
+		assertFun!(approxEqual)(obj.numbertwo.as!double, 1234.234);
+		assertFun!(approxEqual)(obj.numberthree.as!double, 1234.34e234);
+		assertFun!(approxEqual)(obj.numberfour.as!double, 1234.34E-234);
+		assertEquals(obj.numberfive	.as!int, -1234);
+		assertEquals(obj.numbersix	.as!int, 0xfF);
+		assertEquals(obj.numberseven.as!int, 0x10000);
+	}
+
+
+	@Test public void testSample() {
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, 
+						   "
+						   map = 
+						   {
+						   width  = 800
+						   height = 600
+						   }
+
+						   snakes =
+						   [
+						   {	
+						   posx = 400
+						   posy = 10
+						   dirx = 1
+						   diry = 0.
+						   color = 42131241
+						   leftKey = 65
+						   rightKey = 68
+						   },
+						   {
+						   posx = 100
+						   posy = 50
+						   dirx = 1.
+						   diry = 0
+						   color = 51231241
+						   leftKey = 263
+						   rightKey = 262
+						   }
+						   ]
+						   turnSpeed = 0.02
+						   freeColor = 0"
+						   );
+
+		assertEquals(obj.map.width        .as!int, 800);
+		assertEquals(obj.map.height       .as!int, 600);
+
+		assertEquals(obj.snakes[0].posx 	.as!int, 400);
+		assertEquals(obj.snakes[0].posy     .as!int, 10);
+
+		import std.math : approxEqual;
+		assertFun!(approxEqual)(obj.snakes[0].dirx       .as!double, 1.);
+		assertFun!(approxEqual)(obj.snakes[0].diry       .as!double, 0);
+		assertEquals(obj.snakes[0].color 	.as!int, 42131241);
+		assertEquals(obj.snakes[0].leftKey 	.as!int, 65);
+		assertEquals(obj.snakes[0].rightKey .as!int, 68);
+
+		assertEquals(obj.snakes[1].posx.as!int, 100);
+		assertEquals(obj.snakes[1].posy.as!int, 50);
+		assertFun!(approxEqual)(obj.snakes[1].dirx.as!double, 1.);
+		assertFun!(approxEqual)(obj.snakes[1].diry.as!double, 0);
+		assertEquals(obj.snakes[1].color    .as!int, 51231241);
+		assertEquals(obj.snakes[1].leftKey 	.as!int, 263);
+		assertEquals(obj.snakes[1].rightKey .as!int, 262);
+
+		assertTrue(approxEqual(obj.turnSpeed.as!double, 0.02));
+		assertEquals(obj.freeColor.as!int, 0);
+	}
+
+	@Test public void testBooleans() {
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, 
+						   "
+						   booleans =
+						   [
+						   {	
+						   testfalse = false
+						   testFalse = False
+						   },
+						   {
+						   testtrue = true
+						   testTrue = True
+						   }
+						   ]"
+						   );
+
+		assertFalse(obj.booleans[0].testfalse.as!bool);
+		assertFalse(obj.booleans[0].testFalse.as!bool);
+		assertTrue(obj.booleans[1].testtrue.as!bool);
+		assertTrue(obj.booleans[1].testTrue.as!bool);
+	}
+
+	@Test public void testUnderscores() {
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, 
+						   "numberone 	    = 123_456
+						   numbertwo 	    = 1_234.234
+						   numberthree      = 1_234._3_4e2_34
+						   numberfour 	    = 123_4.3_4E-23_4
+						   numberfive 	    = -1_234
+						   numbersix 	    = 0xf_F
+						   numberseven 	    = 0x10_000"
+						   );
+
+		assertEquals(obj.numberone.as!int, 123456);
+
+		import std.math : approxEqual;
+		assertFun!(approxEqual)(obj.numbertwo 	 .as!double, 1234.234);
+		assertFun!(approxEqual)(obj.numberthree   .as!double, 1234.34e234);
+		assertFun!(approxEqual)(obj.numberfour 	 .as!double, 1234.34E-234);
+		assertEquals(obj.numberfive 	.as!int, -1234);
+		assertEquals(obj.numbersix 		.as!int, 0xfF);
+		assertEquals(obj.numberseven 	.as!int, 0x10000);
+	}
+
+	@Test public void testVectors() {
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app,
+						   "pos = "
+						   ~"{"
+						   ~"x = 4 "
+						   ~"y = 5"
+						   ~"}"
+						   ~"floats ="
+						   ~"{"
+						   ~"x = 234.2 "
+						   ~"y = 123.4"
+						   ~"}"
+						   );
+		import math.vector;
+		auto vec = obj.pos.as!int2;
+		auto vecFloat = obj.floats.as!float2;
+		assertEquals(vec, int2(4,5));
+		assertEquals(vecFloat, float2(234.2f,123.4f));
+	}
+
+
+	@Test public void testToSdlSample() {
+		struct Snake
+		{
+			long posx;
+			long posy;
+			double dirx;
+			double diry;
+			long color;
+			long leftKey;
+			long rightKey;
+
+		}
+		import math.vector;
+		struct AchtungConfig
+		{
+			int2 map;
+			Snake[] snakes;
+			double turnSpeed;
+			long freeColor;
+		}
+
+		Snake s1 = Snake(400, 10, 1, 0., 42131241, 65, 68);
+		Snake s2 = Snake(100, 50, 1., 0., 51231241, 263, 262);
+
+		auto config = AchtungConfig(int2(800,600), [s1,s2], 0.02, 0);
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!char(alloc);
+		toSDL(config, app);
+		auto source = app.data;
+		import collections.list;
+		auto checkSource = "
+map=
+{
+	x=800
+	y=600
+}
+snakes=[
+{
+	posx=400
+	posy=10
+	dirx=1.
+	diry=0.
+	color=42131241
+	leftKey=65
+	rightKey=68
+},
+{
+	posx=100
+	posy=50
+	dirx=1.
+	diry=0.
+	color=51231241
+	leftKey=263
+	rightKey=262
+}]
+turnSpeed=0.02
+freeColor=0";
+		List!(T) from(T)(T[] content) {
+			return List!T(content.ptr, cast(uint)content.length, cast(uint)content.length);
+		}
+
+		auto check = from(cast(char[])checkSource);
+		assertFun!(listEquals)(check, source);
+	}
+
+}		
+bool listEquals(List)(List a, List b) {
+	foreach(i, elem; a) {
+		if (elem != b[i]) {
+			return false;
+		}
+	}
+	return true;
 }
 
-unittest {
-
-    auto buf = new void[1024];
-    auto alloc = RegionAllocator(buf);
-    auto app = RegionAppender!SDLObject(alloc);
-	auto obj = fromSDL(app, 
-					   "
-					   booleans =
-					   [
-					   {	
-					   testfalse = false
-					   testFalse = False
-					   },
-					   {
-					   testtrue = true
-					   testTrue = True
-					   }
-					   ]"
-					   );
-
-    assert(obj.booleans[0].testfalse.as!bool == false);
-    assert(obj.booleans[0].testFalse.as!bool == false);
-    assert(obj.booleans[1].testtrue.as!bool == true);
-    assert(obj.booleans[1].testTrue.as!bool == true);
-}
-
-unittest {
-    auto buf = new void[1024];
-    auto alloc = RegionAllocator(buf);
-    auto app = RegionAppender!SDLObject(alloc);
-	auto obj = fromSDL(app, 
-					   "numberone 	    = 123_456
-					   numbertwo 	    = 1_234.234
-					   numberthree      = 1_234._3_4e2_34
-					   numberfour 	    = 123_4.3_4E-23_4
-					   numberfive 	    = -1_234
-					   numbersix 	    = 0xf_F
-					   numberseven 	    = 0x10_000"
-					   );
-
-	assert(obj.numberone 	 .as!int    == 123456);
-
-	import std.math : approxEqual;
-	assert(approxEqual(obj.numbertwo 	 .as!double, 1234.234));
-	assert(approxEqual(obj.numberthree   .as!double, 1234.34e234));
-	assert(approxEqual(obj.numberfour 	 .as!double, 1234.34E-234));
-	assert(obj.numberfive 	 .as!int    == -1234);
-	assert(obj.numbersix 	 .as!int    == 0xfF);
-	assert(obj.numberseven 	 .as!int    == 0x10000);
-}
+import dunit;
+mixin Main;

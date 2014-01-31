@@ -474,229 +474,234 @@ uint defaultHashFunc(K)(K key)
 	}
 }
 
-unittest
+class TestMap
 {
-	string s  = "Hello";
-	string s2 = "Hello";
-
-	assert(defaultHashFunc!string(s) ==
-		   defaultHashFunc!string(s2));
-
-}
-
-//Can insert and remove get etc for one element.
-unittest
-{
-	import allocation;
-	alias HashMap!(string, int) Map;
-
-	Map map = Map(new CAllocator!(Mallocator)(Mallocator.it), 50);
-
-	map["Hello"] = 10;
-	assert(map["Hello"] == 10);
-	assert(map.length == 1);
-	assert(map.get("Hello", -1) == 10);
-
-	assert(map.remove("Hello"));
-	assert(map.length == 0);
-}
-
-//Can insert and get multiple elements.
-unittest
-{
-	import allocation, std.random, std.range, std.conv;
-	alias HashMap!(string, int) Map;
-
-	auto rng = rndGen();
-	auto seed = rng.front;
-	rng.seed!()(seed);
-
-	Map map = Map(new CAllocator!(Mallocator)(Mallocator.it), 1000);
-	foreach(ref u; 0 .. 100)
-		map["String" ~ u.to!string] = u;
-
-	rng.seed!()(seed);
-
-	uint count;
-	foreach(ref u; 0 .. 100) {
-		assert(map["String" ~ u.to!string] == u);
-		count++;
-	}
-}
-
-//
-unittest
-{
-	import allocation, std.random, std.range, std.conv;
-	alias HashMap!(string, int) Map;
-
-	auto rng = rndGen();
-	auto seed = rng.front;
-	rng.seed!()(seed);
-	
-
-	Map map = Map(new CAllocator!Mallocator(Mallocator.it), 100);
-	assert(map.capacity == 100);
-	foreach(ref int u; rng.take(200)) {
-		map["String" ~ u.to!string] = u;
-	}
-
-	rng.seed!()(seed);
-	foreach(ref int u; rng.take(200))
-		assert(map["String" ~ u.to!string] == u);
-}
-
-
-unittest
-{
-	import allocation;
-	alias MultiHashMap!(string, int) MultiMap;
-
-	auto map = MultiMap(new CAllocator!Mallocator(Mallocator.it), 10);
-	assert(map.capacity == 10);
-	assert(map.length == 0);
-
-	map["Test"] = 1;
-	map["Test"] = 2;
-
-	assert(map["Test"].walkLength == 2);
-
-	auto range = map["Test"];
-
-	auto value1 = range.front.value;
-	range.popFront();
-	auto value2 = range.front.value;
-
-	assert(value1 != value2);
-	assert(value1 == 1 || value1 == 2);
-	assert(value2 == 1 || value2 == 1);
-
-	map.remove("Test", 2);
-	assert(map["Test"].walkLength == 1);
-
-	range = map["Test"];
-
-	assert(range.front.value == 1);
-}
-
-version(benchmark)
-{
-	uint f(uint a) { return a; }
-
-	unittest
+	import dunit;
+	mixin UnitTest;
+	@Test public void testDefaultHashFunc()
 	{
-		import std.datetime, allocation, std.random, std.range;
-		alias HashMap!(uint, int, f) Map;
+		string s  = "Hello";
+		string s2 = "Hello";
 
-		Map map = Map(new CAllocator(Mallocator.it), 1024 * 1024 * 2);
-		uint[int] aa;
+		assertEquals(defaultHashFunc!string(s),
+			   defaultHashFunc!string(s2));
 
-		Map map2 = Map(new CAllocator(Mallocator.it), 1024 * 1024 * 2);
-		uint[int] aa2;
+	}
+
+	//Can insert and remove get etc for one element.
+	@Test public void testSingleElement()
+	{
+		import allocation;
+		alias HashMap!(string, int) Map;
+
+		Map map = Map(new CAllocator!(Mallocator)(Mallocator.it), 50);
+
+		map["Hello"] = 10;
+		assertEquals(map["Hello"], 10);
+		assertEquals(map.length, 1);
+		assertEquals(map.get("Hello", -1), 10);
+
+		assertTrue(map.remove("Hello"));
+		assertEquals(map.length, 0);
+	}
+
+	//Can insert and get multiple elements.
+	@Test public void testMultipleElements()
+	{
+		import allocation, std.random, std.range, std.conv;
+		alias HashMap!(string, int) Map;
 
 		auto rng = rndGen();
 		auto seed = rng.front;
+		rng.seed!()(seed);
 
-		enum loopCount = 1024 * 1024;
+		Map map = Map(new CAllocator!(Mallocator)(Mallocator.it), 1000);
+		foreach(ref u; 0 .. 100)
+			map["String" ~ u.to!string] = u;
 
-		void fillFirst()
-		{	
-			rng.seed!()(seed);
-			foreach(ref elem; rng.take(loopCount))
-				map[elem] = elem;
+		rng.seed!()(seed);
+
+		uint count;
+		foreach(ref u; 0 .. 100) {
+			assertEquals(map["String" ~ u.to!string], u);
+			count++;
 		}
-
-		void fillSecond()
-		{
-			rng.seed!()(seed);
-			foreach(ref elem; rng.take(loopCount))
-				aa[elem] = elem;
-		}
-
-		void findFirst()
-		{
-			rng.seed!()(seed);
-			foreach(ref elem; rng.take(loopCount))
-				assert(map[elem] == elem);
-		}
-
-		void findSecond()
-		{
-			rng.seed!()(seed);
-			foreach(ref elem; rng.take(loopCount))
-				assert(aa[elem] == elem);
-		}
-
-
-		void fillThird()
-		{	
-			rng.seed!()(seed);
-			foreach(elem; 0 .. loopCount)
-				map2[elem] = elem;
-		}
-
-		void fillForth()
-		{
-			rng.seed!()(seed);
-			foreach(elem; 0 .. loopCount)
-				aa2[elem] = elem;
-		}
-
-		void findThird()
-		{
-			rng.seed!()(seed);
-			foreach(elem; 0 .. loopCount)
-				assert(map2[elem] == elem);
-		}
-
-		void findForth()
-		{
-			rng.seed!()(seed);
-			foreach(elem; 0 .. loopCount)
-				assert(aa2[elem] == elem);
-		}
-
-		void loopFirst()
-		{
-			foreach(ref elem; map)
-			{
-				int i; //Simply loop;
-			}
-		}
-
-		void loopSecond()
-		{
-			foreach(ref elem; aa)
-			{
-				int i; //Simply loop;
-			}
-		}
-
-		void loopThird()
-		{
-			foreach(ref elem; map2)
-			{
-				int i; //Simply loop;
-			}
-		}
-
-		void loopForth()
-		{
-			foreach(ref elem; aa2)
-			{
-				int i; //Simply loop;
-			}
-		}
-
-		auto bm = benchmark!(fillFirst, fillSecond, 
-							 fillThird, fillForth,
-							 findFirst, findSecond,
-							 findThird, findForth,
-							 loopFirst, loopSecond,
-							 loopThird, loopForth)(1);
-
-		import std.stdio;
-		foreach(result; bm)
-			writeln(result.nsecs);
 	}
+
+	@Test public void testRandom()
+	{
+		import allocation, std.random, std.range, std.conv;
+		alias HashMap!(string, int) Map;
+
+		auto rng = rndGen();
+		auto seed = rng.front;
+		rng.seed!()(seed);
+
+
+		Map map = Map(new CAllocator!Mallocator(Mallocator.it), 100);
+		assertEquals(map.capacity, 100);
+		foreach(ref int u; rng.take(200)) {
+			map["String" ~ u.to!string] = u;
+		}
+
+		rng.seed!()(seed);
+		foreach(ref int u; rng.take(200))
+			assertEquals(map["String" ~ u.to!string], u);
+	}
+
+
+	@Test public void testRemove()
+	{
+		import allocation;
+		alias MultiHashMap!(string, int) MultiMap;
+
+		auto map = MultiMap(new CAllocator!Mallocator(Mallocator.it), 10);
+		assertEquals(map.capacity, 10);
+		assertEquals(map.length, 0);
+
+		map["Test"] = 1;
+		map["Test"] = 2;
+
+		assertEquals(map["Test"].walkLength, 2);
+
+		auto range = map["Test"];
+
+		auto value1 = range.front.value;
+		range.popFront();
+		auto value2 = range.front.value;
+
+		assertTrue(value1 != value2);
+		assertTrue(value1 == 1 || value1 == 2);
+		assertTrue(value2 == 1 || value2 == 1);
+
+		map.remove("Test", 2);
+		assertEquals(map["Test"].walkLength, 1);
+
+		range = map["Test"];
+
+		assertEquals(range.front.value, 1);
+	}
+
+	version(benchmark)
+	{
+		uint f(uint a) { return a; }
+
+		unittest
+		{
+			import std.datetime, allocation, std.random, std.range;
+			alias HashMap!(uint, int, f) Map;
+
+			Map map = Map(new CAllocator(Mallocator.it), 1024 * 1024 * 2);
+			uint[int] aa;
+
+			Map map2 = Map(new CAllocator(Mallocator.it), 1024 * 1024 * 2);
+			uint[int] aa2;
+
+			auto rng = rndGen();
+			auto seed = rng.front;
+
+			enum loopCount = 1024 * 1024;
+
+			void fillFirst()
+			{	
+				rng.seed!()(seed);
+				foreach(ref elem; rng.take(loopCount))
+					map[elem] = elem;
+			}
+
+			void fillSecond()
+			{
+				rng.seed!()(seed);
+				foreach(ref elem; rng.take(loopCount))
+					aa[elem] = elem;
+			}
+
+			void findFirst()
+			{
+				rng.seed!()(seed);
+				foreach(ref elem; rng.take(loopCount))
+					assertEquals(map[elem], elem);
+			}
+
+			void findSecond()
+			{
+				rng.seed!()(seed);
+				foreach(ref elem; rng.take(loopCount))
+					assertEquals(aa[elem], elem);
+			}
+
+
+			void fillThird()
+			{	
+				rng.seed!()(seed);
+				foreach(elem; 0 .. loopCount)
+					map2[elem] = elem;
+			}
+
+			void fillForth()
+			{
+				rng.seed!()(seed);
+				foreach(elem; 0 .. loopCount)
+					aa2[elem] = elem;
+			}
+
+			void findThird()
+			{
+				rng.seed!()(seed);
+				foreach(elem; 0 .. loopCount)
+					assertEquals(map2[elem], elem);
+			}
+
+			void findForth()
+			{
+				rng.seed!()(seed);
+				foreach(elem; 0 .. loopCount)
+					assertEquals(aa2[elem], elem);
+			}
+
+			void loopFirst()
+			{
+				foreach(ref elem; map)
+				{
+					int i; //Simply loop;
+				}
+			}
+
+			void loopSecond()
+			{
+				foreach(ref elem; aa)
+				{
+					int i; //Simply loop;
+				}
+			}
+
+			void loopThird()
+			{
+				foreach(ref elem; map2)
+				{
+					int i; //Simply loop;
+				}
+			}
+
+			void loopForth()
+			{
+				foreach(ref elem; aa2)
+				{
+					int i; //Simply loop;
+				}
+			}
+
+			auto bm = benchmark!(fillFirst, fillSecond, 
+								 fillThird, fillForth,
+								 findFirst, findSecond,
+								 findThird, findForth,
+								 loopFirst, loopSecond,
+								 loopThird, loopForth)(1);
+
+			import std.stdio;
+			foreach(result; bm)
+				writeln(result.nsecs);
+		}
+	}
+
 }
