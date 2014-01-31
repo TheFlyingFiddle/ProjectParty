@@ -1,6 +1,6 @@
 module types;
 
-import graphics, math, event;
+import graphics, math, event, std.uuid;
 
 alias EventStream = EventStreamN!(uint);
 
@@ -9,6 +9,7 @@ struct Snake
 	float2 pos;
 	float2 dir;
 	Color color;
+	UUID id;
 }
 
 struct Timer
@@ -34,7 +35,7 @@ enum Input { Left = 0, Right = 1 }
 struct InputEvent
 {
 	Color color;
-	Input input;
+	float input;
 }
 
 struct Score

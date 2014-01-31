@@ -1,21 +1,18 @@
-object.Exception@graphics\sprite.d(74): SpriteBuffer full
+core.exception.AssertError@collections.list(73): Assertion failure
 ----------------
-0x004513F2 in stdexceptionbailOut
-0x00429330 in graphicsspriteSpriteBufferaddFrame at C:\Git\ProjectParty\Shared\graphics\sprite.d(76)
-0x00426866 in D9rendering15AchtungRenderer4drawMFKS4math6matrix7Matrix4KS11collections4list23__T4ListTS5typesB1C23E219706191DE762471ACB902970 at C:\Git\ProjectParty\Achtung\..\Shared\math\vector.d(18)
-0x0040C437 in collectionslistList at C:\Git\ProjectParty\Achtung\..\Shared\collections\list.d(113)
-0x00426530 in renderingAchtungRendererdraw at C:\Git\ProjectParty\Achtung\rendering.d(55)
-0x004030D8 in achtungAchtungGameStaterenderFrame at C:\Git\ProjectParty\Achtung\achtung.d(290)
-0x00402777 in achtungAchtungGameStaterender at C:\Git\ProjectParty\Achtung\achtung.d(130)
-0x004319E7 in gamestateFSM at C:\Git\ProjectParty\Shared\game\state.d(75)
-0x0042764B in gameGamerun
-0x004072D0 in mainrun at C:\Git\ProjectParty\Achtung\main.d(97)
-0x00407112 in D at C:\Git\ProjectParty\Achtung\main.d(42)
-0x0044F4A0 in rtdmain2_d_run_mainrunAll__lambda1
-0x0044F473 in rtdmain2_d_run_mainrunAll
-0x0044F38B in _d_run_main
-0x00426208 in main at C:\Git\ProjectParty\Achtung\..\Shared\event\stream.d(3)
-0x0047CA35 in mainCRTStartup
-0x778D495D in BaseThreadInitThunk
-0x77BE98EE in RtlInitializeExceptionChain
-0x77BE98C4 in RtlInitializeExceptionChain
+0x0045ECA3 in onAssertError
+0x0040CD16 in collectionslistList at C:\Github\ProjectParty\Achtung\..\Shared\collections\list.d(74)
+0x004031EA in achtungAchtungGameStaterenderFrame at C:\Github\ProjectParty\Achtung\achtung.d(296)
+0x004027EE in achtungAchtungGameStaterender at C:\Github\ProjectParty\Achtung\achtung.d(133)
+0x00435D3F in gamestateFSM at C:\Github\ProjectParty\Shared\game\state.d(75)
+0x00428DC6 in gameGamerun
+0x004074D0 in mainrun at C:\Github\ProjectParty\Achtung\main.d(106)
+0x00407312 in D at C:\Github\ProjectParty\Achtung\main.d(42)
+0x00455C20 in rtdmain2_d_run_mainrunAll__lambda1
+0x00455BF3 in rtdmain2_d_run_mainrunAll
+0x00455B0B in _d_run_main
+0x00427DE8 in main at C:\Github\ProjectParty\Achtung\..\Shared\event\stream.d(3)
+0x00486281 in mainCRTStartup
+0x76F3495D in BaseThreadInitThunk
+0x77B998EE in RtlInitializeExceptionChain
+0x77B998C4 in RtlInitializeExceptionChain

@@ -444,6 +444,10 @@
    <File path="math\traits.d" />
    <File path="math\vector.d" />
   </Folder>
+  <Folder name="network">
+   <File path="network\router.d" />
+   <File path="network\server.d" />
+  </Folder>
   <Folder name="util">
    <File path="util\hash.d" />
    <File path="util\profile.d" />

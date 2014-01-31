@@ -2,29 +2,74 @@ module game.input.phone;
 
 import collections.list;
 import math;
+import logging;
+import std.algorithm;
+import std.uuid;
+import network.router;
 
-//Need to decide where to store the phone values.
-//This seems like a natural place so initially 
-//this is were i will put it.
-__gshared static List!Phone phones;
+auto logChnl = LogChannel("PHONE");
+private static List!Phone phones;
 
-struct Phone 
+struct Phone
 {
-	//Also need touch here but start with accelerometer and gyro.
-	float3 accelerometer;
-	float3 gyroscope;
+	UUID id;
+	PhoneState phoneState;
+
+	static bool exists(UUID id)
+	{
+		return phones.canFind!(x => x.id == id);
+	}
+
+	static PhoneState state(UUID id)
+	{
+		auto p = phones;
+		auto index = phones.countUntil!(x => x.id == id);
+		assert(index != -1);
+		return phones[index].phoneState;
+	}
+
+	static init(A)(ref A allocator, size_t capacity, ref Router router)
+	{
+		phones = List!Phone(allocator, capacity);
+		
+		router.connectionHandlers    ~= (id) { onConnection(id); };
+		router.disconnectionHandlers ~= (id) { onDisconnect(id); };
+		router.messageHandlers       ~= (id, msg) { onMessage(id, msg); }; 
+	}
 }
 
+struct PhoneState
+{
+	float3 accelerometer = float3.zero;
+	float3 gyroscope = float3.zero;
+}
 
-//So bascially we need a way to add phones on connection 
-//and remove them on dc. Apart from this we need a way to update
-//the phones based on data gathered from the connection.
-//The question is should the connection do this or should
-//it be implemented in this class? 
+void onConnection(UUID id)
+{
+	Phone p;
+	p.id = id;
+	
+	phones ~= p;
+}
 
-//We also need a way to map from a phoneID to a phone. And a 
-//way to accociate a connection with a phone. 
+void onDisconnect(UUID id)
+{
+	phones.remove!(x => x.id == id);
+}
 
-//Seeing that we need alot of stuff just to be able to use the phone
-//And it is all network related i wonder if we should just put the phones
-//in the network. Or alternativly in game? 
+void onMessage(UUID id, ubyte[] message)
+{
+	import std.bitmanip;
+
+	auto index = phones.countUntil!(x => x.id == id);
+	if(index == -1) return;
+
+	//Accelereometer data.
+	if(message[0] == 0)
+	{
+		message = message[1 .. $];
+		auto f = float3(message.read!float, message.read!float, message.read!float);
+		phones[index].phoneState.accelerometer = f;
+		logChnl.info("Accelerometer data changed for ", phones[index].id, " to", f);
+	}
+}

@@ -9,6 +9,9 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Achtung", "Achtung\Achtung.
 	EndProjectSection
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Learning", "Learning\Learning.visualdproj", "{FD6F4DCE-B225-4B84-80DB-1A9876CB928A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06AA8B71-5362-45F3-AE99-60E15D95960C} = {06AA8B71-5362-45F3-AE99-60E15D95960C}
+	EndProjectSection
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Client", "Client\Client.visualdproj", "{CE94FC22-7BB8-4BF6-94BA-408E8568C7AD}"
 EndProject

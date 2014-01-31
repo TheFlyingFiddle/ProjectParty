@@ -63,9 +63,9 @@ struct ScopeStack
 			logChnl.info("Allocated POD: Type = ", T.stringof);
 
 			static if(is(T == class))
-				void[] mem = allocator.allocate(__traits(classInstanceSize, T));
+				void[] mem = _allocator.allocate(__traits(classInstanceSize, T), T.alignof);
 			else 
-				void[] mem = allocator.allocate(T.sizeof);
+				void[] mem = _allocator.allocate(T.sizeof, T.alignof);
 
 			auto obj = emplace!(T)(mem, args);
 			return obj;

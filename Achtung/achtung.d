@@ -35,7 +35,6 @@ class AchtungGameState :IGameState
 	void init() { }
 	void handleInput() { }
 
-
 	Grid!bool map;
 	EventStream stream;
 	AchtungRenderer renderer;
@@ -46,7 +45,6 @@ class AchtungGameState :IGameState
 	List!SnakeControl controls;
 	int visibleSnakes;
 	AchtungConfig config;
-
 
 	void init(Allocator)(ref Allocator allocator, string configPath)
 	{
@@ -110,6 +108,11 @@ class AchtungGameState :IGameState
 			timers ~= Timer(1, snake.color, true);
 		}
 
+		foreach(i, player; Game.players)
+		{
+			alive[i].id = player.id;
+		}
+
 		visibleSnakes = alive.length;
 	}
 
@@ -134,9 +137,18 @@ class AchtungGameState :IGameState
 		foreach(c; controls)
 		{
 			if(Keyboard.isDown(cast(Key)c.leftKey))
-				stream.push(InputEvent(c.color, Input.Left));
+				stream.push(InputEvent(c.color,config.turnSpeed));
 			if(Keyboard.isDown(cast(Key)c.rightKey))
-				stream.push(InputEvent(c.color, Input.Right));
+				stream.push(InputEvent(c.color,-config.turnSpeed));
+		}
+
+		foreach(player; Game.players)
+		{
+	
+			auto state = Phone.state(player.id);
+			auto index = alive.countUntil!(x => x.id == player.id);
+			if(index == -1) continue;	
+			stream.push(InputEvent(alive[index].color, (state.accelerometer.y ) / 240));
 		}
 	}
 
@@ -146,12 +158,7 @@ class AchtungGameState :IGameState
 		{
 			auto index = snakes.countUntil!(x => x.color == event.color);
 			auto polar = snakes[index].dir.toPolar;
-
-			if(event.input == Input.Left)
-				polar.angle += turn;
-			else
-				polar.angle -= turn;
-
+			polar.angle += event.input;
 			snakes[index].dir = polar.toCartesian;
 		}
 	}

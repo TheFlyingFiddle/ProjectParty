@@ -73,7 +73,7 @@ void init(Allocator)(ref Allocator allocator)
 
 
 	auto config = fromSDLFile!WindowConfig(GCAllocator.it, "Window.sdl");
-	Game.init(allocator, 10, config);
+	Game.init(allocator, 10, config, 1337);
 
 
 	AchtungGameState ags = new AchtungGameState();

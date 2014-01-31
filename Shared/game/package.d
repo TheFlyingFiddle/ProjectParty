@@ -5,11 +5,13 @@ public import game.state;
 public import game.window;
 public import game.input;
 
-
 import util.profile;
 import core.time, std.datetime,
 	core.thread, std.algorithm,
-	content;
+	content, std.uuid, collections.list;
+
+import network.server;
+import network.router;
 
 enum Timestep
 {
@@ -19,25 +21,53 @@ enum Timestep
 
 alias GameStateFSM = FSM!(IGameState, string);
 
+struct Player 
+{
+	UUID id;
+}
+
 struct Game
 {
 	static GameStateFSM gameStateMachine;
 	static Window		window;
+	static List!Player  players;
+	private static Server     server;
+	private static Router*     router;
 
-	static void init(A)(ref A allocator, size_t numStates, WindowConfig config)
+	static void init(A)(ref A allocator, size_t numStates, WindowConfig config, ushort serverPort)
 	{
 		gameStateMachine = GameStateFSM(allocator, numStates);
-		window = WindowManager.create(config);
+		window			  = WindowManager.create(config);
+	
+		server = Server(allocator, 100, serverPort); //NOOO 100 is a number not a variable.
+		router = new Router(allocator, 100, server);
+
+		router.connectionHandlers    ~= (x) => onConnect(x);
+		router.disconnectionHandlers ~= (x) => onDisconnect(x);
+
+		players = List!Player(allocator, 100);
+		Phone.init(allocator, 100, *router);
+	}
+
+	static void onConnect(UUID id)
+	{
+		players ~= Player(id);
+	}
+
+	static void onDisconnect(UUID id)
+	{
+		players.remove(Player(id));
 	}
 
 	static void run(Timestep timestep, Duration target = 0.msecs)
 	{
-
 		StopWatch watch;
 		watch.start();
 		auto last = watch.peek();
 		while(!window.shouldClose)
 		{
+			server.update();
+
 			auto curr = watch.peek();
 			Time._delta = cast(Duration)(curr - last);
 			Time._total += Time._delta;
