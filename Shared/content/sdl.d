@@ -40,6 +40,19 @@ struct SDLObject
 	}
 }
 
+// Used as an attribute in structs to specify that the attribute
+// is not necessary to specify in the config file.
+OptionalStruct!T Optional(T)(T val)
+{
+	return OptionalStruct!T(val);
+}
+
+struct OptionalStruct(T)
+{
+	T defaultValue;
+	this(T)(T t) { defaultValue = t; }
+}
+
 struct SDLIterator
 {
     SDLContainer* over;
@@ -103,7 +116,12 @@ struct SDLIterator
 			}
 			currentIndex = cast(ushort)obj.nextIndex;
 		} 
-        assert(0, "Couldn't find object " ~ name);
+        throw new ObjectNotFoundException("Couldn't find object " ~ name);
+	}
+
+	class ObjectNotFoundException : Exception
+	{
+		this(string msg) { super(msg); }
 	}
 
     void goToNext()
@@ -137,7 +155,7 @@ struct SDLIterator
 
 	T as(T)() if(is(T==bool))
 	{
-		assert(over.root[currentIndex].type == TypeID._int,
+		assertEquals(over.root[currentIndex].type, TypeID._int,
 			   "SDLObject wasn't a boolean, which was requested");
 		auto range = mixin(curObjObjRange);
 		return readBool(range);
@@ -145,7 +163,7 @@ struct SDLIterator
 
     T as(T, A)(ref A allocator) if(isSomeString!T)
 	{
-        assert(over.root[currentIndex].type == TypeID._string);
+        assertEquals(over.root[currentIndex].type, TypeID._string);
 
         auto range = mixin(curObjObjRange);
         string str = readString!T(range);
@@ -157,7 +175,7 @@ struct SDLIterator
     T as(T, A)(ref A allocator) if(isArray!T && !isSomeString!T)
     {
         static if(is(T t == A[], A)) {
-            auto arr = allocator.allocate!T(walkLength);
+            auto arr = cast(T)allocator.allocate(A.sizeof*walkLength, A.sizeof);
             goToChild();
 
             foreach(ref elem; arr) {
@@ -200,29 +218,49 @@ struct SDLIterator
 					isSomeString!T ||
 					isArray!T ||
 					isVector!T))
-	{
-        goToChild();
+	{        goToChild();
         T toReturn;
 
-        foreach(member; __traits(allMembers, T)) {                
+        foreach(member; __traits(allMembers, T)) {
+			
+            alias fieldType = typeof(__traits(getMember, toReturn, member));
+			alias attributeType = typeof(__traits(getAttributes, __traits(getMember, toReturn, member)));
             //  Can only traverse the tree downwards
             //  So we need to save this index to not
             //  get lost.
             auto firstIndex = currentIndex;
-            goToNext!member; //Changes the index to point to the member we want.
-
-            alias type = typeof(__traits(getMember, toReturn, member));
-
-            static if(isArray!type) {
-				// TODO: There has to be a better way of doing this...
-				__traits(getMember, toReturn, member) = 
-					as!type(a);
+			//Did the field have an attribute?
+			static if(__traits(getAttributes, __traits(getMember, toReturn, member)).length >= 1) {
+				static if(is(attributeType == Unpack!(OptionalStruct!fieldType))) {
+					try {
+						goToNext!member; //Changes the index to point to the member we want.
+						static if(isArray!fieldType) {
+							__traits(getMember, toReturn, member) = 
+								as!fieldType(a);
+						} else {
+							__traits(getMember, toReturn, member) = 
+								as!fieldType;
+						}
+					} catch (ObjectNotFoundException e) {
+						//Set the field to the default value contained in the attribute.
+						__traits(getMember, toReturn, member) = 
+							__traits(getAttributes, __traits(getMember, toReturn, member))[0].defaultValue;
+					}
+				} else {
+					assert(0, "Field type mismatch: \n Field "
+						   ~member~" was of type "~fieldType.stringof~
+						   ", attribute was of type "~attributeType.stringof);
+				}
 			} else {
-            // TODO: There has to be a better way of doing this...
-            __traits(getMember, toReturn, member) = 
-                as!(type);
+				goToNext!member; //Changes the index to point to the member we want.
+				static if(isArray!fieldType) {
+					__traits(getMember, toReturn, member) = 
+						as!(fieldType, Allocator)(a);
+				} else {
+					__traits(getMember, toReturn, member) = 
+						as!fieldType;
+				}
 			}
-
             // We want to search the whole object for every name.
             currentIndex = firstIndex;
         }
@@ -238,24 +276,52 @@ struct SDLIterator
         goToChild();
         T toReturn;
 
-        foreach(member; __traits(allMembers, T)) {                
-            //  Can only traverse the tree downwards
-            //  So we need to save this index to not
-            //  get lost.
-            auto firstIndex = currentIndex;
-            goToNext!member; //Changes the index to point to the member we want.
-
-            alias type = typeof(__traits(getMember, toReturn, member));
-
-            // TODO: There has to be a better way of doing this...
-            __traits(getMember, toReturn, member) = 
-                as!(type);
-
-            // We want to search the whole object for every name.
-            currentIndex = firstIndex;
+        foreach(member; __traits(allMembers, T)) {
+			
+            alias fieldType = typeof(__traits(getMember, toReturn, member));
+			alias attributeType = typeof(__traits(getAttributes, __traits(getMember, toReturn, member)));
+			static if(isArray!fieldType) {
+				assert(0, "Structs with arrays inside need an allocator to be parsed.\n"~
+						"Field "~member~" was an array, and provented parsing.");
+			} else {
+				//  Can only traverse the tree downwards
+				//  So we need to save this index to not
+				//  get lost.
+				auto firstIndex = currentIndex;
+				//Did the field have an attribute?
+				static if(__traits(getAttributes, __traits(getMember, toReturn, member)).length >= 1) {
+					static if(is(attributeType == Unpack!(OptionalStruct!fieldType))) {
+						try {
+							goToNext!member; //Changes the index to point to the member we want.
+							__traits(getMember, toReturn, member) = 
+								as!fieldType;
+						} catch (ObjectNotFoundException a) {
+							//Set the field to the default value contained in the attribute.
+							__traits(getMember, toReturn, member) = 
+								__traits(getAttributes, __traits(getMember, toReturn, member))[0].defaultValue;
+						}
+					} else {
+						assert(0, "Field type mismatch: \n Field "
+							   ~member~" was of type "~fieldType.stringof~
+							   ", attribute was of type "~attributeType.stringof);
+					}
+				} else {
+						goToNext!member;
+						__traits(getMember, toReturn, member) = 
+							as!fieldType;
+				}
+				// We want to search the whole object for every name.
+				currentIndex = firstIndex;
+			}
         }
         return toReturn;
 	}
+
+	private template Unpack(T...)
+	{
+		alias Unpack = T;
+	}
+
 
 
     ref SDLIterator opIndex(size_t index)
@@ -1128,6 +1194,36 @@ class TestSDL {
 		assertEquals(vecFloat, float2(234.2f,123.4f));
 	}
 
+	@Test public void testOptional() {
+		struct OptionalFields {
+			@Optional(7) int totallyOptional;
+			int notOptional;
+		}
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "notOptional = 4");
+		auto test = obj.as!OptionalFields;
+		assertEquals(test.totallyOptional, 7);
+		assertEquals(test.notOptional, 4);
+	}
+
+	@Test public void testOptionalArray() {
+		struct OptionalArrs {
+			@Optional([1,2,3]) int[] opt;
+			int[] notOpt;
+		}
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "notOpt = [1,2,4]");
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+		auto test = obj.as!OptionalArrs(alloc2);
+		assertArrayEquals(test.opt, [1,2,3]);
+		assertArrayEquals(test.notOpt, [1,2,4]);
+	}
 
 	@Test public void testToSdlSample() {
 		struct Snake
