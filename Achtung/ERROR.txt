@@ -1,34 +1,19 @@
-
-0x0045ECA3 in onAssertError
-0x0040CD16 in collectionslistList at C:\Github\ProjectParty\Achtung\..\Shared\collections\list.d(74)
-0x004031EA in achtungAchtungGameStaterenderFrame at C:\Github\ProjectParty\Achtung\achtung.d(296)
-0x004027EE in achtungAchtungGameStaterender at C:\Github\ProjectParty\Achtung\achtung.d(133)
-0x00435D3F in gamestateFSM at C:\Github\ProjectParty\Shared\game\state.d(75)
-0x00428DC6 in gameGamerun
-0x004074D0 in mainrun at C:\Github\ProjectParty\Achtung\main.d(106)
-0x00407312 in D at C:\Github\ProjectParty\Achtung\main.d(42)
-0x00455C20 in rtdmain2_d_run_mainrunAll__lambda1
-0x00455BF3 in rtdmain2_d_run_mainrunAll
-0x00455B0B in _d_run_main
-0x00427DE8 in main at C:\Github\ProjectParty\Achtung\..\Shared\event\stream.d(3)
-0x00486281 in mainCRTStartup
-0x76F3495D in BaseThreadInitThunk
-0x77B998EE in RtlInitializeExceptionChain
-0x77B998C4 in RtlInitializeExceptionChain
-
-0x0045829B in onAssertError
-0x0040C18E in collectionslistList at C:\Git\ProjectParty\Achtung\..\Shared\collections\list.d(74)
-0x004030B6 in achtungAchtungGameStaterenderFrame at C:\Git\ProjectParty\Achtung\achtung.d(289)
-0x00402777 in achtungAchtungGameStaterender at C:\Git\ProjectParty\Achtung\achtung.d(130)
-0x00431C23 in gamestateFSM at C:\Git\ProjectParty\Shared\game\state.d(75)
-0x00427873 in gameGamerun
-0x0040731C in mainrun at C:\Git\ProjectParty\Achtung\main.d(106)
-0x00407112 in D at C:\Git\ProjectParty\Achtung\main.d(42)
-0x0044F6F8 in rtdmain2_d_run_mainrunAll__lambda1
-0x0044F6CB in rtdmain2_d_run_mainrunAll
-0x0044F5E3 in _d_run_main
-0x00426430 in main at C:\Git\ProjectParty\Achtung\..\Shared\event\stream.d(3)
-0x0047CC95 in mainCRTStartup
-0x778D495D in BaseThreadInitThunk
-0x77BE98EE in RtlInitializeExceptionChain
-0x77BE98C4 in RtlInitializeExceptionChain
+derelict.util.exception.SymbolLoadException@..\import\derelict\util\exception.d(38): Failed to load OpenGL symbol [glTextureStorage1DEXT]
+----------------
+0x00460BDA in derelictopengl3internalbindGLFunc
+0x0045C3D7 in derelictopengl3gl3DerelictGL3Loaderreload
+0x004321F2 in gamewindowWindowManagercreate at C:\Users\Gustav\Documents\GitHub\ProjectParty\Shared\game\window.d(56)
+0x00432112 in gamewindowWindowManagercreate at C:\Users\Gustav\Documents\GitHub\ProjectParty\Shared\game\window.d(43)
+0x004320E7 in gamewindowWindowManagercreate at C:\Users\Gustav\Documents\GitHub\ProjectParty\Shared\game\window.d(38)
+0x00419151 in gameGameinit at C:\Users\Gustav\Documents\GitHub\ProjectParty\Achtung\..\Shared\game\package.d(40)
+0x00414F72 in maininit at C:\Users\Gustav\Documents\GitHub\ProjectParty\Achtung\main.d(80)
+0x00407504 in mainrun at C:\Users\Gustav\Documents\GitHub\ProjectParty\Achtung\main.d(107)
+0x0048515B in rtminfort_moduleTlsCtor__foreachbody1
+0x0046CC30 in rtdmain2_d_run_mainrunAll__lambda1
+0x0046CC03 in rtdmain2_d_run_mainrunAll
+0x0046CB1B in _d_run_main
+0x004285C0 in main at C:\Users\Gustav\Documents\GitHub\ProjectParty\Achtung\..\Shared\event\stream.d(3)
+0x004A20DD in mainCRTStartup
+0x7720495D in BaseThreadInitThunk
+0x775A98EE in RtlInitializeExceptionChain
+0x775A98C4 in RtlInitializeExceptionChain

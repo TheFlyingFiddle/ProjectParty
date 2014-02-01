@@ -53,7 +53,18 @@ struct WindowManager
 		if(windows.length == 0)
 		{
 			glfwMakeContextCurrent(glfwWindow);
-			DerelictGL3.reload();
+
+
+			//TODO: On useless computers, the reload throws exceptions related to
+			// not finding features which aren't actually necessary.
+			// Ideally, a try catch shouldn't be needed, or should at least
+			// check for the relevant unnecessary features.
+			try {
+				DerelictGL3.reload();
+			} catch (SymbolLoadException e) {
+				import std.stdio;
+				writeln(e);
+			}
 			//After a window has been created the context must be set for that window.
 			//But there should only be one context. 
 			//So at this moment opengl does not work well with 

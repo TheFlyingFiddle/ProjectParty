@@ -9,6 +9,8 @@ import std.c.string :memcpy;
 import std.string;
 import std.range : repeat;
 import allocation;
+import dunit;
+
 
 alias TypeID = SDLObject.Type;
 
@@ -1026,7 +1028,6 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
 
 class TestSDL {
 
-	import dunit;
 
 	mixin UnitTest;
 
@@ -1301,6 +1302,3 @@ bool listEquals(List)(List a, List b) {
 	}
 	return true;
 }
-
-import dunit;
-mixin Main;

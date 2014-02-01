@@ -30,6 +30,7 @@ pragma(lib, libPath ~ "DerelictGLFW3.lib");
 pragma(lib, libPath ~ "DerelictGL3.lib");
 pragma(lib, libPath ~ "DerelictUtil.lib");
 pragma(lib, libPath ~ "DerelictFI.lib");
+pragma(lib, libPath ~ "dunit.lib");
 pragma(lib, "Shared.lib");
 
 
