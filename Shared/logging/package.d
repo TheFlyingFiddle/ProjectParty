@@ -4,10 +4,10 @@ public import logging.tcp;
 
 enum Verbosity { info, warn, error }
 
-alias logger_t = void function(string, Verbosity, string, string, size_t) nothrow;
+alias logger_t = void function(string, Verbosity, const(char)[], string, size_t) nothrow;
 logger_t logger = &voidLogger;
 
-void voidLogger(string, Verbosity, string, string, size_t) nothrow { }
+void voidLogger(string, Verbosity, const(char)[], string, size_t) nothrow { }
 
 
 mixin template Make(string channel)
@@ -18,12 +18,12 @@ mixin template Make(string channel)
 		foreach(name; __traits(allMembers, Verbosity))
 		{
 			s ~= "
-				void " ~ name~ "(string file = __FILE__, size_t line = __LINE__,  T...)(T t) 
+				void " ~ name~ "(string file = __FILE__, size_t line = __LINE__,  T...)(T t) nothrow
 				{
 				makeMsg!(T)(" ~ channel ~ ", Verbosity." ~ name ~ ", file, line, t);
 				}
 
-				void " ~ name ~ "f(string file = __FILE__, size_t line = __LINE__, T...)(string f, T...)
+				void " ~ name ~ "f(string file = __FILE__, size_t line = __LINE__, T...)(string f, T...) nothrow 
 				{
 				makeFormatMsg!(T)(" ~ channel ~ ", f, Verbosity." ~ name ~ ", file, line, t);
 				}";
@@ -47,19 +47,32 @@ struct LogChannel
 
 private void makeMsg(T...)(string channel, Verbosity verbosity, string file, size_t line,  T t) nothrow
 {
-	import std.conv;
+	template staticFormatString(size_t u)
+	{
+		static if(u == 1) enum staticFormatString = "%s";
+		else enum staticFormatString = staticFormatString!(u - 1) ~ "%s";
+	}
+	
+	import std.format, std.array;
 	scope(failure) return;
 
-	string msg = text(t); //Note to self improve this to use an allocator instead.
-	logger(channel, verbosity, msg, file, line);
+	char[1024] buffer = void;
+	auto appender = std.array.Appender!(char[])(buffer);
+	appender.clear();
+
+	formattedWrite(appender, staticFormatString!(T.length), t);
+	logger(channel, verbosity, appender.data, file, line);
 }
 
-private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, string file, size_t line, T t) nothrow
+private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, const(char)[] file, size_t line, T t) nothrow
 {
-	import std.format;
+	import std.format, std.array;
 	scope(failure) return; //We were unable to log what to do?
 
-	auto appender = std.array.Appender!string;
+	import std.array;
+	char[1024] buffer = void;
+	auto appender = std.array.Appender!(char[])(buffer);
+	appender.clear();
 	formattedWrite(appender, f, t);
 	logger(channel, verbosity, appender.data, file, line);
 }

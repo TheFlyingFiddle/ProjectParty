@@ -7,81 +7,84 @@ import content.sdl;
 import std.concurrency;
 import allocation.gc;
 
-__gshared Tid loggerTid;
+Socket socket;
+NetConfig config;
 
-void initialize(string configFile)
+ubyte[] buffer;
+uint taken;
+
+struct NetConfig
 {
-    struct NetConfig
-	{
-        ushort port;
-        string ip;
-	}
-	import std.file;
-    {
-    	auto obj = fromSDLFile!NetConfig(GCAllocator.it, configFile);
-    	loggerTid = spawn(&loggingSender, obj.ip, obj.port);
-    }
+	string ip;
+	ushort port;
 }
 
-
-void loggingSender(string ip, ushort port)
+void initializeTcpLogger(string configFile)
 {
-	struct Msg
-	{
-		string channel, msg, file;
-		size_t line, verbosity;
-	}
+	logger = &tcpLogger;
+    config = fromSDLFile!NetConfig(GCAllocator.it, configFile);    
+	buffer = cast(ubyte[])Mallocator.it.allocate(config.bufferSize, 8);
 
-
-
-
-	Appender!(char[]) sink;
-	Socket socket = new Socket(AddressFamily.INET,
-							   SocketType.STREAM,
-							   ProtocolType.TCP);
-
-	try {
-		socket.connect(getAddress(ip, port)[0]);
-		sink = appender!(char[]);
-
-		while(true)
-		{
-			receive(
-					(string channel, Verbosity verbosity, string msg, string file, size_t line) {
-						try 
-						{
-        //TODO: fix
-							//toSDL(Msg(channel, msg, file, line, verbosity), sink);
-							socket.send(sink.data);
-							sink.clear();
-						}
-						catch(Exception e) 
-						{
-							import std.c.stdio;
-							printf("An exception was thrown while sending
-								   a message in the TCP logger!\n %s", e.msg);
-						}
-					});
-		}
-
-	} 
-	catch(Exception e)
-	{
-		import std.stdio;
-		writeln(e);
-	}
+	import std.stdio;
+	writeln("Trying to connect to the logger!");
+	writeln(config);
+	socket = new TcpSocket();
+	socket.connect(getAddress(config.ip, config.port)[0]);
 }
 
-void tcpLogger(string channel, Verbosity verbosity, string msg, string file, size_t line) nothrow
+void tcpLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow
 {
+	scope(failure) return;
+
+	if(!socket.isAlive())
+	{
+		socket.close();
+		socket = new TcpSocket(new InternetAddress(config.ip, config.port));
+	}
+
 	try 
 	{
-		send(loggerTid, channel, verbosity, msg, file, line);
+		ubyte[] buff = buffer[taken .. $];
+		uint offset;
+		offset = buff.write(offset, 0);
+		offset = buff.write(offset, channel);
+		offset = buff.write(offset, cast(uint)verbosity);
+		offset = buff.write(offset, msg);
+		offset = buff.write(offset, file);
+		offset = buff.write(offset, line);
+		buff.write(0, offset - uint.sizeof);
+		
+		taken += offset;
+
+		if(taken > 8192 - 1024) 
+		{
+			socket.send(buffer[0 .. taken]);
+			taken = 0;
+		}
 	}
 	catch(Exception e)
 	{
 		import std.c.stdio;
 		printf("An exception was thrown while sending
-			   a message to the logging thread!\n %s", e.msg);
+			   a message to the logging application!\n %s", e.msg);
 	}
+}
+
+import std.traits;
+
+uint write(T)(ref ubyte[] buffer, uint offset, T value) if(!isArray!T)
+{
+	*(cast(uint*)&buffer[offset]) = value;
+	offset += T.sizeof;
+	return offset;
+}
+
+uint write(T)(ref ubyte[] buffer, uint offset, T value) if(isArray!T)
+{
+	offset = buffer.write!uint(offset, value.length);
+	(buffer[offset .. offset + typeof(value[0]).sizeof * value.length])[] 
+		= cast(ubyte[])value;
+
+	offset += typeof(value[0]).sizeof * value.length;
+	return offset;
 }

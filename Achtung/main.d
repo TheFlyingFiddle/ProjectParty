@@ -36,7 +36,7 @@ pragma(lib, "Shared.lib");
 
 void main()
 {
-	logger = &writeLogger;
+	initializeTcpLogger("logger.sdl");
 	init_dlls();
 	try
 	{	

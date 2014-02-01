@@ -6,11 +6,11 @@ import std.exception;
 
 
 static char[1024] c_buffer;
-char* toCString(const char[] str, char[] output = c_buffer) 
+char* toCString(const char[] str) 
 {
-	output[0 .. str.length] = str[];
-	output[str.length] = '\0';
-	return output.ptr;
+	c_buffer[0 .. str.length] = str[];
+	c_buffer[str.length] = '\0';
+	return c_buffer.ptr;
 }
 
 //Should not be gc collected? Or maby it should.

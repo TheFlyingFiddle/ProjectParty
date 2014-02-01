@@ -33,7 +33,7 @@ version(X86)
 			return allocated[0 .. bytes];
 		}	
 
-		void deallocate(void[] memory)
+		void deallocate(void[] memory) nothrow
 		{
 			bytesAllocated -= memory.length;
 			numAllocations--;

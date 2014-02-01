@@ -67,7 +67,6 @@ struct List(T)
 		return length;
 	}
 
-
 	List!T opSlice(size_t x, size_t y)
 	{
 		assert(x <= y && x <= length && y <= length);
@@ -75,24 +74,6 @@ struct List(T)
 		uint length = cast(uint)(y - x);
 		return List!T(b, length, length);
 	}	
-
-	List!T save() { return this; }
-	T front() { return *buffer; }
-	T back()  { return buffer[length - 1]; }
-	bool empty() { return length == 0; }
-	void popFront()
-	{
-		length--;
-		buffer++;
-	}
-	void popBack() 
-	{
-		length--;
-	}
-	void put(T data)
-	{
-		this ~= data;
-	}
 
 	int opApply(int delegate(ref T) dg)
 	{
@@ -120,55 +101,80 @@ struct List(T)
 	{
 		this.length = 0;
 	}
-}
-
-
-import std.algorithm : SwapStrategy, countUntil;
-bool remove(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, auto ref T value)
-{	
-	return list.remove!(x => x == value)();
-}
-
-bool remove(alias pred, SwapStrategy s = SwapStrategy.stable, T)(ref List!T list)
-{
-	auto index = list.countUntil!(pred);
-	if(index == -1) return false;
-
-	static if(s == SwapStrategy.unstable)
-	{
-		swap(list[$ - 1], list[index]);
-		list.length--;
-	}
-	else 
-	{
-		foreach(i; index .. list.length - 1)
-			list[i] = list[i + 1];
-
-		list.length--;
-	}
-
-	return true;
-}
-
-bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t index)
-{
-	assert(index < list.length); 
-
-	static if(s == SwapStrategy.unstable)
-	{
-		swap(list[$ - 1], list[index]);
-		list.length--;
-	}
-	else 
-	{
-		foreach(i; index .. list.length - 1)
-			list[i] = list[i + 1];
-
-		list.length--;
-	}
-	return true;
-}
 	
+	void insert(size_t index, T value)
+	{
+		assert(length < capacity);
+		foreach_reverse(i; index .. length)
+			buffer[i + 1] = buffer[i];
+		
+		buffer[index] = value;
+	}
+
+	import std.algorithm : SwapStrategy, countUntil;
+	bool remove(SwapStrategy s = SwapStrategy.stable)(auto ref T value)
+	{	
+		return remove!(x => x == value, s)();
+	}
+
+	bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(size_t index)
+	{
+		assert(index < list.length); 
+
+		static if(s == SwapStrategy.unstable)
+		{
+			swap(list[$ - 1], list[index]);
+			list.length--;
+		}
+		else 
+		{
+			foreach(i; index .. list.length - 1)
+				list[i] = list[i + 1];
+
+			list.length--;
+		}
+		return true;
+	}
+
+	bool remove(alias pred, SwapStrategy s = SwapStrategy.stable)()
+	{
+		auto index = list.countUntil!(pred);
+		if(index == -1) return false;
+
+		static if(s == SwapStrategy.unstable)
+		{
+			swap(list[$ - 1], list[index]);
+			list.length--;
+		}
+		else 
+		{
+			foreach(i; index .. list.length - 1)
+				list[i] = list[i + 1];
+
+			list.length--;
+		}
+
+		return true;
+	}
+
+	//Range interface
+	List!T save() { return this; }
+	T front() { return *buffer; }
+	T back()  { return buffer[length - 1]; }
+	bool empty() { return length == 0; }
+	void popFront() {
+		length--;
+		buffer++;
+	}
+	void popBack() 
+	{
+		length--;
+	}
+	void put(T data)
+	{
+		this ~= data;
+	}
+}
 
 unittest
 {
