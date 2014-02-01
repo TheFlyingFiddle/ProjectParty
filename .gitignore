@@ -5,6 +5,7 @@ Thumbs.db
 # Directories
 Debug/
 Release/
+logging/
 
 #Binary Visual Studio file
 *.suo
