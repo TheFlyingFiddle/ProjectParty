@@ -1,2 +1,3 @@
 port = 7331
 ip = |127.0.0.1|
+bufferSize = 8192

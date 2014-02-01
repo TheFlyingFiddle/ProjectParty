@@ -28,6 +28,8 @@ enum FREE_IMAGE_DLL_PATH = dllPath ~ "FreeImage.dll";
 
 void init_dlls()
 {	
+	Derelict_SetMissingSymbolCallback(&missingSymFunc);
+
 	DerelictGL3.load();
 	DerelictGLFW3.load(GLFW_DLL_PATH);
 	DerelictFI.load(FREE_IMAGE_DLL_PATH);

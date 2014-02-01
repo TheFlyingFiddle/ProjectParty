@@ -17,11 +17,14 @@ struct NetConfig
 {
 	string ip;
 	ushort port;
+	uint bufferSize;
 }
 
 void initializeTcpLogger(string configFile)
 {
-	logger = &tcpLogger;
+	import allocation;
+
+	//logger = &tcpLogger;
     config = fromSDLFile!NetConfig(GCAllocator.it, configFile);    
 	buffer = cast(ubyte[])Mallocator.it.allocate(config.bufferSize, 8);
 
@@ -29,7 +32,7 @@ void initializeTcpLogger(string configFile)
 	writeln("Trying to connect to the logger!");
 	writeln(config);
 	socket = new TcpSocket();
-	socket.connect(getAddress(config.ip, config.port)[0]);
+	//socket.connect(getAddress(config.ip, config.port)[0]);
 }
 
 void tcpLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow

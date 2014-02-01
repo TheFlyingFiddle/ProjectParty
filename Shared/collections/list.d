@@ -111,52 +111,6 @@ struct List(T)
 		buffer[index] = value;
 	}
 
-	import std.algorithm : SwapStrategy, countUntil;
-	bool remove(SwapStrategy s = SwapStrategy.stable)(auto ref T value)
-	{	
-		return remove!(x => x == value, s)();
-	}
-
-	bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(size_t index)
-	{
-		assert(index < list.length); 
-
-		static if(s == SwapStrategy.unstable)
-		{
-			swap(list[$ - 1], list[index]);
-			list.length--;
-		}
-		else 
-		{
-			foreach(i; index .. list.length - 1)
-				list[i] = list[i + 1];
-
-			list.length--;
-		}
-		return true;
-	}
-
-	bool remove(alias pred, SwapStrategy s = SwapStrategy.stable)()
-	{
-		auto index = list.countUntil!(pred);
-		if(index == -1) return false;
-
-		static if(s == SwapStrategy.unstable)
-		{
-			swap(list[$ - 1], list[index]);
-			list.length--;
-		}
-		else 
-		{
-			foreach(i; index .. list.length - 1)
-				list[i] = list[i + 1];
-
-			list.length--;
-		}
-
-		return true;
-	}
-
 	//Range interface
 	List!T save() { return this; }
 	T front() { return *buffer; }
@@ -175,6 +129,58 @@ struct List(T)
 		this ~= data;
 	}
 }
+
+
+
+
+import std.algorithm : SwapStrategy, countUntil, swap;
+bool remove(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, auto ref T value)
+{	
+	return remove!(x => x == value, s)(list);
+}
+
+bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t index)
+{
+	assert(index < list.length); 
+
+	static if(s == SwapStrategy.unstable)
+	{
+		swap(list[list.length - 1], list[index]);
+		list.length--;
+	}
+	else 
+	{
+		foreach(i; index .. list.length - 1)
+			list[i] = list[i + 1];
+
+		list.length--;
+	}
+	return true;
+}
+
+bool remove(alias pred, SwapStrategy s = SwapStrategy.stable, T)(ref List!T list)
+{
+	auto index = list.countUntil!(pred);
+	if(index == -1) return false;
+
+	static if(s == SwapStrategy.unstable)
+	{
+		swap(list[list.length - 1], list[index]);
+		list.length--;
+	}
+	else 
+	{
+		foreach(i; index .. list.length - 1)
+			list[i] = list[i + 1];
+
+		list.length--;
+	}
+
+	return true;
+}
+
+
+
 
 unittest
 {

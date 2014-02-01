@@ -83,13 +83,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib dunit.lib</libfiles>
+  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib</libfiles>
   <libpaths>..\lib\win32</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions />
+  <additionalOptions>-main -unittest</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
@@ -390,6 +390,7 @@
    <File path="collections\list.d" />
    <File path="collections\map.d" />
    <File path="collections\package.d" />
+   <File path="collections\table.d" />
   </Folder>
   <Folder name="content">
    <File path="content\common.d" />
@@ -403,9 +404,6 @@
    <File path="event\package.d" />
    <File path="event\stream.d" />
    <File path="event\traits.d" />
-  </Folder>
-  <Folder name="testing">
-   <File path="main.d" />
   </Folder>
   <Folder name="game">
    <Folder name="input">

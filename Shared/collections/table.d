@@ -10,14 +10,23 @@ enum SortStrategy
 }
 
 
-alias Table!(K, V, SortStrategy.unsorted) UTable(K, V);
-alias Table!(K, V, SortStrategy.sorted)   STable(K, V);
 
 //Represents a map. From ID to T implemented in a space efficient manner.
-struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) //Designed for structs only.
+struct Table(K, V, SortStrategy s = SortStrategy.unsorted) 
 {
 	List!V values;
 	List!K keys;
+
+	@property uint length()
+	{
+		return values.length;
+	}
+
+	@property uint capacity()
+	{
+		return values.capacity;
+	}
+
 
 	this(A)(ref A allocator, size_t capacity)
 	{		
@@ -33,8 +42,10 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 
 	ref V opIndex(in K key)
 	{
+		import std.conv;
+
 		auto index = indexOf(key);
-		assert(index != -1, "Key " ~ key ~ " not present in table.");
+		assert(index != -1, "Key " ~ key.to!string ~ " not present in table.");
 		return values[index];
 	}
 
@@ -43,7 +54,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 		addOrSet(key, value);
 	}
 
-	void opApply(int delegate(ref V) dg)
+	int opApply(int delegate(ref V) dg)
 	{
 		int result;
 		foreach(i; 0 .. keys.length)
@@ -53,7 +64,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 		return result;
 	}
 
-	void opApply(int delegate(K, ref V) dg)
+	int opApply(int delegate(K, ref V) dg)
 	{
 		int result;
 		foreach(i; 0 .. keys.length)
@@ -67,24 +78,23 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 
 	static if(s == SortStrategy.sorted)
 	{
-		int indexOf(in K key)
+		int indexOf(K key)
 		{
 			int index;
 			return bestIndexOf(key, index) ? index : -1;
-			auto index = bestIndexOf(key);
-			return keys[index] == key ? index : -1;
 		}
 
-		bool remove(in K key)
+		bool remove(K key)
 		{
 			auto index = indexOf(key);
 			if(index == -1) return false;
 
 			keys.removeAt(index);
 			values.removeAt(index);
+			return true;
 		}
 
-		private void addOrSet(in K key, V value)
+		private void addOrSet(K key, V value)
 		{
 			int index;
 			if(bestIndexOf(key, index))
@@ -99,7 +109,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 		}
 
 		//Finds the most sutable index for the key.
-		private bool bestIndexOf(in K key, out int index)
+		private bool bestIndexOf(K key, out int index)
 		{
 			auto ptr = keys.buffer;
 
@@ -110,13 +120,13 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 
 			while(first <= last)
 			{
-				uint i = key.opCmp(ptr[mid]);
-				if(i == 0) 
+				K other = ptr[mid];
+				if(key == other) 
 				{
 					index = mid;
 					return true;
 				}
-				else if(i < 0)
+				else if(key < other)
 					last = mid - 1;
 				else 
 					first = mid + 1;
@@ -130,14 +140,15 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 	} 
 	else 
 	{
-		int indexOf(in K key)
+		int indexOf(K key)
 		{
-			return keys.countUntil!(x => x == key);
+			auto index = keys.countUntil!( (K x) => x == key);
+			return index;
 		}
 
-		bool remove(in K id)
+		bool remove(K key)
 		{
-			auto index = ids.countUntil!(x => x.id == id);
+			auto index = indexOf(key);
 			if(index == -1) return false;
 
 			//Fast removal
@@ -146,7 +157,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 			return true;
 		}
 
-		private void addOrSet(in K key, V value)
+		private void addOrSet(K key, V value)
 		{
 			auto index = indexOf(key);
 			if(index != -1) 
@@ -156,7 +167,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted) if(is(T == struct)) /
 			else 
 			{
 				values ~= value;
-				keys   ~= keys;
+				keys   ~= key;
 			}
 		}
 	}
@@ -169,13 +180,13 @@ unittest
 	auto allocator = RegionAllocator(Mallocator.it, 1024);
 	auto ss  = ScopeStack(allocator);
 	
-	auto table = UTable!(uint, ulong)(allocator, 100);
+	auto table = Table!(uint, ulong)(ss, 100);
 	
 	table[10] = 5;
 	table[1]  = 3;
 	
-	assert(10 in table);
-	assert(1 in table);
+	//assert(10 in table);
+	//assert(1 in table);
 	assert(table[10] == 5);
 	assert(table[1]  == 3);
 	assert(table.length == 2);
@@ -184,16 +195,16 @@ unittest
 		assert(table[k] == v);
 
 
-	auto stable = STable!(uint, ulong)(allocator, 100);
+	auto stable = Table!(uint, ulong, SortStrategy.sorted)(ss, 100);
 
 	stable[10] = 5;
 	stable[1]  = 3;
 
-	assert(10 in stable);
-	assert(1 in stable);
+	//assert(10 in stable);
+	//assert(1 in stable);
 	assert(stable[10] == 5);
 	assert(stable[1]  == 3);
-	assert(stable.length = 2);
+	assert(stable.length == 2);
 
 	foreach(k, v; stable)
 		assert(stable[k] == v);
@@ -202,12 +213,16 @@ unittest
 	//Now that is enough tests! 
 }
 
-unittest
+
+
+version(benchmark_table)
 {
-	version(benchmark)
+
+	unittest
 	{
 
+
+
 	}
+
 }
-
-
