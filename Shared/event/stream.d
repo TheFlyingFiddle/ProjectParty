@@ -125,7 +125,7 @@ version(unittest)
 unittest
 {
 	alias stream = EventStreamN!(ushort);
-	auto linAlloc   = RegionAllocator(Mallocator.it, 1024);
+	auto linAlloc   = RegionAllocator(Mallocator.cit, 1024);
 	auto scopeStack = ScopeStack(linAlloc); 
 	stream s = stream(scopeStack, 512);
 
@@ -138,7 +138,7 @@ unittest
 	import event.stream;
 	alias stream = EventStreamN!(ushort);
 
-	auto linAlloc   = RegionAllocator(Mallocator.it, 1024, 8);
+	auto linAlloc   = RegionAllocator(Mallocator.cit, 1024, 8);
 	auto scopeStack = ScopeStack(linAlloc); 
 	stream s = stream(scopeStack, 512);
 

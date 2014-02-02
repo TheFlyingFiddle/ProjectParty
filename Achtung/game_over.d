@@ -13,7 +13,7 @@ class GameOverGameState : IGameState
 	
 	void enter(Variant x)
 	{
-		auto list = x.get!(List!Score);
+	//	auto list = x.get!(List!Score);
 	}
 
 	void exit() {}

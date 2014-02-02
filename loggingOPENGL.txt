@@ -1,0 +1,40 @@
+glBindTexture(texture2D1) graphics\context.d (14)
+
+glDrawArrays(points01) graphics\context.d (14)
+
+glActiveTexture(zero) graphics\context.d (14)
+
+glBindTexture(texture2D2) graphics\context.d (14)
+
+glDrawArrays(points13) graphics\context.d (14)
+
+glClear(color) ..\Shared\graphics\context.d (14)
+
+glViewport(00800600) ..\Shared\graphics\context.d (14)
+
+glBindFramebuffer(framebuffer1) ..\Shared\graphics\context.d (14)
+
+glBindBuffer(vertex1) ..\Shared\graphics\context.d (14)
+
+glBufferSubData(vertex01442ADD2A8) graphics\context.d (14)
+
+glBindVertexArray(0) ..\Shared\graphics\context.d (14)
+
+glUseProgram(4) ..\Shared\graphics\context.d (14)
+
+glUniformMatrix4fv(11018FA04) graphics\context.d (14)
+
+glActiveTexture(zero) graphics\context.d (14)
+
+glBindTexture(texture2D1) graphics\context.d (14)
+
+glDrawArrays(points03) graphics\context.d (14)
+
+glBindFramebuffer(read1) ..\Shared\graphics\context.d (14)
+
+glBindFramebuffer(draw0) ..\Shared\graphics\context.d (14)
+
+glBlitFramebuffer(0060060000600600colornearest) graphics\context.d (14)
+
+glBindFramebuffer(framebuffer0) ..\Shared\graphics\context.d (14)
+

@@ -161,7 +161,7 @@ private Font loadFont(A)(ref A allocator, const(char)[] filePath, const(char)[] 
 	}
 
 	//Do we need the min? It could save some space but gives runtime lookup overhead.
-	CharInfo[] chars = allocate!(A,CharInfo[])(allocator, max + 1); //We must allocate here there is no way around it.
+	CharInfo[] chars = allocator.allocate!(CharInfo[])(max + 1); //We must allocate here there is no way around it.
 	chars[] = CharInfo.init;
 
 	//Transform the raw characters to CharInfo structs.

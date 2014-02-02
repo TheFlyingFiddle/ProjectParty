@@ -3,7 +3,7 @@ module allocation.stack;
 import std.traits;
 import logging;
 import allocation.region,
-	   allocation : logChnl;
+	   allocation.common;
 
 struct Finalizer
 {
@@ -45,47 +45,35 @@ struct ScopeStack
 		this._chain       = null;
 	}
 
-	T* allocate(T, Args...)(ref auto Args args) 
+	T* allocate(T, Args...)(auto ref Args args) 
 		if(hasElaborateDestructor!T && !isArray!T)
-		{
-			logChnl.info("Allocated RAII Object: Type = ", T.stringof);
-
-			void[] mem = _allocator.allocate(T.sizeof + Finalizer.sizeof, T.alignof);
-			auto obj = emplace!(T)(mem[Finalizer.sizeof .. $], args);
-			auto fin = emplace!(Finalizer)(mem, &destructor!T, _chain);
-			_chain = fin;
-			return obj;
-		}
-
-	auto allocate(T, Args...)(ref auto Args args) 
-		if(!hasElaborateDestructor!T && !isArray!T)
-		{
-			logChnl.info("Allocated POD: Type = ", T.stringof);
-
-			static if(is(T == class))
-				void[] mem = _allocator.allocate(__traits(classInstanceSize, T), T.alignof);
-			else 
-				void[] mem = _allocator.allocate(T.sizeof, T.alignof);
-
-			auto obj = emplace!(T)(mem, args);
-			return obj;
-		}
-
-	T allocate(T)(size_t size) if(isArray!T)
 	{
-		import std.range;
-		alias E = ElementType!T;
-		logChnl.info("Array: Type ", E.stringof, " Count = ", size);
+		logChnl.info("Allocated RAII Object: Type = ", T.stringof);
 
-		void[] mem = _allocator.allocate(E.sizeof * size, E.alignof);
+		void[] mem = _allocator.allocateRaw(T.sizeof + Finalizer.sizeof, T.alignof);
+		auto obj = emplace!(T)(mem[Finalizer.sizeof .. $], args);
+		auto fin = emplace!(Finalizer)(mem, &destructor!T, _chain);
+		_chain = fin;
+		return obj;
+	}
 
-		E* e = cast(E*)mem.ptr;
-		return e[0 .. size];
+	auto allocate(T, Args...)(auto ref Args args) 
+		if(!hasElaborateDestructor!T && !isArray!T)
+	{
+		logChnl.info("Allocated POD: Type = ", T.stringof);
+		return _allocator.allocate!T(args);
+	}
+
+	T allocate(T)(size_t size, size_t alignment = 8) if(isArray!T)
+	{
+		logChnl.info("Allocated Array: Type = ", T.stringof, " ", size);
+		return _allocator.allocate!T(size, alignment);
 	}
 
 	void[] allocate(size_t size, size_t alignment)
 	{
-		return _allocator.allocate(size, alignment);
+		logChnl.info("Allocated Raw: ", size);
+		return _allocator.allocateRaw(size, alignment);
 	}
 
 	~this()
@@ -116,14 +104,14 @@ unittest
 	}
 
 	{
-		auto a = RegionAllocator(Mallocator.it, 1024);
+		auto a = RegionAllocator(Mallocator.cit, 1024);
 		auto stack = ScopeStack(a);
 		stack.allocate!S();
 	}
 
 	assert(destructorCalls == 1);
 
-	auto b = RegionAllocator(Mallocator.it, 1024);
+	auto b = RegionAllocator(Mallocator.cit, 1024);
 	auto stack2 = ScopeStack(b);
 }
 

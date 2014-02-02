@@ -24,15 +24,15 @@ void initializeTcpLogger(string configFile)
 {
 	import allocation;
 
-	//logger = &tcpLogger;
+	logger = &tcpLogger;
     config = fromSDLFile!NetConfig(GCAllocator.it, configFile);    
-	buffer = cast(ubyte[])Mallocator.it.allocate(config.bufferSize, 8);
+	buffer = Mallocator.it.allocate!(ubyte[])(config.bufferSize, 8);
 
 	import std.stdio;
 	writeln("Trying to connect to the logger!");
 	writeln(config);
 	socket = new TcpSocket();
-	//socket.connect(getAddress(config.ip, config.port)[0]);
+	socket.connect(getAddress(config.ip, config.port)[0]);
 }
 
 void tcpLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow
@@ -69,7 +69,7 @@ void tcpLogger(string channel, Verbosity verbosity, const(char)[] msg, string fi
 	{
 		import std.c.stdio;
 		printf("An exception was thrown while sending
-			   a message to the logging application!\n %s", e.msg);
+			   a message to the logging application!\n %s", e.msg.ptr);
 	}
 }
 

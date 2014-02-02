@@ -1,6 +1,6 @@
 module allocation.native;
 
-import allocation : CAllocator, logChnl;
+import allocation.common;
 
 version(X86)
 {
@@ -12,7 +12,7 @@ version(X86)
 		size_t numAllocations;
 		
 
-		void[] allocate(size_t bytes, size_t alignment)
+		package void[] allocate_impl(size_t bytes, size_t alignment)
 		{
 			bytesAllocated += bytes;
 			numAllocations++;
@@ -33,7 +33,7 @@ version(X86)
 			return allocated[0 .. bytes];
 		}	
 
-		void deallocate(void[] memory) nothrow
+		package void deallocate_impl(void[] memory) nothrow
 		{
 			bytesAllocated -= memory.length;
 			numAllocations--;
@@ -138,14 +138,14 @@ struct MallocAppender(T)
 
     this(size_t initialCapacity)
 	{
-        _buffer = cast(T*) Mallocator.it.allocate(cast(uint)initialCapacity * T.sizeof, T.alignof).ptr;
+        _buffer   = Mallocator.it.allocate!(T[])(initialCapacity).ptr;
         _capacity = cast(uint)initialCapacity;
         _offset = 0;
     }
 
     void grow()
 	{
-        auto b = cast(T*) Mallocator.it.allocate((_capacity * 2 + 10) * T.sizeof, T.alignof).ptr;
+        auto b = Mallocator.it.allocate!(T[])((_capacity * 2 + 10)).ptr;
         b[0.._capacity] = _buffer[0.._capacity];
         Mallocator.it.deallocate(_buffer[0.._capacity]);
         _capacity = _capacity * 2 + 10;

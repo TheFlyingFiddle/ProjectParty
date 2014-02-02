@@ -1,27 +1,21 @@
 module types;
 
-import graphics, math, event, std.uuid;
+import graphics, math, event, std.uuid, collections;
 
 alias EventStream = EventStreamN!(uint);
+
+alias Table(V) = collections.Table!(Color, V, SortStrategy.unsorted);
 
 struct Snake
 {
 	float2 pos;
 	float2 dir;
-	Color color;
-	UUID id;
-}
-
-struct Timer
-{
-	float time;
-	Color color;
 	bool visible;
+	UUID id;
 }
 
 struct SnakeControl
 {
-	Color color;
 	uint leftKey, rightKey;
 }
 
@@ -36,10 +30,4 @@ struct InputEvent
 {
 	Color color;
 	float input;
-}
-
-struct Score
-{
-	Color color;
-	int score;
 }

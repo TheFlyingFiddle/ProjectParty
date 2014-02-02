@@ -1,7 +1,11 @@
 module allocation.region;
 
+import allocation.common;
+
 struct RegionAllocator
 {
+	IAllocator base;
+
 	void*  _buffer;
 	void*  _offset;
 	size_t _capacity;
@@ -16,25 +20,41 @@ struct RegionAllocator
 		return _capacity - bytesAllocated;
 	}
 
-	this(A)(A allocator, size_t capacity, size_t alignment = 8)
+	this(IAllocator allocator, size_t capacity, size_t alignment = 8)
 	{
-		this(allocator.allocate(capacity, alignment));
-	}
-
-	this(void[] buffer)
-	{
+		this.base      = allocator;
+		void[] buffer  = allocator.allocateRaw(capacity, alignment);
 		this._buffer   = buffer.ptr;
 		this._offset   = buffer.ptr;
 		this._capacity = buffer.length;
 	}
+
+	this(void[] buffer)
+	{
+		this.base      = null;
+		this._buffer   = buffer.ptr;
+		this._offset   = buffer.ptr;
+		this._capacity = buffer.length;
+	}
+
+	~this()
+	{
+		if(base)
+			base.deallocate(_buffer[0 .. _capacity]);
+	}
 	
-	void[] allocate(size_t size, size_t alignment)
+	void[] allocate_impl(size_t size, size_t alignment)
 	{
 		auto alignedOffset = aligned(_offset, alignment);
 		_offset = cast(void*)(cast(size_t)alignedOffset + size);
 		
 		assert(bytesAllocated <= _capacity, "Out of memory");
 		return alignedOffset[0 .. size];
+	}
+
+	void deallocate_impl(void[] mem)
+	{
+		rewind(mem.ptr);
 	}
 	
 	void rewind(void* rewindPos)
@@ -45,10 +65,6 @@ struct RegionAllocator
 		this._offset = rewindPos;
 	}
 
-	void deallocate(void[] mem)
-	{
-		rewind(mem.ptr);
-	}
 
 	@disable this(this);
 }
@@ -61,8 +77,8 @@ void* aligned(void* ptr, size_t alignment)
 unittest
 {
 	import allocation;
-	auto region = RegionAllocator(Mallocator.it, 1024, 16);
-	ubyte[] d = cast(ubyte[])region.allocate(1024, 16);
+	auto region = RegionAllocator(Mallocator.cit, 1024, 16);
+	ubyte[] d = cast(ubyte[])region.allocateRaw(1024, 16);
 
 	assert(d.length == 1024);
 	assert(region.bytesAllocated() == 1024);
@@ -88,8 +104,8 @@ struct RegionAppender(T)
 	{
 		this._allocator = allocator;
 		
-		size_t bytes = (allocator.bytesRemaining() / T.sizeof) * T.sizeof;
-		T[] buffer = cast(T[])allocator.allocate(bytes, alignment);
+		size_t bytes = (allocator.bytesRemaining() / T.sizeof);
+		T[] buffer = allocator.allocate!(T[])(bytes, alignment);
 		_capacity  = buffer.length;
 		_buffer    = buffer.ptr;
 		_offset    = 0;
@@ -163,7 +179,7 @@ struct RegionAppender(T)
 unittest
 {
 	import allocation, collections.list;
-	auto a = RegionAllocator(Mallocator.it, 1024 * 2, 16);
+	auto a = RegionAllocator(Mallocator.cit, 1024 * 2, 16);
 	auto app  = RegionAppender!(ushort)(a);
 
 	foreach(ushort i; 0 .. 1024) {
@@ -181,7 +197,7 @@ unittest
 {
 	import allocation;
 	import std.exception, core.exception;
-	auto a = RegionAllocator(Mallocator.it, 1024 * 2, 16);
+	auto a = RegionAllocator(Mallocator.cit, 1024 * 2, 16);
 	auto app  = RegionAppender!(ushort)(a);
 	foreach(ushort i; 0 .. 1024) app.put(i);
 

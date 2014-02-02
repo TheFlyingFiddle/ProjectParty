@@ -169,7 +169,7 @@ struct SDLIterator
 
         auto range = mixin(curObjObjRange);
         string str = readString!T(range);
-        char[] s = allocate!(A, char[])(allocator, str.length);
+        char[] s = allocator.allocate!(char[])(str.length);
         s[] = str;
         return cast(T)s;
 	}
@@ -177,7 +177,7 @@ struct SDLIterator
     T as(T, A)(ref A allocator) if(isArray!T && !isSomeString!T)
     {
         static if(is(T t == A[], A)) {
-            auto arr = cast(T)allocator.allocate(A.sizeof*walkLength, A.sizeof);
+            auto arr = allocator.allocate!T(walkLength);
             goToChild();
 
             foreach(ref elem; arr) {

@@ -1,15 +1,14 @@
 module allocation.gc;
 
-import allocation : logChnl;
 import core.memory;
+import allocation.common;
 
 struct GCAllocator
 {
 	size_t bytesAllocated;
 	size_t numAllocations;
 
-
-	void[] allocate(size_t bytes, size_t alignment)
+	package void[] allocate_impl(size_t bytes, size_t alignment)
 	{
 		bytesAllocated += bytes;
 		numAllocations++;
@@ -30,7 +29,7 @@ struct GCAllocator
 		return allocated[0 .. bytes];
 	}	
 
-	void deallocate(void[] memory)
+	package void deallocate_impl(void[] memory)
 	{
 		bytesAllocated -= memory.length;
 		numAllocations--;
@@ -44,22 +43,10 @@ struct GCAllocator
 	}
 
 	__gshared static GCAllocator it;
-
-
-	import std.traits;
-	T allocate(T)(size_t size) if (isArray!T)
-	{
-		T t;
-		return cast(T) this.allocate(size * typeof(t[0]).sizeof, typeof(t[0]).alignof);
-	}
-
-	import std.traits;
-	T allocate(T,Args...)(auto ref Args args) if (!isArray!T)
-	{
-		import std.conv;
-		auto buff = this.allocate(__traits(classInstanceSize, T), T.alignof);
-		return emplace!(T, Args)(buff, args);
-	}
+	__gshared static CAllocator!GCAllocator cit;
 }
 
-
+shared static this()
+{
+	GCAllocator.cit = new CAllocator!GCAllocator(GCAllocator.it);
+}

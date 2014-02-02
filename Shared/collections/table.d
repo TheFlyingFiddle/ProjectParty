@@ -12,7 +12,7 @@ enum SortStrategy
 
 
 //Represents a map. From ID to T implemented in a space efficient manner.
-struct Table(K, V, SortStrategy s = SortStrategy.unsorted) 
+struct Table(K, V, SortStrategy s = SortStrategy.sorted) 
 {
 	List!V values;
 	List!K keys;
@@ -27,14 +27,13 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted)
 		return values.capacity;
 	}
 
-
 	this(A)(ref A allocator, size_t capacity)
 	{		
 		values = List!V(allocator, capacity);
 		keys   = List!K(allocator, capacity);
 	}
 
-	V* opBinary(string s : "in")(in K key)
+	V* opBinaryRight(string s : "in")(in K key)
 	{
 		auto index = indexOf(key);
 		return index != -1 ? &values[index] : null;
@@ -49,9 +48,14 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted)
 		return values[index];
 	}
 
-	void opIndex(in K key, V value)
+	void opIndexAssign(V value, in K key)
 	{
 		addOrSet(key, value);
+	}
+
+	ref V at(size_t index) 
+	{
+		return values[index];
 	}
 
 	int opApply(int delegate(ref V) dg)
@@ -74,7 +78,11 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted)
 		return result;
 	}
 
-
+	void clear()
+	{
+		this.values.clear();
+		this.keys.clear();
+	}
 
 	static if(s == SortStrategy.sorted)
 	{
@@ -142,7 +150,9 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted)
 	{
 		int indexOf(K key)
 		{
-			auto index = keys.countUntil!( (K x) => x == key);
+			auto index = keys.countUntil!(x => x == key);
+
+
 			return index;
 		}
 
@@ -173,11 +183,10 @@ struct Table(K, V, SortStrategy s = SortStrategy.unsorted)
 	}
 }
 
-
 unittest
 {
 	import allocation;
-	auto allocator = RegionAllocator(Mallocator.it, 1024);
+	auto allocator = RegionAllocator(Mallocator.cit, 1024 * 4);
 	auto ss  = ScopeStack(allocator);
 	
 	auto table = Table!(uint, ulong)(ss, 100);
@@ -185,8 +194,8 @@ unittest
 	table[10] = 5;
 	table[1]  = 3;
 	
-	//assert(10 in table);
-	//assert(1 in table);
+	assert(10 in table); // <-- Not sure if we should have in...
+	assert(1 in table);
 	assert(table[10] == 5);
 	assert(table[1]  == 3);
 	assert(table.length == 2);
@@ -200,29 +209,116 @@ unittest
 	stable[10] = 5;
 	stable[1]  = 3;
 
-	//assert(10 in stable);
-	//assert(1 in stable);
+	assert(10 in stable);
+	assert(1 in stable);
 	assert(stable[10] == 5);
 	assert(stable[1]  == 3);
 	assert(stable.length == 2);
 
 	foreach(k, v; stable)
 		assert(stable[k] == v);
-
-
-	//Now that is enough tests! 
 }
-
-
 
 version(benchmark_table)
 {
-
 	unittest
 	{
+		import allocation, std.random, std.range, collections.map;
+
+		auto region = RegionAllocator(Mallocator.cit, 1024 * 1024 * 100);		
+
+		auto ss       = ScopeStack(region);
+
+		auto unsorted = Table!(ulong, ulong)(ss, 100_000);
+		auto sorted   = Table!(ulong, ulong, SortStrategy.sorted)(ss, 100_000_0);
+		auto map	  = HashMap!(ulong, ulong, f)(Mallocator.cit, 100_000_0);
+
+		auto rng = rndGen();
+		auto seed = rng.front;
+
+		void fillRandomUnsorted(size_t num)()
+		{	
+			rng.seed(seed);
+			foreach(elem; rng.take(num))
+				unsorted[elem] = elem;
+		}
+
+		void fillRandomSorted(size_t num)()
+		{			
+			rng.seed(seed);
+			foreach(elem; rng.take(num))
+				sorted[elem] = elem;
+		}
+
+		void fillRandomHashMap(size_t num)()
+		{
+			rng.seed(seed);
+			foreach(elem; rng.take(num))
+				map[elem] = elem;
+		}
+
+		void removeRandomUnsorted(size_t num)()
+		{	
+			rng.seed(seed);
+			foreach(elem; rng.take(num))
+				unsorted.remove(elem);
+		}
+
+		void removeRandomSorted(size_t num)()
+		{			
+			rng.seed(seed);
+			foreach(elem; rng.take(num))
+				sorted.remove(elem);
+		}
+
+		void removeRandomHashMap(size_t num)()
+		{
+			rng.seed(seed);
+			foreach(elem; rng.take(num))
+				map.remove(elem);
+		}
 
 
+		import std.datetime;
+
+		auto r = benchmark!(fillRandomUnsorted!(10),
+							removeRandomUnsorted!(10),
+							fillRandomUnsorted!(100),
+							removeRandomUnsorted!(100),
+							fillRandomUnsorted!(1000),
+							removeRandomUnsorted!(100),
+							fillRandomUnsorted!(10000),
+							removeRandomUnsorted!(100),
+
+							fillRandomSorted!(10),
+							removeRandomSorted!(10),
+							fillRandomSorted!(100),
+							removeRandomSorted!(100),
+							fillRandomSorted!(1000),
+							removeRandomSorted!(1000),
+							fillRandomSorted!(10000),
+							removeRandomSorted!(10000),
+							fillRandomSorted!(100000),
+							removeRandomSorted!(100000),
+
+							fillRandomHashMap!(10),
+							removeRandomHashMap!(10),
+							fillRandomHashMap!(100),
+							removeRandomHashMap!(100),
+							fillRandomHashMap!(1000),
+							removeRandomHashMap!(1000),
+							fillRandomHashMap!(10000),
+							removeRandomHashMap!(10000),
+							fillRandomHashMap!(100000),
+							removeRandomHashMap!(100000))(1);
+
+		import std.stdio;
+		foreach(e; r)
+			writeln(e);
+		readln;
 
 	}
+
+	auto f = (ulong x) => x;
 
 }

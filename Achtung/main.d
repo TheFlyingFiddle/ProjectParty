@@ -98,7 +98,7 @@ void positionChanged(int x, int y)
 
 void run()
 {
-	auto allocator = RegionAllocator(GCAllocator.it, 1024 * 1024, 8);
+	auto allocator = RegionAllocator(GCAllocator.cit, 1024 * 1024, 8);
 	auto stack     = ScopeStack(allocator);
 
 	init(stack);

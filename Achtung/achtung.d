@@ -1,7 +1,6 @@
 module achtung;
 
 import main;
-import collections;
 import math;
 import types;
 import rendering;
@@ -13,6 +12,7 @@ import logging;
 import std.algorithm;
 import game;
 import std.variant;
+import collections.grid;
 
 
 struct AchtungConfig
@@ -39,25 +39,26 @@ class AchtungGameState :IGameState
 	EventStream stream;
 	AchtungRenderer renderer;
 
-	List!Snake alive;
-	List!Timer timers;
-	List!Score scores;
-	List!SnakeControl controls;
-	int visibleSnakes;
+	Table!(Snake) snakes;
+	Table!(SnakeControl) controls;
+	Table!(float) timers;
+	Table!(int)   scores;
+
+	
 	AchtungConfig config;
 
 	void init(Allocator)(ref Allocator allocator, string configPath)
 	{
-		config = fromSDLFile!AchtungConfig(allocator, configPath);
+		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 
-		alive      = List!Snake(allocator, config.snakes.length);
-		timers     = List!Timer(allocator, config.snakes.length);
-		controls   = List!SnakeControl(allocator, config.snakes.length);
-		scores	   = List!Score(allocator, config.snakes.length);
+		snakes     = Table!(Snake)(allocator, config.snakes.length);
+		timers     = Table!(float)(allocator, config.snakes.length);
+		scores     = Table!(int  )(allocator, config.snakes.length);
+		controls   = Table!(SnakeControl)(allocator, config.snakes.length);
 
 		foreach(i; 0 .. config.snakes.length)
 		{
-			scores ~= Score(Color(config.snakes[i].color), 0);
+			scores[Color(config.snakes[i].color)] = 0;
 		}
 
 		map		   = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
@@ -69,7 +70,7 @@ class AchtungGameState :IGameState
 	{
 		reset();
 		foreach(ref score; scores) 
-			score.score = 0;
+			score = 0;
 	}
 
 	void exit()
@@ -79,13 +80,13 @@ class AchtungGameState :IGameState
 
 	void reset()
 	{
-		foreach(s; scores) if(s.score > config.winningScore)
+		foreach(s; scores) if(s > config.winningScore)
 		{
 			Game.gameStateMachine.transitionTo("GameOver", Variant(scores));
 			return;
 		}
 	
-		alive.clear();
+		snakes.clear();
 		timers.clear();
 		controls.clear();
 		stream.clear();
@@ -93,113 +94,99 @@ class AchtungGameState :IGameState
 		map.fill(0);
 		renderer.clear(Color(1,0,1,0));
 
-		foreach(i; 0 .. alive.capacity)
+		foreach(i; 0 .. snakes.capacity)
 		{
+			Color key = config.snakes[i].color;
 			Snake snake;
 			snake.pos = float2(uniform(50, config.mapDim.x -50), uniform(50, config.mapDim.y -50));
-			snake.dir = ( float2(config.mapDim/2) - snake.pos).normalized;
-			snake.color = Color(config.snakes[i].color);
-			alive ~= snake;
+			snake.dir = (float2(config.mapDim/2) - snake.pos).normalized;
+			snake.visible = true;
 
-			controls ~= SnakeControl(snake.color, 
-									 config.snakes[i].leftKey,
-									 config.snakes[i].rightKey);
-
-			timers ~= Timer(1, snake.color, true);
+			snakes[key]  = snake;
+			controls[key] = SnakeControl(config.snakes[i].leftKey, config.snakes[i].rightKey);
+			timers[key]   = 1.0f;
 		}
-
-		foreach(i, player; Game.players)
-		{
-			alive[i].id = player.id;
-		}
-
-		visibleSnakes = alive.length;
 	}
 
 	void update()
 	{
 		generateInputEvents(controls, stream);
-		handleInput(alive, stream, config.turnSpeed);
-		updateTimers(timers, alive, Time.delta);
-		moveSnakes(alive, map, stream, config.snakeSize);
-		handleCollision(alive, controls, map, stream, timers, scores);
+		handleInput(snakes, stream, config.turnSpeed);
+		updateTimers(timers, snakes, Time.delta);
+
+		moveSnakes(snakes, map, stream, config.snakeSize);
+		handleCollision(snakes, timers, scores, controls, map, stream);
 
 		stream.clear();
 	}
 
 	void render()
 	{
-		renderFrame(renderer, alive,scores);
+		renderFrame(renderer, snakes, scores);
 	}
 
-	void generateInputEvents(ref List!SnakeControl controls, ref EventStream stream) // <-- This is wierd and very much not ok.
+	void generateInputEvents(ref Table!(SnakeControl) controls, ref EventStream stream) // <-- This is wierd and very much not ok.
 	{
-		foreach(c; controls)
+		foreach(key, c; controls)
 		{
 			if(Keyboard.isDown(cast(Key)c.leftKey))
-				stream.push(InputEvent(c.color,config.turnSpeed));
+				stream.push(InputEvent(key,config.turnSpeed));
 			if(Keyboard.isDown(cast(Key)c.rightKey))
-				stream.push(InputEvent(c.color,-config.turnSpeed));
-		}
-
-		foreach(player; Game.players)
-		{
-	
-			auto state = Phone.state(player.id);
-			auto index = alive.countUntil!(x => x.id == player.id);
-			if(index == -1) continue;	
-			stream.push(InputEvent(alive[index].color, (state.accelerometer.y ) / 240));
+				stream.push(InputEvent(key,-config.turnSpeed));
 		}
 	}
 
-	void handleInput(ref List!Snake snakes, ref EventStream stream, float turn)
+	void handleInput(ref Table!(Snake) snakes, 
+					 ref EventStream stream, float turn)
 	{
 		foreach(event; stream.over!InputEvent)
 		{
-			auto index = snakes.countUntil!(x => x.color == event.color);
-			auto polar = snakes[index].dir.toPolar;
+			auto snake = event.color in snakes;
+			auto polar = snake.dir.toPolar;
 			polar.angle += event.input;
-			snakes[index].dir = polar.toCartesian;
+			snake.dir = polar.toCartesian;
 		}
 	}
 
-	void updateTimers(ref List!Timer timers, ref List!Snake snakes, float elapsed)
+	void updateTimers(ref Table!(float) timers, 
+					  ref Table!(Snake) snakes,
+					  float elapsed)
 	{
-		foreach(ref timer; timers)
+		foreach(c, ref timer; timers)
 		{
-			timer.time -= elapsed;
-			if(timer.time <= 0.0f)
+			timer -= elapsed;
+			if(timer <= 0.0f)
 			{
-				auto index = snakes.countUntil!(x => x.color == timer.color);
-				swap(snakes[index], snakes[max(0, visibleSnakes - 1)]);
-				timer.visible = !timer.visible;
-				if(timer.visible)
-				{
-					timer.time = uniform(config.minVis,config.maxVis);
-					visibleSnakes++;
+				auto snake = c in snakes;
+				if(snake.visible) {
+					snake.visible = false; 
+					timer = uniform(config.minInvis,config.maxInvis);
 				} 
 				else 
 				{
-					timer.time = uniform(config.minInvis,config.maxInvis);
-					visibleSnakes--;
+					snake.visible = true;
+					timer = uniform(config.minVis,config.maxVis);
 				}
 			}
 		}
 	}
 
-	void moveSnakes(ref List!Snake snakes, ref Grid!bool map, ref EventStream stream, uint size)
+	void moveSnakes(ref Table!Snake snakes, 
+					ref Grid!bool map, 
+					ref EventStream stream, 
+					uint size)
 	{
-		foreach(uint i, ref snake; snakes)	
+		foreach(key, ref snake; snakes)	
 		{
 			auto oldPos = uint2(snake.pos);
 			snake.pos += snake.dir;
 			auto newPos = uint2(snake.pos);
-			if(oldPos != newPos && i < visibleSnakes) 
+			if(oldPos != newPos && snake.visible) 
 			{
 				auto c = checkCollision(newPos, oldPos, size, map);
 				if(c)
 				{
-					stream.push(CollisionEvent(snake.color, c));
+					stream.push(CollisionEvent(key, c));
 				} 
 				else 
 				{
@@ -255,45 +242,41 @@ class AchtungGameState :IGameState
 			position.y >= map.height;
 	}
 
-	void handleCollision(
-					 ref List!Snake alive, 
-					 ref List!SnakeControl controls,
-					 ref Grid!bool map, 
-					 ref EventStream stream,
-					 ref List!Timer timers,
-					 ref List!Score scores)
+	void handleCollision(ref Table!Snake snakes,
+					     ref Table!float timers,
+					     ref Table!int scores,
+					     ref Table!SnakeControl controls, 
+					     ref Grid!bool map, 
+					     ref EventStream stream)
 	{
 		foreach(collision; stream.over!CollisionEvent)
 		{
 			if(collision.numPixels < config.snakeSize / 2 + 1) continue;
 
-			assert(alive.remove!(x => x.color    == collision.color));
-			assert(controls.remove!(x => x.color == collision.color));
-			assert(timers.remove!(x => x.color   == collision.color));
-			visibleSnakes--;
-			auto toGet = alive.capacity - alive.length;
-			size_t index = scores.countUntil!(x => x.color == collision.color);
-			scores[index].score += toGet;
-			if(alive.length == 1){
-				index = scores.countUntil!(x => x.color == alive[0].color);
-				scores[index].score += alive.capacity;
-
+			timers.remove(collision.color);
+			controls.remove(collision.color);
+			snakes.remove(collision.color);
 			
 
+			auto toGet = snakes.capacity - snakes.length;
+			scores[collision.color] += toGet;
+			if(snakes.length == 1){
+				scores[snakes.keys[0]] += snakes.capacity;
 				reset();
 				return;
 			}
-
 		}
 	}
 
-	void renderFrame(ref AchtungRenderer buffer, ref List!Snake snakes, ref List!Score scores)
+	void renderFrame(ref AchtungRenderer buffer,
+					 ref Table!Snake snakes,
+					 ref Table!int scores)
 	{
 		gl.clear(ClearFlags.color);
-
-		mat4 proj = mat4.CreateOrthographic(0, 800,600,0,1,-1);
-		List!Snake visible = snakes[0 .. visibleSnakes];
-		buffer.draw(proj, visible, config.snakeSize, scores);
+		
+		uint2 s = Game.window.size;
+		gl.viewport(0,0, s.x, s.y);
+		mat4 proj = mat4.CreateOrthographic(0,s.x,s.y,0,1,-1);
+		buffer.draw(proj, snakes, scores, config.snakeSize);
 	}
-
 }

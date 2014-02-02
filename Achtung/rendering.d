@@ -40,16 +40,20 @@ struct AchtungRenderer
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 	}
 
-	void draw(ref mat4 transform, ref List!Snake snakes, float size, ref List!Score scores)
+	void draw(ref mat4 transform, 
+			  ref Table!Snake snakes, 
+			  ref Table!int scores,
+			  float size)
 	{
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
 
 		auto origin = float2(size / 2, size / 2);
-		foreach(i, snake; snakes) {
+		foreach(key, snake; snakes) {
+			Color c = snake.visible ? key : key * 0.5f;
+
 			buffer.addFrame(snakeFrame, 
 			 		 float4(snake.pos.x, snake.pos.y, size, size), 
-					        snake.color, 
-							origin);
+					        c, origin);
 		}
 
 		buffer.flush();
@@ -74,10 +78,12 @@ struct AchtungRenderer
 		gl.enable(GL_BLEND);
 		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		foreach(i; 0..scores.length){
-			buffer.addText(font, scores[i].score.to!string, 
-						   float2(winSize.x * 0.9, (winSize.y - font.size) - i*(winSize.y /  scores.length)),
-							      scores[i].color);
+		uint i = 0;
+		foreach(c, score; scores){
+			buffer.addText(font, score.to!string, //<-- This is a nono fix later.
+						   float2(winSize.x * 0.9, (winSize.y - font.size) - i* (winSize.y /  scores.length)),
+							      c);
+			i++;
 		}
 		buffer.flush();
 		buffer.draw(transform);

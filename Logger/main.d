@@ -9,6 +9,7 @@ import allocation;
 struct LogConfig
 {
 	ushort port;
+	string loggerDir;
 }
 
 
@@ -27,7 +28,7 @@ void tcpLogging()
 
 
 	import std.concurrency;
-	Tid tid = spawn(&handleFiles, 2000);
+	Tid tid = spawn(&handleFiles, 2000, config.loggerDir);
 
 	try 
 	{
@@ -79,7 +80,7 @@ void tcpLogging()
 	}
 }
 
-void handleFiles(size_t bufferSize)
+void handleFiles(size_t bufferSize, string loggerDir)
 {
 	import std.concurrency;
 
@@ -93,7 +94,7 @@ void handleFiles(size_t bufferSize)
 	}
 
 	LogMsg[] toLog = new LogMsg[bufferSize];
-	uint count;
+	uint c;
 	
 	while(true) {
 		receive(
@@ -101,26 +102,51 @@ void handleFiles(size_t bufferSize)
 		{
 			ubyte[] buff = cast(ubyte[])buffer;
 
-			toLog[count].c   = read!string(buff);
-			toLog[count].v	 = read!uint(buff);
-			toLog[count].m   = read!string(buff);
-			toLog[count].f   = read!string(buff);
-			toLog[count].l   = read!uint(buff);
+			toLog[c].c   = read!string(buff);
+			toLog[c].v	 = read!uint(buff);
+			toLog[c].m   = read!string(buff);
+			toLog[c].f   = read!string(buff);
+			toLog[c].l   = read!uint(buff);
 
-			count++;
-			if(count == toLog.length)
+			import std.stdio;
+			writeln(toLog[c].m);
+
+			c++;
+			if(c == toLog.length)
 			{
-				count = 0;
-				foreach(msg; toLog)
-					logMsg(msg.c, cast(Verbosity)msg.v, 
-						   msg.m, msg.f, msg.l);
-			}
+				import std.algorithm;
 
+				sort!("a.c > b.c", SwapStrategy.unstable)(toLog);
+				c = 0;
+
+				string s;
+				File f = openFile(loggerDir, toLog[0].c);
+				foreach(msg; toLog)
+				{
+					if(msg.c != s)
+					{
+						f.close();
+						f = openFile(loggerDir, msg.c);
+						s = msg.c;
+					}
+
+					logMsg(f, cast(Verbosity)msg.v, msg.m, msg.f, msg.l);
+				}
+			}
 		});
 	}
 }
 
-
+File openFile(string path, string channel)
+{
+	import std.file;
+	
+	string p = path ~ channel ~ ".txt";
+	if(!exists(p) || getSize(p) > 1024 * 10)
+		return File(p, "w");
+	else 
+		return File(p, "a");
+}
 
 import std.traits;
 T read(T)(ref ubyte[] buffer) if(!isArray!T)
@@ -139,33 +165,18 @@ T read(T)(ref ubyte[] buffer) if(isArray!T)
 	return t;
 }
 
-
-private void logMsg(string channel, 
+private void logMsg(File f, 
 					Verbosity verbosity, 
 					string msg, 
 					string file, 
 					size_t line) 
 {
-	import std.format, std.array, std.file;
-
-	char[128] pathBuffer;
-	auto pathSink = Appender!(char[])(pathBuffer);
-	pathSink.clear();
-
-	char[1024] buffer;
+	import std.format, std.array;
+	char[1024] buffer = void;
 	auto sink = Appender!(char[])(buffer);
 	sink.clear();
 
-	pathSink.put("..\\logging\\");
-	pathSink.put(channel);
-	pathSink.put(".txt");
-
-	auto filePath = pathSink.data;
 	formattedWrite(sink, "%s %s (%s)\n\n",
 					msg, file, line);
-
-	if(!exists(filePath) || getSize(filePath) > 1024 * 10)
-		write(filePath, sink.data);
-	else 
-		append(filePath, sink.data);
+	f.rawWrite(sink.data);
 }

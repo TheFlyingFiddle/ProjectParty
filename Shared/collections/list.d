@@ -109,6 +109,7 @@ struct List(T)
 			buffer[i + 1] = buffer[i];
 		
 		buffer[index] = value;
+		length++;
 	}
 
 	//Range interface
