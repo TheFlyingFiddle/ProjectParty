@@ -22,10 +22,15 @@ struct NetConfig
 
 void initializeTcpLogger(string configFile)
 {
-	import allocation;
+	scope(failure) 
+	{
+		logger = &tcpLogger;
+		return;
+	}
 
+	import allocation;
 	logger = &tcpLogger;
-    config = fromSDLFile!NetConfig(GCAllocator.it, configFile);    
+   config = fromSDLFile!NetConfig(GCAllocator.it, configFile);    
 	buffer = Mallocator.it.allocate!(ubyte[])(config.bufferSize, 8);
 
 	import std.stdio;
@@ -34,6 +39,12 @@ void initializeTcpLogger(string configFile)
 	socket = new TcpSocket();
 	socket.connect(getAddress(config.ip, config.port)[0]);
 }
+
+void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow
+{
+
+}
+
 
 void tcpLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow
 {
