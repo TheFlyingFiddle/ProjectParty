@@ -51,20 +51,6 @@ void main()
 	std.c.stdlib.exit(0);
 }
 
-void writeLogger(string chan, Verbosity v, string msg, string file, size_t line) nothrow
-{
-	import std.stdio;
-	scope(failure) return; //Needed since writeln can potentially throw.
-	writeln(chan, "   ", msg, "       ", file, "(", line, ")");
-
-	if(v == Verbosity.error)
-	{
-		import std.file;
-		write("ERROR.txt", msg);
-	}
-}
-
-
 void init(Allocator)(ref Allocator allocator)
 {
 	ContentReloader.init(allocator, 100, 50);
