@@ -39,11 +39,14 @@ class AchtungGameState :IGameState
 	EventStream stream;
 	AchtungRenderer renderer;
 
+
 	Table!(Snake) snakes;
 	Table!(SnakeControl) controls;
 	Table!(float) timers;
 	Table!(int)   scores;
 
+	//Temporary
+	ulong[100] ids;
 	
 	AchtungConfig config;
 
@@ -56,18 +59,22 @@ class AchtungGameState :IGameState
 		scores     = Table!(int  )(allocator, config.snakes.length);
 		controls   = Table!(SnakeControl)(allocator, config.snakes.length);
 
+
 		foreach(i; 0 .. config.snakes.length)
 		{
 			scores[Color(config.snakes[i].color)] = 0;
 		}
 
-		map		   = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
+		map		  = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
 		renderer   = AchtungRenderer(allocator, cast(uint)config.snakes.length, config.mapDim.x, config.mapDim.y);
 		stream     = EventStream(allocator, 1024);
 	}
 
 	void enter(Variant x)
 	{
+		foreach(i, player; Game.players)
+			ids[i] = player.id;
+
 		reset();
 		foreach(ref score; scores) 
 			score = 0;
@@ -103,7 +110,9 @@ class AchtungGameState :IGameState
 			snake.visible = true;
 
 			snakes[key]  = snake;
-			controls[key] = SnakeControl(config.snakes[i].leftKey, config.snakes[i].rightKey);
+			controls[key] = SnakeControl(config.snakes[i].leftKey, 
+												  config.snakes[i].rightKey,
+												  ids[i]);
 			timers[key]   = 1.0f;
 		}
 	}
@@ -133,6 +142,12 @@ class AchtungGameState :IGameState
 				stream.push(InputEvent(key,config.turnSpeed));
 			if(Keyboard.isDown(cast(Key)c.rightKey))
 				stream.push(InputEvent(key,-config.turnSpeed));
+
+			if(Phone.exists(c.id))
+			{
+				PhoneState state = Phone.state(c.id);
+				stream.push(InputEvent(key, state.accelerometer.y / 400));
+			}	
 		}
 	}
 

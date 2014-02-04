@@ -24,7 +24,7 @@ void initializeTcpLogger(string configFile)
 {
 	scope(failure) 
 	{
-		logger = &tcpLogger;
+		logger = &fallbackLogger;
 		return;
 	}
 
@@ -42,7 +42,12 @@ void initializeTcpLogger(string configFile)
 
 void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow
 {
+	import std.stdio;
+	scope(failure) return;
+	
+	if(channel == "PROFILE" || channel == "OPENGL") return;
 
+	writeln(channel, "   ", msg, "    ", file, "(", line, ")");
 }
 
 

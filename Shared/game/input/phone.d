@@ -4,7 +4,6 @@ import collections.list;
 import math;
 import logging;
 import std.algorithm;
-import std.uuid;
 import network.router;
 
 auto logChnl = LogChannel("PHONE");
@@ -12,15 +11,15 @@ private static List!Phone phones;
 
 struct Phone
 {
-	UUID id;
+	ulong id;
 	PhoneState phoneState;
 
-	static bool exists(UUID id)
+	static bool exists(ulong id)
 	{
 		return phones.canFind!(x => x.id == id);
 	}
 
-	static PhoneState state(UUID id)
+	static PhoneState state(ulong id)
 	{
 		auto p = phones;
 		auto index = phones.countUntil!(x => x.id == id);
@@ -44,7 +43,7 @@ struct PhoneState
 	float3 gyroscope = float3.zero;
 }
 
-void onConnection(UUID id)
+void onConnection(ulong id)
 {
 	Phone p;
 	p.id = id;
@@ -52,12 +51,12 @@ void onConnection(UUID id)
 	phones ~= p;
 }
 
-void onDisconnect(UUID id)
+void onDisconnect(ulong id)
 {
 	phones.remove!(x => x.id == id);
 }
 
-void onMessage(UUID id, ubyte[] message)
+void onMessage(ulong id, ubyte[] message)
 {
 	import std.bitmanip;
 
@@ -65,7 +64,7 @@ void onMessage(UUID id, ubyte[] message)
 	if(index == -1) return;
 
 	//Accelereometer data.
-	if(message[0] == 0)
+	if(message[0] == 1) //Need to make this more formal!
 	{
 		message = message[1 .. $];
 		auto f = float3(message.read!float, message.read!float, message.read!float);

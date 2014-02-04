@@ -36,6 +36,7 @@ pragma(lib, "Shared.lib");
 
 void main()
 {
+
 	initializeTcpLogger("logger.sdl");
 	init_dlls();
 	try
@@ -60,7 +61,7 @@ void init(Allocator)(ref Allocator allocator)
 
 
 	auto config = fromSDLFile!WindowConfig(GCAllocator.it, "Window.sdl");
-	Game.init(allocator, 10, config, 1337);
+	Game.init(allocator, 10, config, 1337, 7331);
 
 
 	AchtungGameState ags = new AchtungGameState();

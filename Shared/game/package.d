@@ -23,7 +23,7 @@ alias GameStateFSM = FSM!(IGameState, string);
 
 struct Player 
 {
-	UUID id;
+	ulong id;
 }
 
 struct Game
@@ -34,12 +34,13 @@ struct Game
 	private static Server     server;
 	private static Router*     router;
 
-	static void init(A)(ref A allocator, size_t numStates, WindowConfig config, ushort serverPort)
+	static void init(A)(ref A allocator, size_t numStates, WindowConfig config, 
+							  ushort serverPort, ushort brodcastPort)
 	{
 		gameStateMachine = GameStateFSM(allocator, numStates);
 		window			  = WindowManager.create(config);
 	
-		server = Server(allocator, 100, serverPort); //NOOO 100 is a number not a variable.
+		server = Server(allocator, 100, serverPort, brodcastPort); //NOOO 100 is a number not a variable.
 		router = new Router(allocator, 100, server);
 
 		router.connectionHandlers    ~= (x) => onConnect(x);
@@ -49,12 +50,12 @@ struct Game
 		Phone.init(allocator, 100, *router);
 	}
 
-	static void onConnect(UUID id)
+	static void onConnect(ulong id)
 	{
 		players ~= Player(id);
 	}
 
-	static void onDisconnect(UUID id)
+	static void onDisconnect(ulong id)
 	{
 		players.remove(Player(id));
 	}

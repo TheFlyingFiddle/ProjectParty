@@ -17,6 +17,7 @@ struct Snake
 struct SnakeControl
 {
 	uint leftKey, rightKey;
+	ulong id;
 }
 
 struct CollisionEvent

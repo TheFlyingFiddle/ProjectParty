@@ -9,8 +9,6 @@ enum SortStrategy
 	sorted
 }
 
-
-
 //Represents a map. From ID to T implemented in a space efficient manner.
 struct Table(K, V, SortStrategy s = SortStrategy.sorted) 
 {
@@ -58,6 +56,11 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 		return values[index];
 	}
 
+	K keyAt(size_t index)
+	{
+		return keys[index];
+	}
+
 	int opApply(int delegate(ref V) dg)
 	{
 		int result;
@@ -96,10 +99,16 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 		{
 			auto index = indexOf(key);
 			if(index == -1) return false;
+		
+			removeAt(index);
+			return true;
+		}
 
+		void removeAt(size_t index)
+		{
+			//Fast removal
 			keys.removeAt(index);
 			values.removeAt(index);
-			return true;
 		}
 
 		private void addOrSet(K key, V value)
@@ -160,11 +169,15 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 		{
 			auto index = indexOf(key);
 			if(index == -1) return false;
+			removeAt(index);
+			return true;
+		}
 
+		void removeAt(size_t index)
+		{
 			//Fast removal
 			values.removeAt!(SwapStrategy.unstable)(index);
 			keys.removeAt!(SwapStrategy.unstable)(index);
-			return true;
 		}
 
 		private void addOrSet(K key, V value)

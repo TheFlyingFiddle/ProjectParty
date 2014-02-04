@@ -5,9 +5,9 @@ import network.server;
 import std.uuid;
 import logging;
 
-alias ConnectionHandler   = void delegate(UUID);
-alias DisconnectonHandler = void delegate(UUID);
-alias MessageHandler      = void delegate(UUID, ubyte[]);
+alias ConnectionHandler   = void delegate(ulong);
+alias DisconnectonHandler = void delegate(ulong);
+alias MessageHandler      = void delegate(ulong, ubyte[]);
 
 auto l = LogChannel("ROUTER");
 
@@ -30,20 +30,20 @@ struct Router
 		l.info("Router Created", this);
 	}
 
-	void connected(UUID id)
+	void connected(ulong id)
 	{
 		l.info("Connected called!", id);
 		foreach(handler; connectionHandlers)
 			handler(id);
 	}
 
-	void disconected(UUID id)
+	void disconected(ulong id)
 	{
 		foreach(handler; disconnectionHandlers)
 			handler(id);
 	}
 	
-	void message(UUID id, ubyte[] mess)
+	void message(ulong id, ubyte[] mess)
 	{
 		//Decode message but not right now. 
 		foreach(handler; messageHandlers)
