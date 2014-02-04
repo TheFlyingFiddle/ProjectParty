@@ -235,7 +235,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\Shared ..\import</imppath>
+  <imppath>..\import; ..\Shared</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -271,8 +271,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles />
-  <libpaths>..\lib\win64; ..\Shared\Debug</libpaths>
+  <libfiles>Shared.lib</libfiles>
+  <libpaths>..\Shared\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>

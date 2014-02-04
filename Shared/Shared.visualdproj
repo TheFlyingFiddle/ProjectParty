@@ -271,13 +271,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictGL3.lib DerelictUtil.lib DerelictFI.lib</libfiles>
-  <libpaths>..\lib\win64;</libpaths>
+  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib dunit.lib</libfiles>
+  <libpaths>..\lib\win64</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions>-main -unittest</additionalOptions>
+  <additionalOptions>-unittest</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
@@ -449,6 +449,9 @@
   <Folder name="network">
    <File path="network\router.d" />
    <File path="network\server.d" />
+  </Folder>
+  <Folder name="testing">
+   <File path="main.d" />
   </Folder>
   <Folder name="util">
    <File path="util\hash.d" />

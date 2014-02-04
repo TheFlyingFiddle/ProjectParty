@@ -113,6 +113,7 @@ version(X86_64)
 			}
 
 		__gshared static Mallocator it;
+		__gshared static CAllocator!Mallocator cit;
 	}
 }
 
