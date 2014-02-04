@@ -88,14 +88,14 @@ import std.traits;
 
 uint write(T)(ref ubyte[] buffer, uint offset, T value) if(!isArray!T)
 {
-	*(cast(uint*)&buffer[offset]) = value;
+	*(cast(uint*)&buffer[offset]) = cast(uint)value;
 	offset += T.sizeof;
 	return offset;
 }
 
 uint write(T)(ref ubyte[] buffer, uint offset, T value) if(isArray!T)
 {
-	offset = buffer.write!uint(offset, value.length);
+	offset = buffer.write!uint(offset, cast(uint) value.length);
 	(buffer[offset .. offset + typeof(value[0]).sizeof * value.length])[] 
 		= cast(ubyte[])value;
 

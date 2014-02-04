@@ -85,7 +85,7 @@ version(X86_64)
 				return result[0 .. bytes];
 			}
 		else version(Windows) 
-			void[] allocate(size_t bytes, size_t alignment)
+			void[] allocate_impl(size_t bytes, size_t alignment)
 			{
 				auto result  = _aligned_malloc(bytes, alignment);
 
@@ -104,7 +104,7 @@ version(X86_64)
 				free(data.ptr);
 			}
 		else version(Windows)
-			void deallocate(void[] data)
+			void deallocate_impl(void[] data)
 			{
 				bytesAllocated -= data.length;
 				numAllocations--;

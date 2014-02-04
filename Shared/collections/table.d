@@ -153,7 +153,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 			auto index = keys.countUntil!(x => x == key);
 
 
-			return index;
+			return cast(int)index;
 		}
 
 		bool remove(K key)
