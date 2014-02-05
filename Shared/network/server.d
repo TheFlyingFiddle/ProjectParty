@@ -62,7 +62,7 @@ struct Server
 
 		listener.bind(listenAddress);
 		listener.blocking = false;
-		listener.listen(10);	
+		listener.listen(1);	
 	}
 
 	void update(float elapsed)
@@ -137,8 +137,14 @@ struct Server
 					ubyte[] bbb = buffer[1 .. $];
 					ulong id = read!ulong(bbb);
 
+					logChnl.info("Id received :  ", id);
+
 					if(id == activeConnections.keyAt(i))
+					{
+
+						logChnl.info("onConnect :  ", id);
 						if(onConnect) onConnect(id);
+					}
 					else 
 					{
 						auto index = lostConnections.countUntil!(x => x == id);
@@ -148,17 +154,31 @@ struct Server
 							activeConnections.remove(activeConnections.keyAt(i));
 							activeConnections[id] = Connection(socket, 0.0f);
 
-							if(onReconnect) onReconnect(id);
+							logChnl.info("IMA reconnect! :  ", id);
+							if(onReconnect)  
+								onReconnect(id);
 						} 
-						//If we got here an unkown assailant is trying to recconect.
 						else 
 						{
-							auto key = activeConnections.keyAt(i);
-							ubyte[ulong.sizeof] nB; ubyte[] bB = nB;
-							bB.write!ulong(key, 0);
-							socket.send(bB);
+							auto index2 = activeConnections.indexOf(id);
+							if(index2 != -1)
+							{
+								closeConnection(index2);
+								activeConnections.removeAt(i);
+								activeConnections[id] = Connection(socket, 0.0f);
+							}
+							//If we got here an unkown assailant is trying to recconect.
+							else 
+							{
+								auto key = activeConnections.keyAt(i);
+								ubyte[ulong.sizeof] nB; ubyte[] bB = nB;
+								bB.write!ulong(key, 0);
+								socket.send(bB);
 
-							if(onConnect) onConnect(key);
+
+								logChnl.info("onInvalidConnect :  ", id);
+								if(onConnect) onConnect(key);
+							}
 						}
 					}
 				} else if(onMessage)
@@ -183,24 +203,23 @@ struct Server
 
 	void acceptIncoming()
 	{		
-		//while(true)
-		//{
-		//    Socket s = listener.accept();
-		//    if(!s.isAlive()) return;
-		//    logChnl.info("Connection was received");
-		//    s.blocking = false;
-		//
-		//    import std.bitmanip;
-		//    auto number = uniqueNumber();
-		//    ubyte[ulong.sizeof] nBuff; ubyte[] bBuff = nBuff;
-		//    bBuff.write!ulong(number, 0);
-		//    s.send(bBuff);
-		//
-		//
-		//    logChnl.info("UUID sent: ", number, "to endpoint ", 
-		//                     s.remoteAddress().toString());
-		//    activeConnections[number] = Connection(s);
-		//}	
+		while(true)
+		{
+			 Socket s = listener.accept();
+			 if(!s.isAlive()) return;
+			 logChnl.info("Connection was received");
+			 s.blocking = false;
+
+			 import std.bitmanip;
+			 auto number = uniqueNumber();
+			 ubyte[ulong.sizeof] nBuff; ubyte[] bBuff = nBuff;
+			 bBuff.write!ulong(number, 0);
+			 s.send(bBuff);
+
+			 auto addr = s.remoteAddress();
+			 logChnl.info("UUID sent: ", number, "to endpoint ", addr);
+			 activeConnections[number] = Connection(s);
+		}	
 	}
 
 	ulong uniqueNumber()

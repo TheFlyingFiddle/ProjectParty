@@ -20,6 +20,7 @@ struct Router
 	this(A)(ref A allocator, size_t capacity, ref Server server)
 	{
 		server.onConnect    = &connected;
+		server.onReconnect  = &connected;
 		server.onDisconnect = &disconected;
 		server.onMessage    = &message;
 
