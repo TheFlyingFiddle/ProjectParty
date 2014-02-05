@@ -4,10 +4,16 @@ import std.socket, allocation, logging, collections;
 
 auto logChnl = LogChannel("LOBBY");
 
+struct Connection
+{
+	Socket socket;
+	float timeSinceLastMessage;
+}
+
 struct Server
 {
-	Table!(ulong, Socket) activeConnections;
-	List!ulong				 lostConnections;
+	List!ulong lostConnections;
+	Table!(ulong, Connection) activeConnections;
 
 	Socket connector;
 	TcpSocket listener;
@@ -15,7 +21,10 @@ struct Server
 	InternetAddress localAddress;
 	InternetAddress listenAddress;
 	InternetAddress broadcastAddress;
-	
+
+	float broadcastInterval = 1.0f;
+	float timeSinceLastBroadcast = 0;
+	float timeout = 5f;
 
 	void delegate(ulong) onConnect;
 	void delegate(ulong) onReconnect;
@@ -24,7 +33,7 @@ struct Server
 
 	this(A)(ref A allocator, size_t maxConnections, ushort port, ushort broadcastPort)
 	{
-		activeConnections = Table!(ulong, Socket)(allocator, maxConnections);
+		activeConnections = Table!(ulong, Connection)(allocator, maxConnections);
 		lostConnections	= List!ulong(allocator, maxConnections);
 
 		connector = allocator.allocate!(UdpSocket)();
@@ -38,12 +47,14 @@ struct Server
 		{
 			writeln(r);
 			if(r.addressFamily == AddressFamily.INET) {
-				InternetAddress addr  = allocator.allocate!InternetAddress(r.toAddrString(), port);
-				InternetAddress addr2  = allocator.allocate!InternetAddress(r.toAddrString(), cast(ushort)(port + 1));
-				InternetAddress addr3 = allocator.allocate!InternetAddress(addr.addr | 0xFF, broadcastPort);
-				localAddress     = addr;
-				listenAddress    = addr2;
-				broadcastAddress = addr3; 
+				string stringAddr = r.toAddrString();
+
+
+				localAddress     = allocator.allocate!InternetAddress(stringAddr, port);
+				listenAddress    = allocator.allocate!InternetAddress(stringAddr, cast(ushort)(port + 1));
+
+				//This only works on simple networks. 
+				broadcastAddress = allocator.allocate!InternetAddress(localAddress.addr | 0xFF, broadcastPort);
 			}
 		}
 
@@ -54,20 +65,25 @@ struct Server
 		listener.listen(10);	
 	}
 
-	void update()
+	void update(float elapsed)
 	{
-		broadcastServer();
+		broadcastInterval -= elapsed;
+		if(broadcastInterval < 0) {
+			broadcastInterval = 1.0f;
+			broadcastServer();
+		}
+
 		acceptIncoming();
-		processMessages();
+		processMessages(elapsed);
 	}
 
-	void processMessages()
+	void processMessages(float elapsed)
 	{
 		ubyte[8192] buffer;
 
 		for(int i = activeConnections.length - 1; i >= 0; i--)
 		{
-			auto socket = activeConnections.at(i);
+			auto socket = activeConnections.at(i).socket;
 			if(!socket.isAlive()) 
 			{
 				closeConnection(i);
@@ -79,9 +95,19 @@ struct Server
 			if(Socket.ERROR == read)
 			{	
 				//Reading will fail if we are in non-blocking mode and no
-				//message was received.
-				if(wouldHaveBlocked())
+				//message was received. Since timeout is wierd in non-blocking mode
+				//we do it manually.
+				activeConnections.at(i).timeSinceLastMessage += elapsed;
+				if(activeConnections.at(i).timeSinceLastMessage > timeout)
+				{
+					logChnl.warn("Socket with ID : ", activeConnections.keyAt(i), " closed since it timed out!");
+					closeConnection(i);
 					continue;
+				}
+
+				if(wouldHaveBlocked()) {
+					continue;
+				}
 
 				logChnl.warn("Socket With ID : ", activeConnections.keyAt(i), " closed for unknown reasons!");
 				closeConnection(i);
@@ -103,6 +129,8 @@ struct Server
 			}
 			else 
 			{			
+				activeConnections.at(i).timeSinceLastMessage = 0.0f;
+
 				if(buffer[0] == 0)
 				{
 					import std.bitmanip;
@@ -118,7 +146,7 @@ struct Server
 						{
 							lostConnections.removeAt(index);
 							activeConnections.remove(activeConnections.keyAt(i));
-							activeConnections[id] = socket;
+							activeConnections[id] = Connection(socket, 0.0f);
 
 							if(onReconnect) onReconnect(id);
 						} 
@@ -150,34 +178,29 @@ struct Server
 		msg.write!uint(localAddress.addr, &index);
 		msg.write!ushort(cast(ushort)(localAddress.port + 1), &index);
 
-		logChnl.info(broadcastAddress);
-
 		connector.sendTo(msg, broadcastAddress);
 	}
 
 	void acceptIncoming()
 	{		
-		while(true)
-		{
-			Socket s = listener.accept();
-			if(!s.isAlive()) return;
-			logChnl.info("Connection was received");
-			s.blocking = false;
-					
-
-
-
-			import std.bitmanip;
-			auto number = uniqueNumber();
-			ubyte[ulong.sizeof] nBuff; ubyte[] bBuff = nBuff;
-			bBuff.write!ulong(number, 0);
-			s.send(bBuff);
-
-
-			logChnl.info("UUID sent: ", number, "to endpoint ", 
-							 s.remoteAddress().toString());
-			activeConnections[number] = s;
-		}	
+		//while(true)
+		//{
+		//    Socket s = listener.accept();
+		//    if(!s.isAlive()) return;
+		//    logChnl.info("Connection was received");
+		//    s.blocking = false;
+		//
+		//    import std.bitmanip;
+		//    auto number = uniqueNumber();
+		//    ubyte[ulong.sizeof] nBuff; ubyte[] bBuff = nBuff;
+		//    bBuff.write!ulong(number, 0);
+		//    s.send(bBuff);
+		//
+		//
+		//    logChnl.info("UUID sent: ", number, "to endpoint ", 
+		//                     s.remoteAddress().toString());
+		//    activeConnections[number] = Connection(s);
+		//}	
 	}
 
 	ulong uniqueNumber()
@@ -199,7 +222,7 @@ struct Server
 	void closeConnection(size_t i)
 	{
 		ulong key     = activeConnections.keyAt(i);
-		Socket socket = activeConnections.at(i);
+		Socket socket = activeConnections.at(i).socket;
 		socket.close();
 
 		activeConnections.removeAt(i);
@@ -212,4 +235,6 @@ struct Server
 		if(onDisconnect)
 			onDisconnect(key);
 	}
+
+	@disable this(this);
 }

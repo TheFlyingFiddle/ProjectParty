@@ -67,13 +67,13 @@ struct Game
 		auto last = watch.peek();
 		while(!window.shouldClose)
 		{
-			server.update();
-
 			auto curr = watch.peek();
 			Time._delta = cast(Duration)(curr - last);
 			Time._total += Time._delta;
 			last = curr;
-			
+		
+			server.update(Time.delta);
+
 			{
 				auto p = StackProfile("Update");
 				gameStateMachine.update();
@@ -83,9 +83,11 @@ struct Game
 				auto p = StackProfile("Render");
 				gameStateMachine.render();
 			}
-			
+
+
 			window.swapBuffer();
 			window.update();
+
 
 			ContentReloader.processReloadRequests();
 			if(timestep == Timestep.fixed) {

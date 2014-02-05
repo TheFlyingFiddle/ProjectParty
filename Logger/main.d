@@ -20,7 +20,7 @@ void main()
 
 void tcpLogging()
 {
-	auto config = fromSDLFile!LogConfig(GCAllocator.it, "config.sdl");
+	auto config = fromSDLFile!LogConfig(GC.it, "config.sdl");
 
 	Socket listener = new TcpSocket();
 	listener.bind(new InternetAddress(InternetAddress.ADDR_ANY, config.port));

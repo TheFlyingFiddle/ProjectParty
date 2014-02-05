@@ -37,8 +37,12 @@ struct Font
 
 	ref CharInfo opIndex(dchar c)
 	{
+		//For some reason this would allocate
+		//If put in the if statement.
+		CharInfo i = CharInfo.init;
+
 		if(chars.length > c && 
-		   chars[c] != CharInfo.init)
+		   chars[c] != i)
 			return chars[c];
 
 		return chars[unkownCharValue];

@@ -14,7 +14,6 @@ import game;
 import std.variant;
 import collections.grid;
 
-
 struct AchtungConfig
 {
     float minInvis, maxInvis, minVis, maxVis, turnSpeed;

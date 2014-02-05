@@ -3,7 +3,7 @@ module allocation.gc;
 import core.memory;
 import allocation.common;
 
-struct GCAllocator
+struct GC
 {
 	size_t bytesAllocated;
 	size_t numAllocations;
@@ -15,7 +15,7 @@ struct GCAllocator
 
 		size_t aligner = alignment > 8 ? alignment : 8;
 
-		void* allocated = GC.malloc(bytes + aligner);
+		void* allocated = core.memory.GC.malloc(bytes + aligner);
 		void* mp = allocated;
 		size_t addr = cast(size_t)allocated;
 
@@ -37,16 +37,16 @@ struct GCAllocator
 		size_t* ptr  = cast(size_t*)(memory.ptr);
 		size_t addr  = *(--ptr);
 		void* toFree = cast(void*)addr;
-		GC.free(toFree);
+		core.memory.GC.free(toFree);
 
 		logChnl.info(cast(size_t)memory.ptr - addr + memory.length, " bytes deallocated by GCAllocator at ", cast(void*)addr);
 	}
 
-	__gshared static GCAllocator it;
-	__gshared static CAllocator!GCAllocator cit;
+	__gshared static GC it;
+	__gshared static CAllocator!GC cit;
 }
 
 shared static this()
 {
-	GCAllocator.cit = new CAllocator!GCAllocator(GCAllocator.it);
+	GC.cit = new CAllocator!GC(GC.it);
 }

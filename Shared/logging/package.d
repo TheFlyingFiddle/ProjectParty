@@ -53,26 +53,27 @@ private void makeMsg(T...)(string channel, Verbosity verbosity, string file, siz
 		else enum staticFormatString = staticFormatString!(u - 1) ~ "%s";
 	}
 	
-	import std.format, std.array;
+	import std.format, collections.list;
 	scope(failure) return;
 
-	char[1024] buffer = void;
-	auto appender = std.array.Appender!(char[])(buffer);
-	appender.clear();
-
-	formattedWrite(appender, staticFormatString!(T.length), t);
-	logger(channel, verbosity, appender.data, file, line);
+	//char[1024] buffer = void;
+	//auto list = List!(char)(buffer);
+	//auto appender = &list;
+	//
+	//formattedWrite(appender, staticFormatString!(T.length), t);
+	//logger(channel, verbosity, appender.array, file, line);
 }
 
 private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, const(char)[] file, size_t line, T t) nothrow
 {
-	import std.format, std.array;
+	import std.format, collections.list;
 	scope(failure) return; //We were unable to log what to do?
 
 	import std.array;
-	char[1024] buffer = void;
-	auto appender = std.array.Appender!(char[])(buffer);
-	appender.clear();
-	formattedWrite(appender, f, t);
-	logger(channel, verbosity, appender.data, file, line);
+	//char[1024] buffer = void;
+	//auto list = List!(char)(buffer);
+	//auto appender = &list;
+	//formattedWrite(appender, f, t);
+	//
+	//logger(channel, verbosity, appender.array, file, line);
 }

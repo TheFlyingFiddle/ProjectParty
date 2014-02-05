@@ -49,6 +49,7 @@ void main()
 		logChnl.error(t);
 	}
 
+	//This is bad. Don't do this okej? -- Basically background processes are preventing program to close. 
 	std.c.stdlib.exit(0);
 }
 
@@ -59,23 +60,20 @@ void init(Allocator)(ref Allocator allocator)
 	FontManager.init(allocator, Mallocator.cit, 100);
 	WindowManager.init(allocator, 10);
 
-
-	auto config = fromSDLFile!WindowConfig(GCAllocator.it, "Window.sdl");
+	auto config = fromSDLFile!WindowConfig(GC.it, "Window.sdl");
 	Game.init(allocator, 10, config, 1337, 7331);
 
-
-	AchtungGameState ags = new AchtungGameState();
+	AchtungGameState ags = allocator.allocate!AchtungGameState;
 
 	ags.init(allocator, "Config.sdl");
 
-	Game.gameStateMachine.addState(new MainMenu(), "MainMenu");
+	Game.gameStateMachine.addState(allocator.allocate!MainMenu, "MainMenu");
 	Game.gameStateMachine.addState(ags, "Achtung");
-	Game.gameStateMachine.addState(new GameOverGameState(), "GameOver");
+	Game.gameStateMachine.addState(allocator.allocate!GameOverGameState, "GameOver");
 	Game.gameStateMachine.transitionTo("MainMenu", Variant());
 
 	Game.window.onPositionChanged = &positionChanged;
 }
-
 
 void positionChanged(int x, int y)
 {
@@ -85,10 +83,10 @@ void positionChanged(int x, int y)
 
 void run()
 {
-	auto allocator = RegionAllocator(GCAllocator.cit, 1024 * 1024, 8);
-	auto stack     = ScopeStack(allocator);
+	auto allocator = RegionAllocator(GC.cit, 1024 * 1024, 8);
+	auto ss        = ScopeStack(allocator);
 
-	init(stack);
+	init(ss);
 
 	import std.datetime;
 	Game.run(Timestep.fixed, 16.msecs);

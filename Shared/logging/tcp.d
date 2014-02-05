@@ -5,10 +5,10 @@ import std.socket;
 import std.array;
 import content.sdl;
 import std.concurrency;
-import allocation.gc;
+import allocation;
 
 Socket socket;
-NetConfig config;
+Address address;
 
 ubyte[] buffer;
 uint taken;
@@ -28,16 +28,15 @@ void initializeTcpLogger(string configFile)
 		return;
 	}
 
-	import allocation;
-	logger = &tcpLogger;
-   config = fromSDLFile!NetConfig(GCAllocator.it, configFile);    
-	buffer = Mallocator.it.allocate!(ubyte[])(config.bufferSize, 8);
+	auto config = fromSDLFile!NetConfig(GC.it, configFile);    
 
-	import std.stdio;
-	writeln("Trying to connect to the logger!");
-	writeln(config);
-	socket = new TcpSocket();
-	socket.connect(getAddress(config.ip, config.port)[0]);
+	logger = &tcpLogger;
+    buffer = GC.it.allocate!(ubyte[])(config.bufferSize, 8);
+
+	socket  =  GC.it.allocate!TcpSocket;
+	address =  getAddress(config.ip, config.port)[0];
+
+	socket.connect(address);
 }
 
 void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow
@@ -58,7 +57,7 @@ void tcpLogger(string channel, Verbosity verbosity, const(char)[] msg, string fi
 	if(!socket.isAlive())
 	{
 		socket.close();
-		socket = new TcpSocket(new InternetAddress(config.ip, config.port));
+		socket = GC.it.allocate!TcpSocket(address);
 	}
 
 	try 

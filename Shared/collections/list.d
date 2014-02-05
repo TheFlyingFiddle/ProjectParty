@@ -1,10 +1,16 @@
 module collections.list;
 
+import std.traits;
 
 struct List(T)
 {
 	T* buffer;
 	uint length, capacity;
+
+	@property const(T)[] array()
+	{
+		return buffer[0 .. length];
+	}
 
 	this(Allocator)(ref Allocator allocator, size_t capacity)
 	{
@@ -61,6 +67,7 @@ struct List(T)
 		assert(x <= y && x < length && y < length);
 		buffer[x .. y] = value;
 	}
+
 
 	uint opDollar()()
 	{
@@ -125,12 +132,37 @@ struct List(T)
 	{
 		length--;
 	}
+
 	void put(T data)
 	{
 		this ~= data;
 	}
-}
 
+
+	//Need to work around strings. (They are annoying)
+	static if(is(T == char))
+	{
+		void put(dchar c)
+		{
+			import std.utf;
+			Unqual!char[dchar.sizeof] arr;
+			auto len = std.utf.encode(arr, c);
+			put(arr[0 .. len]);
+		}
+
+		void put(string s)
+		{
+			foreach(char c; s)
+				this ~= c;
+		}
+
+		void put(const(char)[] s)
+		{
+			foreach(char c; s)
+				this ~= c;
+		}
+	}
+}
 
 
 
