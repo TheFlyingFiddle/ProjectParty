@@ -8,6 +8,7 @@ import std.file;
 import std.c.string :memcpy;
 import std.string;
 import std.range : repeat;
+import collections.list;
 import allocation;
 import dunit;
 
@@ -70,8 +71,8 @@ struct SDLIterator
     //I kind of wanted to do this, but it seems to be impossible.
     T opDispatch(string name, T)()
 	{
-	goToChild!name;
-	return over.root[currentIndex].as!T;
+		goToChild!name;
+		return over.root[currentIndex].as!T;
 	}
 	*/  
 
@@ -138,7 +139,7 @@ struct SDLIterator
     enum curObjObjRange = "ForwardRange(over.root[currentIndex].objectIndex,
 		over.source)";
 
-	T as(T)() if(isNumeric!T)
+	T as(T)() if(isNumeric!T && !is(T==enum))
 	{
         static if(isIntegral!T)
 			enforce(over.root[currentIndex].type == TypeID._int,
@@ -157,7 +158,7 @@ struct SDLIterator
 
 	T as(T)() if(is(T==bool))
 	{
-		assertEquals(over.root[currentIndex].type, TypeID._int,
+		assertEquals(over.root[currentIndex].type, TypeID._string,
 			   "SDLObject wasn't a boolean, which was requested");
 		auto range = mixin(curObjObjRange);
 		return readBool(range);
@@ -183,14 +184,52 @@ struct SDLIterator
             foreach(ref elem; arr) {
                 auto obj = over.root[currentIndex]; //  Can only traverse the tree downwards
                 auto next = obj.nextIndex;          //  So we need to save this index to not
-				//  get lost.
-                elem = as!A;
+													//  get lost.
+				elem = as!A;
                 currentIndex = next;
 			}
             return arr;
 		} else {
             static assert(0, T.stringof ~ " is not an array type!");
 		}
+	}
+
+
+	//TODO: Code duplication (see above) iteration might be refactored into an opApply?
+	T as(T, A)(ref A allocator) if(is(T t == List!U, U))
+	{
+		//If it doesn't work, use static if
+        static if(is(T t == List!U, U)) {
+			auto listLength = walkLength;
+			auto list = T(allocator, listLength);
+			goToChild();
+
+			foreach(i; 0 .. listLength) {
+				auto obj = over.root[currentIndex];
+				auto next = obj.nextIndex;
+				list.put = as!U;
+				currentIndex = next;
+			}
+			return list;
+		} else {
+			static assert(0, T.stringof ~ " is not a List type!");
+		}
+	}
+
+	T as(T)() if (is(T == enum))
+	{
+		assertEquals(over.root[currentIndex].type, TypeID._string,
+					 "SDLObject wasn't an enum, which was requested");
+		auto range = mixin(curObjObjRange);
+
+		string name = range.readIdentifier;
+		
+		foreach(member; EnumMembers!T) {
+			//TODO: Allocates :(
+			if(member.to!string == name)
+				return member;
+		}
+		assert(0, name ~ " is not a valid value of enum type " ~ T.stringof);
 	}
 
     import math.vector, math.traits;
@@ -216,11 +255,13 @@ struct SDLIterator
 		} else assert(0, Vec.stringof ~ " is not a vector type.");
 	}
 
-    T as(T, Allocator)(ref Allocator a) if (!(isNumeric!T ||
-					isSomeString!T ||
-					isArray!T ||
-					isVector!T))
-	{        goToChild();
+    T as(T, Allocator)(ref Allocator a) if (!(isNumeric!T	||
+											isSomeString!T	||
+											isArray!T 		||
+											isVector!T		||
+											is(T t == List!U, U)))
+	{        
+		goToChild();
         T toReturn;
 
         foreach(member; __traits(allMembers, T)) {
@@ -236,7 +277,7 @@ struct SDLIterator
 				static if(is(attributeType == Unpack!(OptionalStruct!fieldType))) {
 					try {
 						goToNext!member; //Changes the index to point to the member we want.
-						static if(isArray!fieldType) {
+						static if(isArray!fieldType || is(fieldType f == List!E, E)) {
 							__traits(getMember, toReturn, member) = 
 								as!fieldType(a);
 						} else {
@@ -255,7 +296,7 @@ struct SDLIterator
 				}
 			} else {
 				goToNext!member; //Changes the index to point to the member we want.
-				static if(isArray!fieldType) {
+				static if(isArray!fieldType || is(fieldType f == List!E, E)) {
 					__traits(getMember, toReturn, member) = 
 						as!(fieldType, Allocator)(a);
 				} else {
@@ -269,11 +310,12 @@ struct SDLIterator
         return toReturn;
 	}
 
-	T as(T)() if (!(isNumeric!T ||
-                  isSomeString!T ||
-                  isArray!T ||
-                  isVector!T ||
-					is(T==bool)))
+	T as(T)() if (!(isNumeric!T		||
+					isSomeString!T	||
+					isArray!T		||
+					isVector!T		||
+					is(T==bool)		||
+					is(T t == List!U, U)))
 	{
         goToChild();
         T toReturn;
@@ -508,7 +550,8 @@ template isStringOrVoid(T)
 StringOrVoid readString(StringOrVoid = string)(ref ForwardRange range)
 if (isStringOrVoid!StringOrVoid)
 {
-	enforce(range.front == stringSeperator);
+	if(range.front != stringSeperator)
+		return readIdentifier!StringOrVoid(range);
 	range.popFront();
 	static if(isSomeString!StringOrVoid)
 		auto saved = range.save();
@@ -879,6 +922,7 @@ SDLContainer fromSDL(Sink)(ref Sink sink, string source)
     return container;
 }
 
+
 //Only used to build the tree of SDLObjects from the file.
 private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacantIndex)
 {
@@ -894,7 +938,11 @@ private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort 
     sink[objIndex].nameIndex = cast(uint)range.position;
     range.readIdentifier!void;//Don't care about the name, we are just building the tree
     range.skipWhitespace();
-    enforce(range.front == '=');
+
+	auto frontttt = range.front;
+	auto boll = frontttt == '=';
+
+    enforce(frontttt == '=');
     range.popFront();
 
     skipWhitespace(range);
@@ -930,13 +978,11 @@ private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort 
             sink[objIndex].objectIndex = cast(uint)range.position;
             range.readString!void;
             break;
-		case 't':
-		case 'T':
-		case 'f':
-		case 'F':
-			sink[objIndex].objectIndex = cast(uint)range.position;
-			sink[objIndex].type = TypeID._int;
-			range.readBool!void;
+		case 'a': .. case 'z':
+		case 'A': .. case 'Z':
+			sink[objIndex].type = TypeID._string;
+            sink[objIndex].objectIndex = cast(uint)range.position;
+            range.readString!void;
 			break;
         case '/':
             skipLine(range);
@@ -1290,15 +1336,98 @@ freeColor=0";
 		}
 
 		auto check = from(cast(char[])checkSource);
-		assertFun!(listEquals)(check, source);
+		assertEquals(check, source);
 	}
 
-}		
-bool listEquals(List)(List a, List b) {
-	foreach(i, elem; a) {
-		if (elem != b[i]) {
-			return false;
-		}
+	@Test public void testArrayAsList()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "arr = [1,2,4]");
+
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+		auto list = List!long(alloc2, 3);
+		list.put(1);
+		list.put(2);
+		list.put(4);
+
+		auto sList = obj.arr.as!(List!long)(alloc2);
+
+		assertEquals(sList, list);
 	}
-	return true;
+
+	@Test public void testOnlyArrayStruct()
+	{
+
+		struct ListStruct {
+			List!long longList;
+		}
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "lstruct = { longList = [1,2,5] }");
+	}
+
+	@Test public void testStructWithLists()
+	{
+		struct ListStruct {
+			List!long longList;
+			int integer;
+		}
+		
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "lstruct = { 
+						   longList=[1,2,5] 
+						   integer=5
+						   }");
+
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+		auto list = List!long(alloc2, 3);
+		list.put(1);
+		list.put(2);
+		list.put(5);
+		auto ls = ListStruct(list, 5);
+
+		auto sourceLs = obj.lstruct.as!(ListStruct)(alloc2);
+		assertEquals(ls, sourceLs);
+	}
+
+	@Test public void testEnum()
+	{
+
+		enum Q {a,b,c}
+		struct EnumStruct {
+			Q enumField;
+		}
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "estruct = { enumField = a }");
+
+		assertEquals(obj.estruct.enumField.as!Q, Q.a);
+	}
+
+	@Test public void testNoStringSeparators()
+	{
+
+		enum Q {a,b,c}
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "teststring = { s = nowhitespace }");
+
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+
+		assertEquals(obj.teststring.s.as!string(alloc2), "nowhitespace");
+	}
+
 }

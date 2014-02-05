@@ -1,7 +1,7 @@
 module collections.list;
 
 import std.traits;
-
+import allocation.common;
 struct List(T)
 {
 	T* buffer;
@@ -72,6 +72,18 @@ struct List(T)
 	uint opDollar()()
 	{
 		return length;
+	}
+
+	bool opEquals(List!T other)
+	{
+		if(other.length != this.length)
+			return false;
+
+		foreach(i; 0 .. this.length) {
+			if (this[i] != other[i])
+				return false;
+		}
+		return true;
 	}
 
 	List!T opSlice(size_t x, size_t y)

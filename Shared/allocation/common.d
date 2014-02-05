@@ -103,7 +103,7 @@ unittest
 	auto mallocator = Mallocator.it;
 	testFreshAllocations(mallocator);
 
-	auto gcAllocator = GCAllocator.it;
+	auto gcAllocator = GC.it;
 	//testFreshAllocations(gcAllocator);
 }
 
@@ -117,7 +117,7 @@ unittest
 	auto mallocator = Mallocator.it;
 	testAlignment(mallocator);
 
-	auto gcAllocator = GCAllocator.it;
+	auto gcAllocator = GC.it;
 	testAlignment(gcAllocator);
 }
 

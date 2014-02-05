@@ -13,6 +13,8 @@ import core.time, std.datetime,
 import network.server;
 import network.router;
 
+import allocation.common;
+
 enum Timestep
 {
 	variable,
@@ -39,10 +41,10 @@ struct Game
 	{
 		gameStateMachine = GameStateFSM(allocator, numStates);
 		window			  = WindowManager.create(config);
-	
-		server = Server(allocator, 100, serverPort, brodcastPort); //NOOO 100 is a number not a variable.
-		router = new Router(allocator, 100, server);
 
+		server = Server(allocator, 100, serverPort, brodcastPort); //NOOO 100 is a number not a variable.
+
+		router = allocator.allocate!Router(allocator, 100, server);
 		router.connectionHandlers    ~= (x) => onConnect(x);
 		router.disconnectionHandlers ~= (x) => onDisconnect(x);
 
