@@ -41,8 +41,7 @@ struct Font
 		//If put in the if statement.
 		CharInfo i = CharInfo.init;
 
-		if(chars.length > c && 
-		   chars[c] != i)
+		if(chars.length > c && chars[c] != i)
 			return chars[c];
 
 		return chars[unkownCharValue];
