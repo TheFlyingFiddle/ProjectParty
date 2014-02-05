@@ -1,0 +1,11 @@
+<DProject>
+ <ProjectGuid>f7376e73-f8e3-4749-89b4-87701c9e76a8</ProjectGuid>
+ <Config name="Debug">
+  <!-- default to defaults -->
+ </Config>
+ <Config name="Release">
+  </Config>
+ <Folder name="FakePhone">
+  <File path="main.d" />
+ </Folder>
+</DProject>
