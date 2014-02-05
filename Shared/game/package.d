@@ -43,7 +43,6 @@ struct Game
 		window			  = WindowManager.create(config);
 
 		server = Server(allocator, 100, serverPort, brodcastPort); //NOOO 100 is a number not a variable.
-
 		router = allocator.allocate!Router(allocator, 100, server);
 		router.connectionHandlers    ~= (x) => onConnect(x);
 		router.disconnectionHandlers ~= (x) => onDisconnect(x);
