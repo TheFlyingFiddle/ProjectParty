@@ -57,9 +57,7 @@ struct AchtungRenderer
 					        c, origin);
 		}
 
-		buffer.flush();
 		buffer.draw(transform);
-		buffer.clear();
 
 		blitToBackbuffer(fbo, 
 						 uint4(0,0, 600, 600),
@@ -75,10 +73,6 @@ struct AchtungRenderer
 						Color.white, 
 						origin);
 
-		import derelict.opengl3.gl3;
-		gl.enable(GL_BLEND);
-		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		uint i = 0;
 		foreach(c, score; scores){
 			buffer.addText(font, score.to!string, //<-- This is a nono fix later.
@@ -86,8 +80,6 @@ struct AchtungRenderer
 							      c);
 			i++;
 		}
-		buffer.flush();
 		buffer.draw(transform);
-		buffer.clear();
 	}
 }

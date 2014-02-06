@@ -1,0 +1,2 @@
+players = { x = 10 y = 400 }
+playerSpacing = 40

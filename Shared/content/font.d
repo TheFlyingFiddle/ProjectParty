@@ -171,7 +171,7 @@ private Font loadFont(A)(ref A allocator, const(char)[] filePath, const(char)[] 
 	//Delete memory gotten from read. Here but how?
 	
 
-	return Font(iHeader.fontSize, cHeader.lineHeight, page, chars);
+	return Font(iHeader.fontSize, cHeader.base, cHeader.lineHeight, page, chars);
 }
 
 align(1)

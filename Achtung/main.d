@@ -67,18 +67,16 @@ void init(Allocator)(ref Allocator allocator)
 
 	ags.init(allocator, "Config.sdl");
 
-	Game.gameStateMachine.addState(allocator.allocate!MainMenu, "MainMenu");
+	Game.gameStateMachine.addState(allocator.allocate!MainMenu("Achtung Main Menu"), "MainMenu");
 	Game.gameStateMachine.addState(ags, "Achtung");
 	Game.gameStateMachine.addState(allocator.allocate!GameOverGameState, "GameOver");
 	Game.gameStateMachine.transitionTo("MainMenu");
 
-	Game.window.onPositionChanged = &positionChanged;
-}
 
-void positionChanged(int x, int y)
-{
-	auto logChnl = LogChannel("WINDOW");
-	logChnl.info("Position changed!", x, " ", y);
+	//Should this be part of an initial graphics rutine (Maby in Renderer?)
+	import graphics; 
+	gl.enable(Capability.blend);
+	gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);
 }
 
 void run()

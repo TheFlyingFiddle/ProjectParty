@@ -170,8 +170,8 @@ struct SpriteBuffer
 				}
 
 				CharInfo info = font[c];
-				float4 ppos = float4(pos.x + info.offset.x,
-									 pos.y + info.offset.y,
+				float4 ppos = float4(pos.x + info.offset.x * scale.x,
+									 pos.y + info.offset.y * scale.y,
 									 scale.x * info.srcRect.z, 
 									 scale.y * info.srcRect.w);
 
@@ -284,20 +284,12 @@ struct SpriteBuffer
 		return pos.w > 0 && pos.z > 0;
 	}
 
-	void flush()
-	{
-		gl.bindBuffer(vbo.target, vbo.glName);
-		vbo.bufferSubData(vertices[0 .. elements], 0);
-	}
-
-	void clear()
-	{
-		this.elements = 0;
-	}
-
 	void draw(ref mat4 transform)
 	{
 		if(elements == 0) return;
+		
+		gl.bindBuffer(vbo.target, vbo.glName);
+		vbo.bufferSubData(vertices[0 .. elements], 0);
 
 		gl.bindVertexArray(vao.glName);
 		gl.useProgram(program.glName);
@@ -325,6 +317,8 @@ struct SpriteBuffer
 		gl.bindTexture(textures[elements - 1].target, texture.glName);
 
 		gl.drawArrays(PrimitiveType.points, offset, count);
+
+		this.elements = 0;
 	}
 
 	@disable this(this);
@@ -349,7 +343,7 @@ float rotation;
 
 void main() 
 {
-	vertex.pos  = pos + vec4(-0.5f, -0.5f, 0,0);
+	vertex.pos  = pos + vec4(0, 0, 0,0);
         vertex.texCoord = texCoord;
         vertex.color         = color;
         vertex.origin   = origin;

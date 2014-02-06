@@ -18,15 +18,17 @@ struct Font
 	enum wchar unkownCharValue = '\u00A5';
 	enum tabSpaceCount = 4;
 
+	float base;
 	float size;
 	float lineHeight;
 	Frame page;
 	CharInfo[] chars;
 
-	this(float size, float lineHeight, Frame page, CharInfo[] chars)
+	this(float size, float base, float lineHeight, Frame page, CharInfo[] chars)
 	{
 		this.size		 = size;
-		this.lineHeight = lineHeight;
+		this.base        = base;
+		this.lineHeight  = lineHeight;
 		this.page		 = page;
 		this.chars		 = chars;
 
@@ -75,7 +77,8 @@ struct Font
 			cursor += (info.advance);
 		}
 
-		height += size;
+		width = fmax(width, cursor);
+		height += base;
 		return float2(width, height);
 	}
 }

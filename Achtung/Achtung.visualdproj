@@ -381,6 +381,7 @@
   <File path="Config.sdl" />
   <File path="game_over.d" />
   <File path="main.d" />
+  <File path="MainMenu.sdl" />
   <File path="main_menu.d" />
   <File path="rendering.d" />
   <File path="types.d" />
