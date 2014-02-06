@@ -46,4 +46,37 @@ struct Font
 
 		return chars[unkownCharValue];
 	}
+	
+
+	float2 messure(const(char)[] text)
+	{
+		import std.math;
+		float width = 0, height = 0, cursor = 0;
+
+		foreach(dchar c; text)
+		{
+			if(c == '\r') continue;
+
+			if(c == ' ') {
+				CharInfo spaceInfo = this[' '];
+				cursor += spaceInfo.advance;
+				continue;
+			}	else if(c == '\n') {
+				height += lineHeight;
+				width   = fmax(cursor, width);
+				cursor = 0;
+				continue;
+			} else if(c == '\t') {
+				CharInfo spaceInfo = this[' '];
+				cursor += spaceInfo.advance * tabSpaceCount;
+				continue;
+			}
+
+			CharInfo info = this[c];
+			cursor += (info.advance);
+		}
+
+		height += size;
+		return float2(width, height);
+	}
 }

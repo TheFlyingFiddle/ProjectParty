@@ -16,8 +16,16 @@ private LogChannel logChnl = LogChannel("RESOURCES.TEXTURE");
 struct TextureID
 {
 	private uint index;
-	uint width;
-	uint height;
+
+	@property uint width()
+	{
+		return TextureManager.lookup(this).width;
+	}
+
+	@property uint height()
+	{
+		return TextureManager.lookup(this).height;
+	}
 }
 
 struct TextureManager
@@ -52,7 +60,7 @@ struct TextureManager
 	{
 		auto index = resources.indexOf(path);
 		if(index != -1)
-			return TextureID(index, resources[index].width, resources[index].height);
+			return TextureID(index);
 
 
 		import std.path;
@@ -60,7 +68,7 @@ struct TextureManager
 
 		auto texture = loadTexture(c_path, loadingParam, flag);
 		index = resources.add(texture, path);
-		return TextureID(index, resources[index].width, resources[index].height);
+		return TextureID(index);
 
 	}
 
@@ -84,7 +92,7 @@ struct TextureManager
 		auto tex = loadTexture(c_path, paramConfig, flag);
 		resources.replace(tex, path);
 		
-		return TextureID(index, resources[index].width, resources[index].height);
+		return TextureID(index);
 	}
 
 	static bool isLoaded(const(char)[] path)
@@ -93,7 +101,7 @@ struct TextureManager
 		return resources.indexOf(path) != -1;
 	}	
 
-	static Texture2D lookup(TextureID id)
+	static ref Texture2D lookup(TextureID id)
 	{
 		return resources[id.index];
 	}

@@ -13,21 +13,6 @@ import logging;
 
 LogChannel logChnl = LogChannel("RESOURCES.FONT");
 
-unittest
-{
-	//This unittest is no longer possible 
-	//Since Fonts have been integrated into the 
-	//Content system and cannot be loaded outside 
-	//of this. (This was done by design)
-	
-
-	//import allocation;
-	//auto path = r"..\resources\fonts\Arial32.fnt";
-	//auto allocator = Mallocator.it;
-	//Font f = loadFont(allocator, path, "");
-	//auto x = f.lineHeight;
-}
-
 struct FontID
 {
 	private uint index;
@@ -35,6 +20,11 @@ struct FontID
 	@property float size()
 	{
 		return FontManager.lookup(this).size;
+	}
+
+	float2 messure(const(char)[] text)
+	{
+		return FontManager.lookup(this).messure(text);
 	}
 }
 
@@ -91,7 +81,7 @@ struct FontManager
 		fontAllocator.deallocate(font.chars);
 	}
 
-	static Font lookup(FontID id)
+	static ref Font lookup(FontID id)
 	{
 		return resources[id.index];
 	}

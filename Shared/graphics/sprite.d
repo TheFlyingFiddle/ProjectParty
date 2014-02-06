@@ -155,7 +155,6 @@ struct SpriteBuffer
 			float2 cursor = float2(0,0);
 			foreach(wchar c; text)
 			{
-				auto cc = cursor;
 				if(c == ' ') {
 					CharInfo spaceInfo = font[' '];
 					cursor.x += spaceInfo.advance * scale.x;
@@ -202,7 +201,6 @@ struct SpriteBuffer
 			float2 cursor = float2(0,0);
 			foreach(wchar c; text)
 			{
-				auto cc = cursor;
 				if(c == ' ') {
 					CharInfo spaceInfo = font[' '];
 					cursor.x += spaceInfo.advance;
