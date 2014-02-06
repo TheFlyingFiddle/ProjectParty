@@ -14,7 +14,6 @@ import game;
 /** Very simple renderer that stores everything that has been drawn into a rendertarget. **/
 struct AchtungRenderer
 {
-	private SpriteBuffer buffer;
 	private Frame        snakeFrame;
 	private FontID       font;
 	private FBO	         fbo;
@@ -29,7 +28,6 @@ struct AchtungRenderer
 		snakeFrame = Frame(snakeTex);
 		
 		fbo    = createSimpleFBO(mapWidth, mapHeight);
-		buffer = SpriteBuffer(512, allocator);
 	}
 
 	void clear(Color c)
@@ -46,6 +44,9 @@ struct AchtungRenderer
 			  float size)
 	{
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
+
+		
+		auto buffer = Game.spriteBuffer;
 
 		auto origin = float2(size / 2, size / 2);
 		foreach(key, snake; snakes) {

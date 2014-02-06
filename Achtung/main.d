@@ -70,7 +70,7 @@ void init(Allocator)(ref Allocator allocator)
 	Game.gameStateMachine.addState(allocator.allocate!MainMenu, "MainMenu");
 	Game.gameStateMachine.addState(ags, "Achtung");
 	Game.gameStateMachine.addState(allocator.allocate!GameOverGameState, "GameOver");
-	Game.gameStateMachine.transitionTo("MainMenu", Variant());
+	Game.gameStateMachine.transitionTo("MainMenu");
 
 	Game.window.onPositionChanged = &positionChanged;
 }

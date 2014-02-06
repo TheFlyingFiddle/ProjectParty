@@ -11,7 +11,7 @@ class GameOverGameState : IGameState
 	void init() { }
 	void handleInput() { }
 	
-	void enter(Variant x)
+	void enter()
 	{
 	//	auto list = x.get!(List!Score);
 	}

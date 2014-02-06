@@ -5,23 +5,19 @@ import std.variant;
 
 interface IGameState
 {
-	void init();
-
-	void enter(Variant x);
+	void enter();
 	void exit();
 
-	void handleInput();
 	void update();
 	void render();
 }
-
 
 template isState(T)
 {
 	enum isState = __traits(compiles, 
 	{
 		T t;
-		t.enter(Variant());
+		t.enter(); 
 		t.exit();
 	});
 }
@@ -29,7 +25,6 @@ template isState(T)
 unittest
 {
 	alias GameStateFSM = FSM!(IGameState, string);
-
 }
 
 struct FSM(T, ID) 
@@ -50,7 +45,7 @@ struct FSM(T, ID)
 		states = List!State(allocator, numStates);
 	}
 	
-	void transitionTo(ID id, Variant x)
+	void transitionTo(ID id)
 	{
 		assert(states.canFind!(x => x.id == id), 
 				 "Trying to transition to a state that does not exist!");
@@ -59,7 +54,7 @@ struct FSM(T, ID)
 			_currentState.state.exit();
 
 		_currentState = states.find!(x => x.id == id).front;
-		_currentState.state.enter(x);
+		_currentState.state.enter();
 	}
 
 	void addState(T _state, ID id)

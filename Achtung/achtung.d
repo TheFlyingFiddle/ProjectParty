@@ -28,7 +28,7 @@ struct SnakeProperties
     uint color, leftKey, rightKey;
 }
 
-class AchtungGameState :IGameState
+class AchtungGameState : IGameState
 {
 	//Maby theses shoul do someting?
 	void init() { }
@@ -69,7 +69,7 @@ class AchtungGameState :IGameState
 		stream     = EventStream(allocator, 1024);
 	}
 
-	void enter(Variant x)
+	void enter()
 	{
 		foreach(i, player; Game.players)
 			ids[i] = player.id;
@@ -88,7 +88,7 @@ class AchtungGameState :IGameState
 	{
 		foreach(s; scores) if(s > config.winningScore)
 		{
-			Game.gameStateMachine.transitionTo("GameOver", Variant(scores));
+			Game.gameStateMachine.transitionTo("GameOver");
 			return;
 		}
 	
