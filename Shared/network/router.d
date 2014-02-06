@@ -6,6 +6,7 @@ import std.uuid;
 import logging;
 
 alias ConnectionHandler   = void delegate(ulong);
+alias ReconnectionHandler = void delegate(ulong);
 alias DisconnectonHandler = void delegate(ulong);
 alias MessageHandler      = void delegate(ulong, ubyte[]);
 
@@ -14,19 +15,22 @@ auto l = LogChannel("ROUTER");
 struct Router
 {
 	List!ConnectionHandler connectionHandlers;
+	List!ReconnectionHandler reconnectionHandlers;
 	List!DisconnectonHandler disconnectionHandlers;
 	List!MessageHandler messageHandlers;
 
 	this(A)(ref A allocator, size_t capacity, ref Server server)
 	{
 		server.onConnect    = &connected;
-		server.onReconnect  = &connected;
+		server.onReconnect  = &reconnect;
 		server.onDisconnect = &disconected;
 		server.onMessage    = &message;
 
 		connectionHandlers    = List!ConnectionHandler(allocator, capacity);
+		reconnectionHandlers  = List!ReconnectionHandler(allocator, capacity);
 		disconnectionHandlers = List!DisconnectonHandler(allocator, capacity);
 		messageHandlers       = List!MessageHandler(allocator, capacity);
+
 
 		l.info("Router Created", this);
 	}
@@ -41,6 +45,12 @@ struct Router
 	void disconected(ulong id)
 	{
 		foreach(handler; disconnectionHandlers)
+			handler(id);
+	}
+
+	void reconnect(ulong id)
+	{
+		foreach(handler; reconnectionHandlers)
 			handler(id);
 	}
 	

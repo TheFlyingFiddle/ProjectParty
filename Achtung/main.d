@@ -61,7 +61,7 @@ void init(Allocator)(ref Allocator allocator)
 	WindowManager.init(allocator, 10);
 
 	auto config = fromSDLFile!WindowConfig(GC.it, "Window.sdl");
-	Game.init(allocator, 10, config, 1337, 7331);
+	Game.init(allocator, 10, config, 7331);
 
 	AchtungGameState ags = allocator.allocate!AchtungGameState;
 

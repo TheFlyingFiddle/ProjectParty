@@ -1,6 +1,6 @@
 module network.server;
 
-import std.socket, allocation, logging, collections;
+import std.socket, allocation, logging, collections, std.conv;
 
 auto logChnl = LogChannel("LOBBY");
 
@@ -14,12 +14,12 @@ struct Server
 {
 	List!ulong lostConnections;
 	Table!(ulong, Connection) activeConnections;
+	Table!(ulong, Connection) pendingConnections;
 
 	Socket connector;
 	TcpSocket listener;
 
-	InternetAddress localAddress;
-	InternetAddress listenAddress;
+	InternetAddress listenerAddress;
 	InternetAddress broadcastAddress;
 
 	float broadcastInterval = 1.0f;
@@ -31,36 +31,33 @@ struct Server
 	void delegate(ulong) onDisconnect;
 	void delegate(ulong, ubyte[]) onMessage;
 
-	this(A)(ref A allocator, size_t maxConnections, ushort port, ushort broadcastPort)
+	this(A)(ref A allocator, size_t maxConnections, ushort broadcastPort)
 	{
-		activeConnections = Table!(ulong, Connection)(allocator, maxConnections);
-		lostConnections	= List!ulong(allocator, maxConnections);
+		activeConnections  = Table!(ulong, Connection)(allocator, maxConnections);
+		pendingConnections = Table!(ulong, Connection)(allocator, maxConnections);
+		lostConnections	 = List!ulong(allocator, maxConnections);
 
 		connector = allocator.allocate!(UdpSocket)();
 		connector.blocking = false;
 		
 		listener = allocator.allocate!(TcpSocket)();
 
-		import std.stdio;
-		auto result = getAddress(Socket.hostName, port);
+		auto result = getAddress(Socket.hostName);
 		foreach(r; result)
 		{
-			writeln(r);
 			if(r.addressFamily == AddressFamily.INET) {
 				string stringAddr = r.toAddrString();
+				connector.bind(r);
+				listener.bind(r);
 
-
-				localAddress     = allocator.allocate!InternetAddress(stringAddr, port);
-				listenAddress    = allocator.allocate!InternetAddress(stringAddr, cast(ushort)(port + 1));
+				listenerAddress = allocator.allocate!InternetAddress(stringAddr, 
+													  listener.localAddress.toPortString.to!ushort);
 
 				//This only works on simple networks. 
-				broadcastAddress = allocator.allocate!InternetAddress(localAddress.addr | 0xFF, broadcastPort);
+				broadcastAddress = allocator.allocate!InternetAddress(listenerAddress.addr | 0xFF, broadcastPort);
 			}
 		}
-
-		connector.bind(localAddress);
-
-		listener.bind(listenAddress);
+	
 		listener.blocking = false;
 		listener.listen(1);	
 	}
@@ -74,7 +71,89 @@ struct Server
 		}
 
 		acceptIncoming();
+		processPendingConnections(elapsed);
 		processMessages(elapsed);
+	}
+
+	void processPendingConnections(float elapsed)
+	{
+		ubyte[ulong.sizeof + 1] buffer;
+		
+		for(int i = pendingConnections.length - 1; 
+			 i >= 0; i--)
+		{
+			auto socket = pendingConnections.at(i).socket;
+			auto r = socket.receive(buffer);
+			if(r == Socket.ERROR)
+			{
+				if(wouldHaveBlocked())
+					continue;
+				
+				logChnl.warn("Pending socket closed for unkown reasons! ID :", pendingConnections.keyAt(i));
+				closeConnection(pendingConnections, i, false, false);
+			}
+			else if(r == 0)
+			{
+				logChnl.warn("Pending socket closed! ID : ", pendingConnections.keyAt(i));
+				closeConnection(pendingConnections, i, false, false);
+			} 
+			
+			if(buffer[0] == 0)
+			{
+				import std.bitmanip;
+				ubyte[] bbb = buffer[1 .. $];
+				ulong id = read!ulong(bbb);
+
+				logChnl.info("Id received :  ", id);
+
+				if(id == pendingConnections.keyAt(i))
+				{
+					logChnl.info("onConnect :  ", id);
+					activeConnections[id] = Connection(socket, 0.0f);
+					pendingConnections.removeAt(i);
+
+					if(onConnect) 
+						onConnect(id);
+				}
+				else 
+				{
+					auto index = lostConnections.countUntil!(x => x == id);
+					if(index != -1)
+					{
+						lostConnections.removeAt(index);
+						activeConnections[id] = Connection(socket, 0.0f);
+						pendingConnections.removeAt(i);						
+
+						logChnl.info("IMA reconnect! :  ", id);
+						if(onReconnect)  
+							onReconnect(id);
+					} 
+					else 
+					{
+						auto index2 = activeConnections.indexOf(id);
+						if(index2 != -1)
+						{
+							closeConnection(activeConnections, index2, true, false);
+							pendingConnections.removeAt(i);
+							activeConnections[id] = Connection(socket, 0.0f);
+						}
+						//If we got here an unkown assailant is trying to recconect.
+						else 
+						{
+							logChnl.info("An invalid reconnection request was found! :  ", id);
+							closeConnection(pendingConnections, i, false, false);
+						}
+					}
+				}
+			} 
+			else 
+			{
+				logChnl.error("Trying to send a message that is not a 
+								  connection message while connecting!!!!");
+				closeConnection(pendingConnections, i, false, false);
+
+			}
+		}
 	}
 
 	void processMessages(float elapsed)
@@ -86,7 +165,7 @@ struct Server
 			auto socket = activeConnections.at(i).socket;
 			if(!socket.isAlive()) 
 			{
-				closeConnection(i);
+				closeConnection(activeConnections, i, true, true);
 				continue;
 			}
 
@@ -101,7 +180,7 @@ struct Server
 				if(activeConnections.at(i).timeSinceLastMessage > timeout)
 				{
 					logChnl.warn("Socket with ID : ", activeConnections.keyAt(i), " closed since it timed out!");
-					closeConnection(i);
+					closeConnection(activeConnections, i, true, true);
 					continue;
 				}
 
@@ -110,7 +189,7 @@ struct Server
 				}
 
 				logChnl.warn("Socket With ID : ", activeConnections.keyAt(i), " closed for unknown reasons!");
-				closeConnection(i);
+				closeConnection(activeConnections, i, true, true);	
 			} 
 			else if(0 == read)
 			{
@@ -125,63 +204,12 @@ struct Server
 					logChnl.info("Connection closed!");
 				}
 
-				closeConnection(i);
+				closeConnection(activeConnections, i, true, true);
 			}
 			else 
 			{			
 				activeConnections.at(i).timeSinceLastMessage = 0.0f;
-
-				if(buffer[0] == 0)
-				{
-					import std.bitmanip;
-					ubyte[] bbb = buffer[1 .. $];
-					ulong id = read!ulong(bbb);
-
-					logChnl.info("Id received :  ", id);
-
-					if(id == activeConnections.keyAt(i))
-					{
-
-						logChnl.info("onConnect :  ", id);
-						if(onConnect) onConnect(id);
-					}
-					else 
-					{
-						auto index = lostConnections.countUntil!(x => x == id);
-						if(index != -1)
-						{
-							lostConnections.removeAt(index);
-							activeConnections.remove(activeConnections.keyAt(i));
-							activeConnections[id] = Connection(socket, 0.0f);
-
-							logChnl.info("IMA reconnect! :  ", id);
-							if(onReconnect)  
-								onReconnect(id);
-						} 
-						else 
-						{
-							auto index2 = activeConnections.indexOf(id);
-							if(index2 != -1)
-							{
-								closeConnection(index2);
-								activeConnections.removeAt(i);
-								activeConnections[id] = Connection(socket, 0.0f);
-							}
-							//If we got here an unkown assailant is trying to recconect.
-							else 
-							{
-								auto key = activeConnections.keyAt(i);
-								ubyte[ulong.sizeof] nB; ubyte[] bB = nB;
-								bB.write!ulong(key, 0);
-								socket.send(bB);
-
-
-								logChnl.info("onInvalidConnect :  ", id);
-								if(onConnect) onConnect(key);
-							}
-						}
-					}
-				} else if(onMessage)
+				if(onMessage)
 					onMessage(activeConnections.keyAt(i), buffer[0 .. read]);
 			}
 		}
@@ -189,14 +217,20 @@ struct Server
 
 	void broadcastServer()
 	{
-		ubyte[3 + uint.sizeof + ushort.sizeof] msgB;
+		ubyte[1024] msgB = void;
 		ubyte[] msg = msgB[0 .. $];
 		msg[0] = 'P'; msg[1] = 'P'; msg[2] = 'S';
-		
+
+
 		import std.bitmanip;
 		size_t index = 3;
-		msg.write!uint(localAddress.addr, &index);
-		msg.write!ushort(cast(ushort)(localAddress.port + 1), &index);
+		msg.write!uint(listenerAddress.addr, &index);
+		msg.write!ushort(listenerAddress.port, &index);
+		
+		msg.write!uint(Socket.hostName.length, &index);
+		foreach(char c; Socket.hostName)
+			msg.write!(char)(c, &index);
+
 
 		connector.sendTo(msg, broadcastAddress);
 	}
@@ -218,7 +252,7 @@ struct Server
 
 			 auto addr = s.remoteAddress();
 			 logChnl.info("UUID sent: ", number, "to endpoint ", addr);
-			 activeConnections[number] = Connection(s);
+			 pendingConnections[number] = Connection(s, 0.0f);
 		}	
 	}
 
@@ -235,23 +269,28 @@ struct Server
 	{
 		import std.algorithm;
 		return !activeConnections.keys.canFind!(x => x == num) &&
-				 !lostConnections.canFind!(x => x == num);
+				 !lostConnections.canFind!(x => x == num) &&
+				 !pendingConnections.keys.canFind!(x => x == num);
 	}
 
-	void closeConnection(size_t i)
+	void closeConnection(ref Table!(ulong, Connection) table, int i,
+								bool wasConnected, bool addToLost)
 	{
-		ulong key     = activeConnections.keyAt(i);
-		Socket socket = activeConnections.at(i).socket;
+		ulong key     = table.keyAt(i);
+		Socket socket = table.at(i).socket;
 		socket.close();
 
-		activeConnections.removeAt(i);
+		table.removeAt(i);
 
-		if(lostConnections.length == lostConnections.capacity)
-			lostConnections.removeAt(0);
+		if(addToLost)
+		{
+			if(lostConnections.length == lostConnections.capacity)
+				lostConnections.removeAt(0);
 		
-		lostConnections ~= key;
+			lostConnections ~= key;
+		}
 
-		if(onDisconnect)
+		if(wasConnected && onDisconnect)
 			onDisconnect(key);
 	}
 
