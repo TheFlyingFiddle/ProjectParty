@@ -34,17 +34,18 @@ struct Game
 	static Window		window;
 	static List!Player  players;
 	private static Server     server;
-	private static Router*     router;
+	private static Router*    router;
 
-	static void init(A)(ref A allocator, size_t numStates, WindowConfig config, 
-							  ushort serverPort, ushort brodcastPort)
+	static void init(A)(ref A allocator, size_t numStates, WindowConfig config, ushort broadcastPort)
 	{
 		gameStateMachine = GameStateFSM(allocator, numStates);
 		window			  = WindowManager.create(config);
 
-		server = Server(allocator, 100, serverPort, brodcastPort); //NOOO 100 is a number not a variable.
+		server = Server(allocator, 100, broadcastPort); //NOOO 100 is a number not a variable.
 		router = allocator.allocate!Router(allocator, 100, server);
+		
 		router.connectionHandlers    ~= (x) => onConnect(x);
+		router.disconnectionHandlers ~= (x) => onConnect(x);
 		router.disconnectionHandlers ~= (x) => onDisconnect(x);
 
 		players = List!Player(allocator, 100);

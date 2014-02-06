@@ -32,6 +32,7 @@ struct Phone
 		phones = List!Phone(allocator, capacity);
 		
 		router.connectionHandlers    ~= (id) { onConnection(id); };
+		router.reconnectionHandlers  ~= (id) { onConnection(id); };
 		router.disconnectionHandlers ~= (id) { onDisconnect(id); };
 		router.messageHandlers       ~= (id, msg) { onMessage(id, msg); }; 
 	}
