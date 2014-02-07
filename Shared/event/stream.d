@@ -129,7 +129,7 @@ unittest
 	auto scopeStack = ScopeStack(linAlloc); 
 	stream s = stream(scopeStack, 512);
 
-	auto r   = s.over!InputEvent;
+	auto r   = s.over!TestInputEvent;
 	auto r2  = s.all();
 }
 
@@ -143,18 +143,18 @@ unittest
 	stream s = stream(scopeStack, 512);
 
 
-	s.push(InputEvent());
-	s.push(InputEvent());
-	s.push(DoodleEvent());
+	s.push(TestInputEvent());
+	s.push(TestInputEvent());
+	s.push(TestDoodleEvent());
 
 	size_t inputCount  = 0;
 	size_t doodleCount = 0;
 
-	EventLoop!((InputEvent e) 
+	EventLoop!((TestInputEvent e) 
 			   {
 				   inputCount++;
 			   },	
-			   (DoodleEvent e)
+			   (TestDoodleEvent e)
 			   {
 				   doodleCount++;
 			   }
@@ -166,8 +166,8 @@ unittest
 
 version(unittest)
 {
-	struct InputEvent { }
-	struct DoodleEvent { }
+	struct TestInputEvent { }
+	struct TestDoodleEvent { }
 }
 
 void EventLoop(T...)(ref EventStreamN!(ubyte) stream) 

@@ -209,7 +209,7 @@ auto distanceSquared(size_t N, T, U)(auto ref Vector!(N, T) vec0,
 	else static if(is(U : T))
 		alias RT = U;
 
-	RT res;
+	RT res = 0;
 	foreach(i; staticIota!(0, N)) {
 		RT tmp = vec0.data[i] - vec1.data[i];
 		res += tmp * tmp;

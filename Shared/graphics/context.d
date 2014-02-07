@@ -11,8 +11,9 @@ struct gl
 	{
 		enum glName = "gl" ~ name[0].toUpper.to!string ~ name[1 .. $];
 
-		logChnl.info(glName,"(", args, ")");
+		//logChnl.info(glName,"(", args, ")");
 		debug scope(exit) checkGLError(name);
+
 		mixin("return " ~ glName ~ "(args);");
 	}
 }

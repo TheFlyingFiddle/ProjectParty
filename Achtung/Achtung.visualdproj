@@ -107,7 +107,7 @@
   <verbose>0</verbose>
   <vtls>0</vtls>
   <symdebug>0</symdebug>
-  <optimize>0</optimize>
+  <optimize>1</optimize>
   <cpu>0</cpu>
   <isX86_64>0</isX86_64>
   <isLinux>0</isLinux>
@@ -123,10 +123,10 @@
   <useIn>0</useIn>
   <useOut>0</useOut>
   <useArrayBounds>0</useArrayBounds>
-  <noboundscheck>0</noboundscheck>
+  <noboundscheck>1</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>0</useUnitTests>
-  <useInline>0</useInline>
+  <useUnitTests>1</useUnitTests>
+  <useInline>1</useInline>
   <release>1</release>
   <preservePaths>0</preservePaths>
   <warnings>0</warnings>
@@ -384,6 +384,7 @@
   <File path="MainMenu.sdl" />
   <File path="main_menu.d" />
   <File path="rendering.d" />
+  <File path="test_game_state.d" />
   <File path="types.d" />
   <File path="Window.sdl" />
  </Folder>

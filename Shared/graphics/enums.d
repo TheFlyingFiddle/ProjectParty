@@ -690,6 +690,13 @@ enum BufferHint
 
 enum BufferAccess
 {
+	read = GL_READ_ONLY,
+	write = GL_WRITE_ONLY,
+	readWrite = GL_READ_WRITE
+}
+
+enum BufferRangeAccess
+{
 	read = GL_MAP_READ_BIT,
 	write = GL_MAP_WRITE_BIT,
 	readWrite = read | write,
@@ -708,5 +715,7 @@ enum BufferTarget
 	pixelPack = GL_PIXEL_PACK_BUFFER,
 	pixelUnpack = GL_PIXEL_UNPACK_BUFFER,
 	texture = GL_TEXTURE_BUFFER,
-	uniform = GL_UNIFORM_BUFFER
+	uniform = GL_UNIFORM_BUFFER,
+	read    = GL_COPY_READ_BUFFER,
+	write   = GL_COPY_WRITE_BUFFER
 }

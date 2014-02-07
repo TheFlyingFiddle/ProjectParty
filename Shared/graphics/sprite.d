@@ -5,7 +5,8 @@ import graphics;
 import std.algorithm;
 import std.exception;
 import content.texture, 
-	   content.font;
+	   content.font,
+	   allocation;
 
 struct SpriteBuffer 
 {

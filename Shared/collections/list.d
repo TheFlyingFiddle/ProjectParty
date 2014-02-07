@@ -69,7 +69,7 @@ struct List(T)
 	}
 
 
-	uint opDollar()()
+	uint opDollar()
 	{
 		return length;
 	}

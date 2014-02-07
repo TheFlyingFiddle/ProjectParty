@@ -40,20 +40,30 @@ static T[] getBufferSubData(T,Buffer)(ref Buffer buffer, uint offset, uint size,
 	return output;
 }
 
-static T* mapRange(Buffer,T)(ref Buffer buffer, uint offset, uint length, BufferAccess access)
+static T* mapRange(T, Buffer)(ref Buffer buffer, uint offset, uint length, BufferRangeAccess access)
 {
-	auto ptr = gl.mapBufferRange(Buffer.target, offset, length, access);
+	auto ptr = gl.mapBufferRange(Buffer.target, offset * T.sizeof, length * T.sizeof, access);
 	if(!ptr) {
 		throw new Exception("Mapping of buffer failed!");
 	}
 	return cast(T*)ptr;
 }
 
-static void mapBuffer(T, Buffer)(ref Buffer buffer, uint offset, uint length, BufferAccess access,
+static void mapBuffer(T, Buffer)(ref Buffer buffer, uint offset, uint length, BufferRangeAccess access,
 								 void delegate(T* ptr) workWithPointer)
 {
-	auto ptr = cast(T*)gl.MapBufferRange(buffer.target, offset, length, access);
+	auto ptr = mapRange!(T, Buffer)(buffer, offset, length, access);
 	workWithPointer(ptr);
+	gl.unmapBuffer(buffer.target);
+}
+
+static T* mapBuffer(T, Buffer)(ref Buffer buffer, BufferAccess access)
+{
+	return cast(T*)gl.mapBuffer(buffer.target, access);
+}
+
+static void unmapBuffer(Buffer)(ref Buffer buffer)
+{
 	gl.unmapBuffer(buffer.target);
 }
 
@@ -92,10 +102,10 @@ mixin template BufferData(T, BufferTarget bufferTarget, BufferType,  bool canBeS
 
 	//The pointer here should be replaced by an output/input range
 	//Since this is the standard and SAFE way of doing stuff in d. 
-	T* mapRange(T)(uint offset, uint length, BufferAccess access)
+	T* mapRange(T)(uint offset, uint length, BufferRangeAccess access)
 	{
 		static assert (isValidType!(T),assertMsg);
-		return Buffer.mapRange!(T)(this, offset, length, access);
+		return .mapRange!(T)(this, offset, length, access);
 	}
 
 	enum assertMsg = "Ileagal type for buffer. Legal types are " ~ LegalTypes.stringof 
@@ -107,7 +117,7 @@ mixin template BufferData(T, BufferTarget bufferTarget, BufferType,  bool canBeS
 			!hasIndirections!(T);
 	}
 
-	void destroy() 		
+	void obliterate() 		
 	{
 		gl.deleteBuffers(1, &glName);
 	}

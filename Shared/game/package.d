@@ -4,6 +4,7 @@ public import game.time;
 public import game.state;
 public import game.window;
 public import game.input;
+public import game.rendering;
 
 import util.profile;
 import core.time, std.datetime,

@@ -26,6 +26,11 @@ struct TextureID
 	{
 		return TextureManager.lookup(this).height;
 	}
+
+	@property Texture2D texture()
+	{
+		return TextureManager.lookup(this);
+	}
 }
 
 struct TextureManager

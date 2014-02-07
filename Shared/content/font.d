@@ -19,12 +19,17 @@ struct FontID
 
 	@property float size()
 	{
-		return FontManager.lookup(this).size;
+		return font.size;
 	}
 
 	float2 messure(const(char)[] text)
 	{
-		return FontManager.lookup(this).messure(text);
+		return font.messure(text);
+	}
+
+	@property Font font()
+	{
+		return FontManager.lookup(this);
 	}
 }
 

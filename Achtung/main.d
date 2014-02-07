@@ -18,6 +18,7 @@ import core.sys.windows.windows;
 import std.datetime;
 import game_over;
 import main_menu;
+import test_game_state;
 import external_libraries;
 
 version(X86) 
@@ -67,10 +68,20 @@ void init(Allocator)(ref Allocator allocator)
 
 	ags.init(allocator, "Config.sdl");
 
+
+	//TEMPORARY
+	Game.gameStateMachine.addState(allocator.allocate!TestGameState, "TEST");
+
+
+
+
 	Game.gameStateMachine.addState(allocator.allocate!MainMenu("Achtung Main Menu"), "MainMenu");
 	Game.gameStateMachine.addState(ags, "Achtung");
 	Game.gameStateMachine.addState(allocator.allocate!GameOverGameState, "GameOver");
-	Game.gameStateMachine.transitionTo("MainMenu");
+	
+	
+	//Game.gameStateMachine.transitionTo("MainMenu");
+	Game.gameStateMachine.transitionTo("TEST");
 
 
 	//Should this be part of an initial graphics rutine (Maby in Renderer?)

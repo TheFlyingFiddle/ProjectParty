@@ -43,9 +43,6 @@ void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, stri
 {
 	import std.stdio;
 	scope(failure) return;
-	
-	if(channel != "LOBBY" ) return;
-
 	writeln(channel, "   ", msg, "    ", file, "(", line, ")");
 }
 
