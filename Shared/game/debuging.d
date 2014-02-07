@@ -40,10 +40,10 @@ void addRectOutline(ref Renderer renderer,
 	auto s = sin(rotation), 
 		 c = cos(rotation);
 	
-	auto bottomLeft  = rect.xy,
-		 bottomRight = rect.xy + float2(rect.z, 0),
-		 topLeft     = rect.xy + float2(0, rect.w),
-		 topRight    = rect.xy + rect.zw;
+	auto bottomLeft  = rect.xy + rotate(-origin, rotation),
+		 bottomRight = rect.xy + rotate(-origin + float2(rect.z, 0), rotation),
+		 topLeft     = rect.xy + rotate(-origin + float2(0, rect.w), rotation),
+		 topRight    = rect.xy + rotate(-origin + rect.zw, rotation);
 
 	renderer.addLine(bottomLeft, bottomRight, color, width);
 	renderer.addLine(bottomRight, topRight, color, width);

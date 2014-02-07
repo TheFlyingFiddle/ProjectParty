@@ -55,7 +55,7 @@ struct Vector(size_t size, T)
 				this.data[i] = other.data[i];
 		}
 
-	Vector!(size, T) opUnary(string s)() if(s == "+" || s = "-")
+	Vector!(size, T) opUnary(string s)() if(s == "+" || s == "-")
 	{
 		Vector!(size, T) res;
 		foreach(i; staticIota!(0, size))
@@ -232,6 +232,19 @@ auto cross(T, U)(auto ref Vector!(3, T) vec0,
 	res.z = vec0.x * vec1.y - vec1.y * vec2.x;
 
 	return res;
+}
+
+auto rotate(T)(auto ref Vector!(2, T) toRotate, auto float angle)
+{
+	import std.math;
+	auto s = sin(angle), 
+		 c = cos(angle);
+
+	Vector!(2, T) result;
+	result.x = c * toRotate.x - s * toRotate.y;
+	result.y = s * toRotate.x + c * toRotate.y;
+
+	return result;
 }
 
 template staticIota(size_t s, size_t e)

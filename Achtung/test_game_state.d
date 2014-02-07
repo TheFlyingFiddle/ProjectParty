@@ -59,8 +59,10 @@ final class TestGameState : IGameState
 		renderer.addLine(float2(50,50), float2(123, 187), Color(0xFFcccc00), 10);
 
 		renderer.addCircleOutline(float2(200, 150), 60, Color(0xFF00FF00), 3, 50);
+		renderer.addCircleOutline(float2(400, 150), 60, Color(0xFF00FF00), 3, 7);
 
-		renderer.addRectOutline(float4(300, 300, 100, 100), Color.red, 2.3, float2.zero, Time.total);
+		foreach(i; 0 .. 6)
+			renderer.addRectOutline(float4(300, 300, 100, 100), Color.red, 2.3, float2(50,50), TAU * i / 6.0f);
 
 
 		renderer.addText(font, "This \nis a long se\nntence!", float2(0,Game.window.size.y));	
