@@ -14,6 +14,13 @@ struct Grid(T)
 		this.height = height;
 	}
 
+	this(T[] buffer, uint width, uint height)
+	{
+		this.buffer = buffer.ptr;
+		this.width  = width;
+		this.height = height;
+	}
+
 	ref T opIndex(uint2 cell)
 	{
 		assert(cell.x < width && cell.y < height);
@@ -44,6 +51,13 @@ struct Grid(T)
 		}
 
 		return result;
+	}
+
+	Grid!T subGrid(size_t columns, size_t rows)
+	{
+		return Grid!T(buffer[0 .. columns * rows], 
+					  columns, 
+					  rows);
 	}
 
 	void fill(T value)

@@ -39,6 +39,10 @@ alias FBO = FrameBuffer;
 struct FrameBuffer 
 {
 	uint glName;
+	
+	//Need to fix this.
+	uint glImageType, glImageName;
+	uint width, height;
 
 	static auto FrameBuffer create()
 	{
@@ -66,6 +70,12 @@ struct FrameBuffer
 	void attachTexture(FrameBufferAttachement attachement,
 					   Texture2D texture, uint mipLevel)
 	{
+		this.width  = texture.width;
+		this.height = texture.height;
+
+		this.glImageType = texture.target;
+		this.glImageName = texture.glName;
+
 		gl.framebufferTexture2D(FrameBufferTarget.framebuffer, 
 								attachement,
 								texture.target,
@@ -76,6 +86,12 @@ struct FrameBuffer
 	void attachTexture(FrameBufferAttachement attachement,
 					   Texture2DMultisample texture)
 	{
+		this.width  = texture.width;
+		this.height = texture.height;
+
+		this.glImageType = texture.target;
+		this.glImageName = texture.glName;
+
 		gl.framebufferTexture2D(FrameBufferTarget.framebuffer, 
 								attachement,
 								texture.target,
@@ -89,7 +105,13 @@ struct FrameBuffer
 		gl.framebufferTextureLayer(FrameBufferTarget.draw, attachement, texture.glName, mipLevel, layer);
 	}
 
-
+	void obliterate()
+	{
+		if(glImageType)
+			gl.deleteTextures(1, &glImageName);
+		
+		gl.deleteFramebuffers(1, &glName);
+	}
 }	
 
 static void blit(FrameBuffer from, 
@@ -107,7 +129,6 @@ static void blit(FrameBuffer from,
 					   toRect.x, toRect.y, toRect.z, toRect.w,
 					   mode, filter);
 }
-
 
 static void blitToBackbuffer(FrameBuffer from,
 							 uint4 fromRect, 

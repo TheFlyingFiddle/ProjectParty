@@ -93,7 +93,7 @@ void init(Allocator)(ref Allocator allocator)
 
 void run()
 {
-	auto allocator = RegionAllocator(GC.cit, 1024 * 1024, 8);
+	auto allocator = RegionAllocator(GC.cit, 1024 * 1024 * 50, 8);
 	auto ss        = ScopeStack(allocator);
 
 	init(ss);

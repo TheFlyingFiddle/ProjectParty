@@ -43,7 +43,8 @@ void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, stri
 {
 	import std.stdio;
 	scope(failure) return;
-	writeln(channel, "   ", msg, "    ", file, "(", line, ")");
+	
+	//writeln(channel, "   ", msg, "    ", file, "(", line, ")");
 }
 
 

@@ -1,10 +1,10 @@
-mapDim = 
+maxResolution = 
 {
-	x  = 600
-	y = 600
+	x  = 1920
+	y  = 1080
 }
 
-colors = [ 0xFF45Fe32, 0xFF00cc00, 0xFFcc0000 , 0xFF4400cc ]
+maxSnakes = 200
 snakeSize = 4
 winningScore = 400_000
 

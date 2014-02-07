@@ -230,13 +230,13 @@ struct WindowConfig
 }
 
 
-alias PositionCallback = void function(int, int);
-alias SizeCallback     = void function(int, int);
-alias FboSizeCallback  = void function(int, int);
-alias CloseCallback    = void function();
-alias RefreshCallback  = void function();
-alias FocusCallback    = void function(bool);
-alias IconifyCallback  = void function(bool);
+alias PositionCallback = void delegate(int, int);
+alias SizeCallback     = void delegate(int, int);
+alias FboSizeCallback  = void delegate(int, int);
+alias CloseCallback    = void delegate();
+alias RefreshCallback  = void delegate();
+alias FocusCallback    = void delegate(bool);
+alias IconifyCallback  = void delegate(bool);
 
 struct WindowCallbacks
 {

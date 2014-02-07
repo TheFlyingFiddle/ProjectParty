@@ -61,24 +61,24 @@ struct AchtungRenderer
 
 		buffer.draw(transform);
 
+		uint2 winSize = Game.window.fboSize;
 		blitToBackbuffer(fbo, 
-						 uint4(0,0, 600, 600),
-						 uint4(0,0, 600, 600),
+						 uint4(0,0, winSize.x - 100, winSize.y),
+						 uint4(0,0, winSize.x - 100, winSize.y),
 						 BlitMode.color,
 						 BlitFilter.nearest);
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 		
-		uint2 winSize = Game.window.size;
 		buffer.addFrame(snakeFrame,
-						float4(winSize.x * 0.8, 0, 2, winSize.y), 
+						float4(winSize.x - 100, 0, 2, winSize.y), 
 						Color.white, 
 						origin);
 
 		uint i = 0;
 		foreach(c, score; scores){
 			buffer.addText(font, score.to!string, //<-- This is a nono fix later.
-						   float2(winSize.x * 0.9, (winSize.y - font.size) - i* (winSize.y /  scores.length)),
+						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  scores.length)),
 							      c);
 			i++;
 		}

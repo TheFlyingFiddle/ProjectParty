@@ -1089,7 +1089,10 @@ class TestSDL {
 						   numberfour 	    = 1234.34E-234
 						   numberfive 	    = -1234
 						   numbersix 	    = 0xfF
-						   numberseven 	    = 0x10000"
+						   numberseven 	    = 0x
+						   
+						   
+						   00"
 						   );
 
 		assertEquals(obj.numberone 	 .as!int, 123456);

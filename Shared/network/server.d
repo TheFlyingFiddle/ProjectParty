@@ -59,7 +59,7 @@ struct Server
 		}
 	
 		listener.blocking = false;
-		listener.listen(1);	
+		listener.listen(200);	
 	}
 
 	void update(float elapsed)
@@ -226,18 +226,10 @@ struct Server
 		size_t index = 3;
 		msg.write!uint(listenerAddress.addr, &index);
 		msg.write!ushort(listenerAddress.port, &index);
-
-		logChnl.info("sending from port: ", listenerAddress.port);
 		
 		msg.write!uint(Socket.hostName.length, &index);
 		foreach(char c; Socket.hostName)
 			msg.write!(char)(c, &index);
-
-		logChnl.info("name of server: ", Socket.hostName);
-
-		logChnl.info("Sending logging data from : ",
-					  connector.localAddress, " to ",
-					  broadcastAddress);
 
 		connector.sendTo(msg, broadcastAddress);
 	}
@@ -248,7 +240,7 @@ struct Server
 		{
 			 Socket s = listener.accept();
 			 if(!s.isAlive()) return;
-			 logChnl.info("Connection was received");
+			 logChnl.info("Connection was received: ", activeConnections.length + pendingConnections.length);
 			 s.blocking = false;
 
 			 import std.bitmanip;

@@ -19,8 +19,8 @@ struct AchtungConfig
     float minInvis, maxInvis, minVis, maxVis;
     int snakeSize;
 	int winningScore;
-    uint[] colors;
-    uint2 mapDim;
+	uint maxSnakes;
+    uint2 maxResolution;
 }
 
 class AchtungGameState : IGameState
@@ -28,6 +28,8 @@ class AchtungGameState : IGameState
 	//Maby theses shoul do someting?
 	void init() { }
 	void handleInput() { }
+
+	Grid!bool masterMap;
 
 	Grid!bool map;
 	EventStream stream;
@@ -45,31 +47,42 @@ class AchtungGameState : IGameState
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 
-		snakes     = Table!(Snake)(allocator, config.colors.length);
-		timers     = Table!(float)(allocator, config.colors.length);
-		scores     = Table!(int  )(allocator, config.colors.length);
-		ids        = Table!(ulong)(allocator, config.colors.length);
-
-		map		  = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
-		renderer   = AchtungRenderer(allocator, cast(uint)ids.capacity, config.mapDim.x, config.mapDim.y);
-		stream     = EventStream(allocator, 1024);
+		snakes     = Table!(Snake)(allocator, config.maxSnakes);
+		timers     = Table!(float)(allocator, config.maxSnakes);
+		scores     = Table!(int  )(allocator, config.maxSnakes);
+		ids        = Table!(ulong)(allocator, config.maxSnakes);
+		masterMap  = Grid!bool(allocator, config.maxResolution.x, config.maxResolution.y);
+		renderer   = AchtungRenderer(allocator, cast(uint)ids.capacity, config.maxResolution.x, config.maxResolution.y);
+		stream     = EventStream(allocator, 1024 * 100);
 	}
 
 	void enter()
 	{
+		size_t c = Game.players.length;
 		foreach(i, player; Game.players)
-			ids[Color(config.colors[i])] = player.id;
+			ids[Color(uniform(0, uint.max) | 0xFF000000)] = player.id;
 
 		foreach(key, id; ids)
 			scores[key] = 0;
 
+		map = masterMap.subGrid(Game.window.fboSize.x - 100, Game.window.fboSize.y);
+
 		reset();
+
+		Game.window.onSizeChanged = &sizeChanged;
 	}
 
 	void exit()
 	{
-	
+		Game.window.onFboSizeChanged = null;
 	}
+
+	void sizeChanged(int x, int y)
+	{
+		map = masterMap.subGrid(x - 100, y);
+		reset();
+	}
+
 
 	void reset()
 	{
@@ -89,8 +102,8 @@ class AchtungGameState : IGameState
 		foreach(color, id; ids)
 		{
 			Snake snake;
-			snake.pos = float2(uniform(50, config.mapDim.x -50), uniform(50, config.mapDim.y -50));
-			snake.dir = (float2(config.mapDim/2) - snake.pos).normalized;
+			snake.pos = float2(uniform(50, map.width - 50), uniform(50, map.height - 50));
+			snake.dir = (float2(map.width / 2, map.height / 2) - snake.pos).normalized;
 			snake.visible = true;
 
 			snakes[color]   = snake;

@@ -101,6 +101,7 @@ auto connect(InternetAddress addr, ubyte[] buffer, ulong prevId = 0)
 
 	if(prevId != 0)
 		id = prevId;
+
 	size_t offset = 0;
 	buff.write!ubyte(0, &offset);
 	buff.write!ulong(id, &offset);

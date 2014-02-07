@@ -56,18 +56,15 @@ final class MainMenu : IGameState
 		sb.addText(font, title, pos);	
 		sb.addText(font, "Connected Players", layout.players, Color.green, float2(0.6, 0.6));
 
-		import logging;
-		auto logChnl = LogChannel("LOBBY");
-		
 		foreach(i, player; Game.players)
 		{
-			logChnl.info(player.id);
 			import std.conv;
-			sb.addText(font, "Player: " ~ player.id.to!string, float2(layout.players.x, layout.players.y - (i + 1) * layout.playerSpacing), 
-							 Color.green, float2(0.5, 0.5));
+			sb.addText(font, "Player: " ~ player.id.to!string, 
+						   float2(layout.players.x, layout.players.y - (i + 1) * layout.playerSpacing), 
+						   Color.green, float2(0.5, 0.5));
 		}
 
-		sb.addText(font, "Server: " ~ Game.server.listener.localAddress.toString,
+		sb.addText(font, "Server: " ~ Game.server.listener.localAddress.toString ~ " Players: " ~ Game.players.length.to!string,
 				   float2.zero);
 
 		sb.draw(proj);
