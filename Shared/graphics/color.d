@@ -5,7 +5,7 @@ import std.string : format;
 
 struct Color
 {
-	private uint packedValue;
+	uint packedValue;
 
 	@property float r() 
 	{

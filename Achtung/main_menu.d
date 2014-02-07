@@ -37,7 +37,7 @@ final class MainMenu : IGameState
 
 	void update()
 	{
-		if(Keyboard.isDown(Key.enter))
+		if(Keyboard.isDown(Key.enter) && Game.players.length > 0)
 			Game.gameStateMachine.transitionTo("Achtung");
 	}
 
@@ -66,6 +66,9 @@ final class MainMenu : IGameState
 			sb.addText(font, "Player: " ~ player.id.to!string, float2(layout.players.x, layout.players.y - (i + 1) * layout.playerSpacing), 
 							 Color.green, float2(0.5, 0.5));
 		}
+
+		sb.addText(font, "Server: " ~ Game.server.listener.localAddress.toString,
+				   float2.zero);
 
 		sb.draw(proj);
 	}

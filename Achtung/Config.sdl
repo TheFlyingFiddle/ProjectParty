@@ -4,38 +4,9 @@ mapDim =
 	y = 600
 }
 
-snakes =
-[
-	{
-		color = 0xFF00cc00
-		leftKey = 81
-		rightKey = 65
-	},
-	{
-		color = 0xFFcc0000
-		leftKey = 340
-		rightKey = 341
-	},
-	{
-		color = 0xFF4400cc
-		leftKey = 88
-		rightKey = 67
-	}
-]
-
-turnSpeed = 0.1
+colors = [ 0xFF45Fe32, 0xFF00cc00, 0xFFcc0000 , 0xFF4400cc ]
 snakeSize = 4
-title = |Achtung|
-resetKey = 82
 winningScore = 400_000
-
-hole = 
-{
-	min = 0.1
-	max = 0.4
-}
-
-seed = 0
 
 minInvis = 0.2
 maxInvis = 0.4

@@ -27,7 +27,9 @@ struct AchtungRenderer
 		font		  = FontManager.load("fonts\\Arial32.fnt");
 		snakeFrame = Frame(snakeTex);
 		
-		fbo    = createSimpleFBO(mapWidth, mapHeight);
+		//fbo    = createSimpleFBO(mapWidth, mapHeight);
+		fbo    = createMultisampleFBO(mapWidth, mapHeight, 32);
+
 	}
 
 	void clear(Color c)

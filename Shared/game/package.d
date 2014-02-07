@@ -35,8 +35,8 @@ struct Game
 	static GameStateFSM gameStateMachine;
 	static Window		window;
 	static List!Player  players;
+	static Server  server;
 
-	private static Server  server;
 	private static Router* router;
 
 	//Temporary?

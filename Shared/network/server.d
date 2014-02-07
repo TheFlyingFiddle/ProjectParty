@@ -238,6 +238,7 @@ struct Server
 		logChnl.info("Sending logging data from : ",
 					  connector.localAddress, " to ",
 					  broadcastAddress);
+
 		connector.sendTo(msg, broadcastAddress);
 	}
 

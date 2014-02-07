@@ -16,16 +16,11 @@ import collections.grid;
 
 struct AchtungConfig
 {
-    float minInvis, maxInvis, minVis, maxVis, turnSpeed;
+    float minInvis, maxInvis, minVis, maxVis;
     int snakeSize;
 	int winningScore;
-    SnakeProperties[] snakes;
+    uint[] colors;
     uint2 mapDim;
-}
-
-struct SnakeProperties
-{
-    uint color, leftKey, rightKey;
 }
 
 class AchtungGameState : IGameState
@@ -38,45 +33,37 @@ class AchtungGameState : IGameState
 	EventStream stream;
 	AchtungRenderer renderer;
 
-
+	
+	Table!(ulong) ids;
 	Table!(Snake) snakes;
-	Table!(SnakeControl) controls;
 	Table!(float) timers;
 	Table!(int)   scores;
 
-	//Temporary
-	ulong[100] ids;
-	
 	AchtungConfig config;
 
 	void init(Allocator)(ref Allocator allocator, string configPath)
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 
-		snakes     = Table!(Snake)(allocator, config.snakes.length);
-		timers     = Table!(float)(allocator, config.snakes.length);
-		scores     = Table!(int  )(allocator, config.snakes.length);
-		controls   = Table!(SnakeControl)(allocator, config.snakes.length);
-
-
-		foreach(i; 0 .. config.snakes.length)
-		{
-			scores[Color(config.snakes[i].color)] = 0;
-		}
+		snakes     = Table!(Snake)(allocator, config.colors.length);
+		timers     = Table!(float)(allocator, config.colors.length);
+		scores     = Table!(int  )(allocator, config.colors.length);
+		ids        = Table!(ulong)(allocator, config.colors.length);
 
 		map		  = Grid!bool(allocator,config.mapDim.x,config.mapDim.y);
-		renderer   = AchtungRenderer(allocator, cast(uint)config.snakes.length, config.mapDim.x, config.mapDim.y);
+		renderer   = AchtungRenderer(allocator, cast(uint)ids.capacity, config.mapDim.x, config.mapDim.y);
 		stream     = EventStream(allocator, 1024);
 	}
 
 	void enter()
 	{
 		foreach(i, player; Game.players)
-			ids[i] = player.id;
+			ids[Color(config.colors[i])] = player.id;
+
+		foreach(key, id; ids)
+			scores[key] = 0;
 
 		reset();
-		foreach(ref score; scores) 
-			score = 0;
 	}
 
 	void exit()
@@ -94,36 +81,31 @@ class AchtungGameState : IGameState
 	
 		snakes.clear();
 		timers.clear();
-		controls.clear();
 		stream.clear();
 
 		map.fill(0);
 		renderer.clear(Color(1,0,1,0));
 
-		foreach(i; 0 .. snakes.capacity)
+		foreach(color, id; ids)
 		{
-			Color key = config.snakes[i].color;
 			Snake snake;
 			snake.pos = float2(uniform(50, config.mapDim.x -50), uniform(50, config.mapDim.y -50));
 			snake.dir = (float2(config.mapDim/2) - snake.pos).normalized;
 			snake.visible = true;
 
-			snakes[key]  = snake;
-			controls[key] = SnakeControl(config.snakes[i].leftKey, 
-												  config.snakes[i].rightKey,
-												  ids[i]);
-			timers[key]   = 1.0f;
+			snakes[color]   = snake;
+			timers[color]   = 1.0f;
 		}
 	}
 
 	void update()
 	{
-		generateInputEvents(controls, stream);
-		handleInput(snakes, stream, config.turnSpeed);
+		generateInputEvents(ids, stream);
+		handleInput(snakes, stream);
 		updateTimers(timers, snakes, Time.delta);
 
 		moveSnakes(snakes, map, stream, config.snakeSize);
-		handleCollision(snakes, timers, scores, controls, map, stream);
+		handleCollision(snakes, timers, scores, map, stream);
 
 		stream.clear();
 	}
@@ -133,25 +115,20 @@ class AchtungGameState : IGameState
 		renderFrame(renderer, snakes, scores);
 	}
 
-	void generateInputEvents(ref Table!(SnakeControl) controls, ref EventStream stream) // <-- This is wierd and very much not ok.
+	void generateInputEvents(ref Table!(ulong) players, ref EventStream stream) // <-- This is wierd and very much not ok.
 	{
-		foreach(key, c; controls)
+		foreach(color, id; players)
 		{
-			if(Keyboard.isDown(cast(Key)c.leftKey))
-				stream.push(InputEvent(key,config.turnSpeed));
-			if(Keyboard.isDown(cast(Key)c.rightKey))
-				stream.push(InputEvent(key,-config.turnSpeed));
-
-			if(Phone.exists(c.id))
+			if(Phone.exists(id) && snakes.indexOf(color) != -1)
 			{
-				PhoneState state = Phone.state(c.id);
-				stream.push(InputEvent(key, state.accelerometer.y / 400));
+				PhoneState state = Phone.state(id);
+				stream.push(InputEvent(color, state.accelerometer.y / 400));
 			}	
 		}
 	}
 
 	void handleInput(ref Table!(Snake) snakes, 
-					 ref EventStream stream, float turn)
+					 ref EventStream stream)
 	{
 		foreach(event; stream.over!InputEvent)
 		{
@@ -258,8 +235,7 @@ class AchtungGameState : IGameState
 
 	void handleCollision(ref Table!Snake snakes,
 					     ref Table!float timers,
-					     ref Table!int scores,
-					     ref Table!SnakeControl controls, 
+					     ref Table!int scores, 
 					     ref Grid!bool map, 
 					     ref EventStream stream)
 	{
@@ -268,14 +244,12 @@ class AchtungGameState : IGameState
 			if(collision.numPixels < config.snakeSize / 2 + 1) continue;
 
 			timers.remove(collision.color);
-			controls.remove(collision.color);
 			snakes.remove(collision.color);
-			
 
-			auto toGet = snakes.capacity - snakes.length;
+			auto toGet = ids.length - snakes.length;
 			scores[collision.color] += toGet;
 			if(snakes.length == 1){
-				scores[snakes.keys[0]] += snakes.capacity;
+				scores[snakes.keys[0]] += ids.length;
 				reset();
 				return;
 			}
