@@ -69,8 +69,6 @@ void init(Allocator)(ref Allocator allocator)
 	ags.init(allocator, "Config.sdl");
 
 
-	//TEMPORARY
-	Game.gameStateMachine.addState(allocator.allocate!TestGameState, "TEST");
 
 
 
@@ -80,8 +78,11 @@ void init(Allocator)(ref Allocator allocator)
 	Game.gameStateMachine.addState(allocator.allocate!GameOverGameState, "GameOver");
 	
 	
-	//Game.gameStateMachine.transitionTo("MainMenu");
-	Game.gameStateMachine.transitionTo("TEST");
+	Game.gameStateMachine.transitionTo("MainMenu");
+
+	//TEMPORARY
+	//Game.gameStateMachine.addState(allocator.allocate!TestGameState, "TEST");
+	//Game.gameStateMachine.transitionTo("TEST");
 
 
 	//Should this be part of an initial graphics rutine (Maby in Renderer?)

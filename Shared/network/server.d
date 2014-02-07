@@ -22,7 +22,7 @@ struct Server
 	InternetAddress listenerAddress;
 	InternetAddress broadcastAddress;
 
-	float broadcastInterval = 1.0f;
+	float broadcastInterval = 1f;
 	float timeSinceLastBroadcast = 0;
 	float timeout = 5f;
 
@@ -226,12 +226,18 @@ struct Server
 		size_t index = 3;
 		msg.write!uint(listenerAddress.addr, &index);
 		msg.write!ushort(listenerAddress.port, &index);
+
+		logChnl.info("sending from port: ", listenerAddress.port);
 		
 		msg.write!uint(Socket.hostName.length, &index);
 		foreach(char c; Socket.hostName)
 			msg.write!(char)(c, &index);
 
+		logChnl.info("name of server: ", Socket.hostName);
 
+		logChnl.info("Sending logging data from : ",
+					  connector.localAddress, " to ",
+					  broadcastAddress);
 		connector.sendTo(msg, broadcastAddress);
 	}
 
