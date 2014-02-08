@@ -53,7 +53,7 @@ class AchtungGameState : IGameState
 		ids        = Table!(ulong)(allocator, config.maxSnakes);
 		masterMap  = Grid!bool(allocator, config.maxResolution.x, config.maxResolution.y);
 		renderer   = AchtungRenderer(allocator, cast(uint)ids.capacity, config.maxResolution.x, config.maxResolution.y);
-		stream     = EventStream(allocator, 1024 * 100);
+		stream     = EventStream(allocator, 1024 * 1000);
 	}
 
 	void enter()
@@ -135,7 +135,7 @@ class AchtungGameState : IGameState
 			if(Phone.exists(id) && snakes.indexOf(color) != -1)
 			{
 				PhoneState state = Phone.state(id);
-				stream.push(InputEvent(color, state.accelerometer.y / 400));
+				stream.push(InputEvent(color, state.accelerometer.y / 50));
 			}	
 		}
 	}
