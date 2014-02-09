@@ -3,7 +3,7 @@
 //Buffers 
 maxStates  = 10
 maxWindows = 1
-initialRenderSize = 100_00
+initialRenderSize = 100_000
 
 //Content buffer sizes.
 contentConfig =
@@ -30,7 +30,7 @@ windowConfig =
 
 serverConfig = 
 {
-	maxConnections = 300
+	maxConnections = 1000
 	broadcastPort  = 7331
 	maxMessageSize = 1024
 }

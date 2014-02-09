@@ -140,19 +140,6 @@ struct Server
 		acceptIncoming();
 		processPendingConnections(elapsed);
 		processMessages(elapsed);
-
-
-		foreach(i; 0 .. partialMessages.length  - 1)
-		{
-			foreach(j; i + 1.. partialMessages.length)
-			{
-				if(partialMessages[i].id == partialMessages[j].id &&
-				   partialMessages[i].id != 0)
-				{
-					logChnl.info("Partial Messages are equal ffs ", partialMessages[i].id);
-				}
-			}
-		}
 	}
 
 	void processPendingConnections(float elapsed)
@@ -187,7 +174,7 @@ struct Server
 			{
 				logChnl.info("onConnect :  ", id);
 				pendingConnections.removeAt(i);
-				activateConnection(con, false);
+				activateConnection(con.socket, id, false);
 			}
 			else 
 			{
@@ -198,7 +185,7 @@ struct Server
 
 					lostConnections.removeAt(index);
 					pendingConnections.removeAt(i);			
-					activateConnection(con, true);		
+					activateConnection(con.socket, id,  true);		
 				} 
 				else 
 				{
@@ -210,11 +197,12 @@ struct Server
 						closeConnection(activeConnections, index2, true, false);
 
 						pendingConnections.removeAt(i);
-						activateConnection(con, true);		
+						activateConnection(con.socket, id,  true);		
 					}
 					//If we got here an unkown assailant is trying to recconect.
 					else 
 					{
+		
 						logChnl.info("An invalid reconnection request was found! :  ", id);
 						closeConnection(pendingConnections, i, false, false);
 					}
@@ -329,7 +317,7 @@ struct Server
 				partialMessages[index].data[0 .. tmp.length] = tmp;
 				partialMessages[index].length = tmp.length;
 
-				logChnl.info("Got a partial message!");
+				logChnl.info("Got a one byte partial message!");
 				break;
 
 			}
@@ -376,23 +364,23 @@ struct Server
 			 bBuff.write!ulong(number, 0);
 			 s.send(bBuff);
 
-			 auto addr = s.remoteAddress();
-			 logChnl.info("UUID sent: ", number, "to endpoint ", addr);
+			 //auto addr = s.remoteAddress();
+			 //logChnl.info("UUID sent: ", number, "to endpoint ", addr);
 			 pendingConnections ~= Connection(s, 0.0f, number);
 		}	
 	}
 
 
-	void activateConnection(Connection connection, bool isReconnect)
+	void activateConnection(Socket socket, ulong id, bool isReconnect)
 	{
-		activeConnections ~= connection;
+		activeConnections ~= Connection(socket, 0.0f, id);
 
 		auto index = partialMessages.countUntil!(x => x.id == 0);
-		partialMessages[index].id = connection.id;
+		partialMessages[index].id = id;
 
 		auto fun = isReconnect ? onReconnect : onConnect;
 		if(fun)
-			fun(connection.id);
+			fun(id);
 	}
 
 	void closeConnection(ref List!Connection connections, 

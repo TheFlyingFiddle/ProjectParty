@@ -4,7 +4,7 @@
   <obj>0</obj>
   <link>0</link>
   <lib>1</lib>
-  <subsystem>0</subsystem>
+  <subsystem>1</subsystem>
   <multiobj>0</multiobj>
   <singleFileCompilation>0</singleFileCompilation>
   <oneobj>0</oneobj>
@@ -89,7 +89,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions>-unittest</additionalOptions>
+  <additionalOptions>-unittest -main</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
