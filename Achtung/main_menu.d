@@ -47,7 +47,6 @@ final class MainMenu : IGameState
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);
 		gl.clear(ClearFlags.color);
-		mat4 proj = mat4.CreateOrthographic(0,s.x,s.y,0,1,-1);
 
 
 		auto size = font.messure(title);
@@ -61,14 +60,14 @@ final class MainMenu : IGameState
 
 		foreach(i, player; Game.players)
 		{
-			sb.addText(font, text(buffer, "Player: ", player.id.to!string), 
+			sb.addText(font, text(buffer, "Player: ", player.id), 
 						   float2(layout.players.x, layout.players.y - (i + 1) * layout.playerSpacing), 
 						   Color.green, float2(0.5, 0.5));
 		}
 
 		sb.addText(font, text(buffer, "Server: ", Game.server.listenerAddress, 
-							  " Players: ", Game.players.length), float2.zero);
+							  " Players: ", Game.players.length), float2(100, 100));
 
-		sb.draw(proj);
+		sb.draw();
 	}
 }

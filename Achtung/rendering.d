@@ -28,7 +28,7 @@ struct AchtungRenderer
 		snakeFrame = Frame(snakeTex);
 		
 		//fbo    = createSimpleFBO(mapWidth, mapHeight);
-		fbo    = createMultisampleFBO(mapWidth, mapHeight, 32);
+		fbo    = createMultisampleFBO(mapWidth, mapHeight, 4);
 
 	}
 
@@ -40,8 +40,7 @@ struct AchtungRenderer
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 	}
 
-	void draw(ref mat4 transform, 
-			  ref Table!Snake snakes, 
+	void draw(ref Table!Snake snakes, 
 			  ref Table!int scores,
 			  float size)
 	{
@@ -59,7 +58,7 @@ struct AchtungRenderer
 					        c, origin);
 		}
 
-		buffer.draw(transform);
+		buffer.draw();
 
 		uint2 winSize = Game.window.fboSize;
 		blitToBackbuffer(fbo, 
@@ -86,6 +85,6 @@ struct AchtungRenderer
 							      c);
 			i++;
 		}
-		buffer.draw(transform);
+		buffer.draw();
 	}
 }

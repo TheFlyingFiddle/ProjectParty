@@ -69,11 +69,10 @@ void init(Allocator)(ref Allocator allocator)
 	Game.gameStateMachine.addState(allocator.allocate!GameOverGameState, "GameOver");
 	Game.gameStateMachine.transitionTo("MainMenu");
 
-	//TEMPORARY
-	//Game.gameStateMachine.addState(allocator.allocate!TestGameState, "TEST");
+
+	//Game.gameStateMachine.addState(allocator.allocate!TestGameState(), "TEST");
 	//Game.gameStateMachine.transitionTo("TEST");
 
-	//Should this be part of an initial graphics rutine (Maby in Renderer?)
 	import graphics; 
 	gl.enable(Capability.blend);
 	gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);

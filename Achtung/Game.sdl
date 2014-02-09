@@ -3,7 +3,7 @@
 //Buffers 
 maxStates  = 10
 maxWindows = 1
-initialRenderSize = 2048
+initialRenderSize = 100_00
 
 //Content buffer sizes.
 contentConfig =

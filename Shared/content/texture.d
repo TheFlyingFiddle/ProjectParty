@@ -31,6 +31,11 @@ struct TextureID
 	{
 		return TextureManager.lookup(this);
 	}
+
+	static TextureID invalid()
+	{
+		return TextureID(uint.max);
+	}
 }
 
 package struct TextureManager

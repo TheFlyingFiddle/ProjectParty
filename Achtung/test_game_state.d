@@ -8,8 +8,8 @@ final class TestGameState : IGameState
 {
 	FontID font;
 	Frame frame;
-	Renderer* renderer;
 
+	float2[10_000] pos;
 
 	void enter() 
 	{
@@ -21,8 +21,12 @@ final class TestGameState : IGameState
 		import game.debuging;
 		init_debugging("textures\\pixel.png");
 
-		//Max num batches. (This is actually good since every batch is slow)
-		renderer = GC.it.allocate!Renderer(GC.it, 100_000, 100_000);
+		foreach(i; 0 .. 10_000)
+		{
+			pos[i] = float2(uniform(50f, Game.window.size.x - 50.0f),
+							uniform(50f, Game.window.size.y - 50.0f));
+		}
+
 	}
 
 	void exit()  { }
@@ -32,13 +36,11 @@ final class TestGameState : IGameState
 	
 	void render() 
 	{
+		auto renderer = Game.renderer;
+
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);
 		gl.clear(ClearFlags.color);
-		mat4 proj = mat4.CreateOrthographic(0,s.x,s.y,0,1,-1);
-
-		renderer.start();
-
 
 		float x = 300;
 		float y = 300;
@@ -46,7 +48,7 @@ final class TestGameState : IGameState
 
 		import game.debuging;
 
-		//float2 size = font.messure("This \nis a long sentence!");
+		float2 size = font.messure("This \nis a long sentence!");
 		//foreach(i; 0 .. 6)
 		//{
 		//    renderer.addText(font, "This \nis a long sentence!", float2(x,y),
@@ -82,19 +84,14 @@ final class TestGameState : IGameState
 		//    renderer.addText(font, items, float2(x,y));
 		//}
 
-		//float x = uniform(50f, Game.window.size.x - 50.0f);
-		//float y = uniform(50f, Game.window.size.y - 50.0f);
-		//float sc = uniform(1, 2);
-		//Color color = Color(uniform(0, 0xFFFFFF) | 0xFF000000);
-		//float r = uniform(0.0f, TAU);
-		//
-		//foreach(i; 0 .. 100_000)
-		//{
-		//    renderer.addFrame(frame, float2(x, y), color, float2(sc,sc), float2.zero, r);
-		//}
-
-
-		renderer.end(proj);
-
+		float sc = uniform(1, 2);
+		Color color = Color(uniform(0, 0xFFFFFF) | 0xFF000000);
+		r = uniform(0.0f, TAU);
+		foreach(i; 0 .. 100_000)
+		{
+			float2 p =  float2(uniform(50f, Game.window.size.x - 50.0f),
+							uniform(50f, Game.window.size.y - 50.0f));
+			renderer.addFrame(frame, p, color);
+		}
 	}
 }

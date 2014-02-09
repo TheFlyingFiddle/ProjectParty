@@ -31,6 +31,12 @@ struct FontID
 	{
 		return FontManager.lookup(this);
 	}
+
+	static FontID invalid()
+	{
+		return FontID(uint.max);
+	}
+
 }
 
 package struct FontManager 

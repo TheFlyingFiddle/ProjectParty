@@ -67,7 +67,7 @@ struct Game
 		gameStateMachine = GameStateFSM(allocator, config.maxStates);
 		window			 = WindowManager.create(config.windowConfig);
 
-		renderer     = allocator.allocate!Renderer(allocator, 100, config.initialRenderSize);
+		renderer     = allocator.allocate!Renderer(allocator, config.initialRenderSize);
 	}
 
 	static void shutdown()
@@ -115,13 +115,11 @@ struct Game
 
 			{
 				auto p = StackProfile("Render");
-				renderer.start();
-
-				gameStateMachine.render();
-
 				import math;
 				mat4 proj = mat4.CreateOrthographic(0,window.fboSize.x,window.fboSize.y,0,1,-1);
-				renderer.end(proj);
+				renderer.start(proj);
+				gameStateMachine.render();
+				renderer.end();
 			}
 
 			window.swapBuffer();
