@@ -73,7 +73,7 @@ private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, 
 	char[1024] buffer = void;
 	auto list = List!(char)(buffer);
 	auto appender = &list;
-	formattedWrite(appender, f, t);
+//	formattedWrite(appender, f, t);
 
-	logger(channel, verbosity, appender.array, file, line);
+//	logger(channel, verbosity, appender.array, file, line);
 }

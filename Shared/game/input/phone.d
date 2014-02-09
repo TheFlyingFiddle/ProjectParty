@@ -64,12 +64,19 @@ void onMessage(ulong id, ubyte[] message)
 	auto index = phones.countUntil!(x => x.id == id);
 	if(index == -1) return;
 
+	if(message.length != 13) {
+		int i = 3;
+		return;
+	}
+
 	//Accelereometer data.
 	if(message[0] == 1) //Need to make this more formal!
 	{
 		message = message[1 .. $];
+		
+		//We got a partial message and we do not care
 		auto f = float3(message.read!float, message.read!float, message.read!float);
 		phones[index].phoneState.accelerometer = f;
-		logChnl.info("Accelerometer data changed for ", phones[index].id, " to", f);
+		//logChnl.info("Accelerometer data changed for ", phones[index].id, " to", f);
 	}
 }

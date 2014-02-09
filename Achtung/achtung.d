@@ -274,7 +274,6 @@ class AchtungGameState : IGameState
 					 ref Table!int scores)
 	{
 		gl.clear(ClearFlags.color);
-		
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);
 		mat4 proj = mat4.CreateOrthographic(0,s.x,s.y,0,1,-1);

@@ -33,7 +33,7 @@ struct TextureID
 	}
 }
 
-struct TextureManager
+package struct TextureManager
 {
 	alias Table = ResourceTable!(Texture2D, graphics.texture.obliterate!Texture2D); 
 	private static Table resources;
@@ -53,6 +53,12 @@ struct TextureManager
 		 FileExtention.tiff];
 
 		ContentReloader.registerReloader(exts, &auto_reload);
+	}
+
+	static void shutdown()
+	{
+		foreach(ref resource; resources)
+			resource.obliterate();
 	}
 
 	void auto_reload(const(char)[] path)

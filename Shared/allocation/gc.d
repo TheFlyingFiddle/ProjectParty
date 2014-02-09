@@ -25,7 +25,7 @@ struct GC
 		size_t* ptr = cast(size_t*)allocated;
 		*(--ptr) = addr;
 
-		logChnl.info(bytes + aligner," bytes allocated by GCAllocator at " , cast(void*)addr);
+		logChnl.info(bytes + aligner," bytes allocated by GC.");
 		return allocated[0 .. bytes];
 	}	
 
@@ -39,7 +39,7 @@ struct GC
 		void* toFree = cast(void*)addr;
 		core.memory.GC.free(toFree);
 
-		logChnl.info(cast(size_t)memory.ptr - addr + memory.length, " bytes deallocated by GCAllocator at ", cast(void*)addr);
+		logChnl.info(cast(size_t)memory.ptr - addr + memory.length, " bytes deallocated by GC.");
 	}
 
 	__gshared static GC it;

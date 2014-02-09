@@ -63,3 +63,29 @@ private uint id(const(char[]) s,  uint hash)
 	else enforce(str == s, "Hash collision detected! between " ~ s ~ " and " ~ str ~ " with hash " ~ hash.to!string);
 	return hash;
 }
+
+const (char)[] text(Args...)(char[] buffer, Args args)
+{
+	import std.format, collections.list;
+	template staticFormatString(size_t u)
+	{
+		static if(u == 1) enum staticFormatString = "%s";
+		else enum staticFormatString = staticFormatString!(u - 1) ~ "%s";
+	}
+
+
+	auto appender = List!(char)(buffer);
+	formattedWrite(&appender, staticFormatString!(Args.length), args);
+
+	return appender.array;
+}
+
+const (char)[] format(Args...)(char[] buffer, string s, Args args)
+{
+	import std.format, collections.list;
+
+	List!char appender = List!char(buffer);
+	formattedWrite(&appender, s, args);
+
+	return appender.array;
+}

@@ -1,0 +1,36 @@
+//Achtung master configuration file.
+
+//Buffers 
+maxStates  = 10
+maxWindows = 1
+initialRenderSize = 2048
+
+//Content buffer sizes.
+contentConfig =
+{
+	maxTrackingResources = 110
+	maxReloaders         = 10
+
+	maxTextures    = 100
+	maxFonts       = 10
+}
+
+//Windows and whatnot.
+windowConfig = 
+{
+	size = 
+	{
+		x=800 
+		y=600
+	}
+
+	fullScreen = false
+	blocking   = false
+}
+
+serverConfig = 
+{
+	maxConnections = 300
+	broadcastPort  = 7331
+	maxMessageSize = 1024
+}

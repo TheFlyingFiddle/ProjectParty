@@ -379,6 +379,7 @@
  <Folder name="Shared">
   <Folder name="allocation">
    <File path="allocation\common.d" />
+   <File path="allocation\freelist.d" />
    <File path="allocation\gc.d" />
    <File path="allocation\native.d" />
    <File path="allocation\package.d" />
@@ -414,6 +415,7 @@
     <File path="game\input\phone.d" />
    </Folder>
    <File path="game\debuging.d" />
+   <File path="game\game.d" />
    <File path="game\package.d" />
    <File path="game\rendering.d" />
    <File path="game\state.d" />

@@ -72,6 +72,18 @@ struct Renderer
 		vao.bindAttributesOfType!Vertex(program);
 	}
 
+	~this()
+	{
+		program.obliterate();
+		vbo.obliterate();
+		vao.obliterate();
+	}
+
+	void addItem(TextureID id, Vertex vertex)
+	{
+		addItem(id, vertex);
+	}
+
 	void addItem(TextureID id, ref Vertex vertex)
 	{
 		if(elements == bufferSize)
@@ -172,13 +184,13 @@ struct Renderer
 
 	private void draw_impl(ref mat4 transform, Program* program)
 	{
+		vbo.unmapBuffer();
 		if(elements == 0) return;
 
 		program = program == null ? &this.program : program;
 
 		gl.bindBuffer(vbo.target, vbo.glName);
-		vbo.unmapBuffer();
-
+		gl.useProgram(program.glName);
 		program.uniform["transform"] = transform;
 
 		gl.activeTexture(TextureUnit.zero);
@@ -203,7 +215,7 @@ struct Renderer
 	@disable this(this);
 }
 
-void addFrame(ref Renderer renderer,
+void addFrame(Renderer* renderer,
 			  ref Frame frame,
 			  float2 pos,
 			  Color color,
@@ -228,6 +240,22 @@ void addFrame(ref Renderer renderer,
 	renderer.addItem(frame.texture, vertex);
 }
 
+
+void addFrame(Renderer* renderer,
+			  Frame frame, float4 rect,
+			  Color color = Color.white,
+			  float2 origin = float2.zero,
+			  float rotation = 0,
+			  bool mirror = false)
+{
+	float4 coords = frame.coords;
+	if(mirror) {
+		swap(coords.x, coords.z);
+	}
+
+	renderer.addItem(frame.texture, 
+					 Vertex(rect, coords, origin, color, rotation));
+}
 
 uint addText(T,Sink)(FontID fontID,
 					  const (T)[] text, 
@@ -292,7 +320,7 @@ uint addText(T,Sink)(FontID fontID,
 	return count;
 }
 
-void addText(ref Renderer renderer,
+void addText(Renderer* renderer,
 			 FontID fontID,
 			 const (char)[] text, 
 			 float2 pos,
@@ -323,7 +351,7 @@ void addText(ref Renderer renderer,
 		renderer.toRender ~= renderer.active;
 	}
 	
-	RenderRange range = RenderRange(&renderer); // <-- Must have a reference here.
+	RenderRange range = RenderRange(renderer); // <-- Must have a reference here.
 	auto count = addText(fontID, text, pos, color, 
 						 scale, origin, rotation, range);
 

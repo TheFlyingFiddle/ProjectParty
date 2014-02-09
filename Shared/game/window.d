@@ -32,9 +32,9 @@ struct WindowManager
 	static Window create(WindowConfig config)
 	{	
 		if(config.fullScreen) 
-			return create(config.size, config.title, Monitor.primary, config.blocking);
+			return create(config.size, null, Monitor.primary, config.blocking);
 		else
-			return create(config.size, config.title, config.blocking);
+			return create(config.size, null, config.blocking);
 	}
 
 	static Window create(uint2 size, const(char)[] title, bool blocking)
@@ -226,7 +226,7 @@ struct WindowConfig
 	uint2 size;
 	bool fullScreen;
 	bool blocking;
-	string title;
+	//@Optional("Project Party") string title;
 }
 
 

@@ -49,7 +49,7 @@ struct Program
 		this.link(allocator, shaders);
 	}
 
-	void destroy() 
+	void obliterate() 
 	{
 		gl.deleteProgram(this.glName);
 	}

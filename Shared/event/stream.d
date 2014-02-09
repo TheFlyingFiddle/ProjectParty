@@ -28,8 +28,6 @@ struct EventStreamN(Integer) if(isIntegral!Integer)
 		blob.put!Integer(typeID);
 		blob.put!Integer(alignedOffset);
 		blob.putAligned!(T, alignment)(item);
-
-		chan.info(cast(uint[])blob.buffer[0 .. 20]);
 	}
 
 	void clear()
@@ -65,11 +63,13 @@ struct EventRange(T, Integer)
 	void popFront()
 	{
 		bool noEvent = true;
+		enum typeID = typeHash!(T);
+
 		while(!blob.empty)
 		{
 			auto id  = blob.read!Integer;
 			auto len = blob.read!Integer;
-			if(id == typeHash!(T)) {
+			if(id == typeID) {
 				front = blob.readAligned!(T, EventStreamN!(Integer).alignment)();		
 				noEvent = false;
 				break;

@@ -48,7 +48,7 @@ struct AchtungRenderer
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
 
 		
-		auto buffer = Game.spriteBuffer;
+		auto buffer = Game.renderer;
 
 		auto origin = float2(size / 2, size / 2);
 		foreach(key, snake; snakes) {
@@ -75,9 +75,13 @@ struct AchtungRenderer
 						Color.white, 
 						origin);
 
+
+		import util.strings;
+		char[32] scoreBuffer = void;
+
 		uint i = 0;
 		foreach(c, score; scores){
-			buffer.addText(font, score.to!string, //<-- This is a nono fix later.
+			buffer.addText(font, text(scoreBuffer, score),
 						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  scores.length)),
 							      c);
 			i++;

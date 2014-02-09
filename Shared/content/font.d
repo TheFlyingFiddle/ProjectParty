@@ -33,7 +33,7 @@ struct FontID
 	}
 }
 
-struct FontManager 
+package struct FontManager 
 {
 	alias Table = ResourceTable!(Font, obliterateFont);
 	private static Table resources;
@@ -45,6 +45,13 @@ struct FontManager
 		fontAllocator = fAllocator;
 
 		ContentReloader.registerReloader(FileExtention.fnt, &auto_reload);
+	}
+
+	static void shutdown()
+	{
+		foreach(ref resource; resources)
+			obliterateFont(resource);
+		fontAllocator = null;
 	}
 
 	static void auto_reload(const(char)[] path)

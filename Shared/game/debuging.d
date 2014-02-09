@@ -17,7 +17,7 @@ void init_debugging(string pixelPath)
 	pixel = Frame(pixelTex);
 }	
 
-void addRect(ref Renderer renderer, 
+void addRect(Renderer* renderer, 
 			 float4 rect, 
 			 Color color = Color.white,
 			 float rotation = 0)
@@ -30,7 +30,7 @@ void addRect(ref Renderer renderer,
 					  rotation);
 }
 
-void addRectOutline(ref Renderer renderer,
+void addRectOutline(Renderer* renderer,
 					float4 rect,
 					Color color = Color.white,
 					float width = 1,
@@ -51,7 +51,7 @@ void addRectOutline(ref Renderer renderer,
 	renderer.addLine(topLeft, bottomLeft, color, width);
 }
 
-void addLine(ref Renderer renderer,
+void addLine(Renderer* renderer,
 			 float2 start, 
 			 float2 end, 
 			 Color color = Color.white,
@@ -67,7 +67,7 @@ void addLine(ref Renderer renderer,
 					  float2(0, width / 2), angle);
 }
 
-void addCircleOutline(ref Renderer renderer,
+void addCircleOutline(Renderer* renderer,
 					  float2 center,
 					  float radius,
 					  Color color = Color.white,

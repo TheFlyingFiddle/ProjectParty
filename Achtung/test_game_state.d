@@ -8,7 +8,7 @@ final class TestGameState : IGameState
 {
 	FontID font;
 	Frame frame;
-	Renderer renderer;
+	Renderer* renderer;
 
 
 	void enter() 
@@ -22,7 +22,7 @@ final class TestGameState : IGameState
 		init_debugging("textures\\pixel.png");
 
 		//Max num batches. (This is actually good since every batch is slow)
-		renderer = Renderer(GC.it, 100_000, 100_000);
+		renderer = GC.it.allocate!Renderer(GC.it, 100_000, 100_000);
 	}
 
 	void exit()  { }
