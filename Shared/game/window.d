@@ -338,6 +338,8 @@ struct Window
 	private GLFWwindow* _windowHandle;
 	private bool blocking;
 
+
+
 	@property void onPositionChanged(PositionCallback cb)
 	{
 		import std.algorithm;

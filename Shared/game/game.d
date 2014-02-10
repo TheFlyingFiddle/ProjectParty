@@ -45,27 +45,28 @@ struct GameConfig
 }
 
 
-struct Game
+static Game_Impl* Game;
+
+struct Game_Impl
 {
-	static Window		window;
-	static List!Player  players;
+	List!Player  players;
 
-	private static Router* router;
+	GameStateFSM*	gameStateMachine;
+	Content*		content;
+	Renderer*		renderer;
+	Server*			server;
+	Router*			router;
+	Window			window;
 
-	static GameStateFSM* gameStateMachine;
-	static Content*    content;
-	static Renderer*   renderer;
-	static Server*     server;
-
-	static void init(A)(ref A allocator, GameConfig config)
+	this(A)(ref A allocator, GameConfig config)
 	{
 		content = allocator.allocate!Content(allocator, config.contentConfig);
 		server  = allocator.allocate!Server(allocator, config.serverConfig);
 		router  = allocator.allocate!Router(allocator, *server);
 
-		router.connectionHandlers    ~= (x) => onConnect(x);
-		router.reconnectionHandlers  ~= (x) => onConnect(x);
-		router.disconnectionHandlers ~= (x) => onDisconnect(x);
+		router.connectionHandlers    ~= &onConnect;
+		router.reconnectionHandlers  ~= &onConnect;
+		router.disconnectionHandlers ~= &onDisconnect;
 
 
 		players = List!Player(allocator, config.serverConfig.maxConnections);
@@ -75,26 +76,30 @@ struct Game
 
 
 		WindowManager.init(allocator, config.maxWindows);
-		window			 = WindowManager.create(config.windowConfig);
+		
+		//The window api is diffrent from the rest since it was written when i was drunk :P
+		//It sure feels like that anyways :P 
+		window		 = WindowManager.create(config.windowConfig);
 		renderer     = allocator.allocate!Renderer(allocator, config.initialRenderSize);
 	}
 
-	static void shutdown()
+	~this()
 	{
 		window.obliterate();
 	}
 
-	static void onConnect(ulong id)
+
+	void onConnect(ulong id)
 	{
 		players ~= Player(id);
 	}
 
-	static void onDisconnect(ulong id)
+	void onDisconnect(ulong id)
 	{
 		players.remove(Player(id));
 	}
 
-	static void run(Timestep timestep, Duration target = 0.msecs)
+	void run(Timestep timestep, Duration target = 0.msecs)
 	{
 		StopWatch watch;
 		watch.start();

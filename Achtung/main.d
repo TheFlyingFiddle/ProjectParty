@@ -56,15 +56,12 @@ void main()
 
 }
 
-
-
 void init(A)(ref A allocator)
 {
 	auto config = fromSDLFile!GameConfig(GC.it, "Game.sdl");
-	Game.init(allocator, config); //allocator.allocate!Game(allocator, config); 
+	game.Game = allocator.allocate!Game_Impl(allocator, config);
 
 	auto fsm = Game.gameStateMachine;
-
 	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl"), "Achtung");
 	fsm.addState(allocator.allocate!MainMenu("Achtung Main Menu"), "MainMenu");
 	fsm.addState(allocator.allocate!GameOverGameState, "Game Over");
@@ -78,16 +75,12 @@ void init(A)(ref A allocator)
 
 void run()
 {
-	auto allocator = RegionAllocator(GC.cit, 1024 * 1024 * 50, 8);
-	{
-		auto ss        = ScopeStack(allocator);
+	auto allocator = RegionAllocator(GC.cit, 1024 * 1024 * 50, 8);	
+	auto ss        = ScopeStack(allocator);
 
-		init(ss);
-
-		logChnl.info("Total Allocated is: ", allocator.bytesAllocated / 1024 , "kb");
-
-		import std.datetime;
-		Game.run(Timestep.fixed, 16.msecs);
-	}
-	Game.shutdown();
+	init(ss);
+	logChnl.info("Total Allocated is: ", allocator.bytesAllocated / 1024 , "kb");
+	import std.datetime;
+	Game.run(Timestep.fixed, 16.msecs);
+	
 }
