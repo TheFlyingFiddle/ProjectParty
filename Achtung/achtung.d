@@ -263,13 +263,30 @@ class AchtungGameState : IGameState
 			snakes.remove(collision.color);
 
 			auto toGet = ids.length - snakes.length;
+
 			scores[collision.color] += toGet;
+			
+			sendDeathMessage(collision.color);
 			if(snakes.length == 1){
 				scores[snakes.keys[0]] += ids.length;
 				reset();
 				return;
 			}
 		}
+	}
+
+	void sendDeathMessage(Color color)
+	{
+		import std.bitmanip;
+
+		ubyte[32] buff = void; auto buffer = buff[0 .. 32];
+		size_t offset = 0;
+
+		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
+		buffer.write!ubyte(2, &offset);
+		buffer.write!ushort(cast(ushort)scores[color], &offset);
+
+		Game.server.send(ids[color], buffer[0 .. offset]);
 	}
 
 	void renderFrame(ref AchtungRenderer buffer,

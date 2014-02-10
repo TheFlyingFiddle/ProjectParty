@@ -305,6 +305,9 @@ struct Server
 			if(buffer.length >= 2) 
 			{
 				auto len = buffer.read!ushort();
+				if(len > 1024) 
+					return;
+
 				if(len >= buffer.length)
 				{
 					auto index = partialMessages.countUntil!(x => x.id == key);

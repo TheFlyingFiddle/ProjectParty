@@ -51,9 +51,10 @@ struct ScopeStack
 		logChnl.info("Allocated RAII Object: Type = ", T.stringof);
 
 		void[] mem = _allocator.allocateRaw(T.sizeof + Finalizer.sizeof, T.alignof);
-		auto obj = emplace!(T)(mem[Finalizer.sizeof .. $], args);
 		auto fin = emplace!(Finalizer)(mem, &destructor!T, _chain);
 		_chain = fin;
+
+		auto obj = emplace!(T)(mem[Finalizer.sizeof .. $], args);
 		return obj;
 	}
 

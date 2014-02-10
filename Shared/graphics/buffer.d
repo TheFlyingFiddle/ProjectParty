@@ -42,11 +42,6 @@ T[] getBufferSubData(T,Buffer)(ref Buffer buffer, uint offset, uint size, T[] ou
 
 T* mapRange(T, Buffer)(ref Buffer _buffer, uint offset, uint length, BufferRangeAccess access)
 {
-	import logging;
-	auto logChnl = LogChannel("BUFFER");
-	logChnl.info("Offset: ", offset, "Length: ",  length,
-				 "Size: ", _buffer.size, "TSize: ", T.sizeof);
-
 	auto ptr = gl.mapBufferRange(Buffer.target, offset * T.sizeof, length * T.sizeof, access);
 	if(!ptr) {
 		throw new Exception("Mapping of buffer failed!");

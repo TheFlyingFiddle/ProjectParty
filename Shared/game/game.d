@@ -79,8 +79,8 @@ struct Game_Impl
 
 
 		WindowManager.init(allocator, config.maxWindows);
-		
 		window		 = WindowManager.create(config.windowConfig);
+
 		renderer     = allocator.allocate!Renderer(allocator, config.initialRenderSize);
 	}
 
