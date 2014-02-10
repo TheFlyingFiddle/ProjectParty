@@ -196,8 +196,9 @@ class AchtungGameState : IGameState
 				{
 					uint2 origin = uint2(size / 2, size / 2);
 					foreach(row; 0 .. size)
-						foreach(column; 0 .. size)
+						foreach(column; 0 .. size) {			
 							map[newPos - origin + uint2(column, row)] = true;
+						}
 				}
 			}
 		}
@@ -214,7 +215,7 @@ class AchtungGameState : IGameState
 				uint2 cell = newPos - origin + uint2(column, row);
 				if(!inOld(cell, oldPos, size))
 				{
-					if(checkCollision(cell, map)) count++;
+					count += checkCollision(cell, map);
 				}
 			}
 		}
@@ -235,15 +236,18 @@ class AchtungGameState : IGameState
 		return false;
 	}
 
-	bool checkCollision(uint2 cell, ref Grid!bool map)
+	uint checkCollision(uint2 cell, ref Grid!bool map)
 	{
-		return hitWall(cell, map) || map[cell] == true;
+		if(hitWall(cell, map))
+			return 1000; //Arbitraty large number.
+		else 
+			return cast(uint)(map[cell] == true);
 	}
 
 	bool hitWall(uint2 position, ref Grid!bool map)
 	{
 		return position.x >= map.width || 
-			position.y >= map.height;
+			   position.y >= map.height; 
 	}
 
 	void handleCollision(ref Table!Snake snakes,

@@ -38,7 +38,9 @@ struct TextureID
 	}
 }
 
-package struct TextureManager
+package: 
+
+struct TextureManager
 {
 	alias Table = ResourceTable!(Texture2D, graphics.texture.obliterate!Texture2D); 
 	private static Table resources;

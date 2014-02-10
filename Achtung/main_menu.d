@@ -65,7 +65,7 @@ final class MainMenu : IGameState
 						   Color.green, float2(0.5, 0.5));
 		}
 
-		sb.addText(font, text(buffer, "Server: ", Game.server.listenerAddress, 
+		sb.addText(font, text(buffer, "Server: ", Game.server.listenerString, 
 							  " Players: ", Game.players.length), float2(100, 100));
 
 		sb.draw();

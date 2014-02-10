@@ -23,8 +23,8 @@ struct AchtungRenderer
 					uint mapWidth,
 					uint mapHeight)
 	{
-		auto snakeTex = TextureManager.load("textures\\pixel.png");
-		font		  = FontManager.load("fonts\\Arial32.fnt");
+		auto snakeTex = Game.content.loadTexture("textures\\pixel.png");
+		font		  = Game.content.loadFont("fonts\\Arial32.fnt");
 		snakeFrame = Frame(snakeTex);
 		
 		//fbo    = createSimpleFBO(mapWidth, mapHeight);

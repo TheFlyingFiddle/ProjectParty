@@ -23,7 +23,10 @@ struct Grid(T)
 
 	ref T opIndex(uint2 cell)
 	{
-		assert(cell.x < width && cell.y < height);
+		import std.conv;
+		assert(cell.x < width && cell.y < height, 
+			   text("OpIndex[", cell.x, ",", cell.y, "]
+			   called on grid with: W: ", width, " H: ", height));
 		return buffer[cell.y * width + cell.x];
 	}
 

@@ -39,7 +39,9 @@ struct FontID
 
 }
 
-package struct FontManager 
+package:
+
+struct FontManager 
 {
 	alias Table = ResourceTable!(Font, obliterateFont);
 	private static Table resources;

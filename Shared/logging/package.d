@@ -58,14 +58,13 @@ private void makeMsg(T...)(string channel, Verbosity verbosity, string file, siz
 
 
 
-	//char[1024] buffer = void;
-	//auto list = List!(char)(buffer);
-	//auto appender = &list;
-	//
-	//
-	//
-	//formattedWrite(appender, staticFormatString!(T.length), t);
-	//logger(channel, verbosity, appender.array, file, line);
+	char[1024] buffer = void;
+	auto list = List!(char)(buffer);
+	auto appender = &list;
+
+
+	formattedWrite(appender, staticFormatString!(T.length), t);
+	logger(channel, verbosity, appender.array, file, line);
 }
 
 private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, const(char)[] file, size_t line, T t) nothrow
@@ -77,7 +76,7 @@ private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, 
 	char[1024] buffer = void;
 	auto list = List!(char)(buffer);
 	auto appender = &list;
-//	formattedWrite(appender, f, t);
+	formattedWrite(appender, f, t);
 
-//	logger(channel, verbosity, appender.array, file, line);
+	logger(channel, verbosity, appender.array, file, line);
 }

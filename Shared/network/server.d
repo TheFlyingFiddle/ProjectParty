@@ -49,6 +49,8 @@ struct ServerConfig
 
 struct Server
 {
+	ulong bytesProcessed;
+
 	List!ulong lostConnections;
 
 	List!PartialMessage partialMessages;
@@ -62,6 +64,7 @@ struct Server
 	InternetAddress broadcastAddress;
 
 	string hostName;
+	string listenerString;
 
 	float broadcastInterval = 1f;
 	float timeSinceLastBroadcast = 0;
@@ -106,6 +109,7 @@ struct Server
 		}
 
 		listener.listen(200);	
+		listenerString = listenerAddress.toString();
 	}
 
 	~this()
@@ -146,8 +150,7 @@ struct Server
 	{
 		ubyte[ulong.sizeof] buffer;
 		
-		for(int i = pendingConnections.length - 1; 
-			 i >= 0; i--)
+		for(int i = pendingConnections.length - 1; i >= 0; i--)
 		{
 			auto con = pendingConnections[i];
 			auto r   = con.socket.receive(buffer);
@@ -163,48 +166,48 @@ struct Server
 			{
 				logChnl.warn("Pending socket closed! ID : ", con.id);
 				closeConnection(pendingConnections, i, false, false);
-			} 
-			
-			import std.bitmanip;
-			ubyte[] bbb = buffer;
-			ulong id = read!ulong(bbb);
+			} else {	
+				import std.bitmanip;
+				ubyte[] bbb = buffer;
+				ulong id = read!ulong(bbb);
 
-			logChnl.info("Id received :  ", id);
-			if(id == con.id)
-			{
-				logChnl.info("onConnect :  ", id);
-				pendingConnections.removeAt(i);
-				activateConnection(con.socket, id, false);
-			}
-			else 
-			{
-				auto index = lostConnections.countUntil!(x => x == id);
-				if(index != -1)
+				logChnl.info("Id received :  ", id);
+				if(id == con.id)
 				{
-					logChnl.info("Reconnected :  ", id);
-
-					lostConnections.removeAt(index);
-					pendingConnections.removeAt(i);			
-					activateConnection(con.socket, id,  true);		
-				} 
+					logChnl.info("onConnect :  ", id);
+					pendingConnections.removeAt(i);
+					activateConnection(con.socket, id, false);
+				}
 				else 
 				{
-					auto index2 = activeConnections.countUntil!(x => x.id == id);
-					if(index2 != -1)
+					auto index = lostConnections.countUntil!(x => x == id);
+					if(index != -1)
 					{
-						logChnl.warn("Reconnected but connection was stil active!:  ", id);
+						logChnl.info("Reconnected :  ", id);
 
-						closeConnection(activeConnections, index2, true, false);
-
-						pendingConnections.removeAt(i);
+						lostConnections.removeAt(index);
+						pendingConnections.removeAt(i);			
 						activateConnection(con.socket, id,  true);		
-					}
-					//If we got here an unkown assailant is trying to recconect.
+					} 
 					else 
 					{
+						auto index2 = activeConnections.countUntil!(x => x.id == id);
+						if(index2 != -1)
+						{
+							logChnl.warn("Reconnected but connection was stil active!:  ", id);
+
+							closeConnection(activeConnections, index2, true, false);
+
+							pendingConnections.removeAt(i);
+							activateConnection(con.socket, id,  true);		
+						}
+						//If we got here an unkown assailant is trying to recconect.
+						else 
+						{
 		
-						logChnl.info("An invalid reconnection request was found! :  ", id);
-						closeConnection(pendingConnections, i, false, false);
+							logChnl.info("An invalid reconnection request was found! :  ", id, " on connection ", con);
+							closeConnection(pendingConnections, i, false, false);
+						}
 					}
 				}
 			}
@@ -257,19 +260,20 @@ struct Server
 			{ 
 				try
 				{
+					logChnl.info("Connection closed!");
 					//Can fail due to remoteAddress. 
-					logChnl.info("Connection from ", socket.remoteAddress().toString(),
-									 "with id ", con.id, " was closed. ");
+					//logChnl.info("Connection from ", socket.remoteAddress().toString(),
+									// "with id ", con.id, " was closed. ");
 				} 
 				catch(SocketException)
 				{
-					logChnl.info("Connection closed!");
 				}
 
 				closeConnection(activeConnections, i, true, true);
 			}
 			else 
 			{			
+				bytesProcessed += read;
 				con.timeSinceLastMessage = 0.0f;
 				partialMessages[pIndex].length = 0;
 				sendMessages(con.id, buffer[0 .. read + len]);
@@ -386,6 +390,10 @@ struct Server
 	void closeConnection(ref List!Connection connections, 
 						 int i, bool wasConnected, bool addToLost)
 	{
+		logChnl.info("Trying to close a connection: \nIndex: ", i);
+		logChnl.info("Connections: Length: ", connections.length);
+		logChnl.info("WasConnected? " , wasConnected);
+		logChnl.info("AddToLost? ", addToLost);
 
 		auto con = connections[i];
 		connections.removeAt(i);
