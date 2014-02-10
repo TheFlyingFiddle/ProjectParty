@@ -195,7 +195,6 @@ struct Server
 						if(index2 != -1)
 						{
 							logChnl.warn("Reconnected but connection was stil active!:  ", id);
-
 							closeConnection(activeConnections, index2, true, false);
 
 							pendingConnections.removeAt(i);
@@ -258,17 +257,7 @@ struct Server
 			} 
 			else if(0 == read)
 			{ 
-				try
-				{
-					logChnl.info("Connection closed!");
-					//Can fail due to remoteAddress. 
-					//logChnl.info("Connection from ", socket.remoteAddress().toString(),
-									// "with id ", con.id, " was closed. ");
-				} 
-				catch(SocketException)
-				{
-				}
-
+				logChnl.info("Connection closed!");
 				closeConnection(activeConnections, i, true, true);
 			}
 			else 
@@ -367,9 +356,6 @@ struct Server
 			 ubyte[ulong.sizeof] nBuff; ubyte[] bBuff = nBuff;
 			 bBuff.write!ulong(number, 0);
 			 s.send(bBuff);
-
-			 //auto addr = s.remoteAddress();
-			 //logChnl.info("UUID sent: ", number, "to endpoint ", addr);
 			 pendingConnections ~= Connection(s, 0.0f, number);
 		}	
 	}
@@ -390,11 +376,6 @@ struct Server
 	void closeConnection(ref List!Connection connections, 
 						 int i, bool wasConnected, bool addToLost)
 	{
-		logChnl.info("Trying to close a connection: \nIndex: ", i);
-		logChnl.info("Connections: Length: ", connections.length);
-		logChnl.info("WasConnected? " , wasConnected);
-		logChnl.info("AddToLost? ", addToLost);
-
 		auto con = connections[i];
 		connections.removeAt(i);
 

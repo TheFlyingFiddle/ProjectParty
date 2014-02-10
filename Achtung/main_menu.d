@@ -53,6 +53,9 @@ final class MainMenu : IGameState
 		auto pos = float2(s.x / 2 - size.x / 2, s.y - size.y);
 
 		auto sb = Game.renderer;
+
+		import std.stdio;
+		
 		sb.addText(font, title, pos);	
 		sb.addText(font, "Connected Players", layout.players, Color.green, float2(0.6, 0.6));
 
@@ -60,14 +63,12 @@ final class MainMenu : IGameState
 
 		foreach(i, player; Game.players)
 		{
-			sb.addText(font, text(buffer, "Player: ", player.id.to!string), 
+			sb.addText(font, text(buffer, "Player: ", player.id), 
 						   float2(layout.players.x, layout.players.y - (i + 1) * layout.playerSpacing), 
 						   Color.green, float2(0.5, 0.5));
 		}
 
-		sb.addText(font, text(buffer, "Server: ", Game.server.listenerAddress, 
+		sb.addText(font, text(buffer, "Server: ", Game.server.listenerString, 
 							  " Players: ", Game.players.length), float2(100, 100));
-
-		sb.draw();
 	}
 }

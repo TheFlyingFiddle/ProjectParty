@@ -85,7 +85,7 @@ struct Game_Impl
 
 	~this()
 	{
-		window.obliterate();
+		//window.obliterate();
 	}
 
 

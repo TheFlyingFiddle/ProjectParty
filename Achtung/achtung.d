@@ -32,7 +32,6 @@ class AchtungGameState : IGameState
 	EventStream stream;
 	AchtungRenderer renderer;
 
-	
 	Table!(ulong) ids;
 	Table!(Snake) snakes;
 	Table!(float) timers;
@@ -55,6 +54,10 @@ class AchtungGameState : IGameState
 
 	void enter()
 	{
+		ids.clear();
+		scores.clear();
+		
+
 		size_t c = Game.players.length;
 		foreach(i, player; Game.players)
 			ids[Color(uniform(0, uint.max) | 0xFF000000)] = player.id;
@@ -79,7 +82,6 @@ class AchtungGameState : IGameState
 		map = masterMap.subGrid(x - 100, y);
 		reset();
 	}
-
 
 	void reset()
 	{
@@ -274,6 +276,8 @@ class AchtungGameState : IGameState
 					 ref Table!Snake snakes,
 					 ref Table!int scores)
 	{
+		import std.stdio;
+
 		gl.clear(ClearFlags.color);
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);

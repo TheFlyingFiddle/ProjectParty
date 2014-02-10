@@ -1,31 +1,13 @@
 module main;
 
-import std.file;
-import derelict.glfw3.glfw3;
-import derelict.opengl3.gl3;
-import derelict.freeimage.freeimage;
-
-import logging;
-import content;
-import allocation;
-import std.exception;
-import std.concurrency;
-import graphics.common;
-import achtung;
-import game;
-import math;
-import core.sys.windows.windows;
-import std.datetime;
-import game_over;
-import main_menu;
-import test_game_state;
-import external_libraries;
+import logging, external_libraries,
+	   allocation, game, achtung,
+	   main_menu, game_over;
 
 version(X86) 
 	enum libPath = "..\\lib\\win32\\";
 version(X86_64) 
 	enum libPath = "..\\lib\\win64\\";
-
 
 pragma(lib, libPath ~ "DerelictGLFW3.lib");
 pragma(lib, libPath ~ "DerelictGL3.lib");
@@ -47,6 +29,10 @@ void main()
 	catch(Throwable t)
 	{
 		logChnl.error(t);
+		while(t.next !is null) {
+			logChnl.error(t.next);
+			t = t.next;
+		}
 	}
 
 	//This is bad. Don't do this okej? -- Basically background processes are preventing program to close. 
@@ -58,13 +44,15 @@ void main()
 
 void init(A)(ref A allocator)
 {
+	import content.sdl;
+
 	auto config = fromSDLFile!GameConfig(GC.it, "Game.sdl");
 	game.Game = allocator.allocate!Game_Impl(allocator, config);
 
 	auto fsm = Game.gameStateMachine;
 	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl"), "Achtung");
 	fsm.addState(allocator.allocate!MainMenu("Achtung Main Menu"), "MainMenu");
-	fsm.addState(allocator.allocate!GameOverGameState, "Game Over");
+	fsm.addState(allocator.allocate!GameOverGameState(10), "GameOver");
 	fsm.transitionTo("MainMenu");
 
 

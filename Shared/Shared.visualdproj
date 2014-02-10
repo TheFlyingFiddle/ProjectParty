@@ -435,7 +435,6 @@
    <File path="graphics\package.d" />
    <File path="graphics\program.d" />
    <File path="graphics\shader.d" />
-   <File path="graphics\sprite.d" />
    <File path="graphics\texture.d" />
    <File path="graphics\vertex.d" />
   </Folder>

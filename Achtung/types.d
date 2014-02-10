@@ -11,13 +11,6 @@ struct Snake
 	float2 pos;
 	float2 dir;
 	bool visible;
-	UUID id;
-}
-
-struct SnakeControl
-{
-	uint leftKey, rightKey;
-	ulong id;
 }
 
 struct CollisionEvent

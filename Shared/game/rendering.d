@@ -161,6 +161,7 @@ struct Renderer
 		this.transform = transform;
 
 		gl.bindBuffer(vbo.target, vbo.glName);
+		import std.stdio;
 		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.unsynchronizedWrite);
 	}
 
@@ -189,8 +190,7 @@ struct Renderer
 	private void draw_impl(bool overflow )
 	{
 		vbo.unmapBuffer();
-		if(elements == 0) return;
-
+		if(elements == offset) return;
 
 		gl.bindBuffer(vbo.target, vbo.glName);
 		gl.useProgram(usedProgram.glName);

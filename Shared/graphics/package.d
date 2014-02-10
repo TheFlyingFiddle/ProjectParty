@@ -8,7 +8,6 @@ public import graphics.enums;
 public import graphics.frame;
 public import graphics.program;
 public import graphics.shader;
-public import graphics.sprite;
 public import graphics.texture;
 public import graphics.vertex;
 public import graphics.framebuffer;
