@@ -44,8 +44,8 @@ struct WindowManager
 
 	static Window create(uint2 size, const(char)[] title, Monitor monitor, bool blocking)
 	{
-		glfwWindowHint(GLFW_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_VERSION_MINOR, 3);
+		//glfwWindowHint(GLFW_VERSION_MAJOR, 3);
+		//glfwWindowHint(GLFW_VERSION_MINOR, 3);
 		//glfwWindowHint(GLFW_SAMPLES, 16);
 
 		auto glfwWindow = glfwCreateWindow(size.x, size.y, title.toCString(), monitor._monitor, null);

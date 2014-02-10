@@ -27,8 +27,8 @@ struct AchtungRenderer
 		font		  = Game.content.loadFont("fonts\\Arial32.fnt");
 		snakeFrame = Frame(snakeTex);
 		
-		//fbo    = createSimpleFBO(mapWidth, mapHeight);
-		fbo    = createMultisampleFBO(mapWidth, mapHeight, 4);
+		fbo    = createSimpleFBO(mapWidth, mapHeight);
+		//fbo    = createMultisampleFBO(mapWidth, mapHeight, 4);
 
 	}
 
