@@ -187,6 +187,10 @@ struct Server
 
 						lostConnections.removeAt(index);
 						pendingConnections.removeAt(i);			
+
+						ubyte ok = 1;
+						con.socket.send((&ok)[0 .. 1]);
+						
 						activateConnection(con.socket, id,  true);		
 					} 
 					else 
@@ -197,13 +201,18 @@ struct Server
 							logChnl.warn("Reconnected but connection was stil active!:  ", id);
 							closeConnection(activeConnections, index2, true, false);
 
+							ubyte ok = 1;
+							con.socket.send((&ok)[0 .. 1]);
+
 							pendingConnections.removeAt(i);
 							activateConnection(con.socket, id,  true);		
 						}
 						//If we got here an unkown assailant is trying to recconect.
 						else 
 						{
-		
+							ubyte not_ok = 0;
+							con.socket.send((&not_ok)[0 .. 1]);
+
 							logChnl.info("An invalid reconnection request was found! :  ", id, " on connection ", con);
 							closeConnection(pendingConnections, i, false, false);
 						}
@@ -268,6 +277,23 @@ struct Server
 				sendMessages(con.id, buffer[0 .. read + len]);
 			}
 		}
+	}
+
+	void send(ulong id, ubyte[] message)
+	{
+		auto index = activeConnections.countUntil!(x => x.id == id);
+		if(index == -1) {
+			logChnl.info("Trying to send to a connection that does not exist!");
+			return;
+		}
+
+		activeConnections[index].socket.send(message);
+	}
+
+	void broadcast(ubyte[] message)
+	{
+		foreach(ref con; activeConnections)
+			con.socket.send(message);
 	}
 
 	void sendMessages(ulong key, ubyte[] buffer)
