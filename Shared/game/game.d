@@ -4,7 +4,8 @@ import game;
 import util.profile;
 import core.time, std.datetime,
 	core.thread, std.algorithm,
-	content, std.uuid, collections.list;
+	content, std.uuid, collections.list,
+	allocation;
 
 import network.server;
 import network.router;
@@ -32,6 +33,7 @@ alias GameStateFSM = FSM!(IGameState, string);
 struct Player 
 {
 	ulong id;
+	string name;
 }
 
 struct GameConfig
@@ -66,6 +68,7 @@ struct Game_Impl
 
 		router.connectionHandlers    ~= &onConnect;
 		router.reconnectionHandlers  ~= &onConnect;
+		router.messageHandlers		 ~= &onMessage;
 		router.disconnectionHandlers ~= &onDisconnect;
 
 
@@ -77,26 +80,46 @@ struct Game_Impl
 
 		WindowManager.init(allocator, config.maxWindows);
 		
-		//The window api is diffrent from the rest since it was written when i was drunk :P
-		//It sure feels like that anyways :P 
 		window		 = WindowManager.create(config.windowConfig);
 		renderer     = allocator.allocate!Renderer(allocator, config.initialRenderSize);
 	}
 
 	~this()
 	{
-		//window.obliterate();
+		window.obliterate();
 	}
 
 
 	void onConnect(ulong id)
 	{
-		players ~= Player(id);
+		players ~= Player(id, null);
 	}
 
 	void onDisconnect(ulong id)
 	{
-		players.remove(Player(id));
+		auto index = players.countUntil!(x => x.id == id);
+		if(players[index].name.length != 0) {
+			Mallocator.it.deallocate((cast(void[])players[index].name));
+			players[index].name = null;
+		}
+		
+		players.removeAt(index);
+	}
+
+	void onMessage(ulong id, ubyte[] message)
+	{
+		if(message[0] == 0)
+		{
+			auto s = Mallocator.it.allocate!(ubyte[])(message.length - 1);
+			s[] = message[1 .. $];
+
+			auto index = players.countUntil!(x => x.id == id);
+			
+			if(players[index].name.length != 0)
+				Mallocator.it.deallocate((cast(void[])players[index].name));
+
+			players[index].name = cast(string)s;
+		}
 	}
 
 	void run(Timestep timestep, Duration target = 0.msecs)

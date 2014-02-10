@@ -85,15 +85,22 @@ struct Renderer
 
 	void addItem(TextureID id, ref Vertex vertex)
 	{
-		if(texture != id || elements == bufferSize) {
+		if(texture != id) {
 			if(texture == TextureID.invalid)
 				texture = id;
 			else 
 			{
-				draw(true);
+				draw();
 				texture = id;
 			}
 		} 
+
+		if(elements == bufferSize)
+		{
+			draw();
+			elements = 0;
+			offset = 0;
+		}
 
 		elements++;
 		*(bufferPtr++) = vertex;
@@ -101,54 +108,29 @@ struct Renderer
 
 	void addItems(Range)(TextureID id, ref Range vertices)
 	{
-		if(texture != id || elements + vertices.length >= bufferSize) {
+		if(texture != id) {
 			if(texture == TextureID.invalid)
 				texture = id;
 			else 
 			{
-				draw(true);
+				draw();
 				texture = id;
 			}
 		} 
+
+		if(elements + vertices.length >= bufferSize)
+		{
+			draw_impl();
+			elements = 0;
+			offset = 0;
+			start(this.transform, this.usedProgram);
+		}
 
 		elements += vertices.length;
 		toRender[$ - 1].count += vertices.length;
 
 		foreach(ref vertex; vertices)
 			*(bufferPtr++) = vertex;	
-	}
-
-
-	//A resize is a tricky thing in glLand.
-	void resize()
-	{	
-		gl.bindBuffer(vbo.target, vbo.glName);
-		vbo.unmapBuffer();
-
-		VBO tmp = VBO.create(vbo.hint);
-		
-		bufferSize *= 2;
-		gl.bindBuffer(tmp.target, tmp.glName);
-		tmp.initialize(bufferSize * Vertex.sizeof);
-		
-		
-		gl.bindBuffer(BufferTarget.read, vbo.glName);
-		gl.copyBufferSubData(BufferTarget.read, tmp.target, 0, 0, elements * Vertex.sizeof);
-
-		gl.bindBuffer(vbo.target, 0);
-		vbo.obliterate();
-
-		vbo = tmp;
-
-		gl.bindBuffer(vbo.target, vbo.glName);
-		gl.bindVertexArray(vao.glName);
-		vao.bindAttributesOfType!Vertex(program);
-
-		//Need to remap buffer.
-
-		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.unsynchronizedWrite);
-
-		logChnl.warn("Performance Warning! The vbo got resized, consider making a bigger buffer.");
 	}
 
 
@@ -161,8 +143,14 @@ struct Renderer
 		this.transform = transform;
 
 		gl.bindBuffer(vbo.target, vbo.glName);
-		import std.stdio;
-		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.unsynchronizedWrite);
+
+		if(elements == bufferSize)
+		{
+			elements = 0;
+			offset   = 0;
+		}
+
+		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.write);
 	}
 
 	/** Draws all elements that has thus far been added for rendering immediatly.
@@ -170,9 +158,9 @@ struct Renderer
 	*   If a program is specified the rendering happens through that
 	*   program.
 	*/
-	void draw(bool overflow = false)
+	void draw()
 	{
-		draw_impl(overflow);
+		draw_impl();
 		start(transform, usedProgram);
 	}
 
@@ -183,12 +171,14 @@ struct Renderer
 	*/
 	void end()
 	{
-		draw_impl(false);
+		draw_impl();
 		texture = TextureID.invalid;
 	}
 
-	private void draw_impl(bool overflow )
+	private void draw_impl()
 	{
+		import logging;
+
 		vbo.unmapBuffer();
 		if(elements == offset) return;
 
@@ -204,10 +194,6 @@ struct Renderer
 		gl.drawArrays(PrimitiveType.points, offset, elements - offset);
 
 		offset = elements;
-		if(overflow) {
-			elements = 0;
-			offset = 0;
-		}
 	}
 
 	@disable this(this);
@@ -340,15 +326,24 @@ void addText(Renderer* renderer,
 	auto texID = font.page.texture; 	
 	
 
-	if(renderer.texture != texID || renderer.elements + text.length >= renderer.bufferSize) {
+	if(renderer.texture != texID) {
 		if(renderer.texture == TextureID.invalid)
 			renderer.texture = texID;
 		else 
 		{
-			renderer.draw(true);
+			renderer.draw();
 			renderer.texture = texID;
 		}
 	} 
+
+	if(renderer.elements + text.length >= renderer.bufferSize)
+	{
+		renderer.draw_impl();
+		renderer.elements = 0;
+		renderer.offset = 0;
+		renderer.start(renderer.transform, renderer.usedProgram);
+	}
+
 
 	RenderRange range = RenderRange(renderer); // <-- Must have a reference here.
 	auto count = addText(fontID, text, pos, color, 
