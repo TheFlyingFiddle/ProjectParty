@@ -125,9 +125,17 @@ auto connect(InternetAddress addr, ubyte[] buffer, ulong prevId = 0)
 
 	size_t offset = 0;
 	buff.write!ulong(id, &offset);
-
 	tcp.send(buff[0 .. offset]);
-	
+
+	buff = buffer;
+
+	auto name = "Stupid AI 5000";
+	offset = 0;
+	buff.write!ushort(cast(ushort)(name.length + 1), &offset);
+	buff.write!ubyte(0, &offset);
+	buff[offset .. offset + name.length] = cast(ubyte[])name;
+	tcp.send(buff[0 .. offset + name.length]);
+
 	return Connection(tcp, id);
 }
 

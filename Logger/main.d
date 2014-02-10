@@ -12,7 +12,6 @@ struct LogConfig
 	string loggerDir;
 }
 
-
 void main()
 {
 	tcpLogging();
