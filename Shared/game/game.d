@@ -18,6 +18,15 @@ enum Timestep
 	fixed
 }
 
+interface IGameState
+{
+	void enter();
+	void exit();
+
+	void update();
+	void render();
+}
+
 alias GameStateFSM = FSM!(IGameState, string);
 
 struct Player 
@@ -38,12 +47,12 @@ struct GameConfig
 
 struct Game
 {
-	static GameStateFSM gameStateMachine;
 	static Window		window;
 	static List!Player  players;
 
 	private static Router* router;
 
+	static GameStateFSM* gameStateMachine;
 	static Content*    content;
 	static Renderer*   renderer;
 	static Server*     server;
@@ -62,11 +71,11 @@ struct Game
 		players = List!Player(allocator, config.serverConfig.maxConnections);
 		Phone.init(allocator, config.serverConfig.maxConnections, *router);
 
+		gameStateMachine = allocator.allocate!GameStateFSM(allocator, config.maxStates);
+
 
 		WindowManager.init(allocator, config.maxWindows);
-		gameStateMachine = GameStateFSM(allocator, config.maxStates);
 		window			 = WindowManager.create(config.windowConfig);
-
 		renderer     = allocator.allocate!Renderer(allocator, config.initialRenderSize);
 	}
 

@@ -25,10 +25,7 @@ struct AchtungConfig
 
 class AchtungGameState : IGameState
 {
-	//Maby theses shoul do someting?
-	void init() { }
-	void handleInput() { }
-
+	//This is special. But it works good so why not ? 
 	Grid!bool masterMap;
 
 	Grid!bool map;
@@ -43,7 +40,7 @@ class AchtungGameState : IGameState
 
 	AchtungConfig config;
 
-	void init(Allocator)(ref Allocator allocator, string configPath)
+	this(A)(ref A allocator, string configPath)
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 

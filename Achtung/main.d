@@ -56,22 +56,20 @@ void main()
 
 }
 
-void init(Allocator)(ref Allocator allocator)
+
+
+void init(A)(ref A allocator)
 {
 	auto config = fromSDLFile!GameConfig(GC.it, "Game.sdl");
-	Game.init(allocator, config);
+	Game.init(allocator, config); //allocator.allocate!Game(allocator, config); 
 
-	AchtungGameState ags = allocator.allocate!AchtungGameState;
-	ags.init(allocator, "Config.sdl");
+	auto fsm = Game.gameStateMachine;
 
-	Game.gameStateMachine.addState(allocator.allocate!MainMenu("Achtung Main Menu"), "MainMenu");
-	Game.gameStateMachine.addState(ags, "Achtung");
-	Game.gameStateMachine.addState(allocator.allocate!GameOverGameState, "GameOver");
-	Game.gameStateMachine.transitionTo("MainMenu");
+	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl"), "Achtung");
+	fsm.addState(allocator.allocate!MainMenu("Achtung Main Menu"), "MainMenu");
+	fsm.addState(allocator.allocate!GameOverGameState, "Game Over");
+	fsm.transitionTo("MainMenu");
 
-
-	//Game.gameStateMachine.addState(allocator.allocate!TestGameState(), "TEST");
-	//Game.gameStateMachine.transitionTo("TEST");
 
 	import graphics; 
 	gl.enable(Capability.blend);

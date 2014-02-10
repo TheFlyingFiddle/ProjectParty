@@ -10,7 +10,6 @@ final class TestGameState : IGameState
 	Frame frame;
 
 	float2[10_000] pos;
-
 	void enter() 
 	{
 		auto texture = TextureManager.load("textures\\pixel.png");
@@ -31,8 +30,7 @@ final class TestGameState : IGameState
 
 	void exit()  { }
 
-	void update() 
-	{ }
+	void update() { }
 	
 	void render() 
 	{

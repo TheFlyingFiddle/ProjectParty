@@ -60,12 +60,12 @@ final class MainMenu : IGameState
 
 		foreach(i, player; Game.players)
 		{
-			sb.addText(font, text(buffer, "Player: ", player.id), 
+			sb.addText(font, text(buffer, "Player: ", player.id.to!string), 
 						   float2(layout.players.x, layout.players.y - (i + 1) * layout.playerSpacing), 
 						   Color.green, float2(0.5, 0.5));
 		}
 
-		sb.addText(font, text(buffer, "Server: ", Game.server.listenerString, 
+		sb.addText(font, text(buffer, "Server: ", Game.server.listenerAddress, 
 							  " Players: ", Game.players.length), float2(100, 100));
 
 		sb.draw();
