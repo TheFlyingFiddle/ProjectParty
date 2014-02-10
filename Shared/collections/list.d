@@ -2,6 +2,8 @@ module collections.list;
 
 import std.traits;
 import allocation.common;
+import std.conv;
+
 struct List(T)
 {
 	T* buffer;
@@ -34,7 +36,8 @@ struct List(T)
 
 	ref T opIndex(size_t index)
 	{
-		assert(index < length);
+		assert(index < length, text("A list was indexed outsize of it's bounds! 
+									Length: ", length, " Index: ", cast(ptrdiff_t)index));
 		return buffer[index];
 	}
 
@@ -45,13 +48,17 @@ struct List(T)
 
 	void opIndexAssign(ref T value, size_t index)
 	{
-		assert(index < length);
+		assert(index < length, text("A list was indexed outsize of it's bounds! 
+								  Length: ", length, " Index: ", cast(ptrdiff_t)index));
+
 		buffer[index] = value;
 	}
 
 	void opIndexAssign(T value, size_t index)
 	{
-		assert(index < length);
+		assert(index < length, text("A list was indexed outsize of it's bounds! 
+									Length: ", length, " Index: ", cast(ptrdiff_t)index));
+
 		buffer[index] = value;
 	}
 
@@ -64,7 +71,11 @@ struct List(T)
 						 size_t x,
 						 size_t y)
 	{
-		assert(x <= y && x < length && y < length);
+		assert(x <= y && x < length && y < length,  
+			text("A list was siced outsize of it's bounds! 
+				 Length: ", length, " Slice: ", cast(ptrdiff_t)x ," ", cast(ptrdiff_t)y));
+		
+		
 		buffer[x .. y] = value;
 	}
 
@@ -123,7 +134,8 @@ struct List(T)
 	
 	void insert(size_t index, T value)
 	{
-		assert(length < capacity);
+		assert(length < capacity, text("Cannot insert outside of bounds!
+									   Length: ", length, " Index: ", cast(ptrdiff_t)index));
 		foreach_reverse(i; index .. length)
 			buffer[i + 1] = buffer[i];
 		
@@ -186,7 +198,8 @@ bool remove(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, auto ref T
 
 bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t index)
 {
-	assert(index < list.length); 
+	assert(index < list.length, text("Cannot remove outsize of bounds! 
+									 Length: ", list.length, " Index: ", cast(ptrdiff_t)index)); 
 
 	static if(s == SwapStrategy.unstable)
 	{
