@@ -31,7 +31,15 @@ struct FontID
 	{
 		return FontManager.lookup(this);
 	}
+
+	static FontID invalid()
+	{
+		return FontID(uint.max);
+	}
+
 }
+
+package:
 
 struct FontManager 
 {
@@ -45,6 +53,13 @@ struct FontManager
 		fontAllocator = fAllocator;
 
 		ContentReloader.registerReloader(FileExtention.fnt, &auto_reload);
+	}
+
+	static void shutdown()
+	{
+		foreach(ref resource; resources)
+			obliterateFont(resource);
+		fontAllocator = null;
 	}
 
 	static void auto_reload(const(char)[] path)

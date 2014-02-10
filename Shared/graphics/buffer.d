@@ -7,30 +7,30 @@ import std.traits;
 import std.typecons;
 
 
-static void copyBetween(From, To)(From from, To to,  uint fromOffset, uint toOffset,
+void copyBetween(From, To)(From from, To to,  uint fromOffset, uint toOffset,
 								  uint size)
 {
 	gl.copyBufferSubData(from.target, to.target, fromOffset, toOffset, size);
 }
 
-static void bufferData(T,Buffer)(ref Buffer buffer, T data) if(isArray!T)				
+void bufferData(T,Buffer)(ref Buffer buffer, T data) if(isArray!T)				
 {
 	buffer._size = T.sizeof * data.length;
 	gl.bufferData(buffer.target, buffer.size, data.ptr, buffer.hint);
 }
 
-static void initialize(Buffer)(ref Buffer buffer, uint size)
+void initialize(Buffer)(ref Buffer buffer, uint size)
 {
 	buffer.size = size;
 	gl.bufferData(buffer.target, size, null, buffer.hint);
 }
 
-static void bufferSubData(T, Buffer)(ref Buffer buffer, T[] data, uint unitOffset) 
+void bufferSubData(T, Buffer)(ref Buffer buffer, T[] data, uint unitOffset) 
 {
 	gl.bufferSubData(buffer.target, T.sizeof * unitOffset, T.sizeof * data.length , data.ptr);
 }
 
-static T[] getBufferSubData(T,Buffer)(ref Buffer buffer, uint offset, uint size, T[] output = null)		
+T[] getBufferSubData(T,Buffer)(ref Buffer buffer, uint offset, uint size, T[] output = null)		
 {
 	if(output.length < size / T.sizeof) {
 		output.length = size / T.sizeof + 1;
@@ -40,7 +40,7 @@ static T[] getBufferSubData(T,Buffer)(ref Buffer buffer, uint offset, uint size,
 	return output;
 }
 
-static T* mapRange(T, Buffer)(ref Buffer buffer, uint offset, uint length, BufferRangeAccess access)
+T* mapRange(T, Buffer)(ref Buffer buffer, uint offset, uint length, BufferRangeAccess access)
 {
 	auto ptr = gl.mapBufferRange(Buffer.target, offset * T.sizeof, length * T.sizeof, access);
 	if(!ptr) {
@@ -49,7 +49,7 @@ static T* mapRange(T, Buffer)(ref Buffer buffer, uint offset, uint length, Buffe
 	return cast(T*)ptr;
 }
 
-static void mapBuffer(T, Buffer)(ref Buffer buffer, uint offset, uint length, BufferRangeAccess access,
+void mapBuffer(T, Buffer)(ref Buffer buffer, uint offset, uint length, BufferRangeAccess access,
 								 void delegate(T* ptr) workWithPointer)
 {
 	auto ptr = mapRange!(T, Buffer)(buffer, offset, length, access);
@@ -57,20 +57,26 @@ static void mapBuffer(T, Buffer)(ref Buffer buffer, uint offset, uint length, Bu
 	gl.unmapBuffer(buffer.target);
 }
 
-static T* mapBuffer(T, Buffer)(ref Buffer buffer, BufferAccess access)
+T* mapBuffer(T, Buffer)(ref Buffer buffer, BufferAccess access)
 {
 	return cast(T*)gl.mapBuffer(buffer.target, access);
 }
 
-static void unmapBuffer(Buffer)(ref Buffer buffer)
+void unmapBuffer(Buffer)(ref Buffer buffer)
 {
 	gl.unmapBuffer(buffer.target);
 }
 
-static void flushMappedBufferRange(Buffer)(ref Buffer buffer, uint offset, uint length)
+void flushMappedBufferRange(Buffer)(ref Buffer buffer, uint offset, uint length)
 {
 	gl.FlushMappedBufferRange(buffer.target, offset, length);
 }
+
+void obliterate(Buffer)(ref Buffer buffer)
+{
+	gl.deleteBuffers(1, &buffer.glName);
+}
+
 
 mixin template BufferData(T, BufferTarget bufferTarget, BufferType,  bool canBeStruct, LegalTypes...)
 {

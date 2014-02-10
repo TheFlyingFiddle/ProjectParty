@@ -1,16 +1,13 @@
 module game_over;
 import std.variant;
-import game.state;
+import game.game;
 import graphics;
 import collections;
 import types;
 
 class GameOverGameState : IGameState
 {
-	//Maby theses shoul do someting?
-	void init() { }
-	void handleInput() { }
-	
+
 	void enter()
 	{
 	//	auto list = x.get!(List!Score);

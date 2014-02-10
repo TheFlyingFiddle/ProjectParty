@@ -31,7 +31,14 @@ struct TextureID
 	{
 		return TextureManager.lookup(this);
 	}
+
+	static TextureID invalid()
+	{
+		return TextureID(uint.max);
+	}
 }
+
+package: 
 
 struct TextureManager
 {
@@ -53,6 +60,12 @@ struct TextureManager
 		 FileExtention.tiff];
 
 		ContentReloader.registerReloader(exts, &auto_reload);
+	}
+
+	static void shutdown()
+	{
+		foreach(ref resource; resources)
+			resource.obliterate();
 	}
 
 	void auto_reload(const(char)[] path)

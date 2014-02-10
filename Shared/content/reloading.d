@@ -25,6 +25,11 @@ struct ContentReloader
 		spawn(&listenOnDirectory, thisTid, resourceDir);
 	}
 
+	static void shutdown()
+	{
+		//Not much to do here...
+	}
+
 
 	static void registerReloader(FileExtention[] extentions, void function(const(char)[] path) reload)
 	{
@@ -269,5 +274,20 @@ struct ResourceTable(Resource, alias obliterator)
 	ref Resource opIndex(uint index)
 	{
 		return resources[index];
+	}
+
+	int opApply(int delegate(ref Resource resource) dg)
+	{
+		int result;
+		foreach(i, ref r; resources)
+		{
+			if(ids[i] == noResource)
+				continue;
+
+			result = dg(r);
+			if(result) break;
+		}
+
+		return result;
 	}
 }

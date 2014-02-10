@@ -80,7 +80,7 @@ struct ScopeStack
 	{
 		for(auto fin = _chain; fin; fin = fin.chain)
 		{
-			fin.destructor(fin + Finalizer.sizeof);
+			fin.destructor(fin + 1);
 		}
 
 		_allocator.rewind(_rewindPoint);

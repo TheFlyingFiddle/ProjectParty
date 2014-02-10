@@ -25,10 +25,7 @@ struct AchtungConfig
 
 class AchtungGameState : IGameState
 {
-	//Maby theses shoul do someting?
-	void init() { }
-	void handleInput() { }
-
+	//This is special. But it works good so why not ? 
 	Grid!bool masterMap;
 
 	Grid!bool map;
@@ -43,7 +40,7 @@ class AchtungGameState : IGameState
 
 	AchtungConfig config;
 
-	void init(Allocator)(ref Allocator allocator, string configPath)
+	this(A)(ref A allocator, string configPath)
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 
@@ -196,8 +193,9 @@ class AchtungGameState : IGameState
 				{
 					uint2 origin = uint2(size / 2, size / 2);
 					foreach(row; 0 .. size)
-						foreach(column; 0 .. size)
+						foreach(column; 0 .. size) {			
 							map[newPos - origin + uint2(column, row)] = true;
+						}
 				}
 			}
 		}
@@ -214,7 +212,7 @@ class AchtungGameState : IGameState
 				uint2 cell = newPos - origin + uint2(column, row);
 				if(!inOld(cell, oldPos, size))
 				{
-					if(checkCollision(cell, map)) count++;
+					count += checkCollision(cell, map);
 				}
 			}
 		}
@@ -235,15 +233,18 @@ class AchtungGameState : IGameState
 		return false;
 	}
 
-	bool checkCollision(uint2 cell, ref Grid!bool map)
+	uint checkCollision(uint2 cell, ref Grid!bool map)
 	{
-		return hitWall(cell, map) || map[cell] == true;
+		if(hitWall(cell, map))
+			return 1000; //Arbitraty large number.
+		else 
+			return cast(uint)(map[cell] == true);
 	}
 
 	bool hitWall(uint2 position, ref Grid!bool map)
 	{
 		return position.x >= map.width || 
-			position.y >= map.height;
+			   position.y >= map.height; 
 	}
 
 	void handleCollision(ref Table!Snake snakes,
@@ -274,10 +275,8 @@ class AchtungGameState : IGameState
 					 ref Table!int scores)
 	{
 		gl.clear(ClearFlags.color);
-		
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);
-		mat4 proj = mat4.CreateOrthographic(0,s.x,s.y,0,1,-1);
-		buffer.draw(proj, snakes, scores, config.snakeSize);
+		buffer.draw(snakes, scores, config.snakeSize);
 	}
 }

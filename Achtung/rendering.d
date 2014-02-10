@@ -23,12 +23,12 @@ struct AchtungRenderer
 					uint mapWidth,
 					uint mapHeight)
 	{
-		auto snakeTex = TextureManager.load("textures\\pixel.png");
-		font		  = FontManager.load("fonts\\Arial32.fnt");
+		auto snakeTex = Game.content.loadTexture("textures\\pixel.png");
+		font		  = Game.content.loadFont("fonts\\Arial32.fnt");
 		snakeFrame = Frame(snakeTex);
 		
 		//fbo    = createSimpleFBO(mapWidth, mapHeight);
-		fbo    = createMultisampleFBO(mapWidth, mapHeight, 32);
+		fbo    = createMultisampleFBO(mapWidth, mapHeight, 4);
 
 	}
 
@@ -40,15 +40,14 @@ struct AchtungRenderer
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 	}
 
-	void draw(ref mat4 transform, 
-			  ref Table!Snake snakes, 
+	void draw(ref Table!Snake snakes, 
 			  ref Table!int scores,
 			  float size)
 	{
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
 
 		
-		auto buffer = Game.spriteBuffer;
+		auto buffer = Game.renderer;
 
 		auto origin = float2(size / 2, size / 2);
 		foreach(key, snake; snakes) {
@@ -59,7 +58,7 @@ struct AchtungRenderer
 					        c, origin);
 		}
 
-		buffer.draw(transform);
+		buffer.draw();
 
 		uint2 winSize = Game.window.fboSize;
 		blitToBackbuffer(fbo, 
@@ -75,13 +74,17 @@ struct AchtungRenderer
 						Color.white, 
 						origin);
 
+
+		import util.strings;
+		char[32] scoreBuffer = void;
+
 		uint i = 0;
 		foreach(c, score; scores){
-			buffer.addText(font, score.to!string, //<-- This is a nono fix later.
+			buffer.addText(font, text(scoreBuffer, score),
 						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  scores.length)),
 							      c);
 			i++;
 		}
-		buffer.draw(transform);
+		buffer.draw();
 	}
 }

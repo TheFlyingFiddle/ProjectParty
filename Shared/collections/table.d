@@ -135,6 +135,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 				mid   = keys.length / 2,
 				last  = keys.length - 1;
 
+
 			while(first <= last)
 			{
 				K other = ptr[mid];
@@ -151,7 +152,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 				mid = (first + last) / 2;
 			}
 			
-			index = mid;
+			index = first;
 			return false;
 		}
 	} 
@@ -160,8 +161,6 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 		int indexOf(K key)
 		{
 			auto index = keys.countUntil!(x => x == key);
-
-
 			return cast(int)index;
 		}
 
@@ -230,6 +229,29 @@ unittest
 
 	foreach(k, v; stable)
 		assert(stable[k] == v);
+}
+
+import std.stdio;
+
+unittest
+{
+	auto keys = [3, 1, 2, 4, 6, 0, 8, 9, 5, 7];
+	auto values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+
+	import allocation;
+	auto allocator = RegionAllocator(Mallocator.cit, 1024 * 4);
+	auto ss  = ScopeStack(allocator);
+
+	auto table = Table!(uint, ulong)(ss, 100);
+
+	foreach(i; 0 .. values.length) {		
+		table[keys[i]] = values[i];
+
+		writeln(table.keys.array);
+		writeln(table.values.array);
+	}
+	
+	readln;
 }
 
 version(benchmark_table)

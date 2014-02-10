@@ -19,25 +19,23 @@ struct Router
 	List!DisconnectonHandler disconnectionHandlers;
 	List!MessageHandler messageHandlers;
 
-	this(A)(ref A allocator, size_t capacity, ref Server server)
+	this(A)(ref A allocator, ref Server server)
 	{
+		enum maxHandlers = 255;
+
 		server.onConnect    = &connected;
 		server.onReconnect  = &reconnect;
 		server.onDisconnect = &disconected;
 		server.onMessage    = &message;
 
-		connectionHandlers    = List!ConnectionHandler(allocator, capacity);
-		reconnectionHandlers  = List!ReconnectionHandler(allocator, capacity);
-		disconnectionHandlers = List!DisconnectonHandler(allocator, capacity);
-		messageHandlers       = List!MessageHandler(allocator, capacity);
-
-
-		l.info("Router Created", this);
+		connectionHandlers    = List!ConnectionHandler(allocator, maxHandlers);
+		reconnectionHandlers  = List!ReconnectionHandler(allocator, maxHandlers);
+		disconnectionHandlers = List!DisconnectonHandler(allocator, maxHandlers);
+		messageHandlers       = List!MessageHandler(allocator, maxHandlers);
 	}
 
 	void connected(ulong id)
 	{
-		l.info("Connected called!", id);
 		foreach(handler; connectionHandlers)
 			handler(id);
 	}

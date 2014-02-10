@@ -40,21 +40,21 @@ struct TestSelection
     string[] testNames;
 }
 
-mixin template Main()
-{
-    int main (string[] args)
-    {
-        import std.stdio;
-        int rval;
-        try {
-            rval = dunit_main(args);
-        } catch (Throwable t) {
-            writeln(t);
-        }
-        readln;
-        return rval;
-    }
-}
+//mixin template Main()
+//{
+//    int main (string[] args)
+//    {
+//        import std.stdio;
+//        int rval;
+//        try {
+//            rval = dunit_main(args);
+//        } catch (Throwable t) {
+//            writeln(t);
+//        }
+//        readln;
+//        return rval;
+//    }
+//}
 
 public int dunit_main(string[] args)
 {

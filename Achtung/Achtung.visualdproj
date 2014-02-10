@@ -379,6 +379,7 @@
  <Folder name="Achtung">
   <File path="achtung.d" />
   <File path="Config.sdl" />
+  <File path="Game.sdl" />
   <File path="game_over.d" />
   <File path="main.d" />
   <File path="MainMenu.sdl" />
@@ -386,6 +387,5 @@
   <File path="rendering.d" />
   <File path="test_game_state.d" />
   <File path="types.d" />
-  <File path="Window.sdl" />
  </Folder>
 </DProject>

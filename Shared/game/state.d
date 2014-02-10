@@ -3,15 +3,6 @@ import collections.list;
 import std.variant;
 
 
-interface IGameState
-{
-	void enter();
-	void exit();
-
-	void update();
-	void render();
-}
-
 template isState(T)
 {
 	enum isState = __traits(compiles, 
@@ -20,11 +11,6 @@ template isState(T)
 		t.enter(); 
 		t.exit();
 	});
-}
-
-unittest
-{
-	alias GameStateFSM = FSM!(IGameState, string);
 }
 
 struct FSM(T, ID) 
@@ -55,6 +41,9 @@ struct FSM(T, ID)
 
 		_currentState = states.find!(x => x.id == id).front;
 		_currentState.state.enter();
+
+		import std.stdio;
+		writeln(_currentState.state," ", _currentState.id);
 	}
 
 	void addState(T _state, ID id)
@@ -66,6 +55,10 @@ struct FSM(T, ID)
 	
 	auto ref opDispatch(string name, Args...)(Args args)
 	{
+		assert(this._currentState.state, "No state set!");
+
 		mixin("this._currentState.state." ~ name ~ "(args);");
 	}
+
+	@disable this(this);
 }	

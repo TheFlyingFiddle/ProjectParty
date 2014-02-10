@@ -246,15 +246,21 @@ struct HashMap(K,V,alias hashFunc = defaultHashFunc!K)
 		return index == endOfList ? defaultValue : _map._entries[index].value;
 	}
 
+	bool has(K key)
+	{
+		auto index = _map.findOrFail(key);
+		return index != endOfList;
+	}
+
 	bool remove(K key)
 	{
 		return _map.findAndErase(key);
 	}
 
-	T* opBinary(string op : "in")(K key)
+	V* opBinaryRight(string op : "in")(K key)
 	{
-		auto index = _map.findOrFail();
-		return index == endOfList ? null : &_map.entries[index].value;
+		auto index = _map.findOrFail(key);
+		return index == endOfList ? null : &_map._entries[index].value;
 	}
 
 	void clear()

@@ -7,12 +7,6 @@ import graphics,
 	   collections.list,
 	   logging;
 
-struct TextureToRender
-{
-	TextureID texID = TextureID(uint.max); //Hmm...
-	uint count;
-}
-
 struct Vertex
 {
 	float4 pos;
@@ -38,19 +32,22 @@ struct Renderer
 	private VAO vao;
 	private Program program;
 
-	private List!TextureToRender toRender;
-	private TextureToRender active;
-	
+	private TextureID texture;
+
+
 	private uint elements;
+	private uint offset;
 	private uint bufferSize;
 
 	private Vertex* bufferPtr;
 
-	this(A)(ref A allocator, size_t maxDiffrentTextures, size_t bufferSize)
+	mat4 transform;
+	Program* usedProgram;
+
+	this(A)(ref A allocator, size_t bufferSize)
 	{
 		this.elements = 0;
 		this.bufferSize = bufferSize;
-		this.toRender = List!TextureToRender(allocator, maxDiffrentTextures);
 
 		this.vbo = VBO.create(BufferHint.streamDraw);
 		this.vao = VAO.create();
@@ -70,34 +67,49 @@ struct Renderer
 
 		gl.bindVertexArray(vao.glName);
 		vao.bindAttributesOfType!Vertex(program);
+
+		texture = TextureID.invalid;
+	}
+
+	~this()
+	{
+		program.obliterate();
+		vbo.obliterate();
+		vao.obliterate();
+	}
+
+	void addItem(TextureID id, Vertex vertex)
+	{
+		addItem(id, vertex);
 	}
 
 	void addItem(TextureID id, ref Vertex vertex)
 	{
-		if(elements == bufferSize)
-			resize();
-
-		if(active.texID != id)
-		{
-			active = TextureToRender(id, 0);
-			toRender ~= active;
-		}
-
-
-		toRender[$ - 1].count++;
+		if(texture != id || elements == bufferSize) {
+			if(texture == TextureID.invalid)
+				texture = id;
+			else 
+			{
+				draw(true);
+				texture = id;
+			}
+		} 
 
 		elements++;
-
 		*(bufferPtr++) = vertex;
 	}
 
 	void addItems(Range)(TextureID id, ref Range vertices)
 	{
-		if(vertices.length + elements >= bufferSize)
-			resize();
-
-		if(active.texID != id)
-			toRender ~= TextureToRender(id, 0);
+		if(texture != id || elements + vertices.length >= bufferSize) {
+			if(texture == TextureID.invalid)
+				texture = id;
+			else 
+			{
+				draw(true);
+				texture = id;
+			}
+		} 
 
 		elements += vertices.length;
 		toRender[$ - 1].count += vertices.length;
@@ -134,7 +146,7 @@ struct Renderer
 
 		//Need to remap buffer.
 
-		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.write);
+		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.unsynchronizedWrite);
 
 		logChnl.warn("Performance Warning! The vbo got resized, consider making a bigger buffer.");
 	}
@@ -143,10 +155,13 @@ struct Renderer
 	/** Starts a render cycle. This must be called before any calls to 
 	*   addItem(s). And must be matched with a call to end.
 	*/
-	void start()
+	void start(ref mat4 transform, Program* program = null)
 	{
+		usedProgram = program == null ? &this.program : program;
+		this.transform = transform;
+
 		gl.bindBuffer(vbo.target, vbo.glName);
-		bufferPtr = vbo.mapBuffer!Vertex(BufferAccess.write);
+		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.unsynchronizedWrite);
 	}
 
 	/** Draws all elements that has thus far been added for rendering immediatly.
@@ -154,10 +169,10 @@ struct Renderer
 	*   If a program is specified the rendering happens through that
 	*   program.
 	*/
-	void draw(ref mat4 transform, Program* program = null)
+	void draw(bool overflow = false)
 	{
-		draw_impl(transform, program);
-		start();
+		draw_impl(overflow);
+		start(transform, usedProgram);
 	}
 
 
@@ -165,45 +180,40 @@ struct Renderer
 	*   If a program is specified the rendering happens through that
 	*   program.
 	*/
-	void end(ref mat4 transform, Program* program = null)
+	void end()
 	{
-		draw_impl(transform, program);
+		draw_impl(false);
+		texture = TextureID.invalid;
 	}
 
-	private void draw_impl(ref mat4 transform, Program* program)
+	private void draw_impl(bool overflow )
 	{
+		vbo.unmapBuffer();
 		if(elements == 0) return;
 
-		program = program == null ? &this.program : program;
 
 		gl.bindBuffer(vbo.target, vbo.glName);
-		vbo.unmapBuffer();
+		gl.useProgram(usedProgram.glName);
+		usedProgram.uniform["transform"] = transform;
 
-		program.uniform["transform"] = transform;
-
-		gl.activeTexture(TextureUnit.zero);
 		gl.bindVertexArray(vao.glName);
 
-		uint offset = 0;
-		foreach(ref render ; toRender)
-		{
-			auto texture = render.texID.texture;
-			gl.bindTexture(texture.target, texture.glName);
+		auto tex = texture.texture;
+		gl.activeTexture(TextureUnit.zero);
+		gl.bindTexture(tex.target, tex.glName);
+		gl.drawArrays(PrimitiveType.points, offset, elements - offset);
 
-			gl.drawArrays(PrimitiveType.points, offset, render.count);
-
-			offset += render.count;
+		offset = elements;
+		if(overflow) {
+			elements = 0;
+			offset = 0;
 		}
-
-		elements = 0;
-		toRender.clear();
-		active = TextureToRender();
 	}
 
 	@disable this(this);
 }
 
-void addFrame(ref Renderer renderer,
+void addFrame(Renderer* renderer,
 			  ref Frame frame,
 			  float2 pos,
 			  Color color,
@@ -228,6 +238,22 @@ void addFrame(ref Renderer renderer,
 	renderer.addItem(frame.texture, vertex);
 }
 
+
+void addFrame(Renderer* renderer,
+			  Frame frame, float4 rect,
+			  Color color = Color.white,
+			  float2 origin = float2.zero,
+			  float rotation = 0,
+			  bool mirror = false)
+{
+	float4 coords = frame.coords;
+	if(mirror) {
+		swap(coords.x, coords.z);
+	}
+
+	renderer.addItem(frame.texture, 
+					 Vertex(rect, coords, origin, color, rotation));
+}
 
 uint addText(T,Sink)(FontID fontID,
 					  const (T)[] text, 
@@ -292,7 +318,7 @@ uint addText(T,Sink)(FontID fontID,
 	return count;
 }
 
-void addText(ref Renderer renderer,
+void addText(Renderer* renderer,
 			 FontID fontID,
 			 const (char)[] text, 
 			 float2 pos,
@@ -313,21 +339,21 @@ void addText(ref Renderer renderer,
 	auto font  = fontID.font;
 	auto texID = font.page.texture; 	
 	
-	if(renderer.elements + text.length >= 
-	   renderer.bufferSize)
-		renderer.resize();
 
-	if(renderer.active.texID != texID)
-	{
-		renderer.active = TextureToRender(texID, 0);
-		renderer.toRender ~= renderer.active;
-	}
-	
-	RenderRange range = RenderRange(&renderer); // <-- Must have a reference here.
+	if(renderer.texture != texID || renderer.elements + text.length >= renderer.bufferSize) {
+		if(renderer.texture == TextureID.invalid)
+			renderer.texture = texID;
+		else 
+		{
+			renderer.draw(true);
+			renderer.texture = texID;
+		}
+	} 
+
+	RenderRange range = RenderRange(renderer); // <-- Must have a reference here.
 	auto count = addText(fontID, text, pos, color, 
 						 scale, origin, rotation, range);
 
-	renderer.toRender[$ - 1].count += count;
 	renderer.elements += count;
 }
 
