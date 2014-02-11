@@ -262,7 +262,7 @@ class AchtungGameState : IGameState
 			timers.remove(collision.color);
 			snakes.remove(collision.color);
 
-			auto toGet = ids.length - snakes.length;
+			auto toGet = ids.length - snakes.length - 1;
 
 			scores[collision.color] += toGet;
 			

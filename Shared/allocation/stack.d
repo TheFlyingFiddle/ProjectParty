@@ -45,7 +45,7 @@ struct ScopeStack
 		this._chain       = null;
 	}
 
-	T* allocate(T, Args...)(auto ref Args args) 
+	auto allocate(T, Args...)(auto ref Args args) 
 		if(hasElaborateDestructor!T && !isArray!T)
 	{
 		logChnl.info("Allocated RAII Object: Type = ", T.stringof);
@@ -54,8 +54,7 @@ struct ScopeStack
 		auto fin = emplace!(Finalizer)(mem, &destructor!T, _chain);
 		_chain = fin;
 
-		auto obj = emplace!(T)(mem[Finalizer.sizeof .. $], args);
-		return obj;
+		return emplace!(T)(mem[Finalizer.sizeof .. $], args);
 	}
 
 	auto allocate(T, Args...)(auto ref Args args) 

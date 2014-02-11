@@ -6,7 +6,7 @@ maxResolution =
 
 maxSnakes = 1000
 snakeSize = 4
-winningScore = 400
+winningScore = 50
 
 minInvis = 0.2
 maxInvis = 0.4

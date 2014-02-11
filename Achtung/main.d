@@ -65,10 +65,9 @@ void run()
 {
 	auto allocator = RegionAllocator(GC.cit, 1024 * 1024 * 50, 8);	
 	auto ss        = ScopeStack(allocator);
-
+	
 	init(ss);
 	logChnl.info("Total Allocated is: ", allocator.bytesAllocated / 1024 , "kb");
 	import std.datetime;
-	Game.run(Timestep.fixed, 16.msecs);
-	
+	Game.run(Timestep.fixed, 16.msecs);	
 }
