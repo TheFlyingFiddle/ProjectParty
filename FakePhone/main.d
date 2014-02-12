@@ -28,14 +28,10 @@ void main()
 	auto iaddr = cast(immutable InternetAddress)addr;
 	import std.concurrency;
 
-	size_t numConnections = 100;
+	size_t numConnections = 10;
 
-	foreach(i ; 0 .. 10)
-		spawn(&connectReconnector, iaddr);
-	
-	foreach(i ; 0 .. numConnections - 10)
+	foreach(i ; 0 .. numConnections)
 		spawn(&connectNormal, iaddr);
-
 }
 
 void connectReconnector(immutable InternetAddress iaddr)
@@ -47,17 +43,18 @@ void connectReconnector(immutable InternetAddress iaddr)
 	Thread.sleep(2.seconds);
 	while(true)
 	{
-		foreach(i; 0 .. 2) {
+		foreach(i; 0 .. 2) 
+		{
 			sendAccelerometerData(connection, buffer);
 			Thread.sleep(33.msecs);
 		}
-	//	if(dice(0.005, 0.995) == 0) {
-			connection.socket.shutdown(SocketShutdown.BOTH);
-			connection.socket.close();
 
-			Thread.sleep(16.msecs);
-			connection = connect(addr, buffer, connection.id);
-		//}
+		Thread.sleep(uniform(0, 4).seconds);
+		connection.socket.shutdown(SocketShutdown.BOTH);
+		connection.socket.close();
+
+		Thread.sleep(16.msecs);
+		connection = connect(addr, buffer, connection.id);
 	}
 }
 
