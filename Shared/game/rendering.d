@@ -295,7 +295,8 @@ uint addText(T,Sink)(FontID fontID,
 							 scale.y * info.srcRect.w);
 		
 		sink.put(Vertex(ppos, info.textureCoords, 
-						float2(-origin.x - cursor.x, -origin.y - cursor.y + font.base),
+						float2(-origin.x - cursor.x, 
+							   -origin.y - cursor.y + font.base),
 					    color, rotation));
 		count++;
 		cursor.x += info.advance * scale.x;
