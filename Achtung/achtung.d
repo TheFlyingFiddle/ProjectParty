@@ -13,6 +13,7 @@ import std.algorithm;
 import game;
 import std.variant;
 import collections.grid;
+import achtung_game_data;
 
 struct AchtungConfig
 {
@@ -35,35 +36,31 @@ class AchtungGameState : IGameState
 	Table!(ulong) ids;
 	Table!(Snake) snakes;
 	Table!(float) timers;
-	Table!(int)   scores;
+    AchtungGameData agd;
 
 	AchtungConfig config;
 
-	this(A)(ref A allocator, string configPath)
+	this(A)(ref A allocator, string configPath, AchtungGameData agd)
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 
 		snakes     = Table!(Snake)(allocator, config.maxSnakes);
 		timers     = Table!(float)(allocator, config.maxSnakes);
-		scores     = Table!(int  )(allocator, config.maxSnakes);
-		ids        = Table!(ulong)(allocator, config.maxSnakes);
 		masterMap  = Grid!bool(allocator, config.maxResolution.x, config.maxResolution.y);
-		renderer   = AchtungRenderer(allocator, cast(uint)ids.capacity, config.maxResolution.x, config.maxResolution.y);
+		renderer   = AchtungRenderer(allocator, cast(uint)agd.data.capacity, config.maxResolution.x, config.maxResolution.y);
 		stream     = EventStream(allocator, 1024 * 1000);
+		this.agd = agd;
 	}
 
-	void enter()
+	void enter()		
 	{
-		ids.clear();
-		scores.clear();
-		
+		foreach(ref pd; agd.data)
+		{
+			pd.score = 0;
+		}
 
+		// används denna???
 		size_t c = Game.players.length;
-		foreach(i, player; Game.players)
-			ids[Color(uniform(0, uint.max) | 0xFF000000)] = player.id;
-
-		foreach(key, id; ids)
-			scores[key] = 0;
 
 		map = masterMap.subGrid(Game.window.fboSize.x - 100, Game.window.fboSize.y);
 
@@ -85,7 +82,7 @@ class AchtungGameState : IGameState
 
 	void reset()
 	{
-		foreach(s; scores) if(s > config.winningScore)
+		foreach(playerData; agd.data) if(playerData.score > config.winningScore)
 		{
 			Game.gameStateMachine.transitionTo("GameOver");
 			return;
@@ -98,43 +95,43 @@ class AchtungGameState : IGameState
 		map.fill(0);
 		renderer.clear(Color(1,0,1,0));
 
-		foreach(color, id; ids)
+		foreach(playerData; agd.data)
 		{
 			Snake snake;
 			snake.pos = float2(uniform(50, map.width - 50), uniform(50, map.height - 50));
 			snake.dir = (float2(map.width / 2, map.height / 2) - snake.pos).normalized;
 			snake.visible = true;
 
-			snakes[color]   = snake;
-			timers[color]   = 1.0f;
+			snakes[playerData.color]   = snake;
+			timers[playerData.color]   = 1.0f;
 		}
 	}
 
 	void update()
 	{
-		generateInputEvents(ids, stream);
+		generateInputEvents(stream);
 		handleInput(snakes, stream);
 		updateTimers(timers, snakes, Time.delta);
 
 		moveSnakes(snakes, map, stream, config.snakeSize);
-		handleCollision(snakes, timers, scores, map, stream);
+		handleCollision(snakes, timers, map, stream);
 
 		stream.clear();
 	}
 
 	void render()
 	{
-		renderFrame(renderer, snakes, scores);
+		renderFrame(renderer, snakes);
 	}
 
-	void generateInputEvents(ref Table!(ulong) players, ref EventStream stream) // <-- This is wierd and very much not ok.
+	void generateInputEvents(ref EventStream stream) // <-- This is wierd and very much not ok.
 	{
-		foreach(color, id; players)
+		foreach(playerData; agd.data)
 		{
-			if(Phone.exists(id) && snakes.indexOf(color) != -1)
+			if(Phone.exists(playerData.playerId) && snakes.indexOf(playerData.color) != -1)
 			{
-				PhoneState state = Phone.state(id);
-				stream.push(InputEvent(color, state.accelerometer.y / 50));
+				PhoneState state = Phone.state(playerData.playerId);
+				stream.push(InputEvent(playerData.color, state.accelerometer.y / 50));
 			}	
 		}
 	}
@@ -250,8 +247,7 @@ class AchtungGameState : IGameState
 	}
 
 	void handleCollision(ref Table!Snake snakes,
-					     ref Table!float timers,
-					     ref Table!int scores, 
+					     ref Table!float timers, 
 					     ref Grid!bool map, 
 					     ref EventStream stream)
 	{
@@ -262,19 +258,26 @@ class AchtungGameState : IGameState
 			timers.remove(collision.color);
 			snakes.remove(collision.color);
 
-			auto toGet = ids.length - snakes.length - 1;
+			auto toGet = agd.data.length - snakes.length + 1;
 
-			scores[collision.color] += toGet;
-			
+			foreach(ref playerData; agd.data) if(collision.color == playerData.color)
+				playerData.score += toGet;
+	
+/**
 			sendDeathMessage(collision.color);
 			if(snakes.length == 1){
-				scores[snakes.keys[0]] += ids.length;
+				foreach(playerData; agd.data) if(playerData.color == snakes.keys[0])
+				{
+				playerData.score += agd.data.length;
+				}
 				reset();
 				return;
 			}
+			*/
 		}
 	}
 
+	/**
 	void sendDeathMessage(Color color)
 	{
 		import std.bitmanip;
@@ -284,20 +287,19 @@ class AchtungGameState : IGameState
 
 		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
 		buffer.write!ubyte(2, &offset);
-		buffer.write!ushort(cast(ushort)scores[color], &offset);
+		buffer.write!ushort(cast(ushort)agd.data.score[color], &offset);
 
 		Game.server.send(ids[color], buffer[0 .. offset]);
 	}
-
+*/
 	void renderFrame(ref AchtungRenderer buffer,
-					 ref Table!Snake snakes,
-					 ref Table!int scores)
+					 ref Table!Snake snakes)
 	{
 		import std.stdio;
 
 		gl.clear(ClearFlags.color);
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);
-		buffer.draw(snakes, scores, config.snakeSize);
+		buffer.draw(snakes, agd, config.snakeSize);
 	}
 }

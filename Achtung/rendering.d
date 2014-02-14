@@ -10,6 +10,7 @@ import content.sdl;
 import derelict.glfw3.glfw3;
 import main;
 import game;
+import achtung_game_data;
 
 /** Very simple renderer that stores everything that has been drawn into a rendertarget. **/
 struct AchtungRenderer
@@ -41,7 +42,7 @@ struct AchtungRenderer
 	}
 
 	void draw(ref Table!Snake snakes, 
-			  ref Table!int scores,
+			  AchtungGameData agd,
 			  float size)
 	{
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
@@ -79,10 +80,9 @@ struct AchtungRenderer
 		char[32] scoreBuffer = void;
 
 		uint i = 0;
-		foreach(c, score; scores){
-			buffer.addText(font, text(scoreBuffer, score),
-						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  scores.length)),
-							      c);
+		foreach(playerData; agd.data){
+			buffer.addText(font, text(scoreBuffer, playerData.score),
+						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  agd.data.length)));
 			i++;
 		}
 		buffer.draw();
