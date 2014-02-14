@@ -120,9 +120,10 @@ struct SDLIterator
     void goToNext(string name)()
 	{
         auto range = mixin(curObjObjRange);
+		SDLObject obj;
         while(currentIndex)//An index of zero is analogous to null.
 		{ 
-            SDLObject obj = over.root[currentIndex];
+            obj = over.root[currentIndex];
             range.position = cast(size_t)obj.nameIndex;
 
             if(range.readIdentifier == name) {
@@ -130,7 +131,11 @@ struct SDLIterator
 			}
 			currentIndex = cast(ushort)obj.nextIndex;
 		} 
-        throw new ObjectNotFoundException("Couldn't find object " ~ name);
+		auto nameRange = ForwardRange(cast(size_t)obj.nameIndex, this.over.source);
+        throw new ObjectNotFoundException("Couldn't find object " ~ name ~ "\n" ~
+										  "Search terminated on object " ~ 
+										  readIdentifier(nameRange)
+										  );
 	}
 
 	class ObjectNotFoundException : Exception
@@ -269,11 +274,26 @@ struct SDLIterator
 		} else static assert(0, Vec.stringof ~ " is not a vector type.");
 	}
 
-    T as(T, Allocator)(ref Allocator a) if (!(isNumeric!T	||
-											isSomeString!T	||
-											isArray!T 		||
-											isVector!T		||
-											is(T t == List!U, U)))
+	private template UnknownType(T)
+	{
+		enum UnknownType = !(isNumeric!T	||
+							isSomeString!T	||
+							isArray!T 		||
+							isVector!T		||
+							is(T == bool)	||
+							isList!T);
+	}
+
+	private template isList(T)
+	{
+		static if (is(T t == List!U, U)) {
+			enum isList = true;
+		} else {
+			enum isList = false;
+		}
+	}
+
+    T as(T, Allocator)(ref Allocator a) if (UnknownType!T)
 	{        
 		goToChild();
         T toReturn;
@@ -310,7 +330,9 @@ struct SDLIterator
 				}
 			} else {
 				goToNext!member; //Changes the index to point to the member we want.
-				static if(isArray!fieldType || is(fieldType f == List!E, E)) {
+				static if(isArray!fieldType 
+						  || is(fieldType f == List!E, E) 
+						  || UnknownType!fieldType) {
 					__traits(getMember, toReturn, member) = 
 						as!(fieldType, Allocator)(a);
 				} else {
@@ -324,12 +346,7 @@ struct SDLIterator
         return toReturn;
 	}
 
-	T as(T)() if (!(isNumeric!T		||
-					isSomeString!T	||
-					isArray!T		||
-					isVector!T		||
-					is(T==bool)		||
-					is(T t == List!U, U)))
+	T as(T)() if (UnknownType!T)
 	{
         goToChild();
         T toReturn;
@@ -339,8 +356,11 @@ struct SDLIterator
             alias fieldType = typeof(__traits(getMember, toReturn, member));
 			alias attributeType = typeof(__traits(getAttributes, __traits(getMember, toReturn, member)));
 			static if(isArray!fieldType) {
-				assert(0, "Structs with arrays inside need an allocator to be parsed.\n"~
-						"Field "~member~" was an array, and provented parsing.");
+				assert(0, "Structs cotaining arrays need an allocator to be parsed.\n"~
+						"Field "~member~" was an array, and prevented parsing.");
+			} else static if(is(fieldType f == List!E, E)) {
+				assert(0, "Structs cotaining lists need an allocator to be parsed.\n"~
+						"Field "~member~" was a list, and prevented parsing.");
 			} else {
 				//  Can only traverse the tree downwards
 				//  So we need to save this index to not
@@ -1462,4 +1482,43 @@ freeColor=0";
 		assertEquals(obj.teststring.s.as!string(alloc2), "nowhitespace");
 	}
 
+	@Test public void testRecursiveStruct()
+	{
+
+		struct StructB
+		{
+			int i;
+			int j;
+		}
+
+		struct StructC
+		{
+			string asdf;
+		}
+
+		struct StructA
+		{
+			StructB b;
+			StructC c;
+		}
+
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		import collections.list;
+		auto source = 
+					"structa = {"
+					~"	b = { i = 5 j = 3 }"
+					~"	c = { asdf = asdf }"
+					~"}";
+		auto obj = fromSDL(app, source);
+
+		auto a = StructA(StructB(5,3), StructC("asdf"));
+		
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+		
+		assertEquals(a, obj.structa.as!StructA(alloc2));
+	}
 }
