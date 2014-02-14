@@ -49,7 +49,7 @@ void connectReconnector(immutable InternetAddress iaddr)
 			Thread.sleep(33.msecs);
 		}
 
-		Thread.sleep(uniform(0, 4).seconds);
+		Thread.sleep(uniform(1, 4).seconds);
 		connection.socket.shutdown(SocketShutdown.BOTH);
 		connection.socket.close();
 

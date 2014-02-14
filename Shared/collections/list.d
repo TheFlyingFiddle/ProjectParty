@@ -218,7 +218,8 @@ bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t i
 
 bool remove(alias pred, SwapStrategy s = SwapStrategy.stable, T)(ref List!T list)
 {
-	auto index = list.countUntil!(pred);
+	import std.algorithm;
+	auto index = list.countUntil!(pred)();
 	if(index == -1) return false;
 
 	static if(s == SwapStrategy.unstable)

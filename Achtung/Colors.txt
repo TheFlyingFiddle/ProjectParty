@@ -1,0 +1,15 @@
+colors = 
+[
+{ packedValue = 0xFFFFFFFF },
+{ packedValue = 0xFFFF0000},
+{ packedValue = 0xFF00FF00},
+{ packedValue = 0xFF0000FF},
+{ packedValue = 0xFF0175EB},
+{ packedValue = 0xFFF600FE},
+{ packedValue = 0xFFBCFF00},
+{ packedValue = 0xFF8AE2FF},
+{ packedValue = 0xFFA9AFB6},
+{ packedValue = 0xFF53788C},
+{ packedValue = 0xFF00DDAA} 
+]
+

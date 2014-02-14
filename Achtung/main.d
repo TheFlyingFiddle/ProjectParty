@@ -2,7 +2,8 @@ module main;
 
 import logging, external_libraries,
 	   allocation, game, achtung,
-	   main_menu, game_over;
+	   main_menu, game_over,
+	   achtung_game_data;
 
 version(X86) 
 	enum libPath = "..\\lib\\win32\\";
@@ -50,8 +51,10 @@ void init(A)(ref A allocator)
 	game.Game = allocator.allocate!Game_Impl(allocator, config);
 
 	auto fsm = Game.gameStateMachine;
-	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl"), "Achtung");
-	fsm.addState(allocator.allocate!MainMenu("Achtung Main Menu"), "MainMenu");
+	auto agd = new AchtungGameData(allocator, config.serverConfig.maxConnections);
+
+	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl", agd), "Achtung");
+	fsm.addState(allocator.allocate!MainMenu("Achtung Main Menu", agd,config.serverConfig.maxConnections), "MainMenu");
 	fsm.addState(allocator.allocate!GameOverGameState(10), "GameOver");
 	fsm.transitionTo("MainMenu");
 

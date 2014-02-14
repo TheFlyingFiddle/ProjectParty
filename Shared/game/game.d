@@ -92,7 +92,7 @@ struct Game_Impl
 
 	void onConnect(ulong id)
 	{
-		players ~= Player(id, null);
+		players ~= Player(id, "unknown");
 	}
 
 	void onDisconnect(ulong id)

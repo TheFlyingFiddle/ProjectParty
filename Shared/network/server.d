@@ -308,7 +308,7 @@ struct Server
 				if(len > 1024) 
 					return;
 
-				if(len >= buffer.length)
+				if(len > buffer.length)
 				{
 					auto index = partialMessages.countUntil!(x => x.id == key);
 					partialMessages[index].data[0 .. tmp.length] = tmp;

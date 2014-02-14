@@ -94,11 +94,22 @@ struct SDLIterator
 			return size;
 		}
 
+
+    enum curObjObjRange =	"ForwardRange(over.root[currentIndex].objectIndex,"
+		~	"over.source)";
+	enum curObjNameRange =	"ForwardRange(over.root[currentIndex].objectIndex,"
+		~	"over.source)";
+	string getSDLIterError()
+	{
+		auto range = mixin(curObjNameRange);
+		return "Error in object "~readIdentifier(range)~" at index "~to!string(currentIndex);
+	}
+
     void goToChild(string name = "")()
 	{
         auto range = mixin(curObjObjRange);
         auto obj = over.root[currentIndex];//Get current object, if it doesn't exist, tough luck.
-        enforce(obj.type == TypeID._parent, "Foolishly tried to get children of "
+        enforce(obj.type == TypeID._parent, "Tried to get children of non-parent object "
 				~range.readIdentifier~ 
 				" of typeID "~std.conv.to!string(obj.type)~".");
         currentIndex = cast(ushort)obj.objectIndex;
@@ -109,9 +120,10 @@ struct SDLIterator
     void goToNext(string name)()
 	{
         auto range = mixin(curObjObjRange);
+		SDLObject obj;
         while(currentIndex)//An index of zero is analogous to null.
 		{ 
-            SDLObject obj = over.root[currentIndex];
+            obj = over.root[currentIndex];
             range.position = cast(size_t)obj.nameIndex;
 
             if(range.readIdentifier == name) {
@@ -119,7 +131,11 @@ struct SDLIterator
 			}
 			currentIndex = cast(ushort)obj.nextIndex;
 		} 
-        throw new ObjectNotFoundException("Couldn't find object " ~ name);
+		auto nameRange = ForwardRange(cast(size_t)obj.nameIndex, this.over.source);
+        throw new ObjectNotFoundException("Couldn't find object " ~ name ~ "\n" ~
+										  "Search terminated on object " ~ 
+										  readIdentifier(nameRange)
+										  );
 	}
 
 	class ObjectNotFoundException : Exception
@@ -132,21 +148,21 @@ struct SDLIterator
         SDLObject obj = over.root[currentIndex];
         auto next = cast(ushort)obj.nextIndex;
         if(!next)
-            enforce(0, "Index out of bounds.");
+            enforce(0, getSDLIterError()~"Object had no next! Index out of bounds.");
         currentIndex = next;
 	}
 
-    enum curObjObjRange = "ForwardRange(over.root[currentIndex].objectIndex,
-		over.source)";
 
 	T as(T)() if(isNumeric!T && !is(T==enum))
 	{
         static if(isIntegral!T)
 			enforce(over.root[currentIndex].type == TypeID._int,
+					getSDLIterError() ~
 					"SDLObject wasn't an integer, which was requested.");
         else static if(isFloatingPoint!T)
 			enforce(over.root[currentIndex].type == TypeID._float ||
 					over.root[currentIndex].type == TypeID._int,
+					getSDLIterError() ~
 					"SDLObject wasn't a floating point value, "~
 					"which was requested.");
         auto range = mixin(curObjObjRange);
@@ -159,7 +175,8 @@ struct SDLIterator
 	T as(T)() if(is(T==bool))
 	{
 		assertEquals(over.root[currentIndex].type, TypeID._string,
-			   "SDLObject wasn't a boolean, which was requested");
+				getSDLIterError() ~
+	 			"SDLObject wasn't a boolean, which was requested");
 		auto range = mixin(curObjObjRange);
 		return readBool(range);
 	}
@@ -219,6 +236,7 @@ struct SDLIterator
 	T as(T)() if (is(T == enum))
 	{
 		assertEquals(over.root[currentIndex].type, TypeID._string,
+					 getSDLIterError() ~
 					 "SDLObject wasn't an enum, which was requested");
 		auto range = mixin(curObjObjRange);
 
@@ -229,7 +247,8 @@ struct SDLIterator
 			if(member.to!string == name)
 				return member;
 		}
-		assert(0, name ~ " is not a valid value of enum type " ~ T.stringof);
+		assert(0, getSDLIterError() ~ 
+			   name ~ " is not a valid value of enum type " ~ T.stringof);
 	}
 
     import math.vector, math.traits;
@@ -252,14 +271,29 @@ struct SDLIterator
 				currentIndex = firstIndex;
 			}
 			return toReturn;
-		} else assert(0, Vec.stringof ~ " is not a vector type.");
+		} else static assert(0, Vec.stringof ~ " is not a vector type.");
 	}
 
-    T as(T, Allocator)(ref Allocator a) if (!(isNumeric!T	||
-											isSomeString!T	||
-											isArray!T 		||
-											isVector!T		||
-											is(T t == List!U, U)))
+	private template UnknownType(T)
+	{
+		enum UnknownType = !(isNumeric!T	||
+							isSomeString!T	||
+							isArray!T 		||
+							isVector!T		||
+							is(T == bool)	||
+							isList!T);
+	}
+
+	private template isList(T)
+	{
+		static if (is(T t == List!U, U)) {
+			enum isList = true;
+		} else {
+			enum isList = false;
+		}
+	}
+
+    T as(T, Allocator)(ref Allocator a) if (UnknownType!T)
 	{        
 		goToChild();
         T toReturn;
@@ -290,13 +324,15 @@ struct SDLIterator
 							__traits(getAttributes, __traits(getMember, toReturn, member))[0].defaultValue;
 					}
 				} else {
-					assert(0, "Field type mismatch: \n Field "
+					static assert(0, "Field type mismatch: \n Field "
 						   ~member~" was of type "~fieldType.stringof~
 						   ", attribute was of type "~attributeType.stringof);
 				}
 			} else {
 				goToNext!member; //Changes the index to point to the member we want.
-				static if(isArray!fieldType || is(fieldType f == List!E, E)) {
+				static if(isArray!fieldType 
+						  || is(fieldType f == List!E, E) 
+						  || UnknownType!fieldType) {
 					__traits(getMember, toReturn, member) = 
 						as!(fieldType, Allocator)(a);
 				} else {
@@ -310,12 +346,7 @@ struct SDLIterator
         return toReturn;
 	}
 
-	T as(T)() if (!(isNumeric!T		||
-					isSomeString!T	||
-					isArray!T		||
-					isVector!T		||
-					is(T==bool)		||
-					is(T t == List!U, U)))
+	T as(T)() if (UnknownType!T)
 	{
         goToChild();
         T toReturn;
@@ -325,8 +356,11 @@ struct SDLIterator
             alias fieldType = typeof(__traits(getMember, toReturn, member));
 			alias attributeType = typeof(__traits(getAttributes, __traits(getMember, toReturn, member)));
 			static if(isArray!fieldType) {
-				assert(0, "Structs with arrays inside need an allocator to be parsed.\n"~
-						"Field "~member~" was an array, and provented parsing.");
+				assert(0, "Structs cotaining arrays need an allocator to be parsed.\n"~
+						"Field "~member~" was an array, and prevented parsing.");
+			} else static if(is(fieldType f == List!E, E)) {
+				assert(0, "Structs cotaining lists need an allocator to be parsed.\n"~
+						"Field "~member~" was a list, and prevented parsing.");
 			} else {
 				//  Can only traverse the tree downwards
 				//  So we need to save this index to not
@@ -365,8 +399,6 @@ struct SDLIterator
 	{
 		alias Unpack = T;
 	}
-
-
 
     ref SDLIterator opIndex(size_t index)
     {
@@ -602,7 +634,7 @@ template isBoolOrVoid(T) {
     enum isBoolOrVoid = is(T==void) || is(T==bool);
 }
 
-BoolOrVoid readBool(BoolOrVoid = bool, Range)(ref Range range)
+BoolOrVoid readBool(BoolOrVoid = bool)(ref ForwardRange range)
 if (isBoolOrVoid!BoolOrVoid)
 {
 	static if (is(BoolOrVoid==bool))
@@ -631,11 +663,12 @@ if (isBoolOrVoid!BoolOrVoid)
 template isNumericVoidOrType(T) {
 	enum isNumericVoidOrType = is(T==void) || is(T==TypeID) || isNumeric!T;
 }
-NumericVoidOrType readNumber(NumericVoidOrType, Range)(ref Range range)
+NumericVoidOrType readNumber(NumericVoidOrType)(ref ForwardRange range)
 if (isNumericVoidOrType!NumericVoidOrType)
 {
 	size_t state;
-	switch(range.front)
+	char rc = range.front;
+	switch(rc)
 	{
 		case '-':
 			state = 0;
@@ -676,7 +709,7 @@ if (isNumericVoidOrType!NumericVoidOrType)
 						state = 1;
 						break;
 					default:
-						enforce(0, "error reading number");
+						enforce(0, "Error reading number. "~getSDLError(range));
 				}
 				break;
 			case 1:
@@ -702,7 +735,7 @@ if (isNumericVoidOrType!NumericVoidOrType)
 						state = 3;
 						break;
 					default:
-						enforce(0, "error reading number");
+						enforce(0, "Error reading number. "~getSDLError(range));
 				}
 				break;
 			case 3:
@@ -715,7 +748,7 @@ if (isNumericVoidOrType!NumericVoidOrType)
 						state = 4;
 						break;
 					case '.':
-						enforce(0, "error reading number!");
+						enforce(0, "Error reading number. "~getSDLError(range));
                         break;
 					default :
 						shouldEnd = true;
@@ -732,7 +765,7 @@ if (isNumericVoidOrType!NumericVoidOrType)
 						state = 5;
 						break;
 					default :
-						enforce(0, "error reading number!");
+						enforce(0, "Error reading number. "~getSDLError(range));
 				}
 				break;
 			case 5:	
@@ -742,7 +775,7 @@ if (isNumericVoidOrType!NumericVoidOrType)
 						state = 6;
 						break;
 					default:
-						enforce(0, "error reading number!");
+						enforce(0, "Error reading number. "~getSDLError(range));
 				}
 				break;
 			case 6:
@@ -782,7 +815,7 @@ if (isNumericVoidOrType!NumericVoidOrType)
 						state = 9;
 						break;
 					default:
-						enforce(0, "error reading number!");
+						enforce(0, "Error reading number. "~getSDLError(range));
 				}
 				break;
 			case 9:
@@ -798,7 +831,7 @@ if (isNumericVoidOrType!NumericVoidOrType)
 				}
 				break;
 			default:
-				enforce(0, "WTF");
+				enforce(0, "Error reading number. "~getSDLError(range));
 		}
 
 		if(shouldEnd)
@@ -845,7 +878,8 @@ string str(ForwardRange a, ForwardRange b)
 
 T number(T)(ForwardRange a, ForwardRange b)
 if(isNumeric!T)
-{//BY THE GODS THIS SUCKS
+{
+//BY THE GODS THIS SUCKS
 //TODO: No string allocs.
 //Only alternatives I see right now is to either pass appenders/allocators
 //Or write your own parsers of integers and floats (very hard!)
@@ -938,11 +972,7 @@ private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort 
     sink[objIndex].nameIndex = cast(uint)range.position;
     range.readIdentifier!void;//Don't care about the name, we are just building the tree
     range.skipWhitespace();
-
-	auto frontttt = range.front;
-	auto boll = frontttt == '=';
-
-    enforce(frontttt == '=');
+    enforce(range.front == '=', getSDLError(range));
     range.popFront();
 
     skipWhitespace(range);
@@ -1070,7 +1100,25 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
 		return;
 	}
 
-} 
+}
+
+private enum errorlength = 50;
+string getSDLError(ref ForwardRange currentPos)
+{
+	size_t startPos = (0>currentPos.position-errorlength) ? 0 : currentPos.position-errorlength;
+
+	size_t maxPos = currentPos.over.length;
+	size_t endPos	= (maxPos < currentPos.position+errorlength) ? maxPos : currentPos.position+errorlength;
+	return	"Error at line "~to!string(getLineNumber(currentPos))~" of .sdl data.\n"
+				~ currentPos.over[startPos..currentPos.position]
+				~ "***ERROR HERE***" 
+				~ currentPos.over[currentPos.position..endPos];
+}
+
+size_t getLineNumber(ref ForwardRange currentPos)
+{
+	return count(currentPos.over[0..currentPos.position], "\n") + 1;
+}
 
 class TestSDL {
 
@@ -1089,10 +1137,7 @@ class TestSDL {
 						   numberfour 	    = 1234.34E-234
 						   numberfive 	    = -1234
 						   numbersix 	    = 0xfF
-						   numberseven 	    = 0x
-						   
-						   
-						   00"
+						   numberseven 	    = 0x1_0000"
 						   );
 
 		assertEquals(obj.numberone 	 .as!int, 123456);
@@ -1142,8 +1187,8 @@ class TestSDL {
 						   }
 						   ]
 						   turnSpeed = 0.02
-						   freeColor = 0"
-						   );
+						   freeColor = 0
+						   title = |i am string|");
 
 		assertEquals(obj.map.width        .as!int, 800);
 		assertEquals(obj.map.height       .as!int, 600);
@@ -1168,6 +1213,10 @@ class TestSDL {
 
 		assertTrue(approxEqual(obj.turnSpeed.as!double, 0.02));
 		assertEquals(obj.freeColor.as!int, 0);
+
+		auto stringBuf = new void[1024];
+		auto allocString = RegionAllocator(stringBuf);
+		assertEquals(obj.title.as!string(allocString), "i am string");
 	}
 
 	@Test public void testBooleans() {
@@ -1433,4 +1482,43 @@ freeColor=0";
 		assertEquals(obj.teststring.s.as!string(alloc2), "nowhitespace");
 	}
 
+	@Test public void testRecursiveStruct()
+	{
+
+		struct StructB
+		{
+			int i;
+			int j;
+		}
+
+		struct StructC
+		{
+			string asdf;
+		}
+
+		struct StructA
+		{
+			StructB b;
+			StructC c;
+		}
+
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		import collections.list;
+		auto source = 
+					"structa = {"
+					~"	b = { i = 5 j = 3 }"
+					~"	c = { asdf = asdf }"
+					~"}";
+		auto obj = fromSDL(app, source);
+
+		auto a = StructA(StructB(5,3), StructC("asdf"));
+		
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+		
+		assertEquals(a, obj.structa.as!StructA(alloc2));
+	}
 }
