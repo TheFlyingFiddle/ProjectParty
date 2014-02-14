@@ -258,22 +258,21 @@ class AchtungGameState : IGameState
 			timers.remove(collision.color);
 			snakes.remove(collision.color);
 
-			auto toGet = agd.data.length - snakes.length + 1;
+			auto toGet = agd.data.length - snakes.length - 1;
 
 			foreach(ref playerData; agd.data) if(collision.color == playerData.color)
 				playerData.score += toGet;
-	
-/**
-			sendDeathMessage(collision.color);
+
+			//sendDeathMessage(collision.color);
 			if(snakes.length == 1){
-				foreach(playerData; agd.data) if(playerData.color == snakes.keys[0])
+				foreach(ref playerData; agd.data) if(playerData.color == snakes.keys[0])
 				{
-				playerData.score += agd.data.length;
+					playerData.score += agd.data.length -1;
 				}
 				reset();
 				return;
 			}
-			*/
+			
 		}
 	}
 

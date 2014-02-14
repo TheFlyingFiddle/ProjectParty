@@ -82,7 +82,7 @@ struct AchtungRenderer
 		uint i = 0;
 		foreach(playerData; agd.data){
 			buffer.addText(font, text(scoreBuffer, playerData.score),
-						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  agd.data.length)));
+						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  agd.data.length)),playerData.color);
 			i++;
 		}
 		buffer.draw();
