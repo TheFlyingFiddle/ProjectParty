@@ -356,10 +356,10 @@ struct SDLIterator
             alias fieldType = typeof(__traits(getMember, toReturn, member));
 			alias attributeType = typeof(__traits(getAttributes, __traits(getMember, toReturn, member)));
 			static if(isArray!fieldType) {
-				assert(0, "Structs cotaining arrays need an allocator to be parsed.\n"~
+				static assert(0, "Structs cotaining arrays need an allocator to be parsed.\n"~
 						"Field "~member~" was an array, and prevented parsing.");
 			} else static if(is(fieldType f == List!E, E)) {
-				assert(0, "Structs cotaining lists need an allocator to be parsed.\n"~
+				static assert(0, "Structs cotaining lists need an allocator to be parsed.\n"~
 						"Field "~member~" was a list, and prevented parsing.");
 			} else {
 				//  Can only traverse the tree downwards
@@ -379,7 +379,7 @@ struct SDLIterator
 								__traits(getAttributes, __traits(getMember, toReturn, member))[0].defaultValue;
 						}
 					} else {
-						assert(0, "Field type mismatch: \n Field "
+						static assert(0, "Field type mismatch: \n Field "
 							   ~member~" was of type "~fieldType.stringof~
 							   ", attribute was of type "~attributeType.stringof);
 					}

@@ -126,7 +126,7 @@ auto connect(InternetAddress addr, ubyte[] buffer, ulong prevId = 0)
 
 	buff = buffer;
 
-	auto name = "Stupid AI 5000";
+	auto name = "Stupid AI Over 9000";
 	offset = 0;
 	buff.write!ushort(cast(ushort)(name.length + 1), &offset);
 	buff.write!ubyte(0, &offset);

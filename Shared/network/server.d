@@ -305,8 +305,11 @@ struct Server
 			if(buffer.length >= 2) 
 			{
 				auto len = buffer.read!ushort();
-				if(len > 1024) 
+				if(len > 1024) //Should Not hardcode this.
+				{
+					logChnl.error("Recived a message who's length is greater then the maximum size of our messages!");
 					return;
+				}
 
 				if(len > buffer.length)
 				{
@@ -332,9 +335,6 @@ struct Server
 			} 
 			else
 			{
-				//One byte case. Rare sure but it will fuck you up. I mean i literarly
-				//spent 5 hours on this bug. FUCKING FUCK FUCK FUCK!!!!!!!!
-				//Btw this code will be broken if messages ever goes above > 1024 bytes.
 				auto index = partialMessages.countUntil!(x => x.id == key);
 				partialMessages[index].data[0 .. tmp.length] = tmp;
 				partialMessages[index].length = tmp.length;

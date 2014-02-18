@@ -3,7 +3,7 @@
  <Config name="Debug" platform="Win32">
   <obj>0</obj>
   <link>0</link>
-  <lib>0</lib>
+  <lib>1</lib>
   <subsystem>1</subsystem>
   <multiobj>0</multiobj>
   <singleFileCompilation>0</singleFileCompilation>
