@@ -20,13 +20,14 @@ void initDebugging(string pixelPath)
 void addRect(Renderer* renderer, 
 			 float4 rect, 
 			 Color color = Color.white,
+			 float2 origin = float2.zero,
 			 float rotation = 0)
 {
 	renderer.addFrame(pixel, 
 					  rect.xy,
 					  color,
 					  rect.zw,
-					  float2.zero,
+					  origin,
 					  rotation);
 }
 

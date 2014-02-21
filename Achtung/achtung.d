@@ -59,7 +59,7 @@ class AchtungGameState : IGameState
 			pd.score = 0;
 		}
 
-		// används denna???
+
 		size_t c = Game.players.length;
 
 		map = masterMap.subGrid(Game.window.fboSize.x - 100, Game.window.fboSize.y);

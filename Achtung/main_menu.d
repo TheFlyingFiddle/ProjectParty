@@ -25,7 +25,7 @@ final class MainMenu : IGameState
 	FontID font;
 	Layout layout;
 	AchtungGameData agd;
-	int colorCount = 0;
+	int playerCount = 0;
 
 	this(string title, AchtungGameData agd, int numOfPlayers)
 	{
@@ -37,8 +37,7 @@ final class MainMenu : IGameState
 
 	void enter() 
 	{
-		font = FontManager.load("fonts\\Arial32.fnt");
-
+		font = FontManager.load("fonts\\Blocked72.fnt");
 		Game.router.connectionHandlers ~= &connection;
 		Game.router.reconnectionHandlers ~= &connection;
 		Game.router.disconnectionHandlers ~= &disconnection;
@@ -60,8 +59,8 @@ final class MainMenu : IGameState
 
 	void connection(ulong id)
 	{
-		agd.data ~= PlayerData(id, Color(layout.colors[colorCount]), 0);
-		colorCount ++;
+		agd.data ~= PlayerData(id, Color(layout.colors[playerCount]), 0);
+		playerCount ++;
 	}
 
 	void disconnection(ulong id)
@@ -71,40 +70,38 @@ final class MainMenu : IGameState
 		agd.data.remove(playerData);
 		layout.colors.remove(playerData.color.packedValue);
 		layout.colors ~= playerData.color.packedValue;
-		colorCount --;
+		playerCount --;
 	}
 
 
 	void render()
 	{
+		char[1024] buffer = void;
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);
 		gl.clear(ClearFlags.color);
 
-
 		auto size = font.messure(title);
-		auto pos = float2(s.x / 2 - size.x / 2, s.y - size.y);
+		auto pos = float2(s.x / 2, s.y * 0.95);
 
 		auto sb = Game.renderer;
 
 		import std.stdio;
+		auto playerReadyText = text(buffer, "Players: ", playerCount, "\t", "Ready");
+		auto playerReadySize = font.messure(playerReadyText);
+		sb.addText(font, title, pos, Color(0xFFFFCC00),float2(0.95,0.95),-size/2);	
+		sb.addText(font, playerReadyText, float2(s.x/2,s.y * 0.75), 
+				   Color(0xFFFFCC00), float2(0.4, 0.4), -font.messure(playerReadyText)/2);
 		
-		sb.addText(font, title, pos);	
-		sb.addText(font, "Connected Players", layout.players, Color.green, float2(0.6, 0.6));
-
-
-		char[1024] buffer = void;
-
 		foreach(i, player; Game.players)
 		{
-			sb.addText(font, text(buffer, "Player: ", player.name), 
-						   float2(layout.players.x, layout.players.y - (i + 1) * layout.playerSpacing), 
-						   agd.data[i].color, float2(0.5, 0.5));
+			sb.addText(font, text(buffer, player.name), 
+						   float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.75 - (i + 1) * layout.playerSpacing), 
+						   agd.data[i].color,float2(0.33, 0.33));
+			sb.addRect(float4(s.x/2 - font.messure(player.name).x/2 + 200, s.y * 0.75 - (i + 1) * layout.playerSpacing,
+							  35, 8), Color.red, float2(0, layout.playerSpacing));
 		}
 
-		sb.addText(font, text(buffer, "Server: ", Game.server.listenerString, 
-							  " Players: ", Game.players.length), float2(100, 100));
-
-		sb.addRect(float4(400,50,200,100), Color(0xCC00FF00));
+		sb.addText(font, text(buffer, "Server: ", Game.server.listenerString), float2(100, 100),Color.white,float2(0.5,0.5));
 	}
 }

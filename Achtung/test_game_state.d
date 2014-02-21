@@ -15,7 +15,7 @@ final class TestGameState : IGameState
 		auto texture = TextureManager.load("textures\\pixel.png");
 		frame = Frame(texture);
 
-		font = FontManager.load("fonts\\Arial32.fnt");
+		font = FontManager.load("fonts\\Blocked72.fnt");
 
 		import game.debuging;
 		initDebugging("textures\\pixel.png");

@@ -251,7 +251,7 @@ uint addText(T,Sink)(FontID fontID,
 					  ref Sink sink)
 {
 	auto font  = fontID.font;
-
+	origin = float2(origin.x * scale.x, origin.y * scale.y);
 	CharInfo spaceInfo = font[' '];
 
 
@@ -296,7 +296,7 @@ uint addText(T,Sink)(FontID fontID,
 		
 		sink.put(Vertex(ppos, info.textureCoords, 
 						float2(-origin.x - cursor.x, 
-							   -origin.y - cursor.y + font.base),
+							   -origin.y - cursor.y + font.base * scale.y),
 					    color, rotation));
 		count++;
 		cursor.x += info.advance * scale.x;

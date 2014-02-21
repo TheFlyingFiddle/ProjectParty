@@ -25,7 +25,7 @@ struct AchtungRenderer
 					uint mapHeight)
 	{
 		auto snakeTex = Game.content.loadTexture("textures\\pixel.png");
-		font		  = Game.content.loadFont("fonts\\Arial32.fnt");
+		font		  = Game.content.loadFont("fonts\\Blocked72.fnt");
 		snakeFrame = Frame(snakeTex);
 		
 		fbo    = createSimpleFBO(mapWidth, mapHeight);
@@ -82,7 +82,8 @@ struct AchtungRenderer
 		uint i = 0;
 		foreach(playerData; agd.data){
 			buffer.addText(font, text(scoreBuffer, playerData.score),
-						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  agd.data.length)),playerData.color);
+						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  agd.data.length)),
+						   playerData.color,float2(0.5, 0.5));
 			i++;
 		}
 		buffer.draw();

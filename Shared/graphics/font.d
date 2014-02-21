@@ -15,7 +15,7 @@ struct CharInfo
 
 struct Font
 {
-	enum wchar unkownCharValue = '\u00A5';
+	enum wchar unkownCharValue = '\u002F';
 	enum tabSpaceCount = 4;
 
 	float base;

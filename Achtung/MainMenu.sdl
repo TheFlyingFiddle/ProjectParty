@@ -1,5 +1,6 @@
 players = { x = 10 y = 400 }
-playerSpacing = 30
+
+playerSpacing = 42
 colors = 
 [ 0xFFFFFFFF ,
  0xFFFF0000,

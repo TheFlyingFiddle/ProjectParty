@@ -17,7 +17,7 @@ class GameOverGameState : IGameState
 	this(float interval)
 	{
 		this.interval	= interval;
-		this.font		= FontManager.load("fonts\\Arial32.fnt");
+		this.font		= FontManager.load("fonts\\Blocked72.fnt");
 	}
 
 	void enter()
