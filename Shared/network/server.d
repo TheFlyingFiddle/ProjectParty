@@ -274,7 +274,7 @@ struct Server
 				bytesProcessed += read;
 				con.timeSinceLastMessage = 0.0f;
 				partialMessages[pIndex].length = 0;
-				sendMessages(con.id, buffer[0 .. read + len]);
+				sendMessages(i, con.id, buffer[0 .. read + len]);
 			}
 		}
 	}
@@ -296,18 +296,20 @@ struct Server
 			con.socket.send(message);
 	}
 
-	void sendMessages(ulong key, ubyte[] buffer)
+	void sendMessages(uint listIndex, ulong key, ubyte[] buffer)
 	{
 		import std.bitmanip;
 		while(buffer.length)
 		{
 			ubyte[] tmp = buffer;
+
 			if(buffer.length >= 2) 
 			{
 				auto len = buffer.read!ushort();
 				if(len > 1024) //Should Not hardcode this.
 				{
 					logChnl.error("Recived a message who's length is greater then the maximum size of our messages!");
+					closeConnection(activeConnections, listIndex, true, true);
 					return;
 				}
 
