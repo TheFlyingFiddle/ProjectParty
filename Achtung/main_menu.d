@@ -10,6 +10,7 @@ import collections.list;
 import graphics.color;
 import content.sdl, allocation;
 import std.algorithm : find;
+import game.debuging;
 
 struct Layout
 {
@@ -91,6 +92,7 @@ final class MainMenu : IGameState
 		sb.addText(font, title, pos);	
 		sb.addText(font, "Connected Players", layout.players, Color.green, float2(0.6, 0.6));
 
+
 		char[1024] buffer = void;
 
 		foreach(i, player; Game.players)
@@ -102,5 +104,7 @@ final class MainMenu : IGameState
 
 		sb.addText(font, text(buffer, "Server: ", Game.server.listenerString, 
 							  " Players: ", Game.players.length), float2(100, 100));
+
+		sb.addRect(float4(400,50,200,100), Color(0xCC00FF00));
 	}
 }

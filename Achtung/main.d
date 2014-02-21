@@ -3,7 +3,8 @@ module main;
 import logging, external_libraries,
 	   allocation, game, achtung,
 	   main_menu, game_over,
-	   achtung_game_data;
+	   achtung_game_data,
+	   game.debuging;
 
 version(X86) 
 	enum libPath = "..\\lib\\win32\\";
@@ -49,6 +50,8 @@ void init(A)(ref A allocator)
 
 	auto config = fromSDLFile!GameConfig(GC.it, "Game.sdl");
 	game.Game = allocator.allocate!Game_Impl(allocator, config);
+
+	initDebugging("textures\\pixel.png");
 
 	auto fsm = Game.gameStateMachine;
 	auto agd = new AchtungGameData(allocator, config.serverConfig.maxConnections);

@@ -11,7 +11,7 @@ Frame pixel;
 Frame circle;
 
 
-void init_debugging(string pixelPath)
+void initDebugging(string pixelPath)
 {
 	auto pixelTex = TextureManager.load(pixelPath);
 	pixel = Frame(pixelTex);

@@ -18,7 +18,7 @@ final class TestGameState : IGameState
 		font = FontManager.load("fonts\\Arial32.fnt");
 
 		import game.debuging;
-		init_debugging("textures\\pixel.png");
+		initDebugging("textures\\pixel.png");
 
 		foreach(i; 0 .. 10_000)
 		{
