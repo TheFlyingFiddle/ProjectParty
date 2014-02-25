@@ -135,7 +135,10 @@ struct Game_Impl
 	void sendAsset(ulong id, Asset asset, ubyte[] chunkBuffer)
 	{
 		import util.bitmanip;
-		import std.stdio, std.path, content.common;
+		import std.stdio, std.path, content.common, std.file;
+
+		string s = buildPath(resourceDir, asset.path);
+		assert(s.exists, format("The file : %s does not exist!", s));
 
 		File file = File(buildPath(resourceDir, asset.path), "r");
 		ubyte[] first = chunkBuffer;
