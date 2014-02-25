@@ -368,7 +368,7 @@ struct Server
 		msg.write!uint(listenerAddress.addr, &index);
 		msg.write!ushort(listenerAddress.port, &index);
 		
-		msg.write!ushort(hostName.length, &index);
+		msg.write!ushort(cast(ushort)hostName.length, &index);
 		foreach(char c; hostName)
 			msg.write!(char)(c, &index);
 

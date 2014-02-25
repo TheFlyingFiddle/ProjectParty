@@ -66,8 +66,13 @@ uint sendAccelerometerData(Connection connection, ubyte[] buffer)
 	import std.random;
 	size_t offset = 0;
 	//1 == ACCELEROMETER_DATA
-	buff.write!ushort(13, &offset);
+	buff.write!ushort(25, &offset);
 	buff.write!ubyte(1, &offset);
+	
+	buff.write!float(0, &offset);
+	buff.write!float(uniform(-10, 10), &offset);
+	buff.write!float(0, &offset);
+	
 	buff.write!float(0, &offset);
 	buff.write!float(uniform(-10, 10), &offset);
 	buff.write!float(0, &offset);
@@ -87,7 +92,7 @@ void connectNormal(immutable InternetAddress iaddr)
 		{
 			while(true)
 			{
-				enforce(sendAccelerometerData(connection, buffer) == 15);
+				enforce(sendAccelerometerData(connection, buffer) == 27);
 				import core.thread;
 				Thread.sleep(33.msecs);
 			}
