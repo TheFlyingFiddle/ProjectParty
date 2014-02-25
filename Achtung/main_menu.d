@@ -98,8 +98,9 @@ final class MainMenu : IGameState
 			sb.addText(font, text(buffer, player.name), 
 						   float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing), 
 						   agd.data[i].color,float2(0.33, 0.33));
-		//	sb.addRect(float4(s.x/2 - font.messure(player.name).x/2 + 200, s.y * 0.75 - (i + 1) * layout.playerSpacing,
-		//					  35, 8), Color.red, float2(0, layout.playerSpacing));
+
+			sb.addRect(float4(s.x * 0.6, s.y * 0.75 - (i + 1) * layout.playerSpacing,
+							  35, 8), Color.red, float2(0, font.messure(player.name).y));
 		}
 
 
