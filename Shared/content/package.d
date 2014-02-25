@@ -4,6 +4,7 @@ public import content.sdl;
 public import content.texture;
 public import content.reloading;
 public import content.font;
+public import content.common;
 
 struct ContentConfig
 {
@@ -29,6 +30,23 @@ struct Content
 		ContentReloader.shutdown();
 		TextureManager.shutdown();
 		FontManager.shutdown();
+	}
+
+	void loadAsset(Asset asset)
+	{
+		import std.string;
+
+		switch(asset.type) with(AssetType)
+		{
+			case texture:
+				loadTexture(asset.path);
+				break;
+			case font:
+				loadFont(asset.path);
+				break;
+			default:
+				assert(0, format("Loading of assettype %s is not supported", asset.type));
+		}
 	}
 
 	FontID loadFont(const(char[]) path) 

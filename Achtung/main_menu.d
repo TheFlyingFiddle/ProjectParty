@@ -37,7 +37,7 @@ final class MainMenu : IGameState
 
 	void enter() 
 	{
-		font = FontManager.load("fonts\\Blocked72.fnt");
+		font = FontManager.load("Blocked72");
 		Game.router.connectionHandlers ~= &connection;
 		Game.router.reconnectionHandlers ~= &connection;
 		Game.router.disconnectionHandlers ~= &disconnection;
@@ -96,12 +96,14 @@ final class MainMenu : IGameState
 		foreach(i, player; Game.players)
 		{
 			sb.addText(font, text(buffer, player.name), 
-						   float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.75 - (i + 1) * layout.playerSpacing), 
+						   float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing), 
 						   agd.data[i].color,float2(0.33, 0.33));
-			sb.addRect(float4(s.x/2 - font.messure(player.name).x/2 + 200, s.y * 0.75 - (i + 1) * layout.playerSpacing,
-							  35, 8), Color.red, float2(0, layout.playerSpacing));
+		//	sb.addRect(float4(s.x/2 - font.messure(player.name).x/2 + 200, s.y * 0.75 - (i + 1) * layout.playerSpacing,
+		//					  35, 8), Color.red, float2(0, layout.playerSpacing));
 		}
 
-		sb.addText(font, text(buffer, "Server: ", Game.server.listenerString), float2(100, 100),Color.white,float2(0.5,0.5));
+
+		auto serverText = text(buffer, "Server: ", Game.server.listenerString);
+		sb.addText(font, serverText, float2(2,2),Color.white,float2(0.5,0.5), float2(0, font.messure(serverText).y));
 	}
 }

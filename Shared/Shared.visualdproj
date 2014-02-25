@@ -457,6 +457,7 @@
    <File path="main.d" />
   </Folder>
   <Folder name="util">
+   <File path="util\bitmanip.d" />
    <File path="util\hash.d" />
    <File path="util\profile.d" />
    <File path="util\strings.d" />

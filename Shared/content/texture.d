@@ -59,7 +59,7 @@ struct TextureManager
 		 FileExtention.psd,
 		 FileExtention.tiff];
 
-		ContentReloader.registerReloader(exts, &auto_reload);
+		ContentReloader.registerReloader(AssetType.texture, exts, &auto_reload);
 	}
 
 	static void shutdown()

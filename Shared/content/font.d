@@ -52,7 +52,7 @@ struct FontManager
 		resources	  = Table(allocator, capacity);
 		fontAllocator = fAllocator;
 
-		ContentReloader.registerReloader(FileExtention.fnt, &auto_reload);
+		ContentReloader.registerReloader(AssetType.font, FileExtention.fnt, &auto_reload);
 	}
 
 	static void shutdown()
@@ -131,18 +131,15 @@ private Font loadFont(A)(ref A allocator, const(char)[] filePath, const(char)[] 
 		ubyte type = blob.read!(ubyte);
 		uint  size = blob.read!(uint);
 		import logging;
-		auto logChnl = LogChannel("TEST");
 
 		switch(type)
 		{
 			case BlockType.info:
 				iHeader = blob.read!(InfoHeader);
-				logChnl.info(iHeader);
 				fontName = cast(char[])blob.readBytes(size - InfoHeader.sizeof);
 				break;
 			case BlockType.common:
 				cHeader = blob.read!(CommonHeader);
-				logChnl.info(cHeader);
 				enforce(cHeader.pages == 1, "Currently fonts are only allowed to have one texture assoiated with them!");
 				break;
 			case BlockType.pages:			
@@ -181,7 +178,6 @@ private Font loadFont(A)(ref A allocator, const(char)[] filePath, const(char)[] 
 	//Transform the raw characters to CharInfo structs.
 	foreach(r; rawCharInfo)
 	{
-		logChnl.info(r);
 		float advance   = r.xAdvance;
 		float4 srcRect  = float4(r.x, page.texture.height - r.y, r.width, -r.height); 
 		float2 offset   = float2(r.xOffset, cHeader.base - r.yOffset);

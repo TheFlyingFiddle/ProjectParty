@@ -260,14 +260,16 @@ class AchtungGameState : IGameState
 
 			auto toGet = agd.data.length - snakes.length - 1;
 
-			foreach(ref playerData; agd.data) if(collision.color == playerData.color)
+			foreach(ref playerData; agd.data) if(collision.color == playerData.color) {
 				playerData.score += toGet;
+				sendDeathMessage(playerData.playerId, playerData.score);
+			}
 
-			//sendDeathMessage(collision.color);
 			if(snakes.length == 1){
 				foreach(ref playerData; agd.data) if(playerData.color == snakes.keys[0])
 				{
 					playerData.score += agd.data.length -1;
+					sendDeathMessage(playerData.playerId, playerData.score);
 				}
 				reset();
 				return;
@@ -276,21 +278,20 @@ class AchtungGameState : IGameState
 		}
 	}
 
-	/**
-	void sendDeathMessage(Color color)
+	
+	void sendDeathMessage(ulong id, uint score)
 	{
-		import std.bitmanip;
-
+		import util.bitmanip;
 		ubyte[32] buff = void; auto buffer = buff[0 .. 32];
 		size_t offset = 0;
 
 		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
-		buffer.write!ubyte(2, &offset);
-		buffer.write!ushort(cast(ushort)agd.data.score[color], &offset);
+		buffer.write!ubyte(AchtungMessages.death, &offset);
+		buffer.write!ushort(cast(ushort)score, &offset);
 
-		Game.server.send(ids[color], buffer[0 .. offset]);
+		Game.server.send(id, buffer[0 .. offset]);
 	}
-*/
+
 	void renderFrame(ref AchtungRenderer buffer,
 					 ref Table!Snake snakes)
 	{
@@ -300,5 +301,10 @@ class AchtungGameState : IGameState
 		uint2 s = Game.window.size;
 		gl.viewport(0,0, s.x, s.y);
 		buffer.draw(snakes, agd, config.snakeSize);
+	}
+
+	enum AchtungMessages
+	{
+		death = 50
 	}
 }

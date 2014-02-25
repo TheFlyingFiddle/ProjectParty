@@ -42,17 +42,26 @@ struct PartialMessage
 
 struct ServerConfig
 {
+	float broadcastInterval;
+	float connectionTimeout;
 	uint maxConnections;
-	ushort broadcastPort;
 	uint maxMessageSize;
+	ushort broadcastPort;
+}
+
+enum NetworkMessage
+{
+	alias_   = 0,
+	sensor   = 1,
+	file     = 2
 }
 
 struct Server
 {
+	ServerConfig config;
 	ulong bytesProcessed;
 
 	List!ulong lostConnections;
-
 	List!PartialMessage partialMessages;
 	List!Connection activeConnections;
 	List!Connection pendingConnections;
@@ -65,10 +74,7 @@ struct Server
 
 	string hostName;
 	string listenerString;
-
-	float broadcastInterval = 1f;
 	float timeSinceLastBroadcast = 0;
-	float timeout = 5f;
 
 	void delegate(ulong) onConnect;
 	void delegate(ulong) onReconnect;
@@ -77,6 +83,8 @@ struct Server
 
 	this(A)(ref A allocator, ServerConfig config)
 	{
+		this.config = config;
+
 		activeConnections  = List!Connection(allocator, config.maxConnections);
 		pendingConnections = List!Connection(allocator, config.maxConnections);
 		lostConnections	   = List!ulong(allocator,      config.maxConnections);
@@ -135,9 +143,9 @@ struct Server
 
 	void update(float elapsed)
 	{
-		broadcastInterval -= elapsed;
-		if(broadcastInterval < 0) {
-			broadcastInterval = 1.0f;
+		timeSinceLastBroadcast += elapsed;
+		if(timeSinceLastBroadcast >= config.broadcastInterval) {
+			timeSinceLastBroadcast -= config.broadcastInterval;
 			broadcastServer();
 		}
 
@@ -167,7 +175,7 @@ struct Server
 				logChnl.warn("Pending socket closed! ID : ", con.id);
 				closeConnection(pendingConnections, i, false, false);
 			} else {	
-				import std.bitmanip;
+				import util.bitmanip;
 				ubyte[] bbb = buffer;
 				ulong id = read!ulong(bbb);
 
@@ -250,7 +258,7 @@ struct Server
 				//message was received. Since timeout is wierd in non-blocking mode
 				//we do it manually.
 				con.timeSinceLastMessage += elapsed;
-				if(con.timeSinceLastMessage > timeout)
+				if(con.timeSinceLastMessage > config.connectionTimeout)
 				{
 					logChnl.warn("Socket with ID : ", con.id, " closed since it timed out!");
 					closeConnection(activeConnections, i, true, true);
@@ -298,7 +306,7 @@ struct Server
 
 	void sendMessages(uint listIndex, ulong key, ubyte[] buffer)
 	{
-		import std.bitmanip;
+		import util.bitmanip;
 		while(buffer.length)
 		{
 			ubyte[] tmp = buffer;
@@ -306,7 +314,7 @@ struct Server
 			if(buffer.length >= 2) 
 			{
 				auto len = buffer.read!ushort();
-				if(len > 1024) //Should Not hardcode this.
+				if(len > config.maxMessageSize)
 				{
 					logChnl.error("Recived a message who's length is greater then the maximum size of our messages!");
 					closeConnection(activeConnections, listIndex, true, true);
@@ -355,7 +363,7 @@ struct Server
 		msg[0] = 'P'; msg[1] = 'P'; msg[2] = 'S';
 
 
-		import std.bitmanip;
+		import util.bitmanip;
 		size_t index = 3;
 		msg.write!uint(listenerAddress.addr, &index);
 		msg.write!ushort(listenerAddress.port, &index);
@@ -382,7 +390,7 @@ struct Server
 			 s.blocking = false;
 
 			 //Send session key.
-			 import std.bitmanip;
+			 import util.bitmanip;
 			 auto number = uniqueNumber();
 			 ubyte[ulong.sizeof] nBuff; ubyte[] bBuff = nBuff;
 			 bBuff.write!ulong(number, 0);

@@ -202,8 +202,13 @@ struct SDLIterator
                 auto obj = over.root[currentIndex]; //  Can only traverse the tree downwards
                 auto next = obj.nextIndex;          //  So we need to save this index to not
 													//  get lost.
-				elem = as!A;
-                currentIndex = next;
+
+				static if( UnknownType!A) 
+					elem = as!A(allocator);
+                else 
+					elem = as!A;
+
+				currentIndex = next;
 			}
             return arr;
 		} else {

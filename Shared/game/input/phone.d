@@ -52,20 +52,15 @@ void onDisconnect(ulong id)
 
 void onMessage(ulong id, ubyte[] message)
 {
-	import std.bitmanip;
+	import util.bitmanip;
 
 	auto p = phones;
 	//Accelereometer data.
 	if(message[0] == 1) //Need to make this more formal!
 	{
-
-
 		message = message[1 .. $];
-		//We got a partial message and we do not care
-		auto f = float3(message.read!float, message.read!float, message.read!float);
-		phones[id].phoneState.accelerometer = f;
-
-		logChnl.info("Got accelerometer data!  ", f);
-		//logChnl.info("Accelerometer data changed for ", phones[index].id, " to", f);
+		assert(message.length == PhoneState.sizeof, "Got a bad phone event state update!");
+		
+		phones[id].phoneState = message.read!PhoneState;
 	}
 }

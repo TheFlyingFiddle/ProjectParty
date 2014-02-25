@@ -7,6 +7,7 @@ auto logChnl = LogChannel("RESOURCE");
 
 struct ReloadHandler
 {
+	AssetType assetType;
 	FileExtention extention;
 	void function(const(char)[] path) reload;
 }
@@ -16,6 +17,7 @@ struct ContentReloader
 	import collections.list, std.algorithm;
 	static List!string loadedResources;
 	static List!ReloadHandler reloadFunctions;
+	static void delegate(AssetType type, const(char)[] path) onReload;
 
 	static void init(A)(ref A allocator, size_t maxResources, size_t maxLoaders)
 	{
@@ -30,16 +32,15 @@ struct ContentReloader
 		//Not much to do here...
 	}
 
-
-	static void registerReloader(FileExtention[] extentions, void function(const(char)[] path) reload)
+	static void registerReloader(AssetType type, FileExtention[] extentions, void function(const(char)[] path) reload)
 	{
 		foreach(ext; extentions) 
-			registerReloader(ext, reload);
+			registerReloader(type, ext, reload);
 	}
 
-	static void registerReloader(FileExtention extention, void function(const(char)[] path) reload)
+	static void registerReloader(AssetType type, FileExtention extention, void function(const(char)[] path) reload)
 	{
-		reloadFunctions ~= ReloadHandler(extention, reload);
+		reloadFunctions ~= ReloadHandler(type, extention, reload);
 	}
 
 	static void registerResource(const(char)[] filePath)
@@ -66,6 +67,7 @@ struct ContentReloader
 				auto logChannel = LogChannel("RELOADING");
 				logChannel.info("File Changed", fileChanged.filePath);
 				foreach(r; loadedResources) logChannel.info("Loaded: ", r);
+				
 				if(loadedResources.canFind!(x => x == fileChanged.filePath))
 				{
 					auto fileExt = getFileExt(fileChanged.filePath);
@@ -77,10 +79,14 @@ struct ContentReloader
 
 					auto reloadHandler = reloadFunctions.find!(x => x.extention == fileExt)[0];
 					reloadHandler.reload(fileChanged.filePath);
+
+					if(onReload)
+						onReload(reloadHandler.assetType, fileChanged.filePath);
 				}	
 			});
 		}
 	}
+
 }
 
 enum FileExtention
@@ -95,6 +101,7 @@ enum FileExtention
 	vert,
 	frag,
 	fnt,
+	lua,
 	unknown
 }
 
@@ -205,7 +212,7 @@ version(Windows)
 
 struct ResourceTable(Resource, alias obliterator)
 {
-	import util.hash, std.algorithm;
+	import std.algorithm;
 	enum noResource = 0x0;
 
 	private Resource[] resources;
@@ -220,7 +227,7 @@ struct ResourceTable(Resource, alias obliterator)
 
 	uint add(Resource resource, const(char)[] path)
 	{	
-		auto id = bytesHash(path.ptr, path.length);
+		auto id = resourceHash(path);
 
 		auto index = ids.countUntil!(x => x == id);
 		if(index != -1) return cast(uint)index;
@@ -237,7 +244,7 @@ struct ResourceTable(Resource, alias obliterator)
 
 	bool remove(const(char)[] path)
 	{
-		auto id = bytesHash(path.ptr, path.length);
+		auto id = resourceHash(path);
 		auto index = ids.countUntil!(x => x == id);	
 		if(index == -1) 
 		{
@@ -254,7 +261,7 @@ struct ResourceTable(Resource, alias obliterator)
 
 	uint replace(Resource resource, const(char)[] path)
 	{
-		auto id    = bytesHash(path.ptr, path.length);
+		auto id    = resourceHash(path);
 		auto index = ids.countUntil!(x => x == id);
 		if(index == -1) {
 			return cast(uint)index;
@@ -267,7 +274,7 @@ struct ResourceTable(Resource, alias obliterator)
 
 	uint indexOf(const(char)[] path)
 	{
-		auto id = bytesHash(path.ptr, path.length);
+		auto id = resourceHash(path);
 		return cast(uint)ids.countUntil!(x => x == id);
 	}
 
@@ -289,5 +296,13 @@ struct ResourceTable(Resource, alias obliterator)
 		}
 
 		return result;
+	}
+
+	private static uint resourceHash(const(char)[] path)
+	{
+		import util.hash, std.path;
+		auto name = baseName(stripExtension(path));
+		uint hash = bytesHash(name.ptr, name.length);
+		return hash;
 	}
 }

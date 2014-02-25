@@ -30,7 +30,19 @@ windowConfig =
 
 serverConfig = 
 {
-	maxConnections = 1000
+	maxConnections = 20
 	broadcastPort  = 7331
-	maxMessageSize = 1024
+	maxMessageSize = 0xffff
+	broadcastInterval = 1.0
+	connectionTimeout = 10
 }
+
+resources = [ 
+{ type = texture path = |textures/pixel.png| name = snake },
+{ type = font	 path = |fonts/Blocked72.fnt| } ]
+
+phoneResources = [
+//{ type = script path = |scripts/main.lua| } ,
+{ type = font	path = |fonts/Blocked72.fnt| },
+{ type = texture path = |fonts/Blocked72_0.png| } ]
+//{ type = texture path = |textures/orb.png| } ]

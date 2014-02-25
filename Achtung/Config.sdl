@@ -4,7 +4,7 @@ maxResolution =
 	y  = 1080
 }
 
-maxSnakes = 1000
+maxSnakes = 20
 snakeSize = 4
 winningScore = 50
 

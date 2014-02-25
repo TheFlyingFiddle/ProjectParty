@@ -2,7 +2,7 @@ module main;
 
 import std.stdio;
 import std.socket;
-import std.bitmanip;
+import util.bitmanip;
 import std.random;
 import core.thread;
 

@@ -41,9 +41,13 @@ struct GameConfig
 	uint maxStates;
 	uint maxWindows;
 	uint initialRenderSize;
-	ContentConfig contentConfig;
+
 	WindowConfig  windowConfig;
 	ServerConfig  serverConfig;
+	ContentConfig contentConfig;
+
+	Asset[] resources;
+	Asset[] phoneResources;
 }
 
 
@@ -51,8 +55,9 @@ static Game_Impl* Game;
 
 struct Game_Impl
 {
-	List!Player  players;
+	GameConfig config;
 
+	List!Player  players;
 	GameStateFSM*	gameStateMachine;
 	Content*		content;
 	Renderer*		renderer;
@@ -82,6 +87,13 @@ struct Game_Impl
 		window		 = WindowManager.create(config.windowConfig);
 
 		renderer     = allocator.allocate!Renderer(allocator, config.initialRenderSize);
+
+		this.config = config;
+
+		ContentReloader.onReload = &onAssetReload;
+
+		foreach(asset ; config.resources)
+			content.loadAsset(asset);
 	}
 
 	~this()
@@ -93,12 +105,65 @@ struct Game_Impl
 	void onConnect(ulong id)
 	{
 		players ~= Player(id, "unknown");
+
+		ubyte[1024 * 16] bytes = void;
+		foreach(asset; config.phoneResources)
+		{
+			sendAsset(id, asset, bytes);
+		}
 	}
+
+	void onAssetReload(AssetType type, const(char)[] path)
+	{
+		import std.path;
+		auto index = config.phoneResources.countUntil!((x)
+		{
+			if(x.path.length != path.length) return false;
+			foreach(i, c; x.path)
+				if(c != path[i]) return false;
+			return true;
+		});
+		
+		
+		if(index == -1) return;
+		ubyte[1024 * 16] bytes = void;
+		foreach(player; players)
+			sendAsset(player.id, config.phoneResources[index], bytes);
+	}
+
+
+	void sendAsset(ulong id, Asset asset, ubyte[] chunkBuffer)
+	{
+		import util.bitmanip;
+		import std.stdio, std.path, content.common;
+
+		File file = File(buildPath(resourceDir, asset.path), "r");
+		ubyte[] first = chunkBuffer;
+
+		size_t offset = 0;
+		first.write!ushort(cast(ushort)(ubyte.sizeof + ulong.sizeof), &offset);
+		first.write!ubyte(NetworkMessage.file,&offset);
+		first.write!ubyte(cast(ubyte)asset.type, &offset);
+		first.write!ushort(cast(ushort)asset.path.length, &offset);
+		foreach(c; asset.path)
+			first.write!ubyte(c, &offset);
+
+		auto size = file.size;
+		first.write!ulong(size, &offset);
+		server.send(id, first[0 .. offset]);
+
+		while(!file.eof)
+		{
+			auto result = file.rawRead(chunkBuffer);
+			server.send(id, result);
+		}
+	}
+
 
 	void onDisconnect(ulong id)
 	{
 		auto index = players.countUntil!(x => x.id == id);
-		if(players[index].name.length != 0) {
+		if(players[index].name != "unknown") {
 			Mallocator.it.deallocate((cast(void[])players[index].name));
 			players[index].name = null;
 		}
@@ -108,14 +173,14 @@ struct Game_Impl
 
 	void onMessage(ulong id, ubyte[] message)
 	{
-		if(message[0] == 0)
+		if(message[0] == NetworkMessage.alias_)
 		{
 			auto s = Mallocator.it.allocate!(ubyte[])(message.length - 1);
 			s[] = message[1 .. $];
 
 			auto index = players.countUntil!(x => x.id == id);
 			
-			if(players[index].name.length != 0)
+			if(players[index].name != "unknown")
 				Mallocator.it.deallocate((cast(void[])players[index].name));
 
 			players[index].name = cast(string)s;
