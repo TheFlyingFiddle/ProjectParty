@@ -43,6 +43,6 @@ resources = [
 
 phoneResources = [
 //{ type = script path = |scripts/main.lua| } ,
-{ type = font	path = |fonts/Blocked72.fnt| },
+//{ type = font	path = |fonts/Blocked72.fnt| },
 { type = texture path = |fonts/Blocked72_0.png| } ]
 //{ type = texture path = |textures/orb.png| } ]

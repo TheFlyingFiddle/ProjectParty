@@ -53,7 +53,9 @@ enum NetworkMessage
 {
 	alias_   = 0,
 	sensor   = 1,
-	file     = 2
+	file     = 2,
+	allFilesSent = 3,
+	fileReload = 4
 }
 
 struct Server
@@ -295,7 +297,18 @@ struct Server
 			return;
 		}
 
-		activeConnections[index].socket.send(message);
+
+		while(true) {
+			int sent = activeConnections[index].socket.send(message);
+			logChnl.info("Wrote ", sent, " out of ", message.length);
+
+			if(sent != -1)
+				message = message[sent .. $];
+
+			if(message.length == 0)
+				break;
+		}
+
 	}
 
 	void broadcast(ubyte[] message)
@@ -385,6 +398,8 @@ struct Server
 				listener.deallocate(s);
 				return;
 			 }
+
+
 
 			 logChnl.info("Connection was received: ", activeConnections.length + pendingConnections.length);
 			 s.blocking = false;

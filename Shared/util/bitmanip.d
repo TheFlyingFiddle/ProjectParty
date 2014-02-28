@@ -21,9 +21,9 @@ void write(T)(ubyte[] range, T value, size_t* offset) if(is(T == struct) && !has
 	*offset += T.sizeof;
 }
 
-void write(R)(ref R range, T arr, size_t* offset) if(isArray!T)
+void write(R,T)(ref R range, T arr, size_t* offset) if(isArray!T)
 {
-	range.write!short(arr.length, offset);
+	range.write!ushort(cast(ushort)arr.length, offset);
 	foreach(elem; arr)
 		range.write(elem, offset);
 }

@@ -72,7 +72,7 @@ struct Game_Impl
 		router  = allocator.allocate!Router(allocator, *server);
 
 		router.connectionHandlers    ~= &onConnect;
-		router.reconnectionHandlers  ~= &onConnect;
+		router.reconnectionHandlers  ~= &onReconnect;
 		router.messageHandlers		 ~= &onMessage;
 		router.disconnectionHandlers ~= &onDisconnect;
 
@@ -101,7 +101,6 @@ struct Game_Impl
 		window.obliterate();
 	}
 
-
 	void onConnect(ulong id)
 	{
 		players ~= Player(id, "unknown");
@@ -111,49 +110,78 @@ struct Game_Impl
 		{
 			sendAsset(id, asset, bytes);
 		}
+
+		import util.bitmanip;
+		auto b = bytes[];
+		size_t offset = 0;
+		b.write!ushort(1, &offset);
+		b.write!ubyte(cast(ubyte)NetworkMessage.allFilesSent, &offset);
+		server.send(id, b[0 .. offset]);
+	}
+
+	void onReconnect(ulong id)
+	{
+		players ~= Player(id, "unknown");
+
+		import util.bitmanip;
+		ubyte[1024 * 16] bytes = void;
+		auto b = bytes[];
+		size_t offset = 0;
+		b.write!ushort(1, &offset);
+		b.write!ubyte(cast(ubyte)NetworkMessage.allFilesSent, &offset);
+		server.send(id, b[0 .. offset]);
 	}
 
 	void onAssetReload(AssetType type, const(char)[] path)
 	{
+		import util.bitmanip,std.array;
 		import std.path;
-		auto index = config.phoneResources.countUntil!((x)
-		{
-			if(x.path.length != path.length) return false;
-			foreach(i, c; x.path)
-				if(c != path[i]) return false;
-			return true;
-		});
-		
+		auto p2 = path.replace("\\", "/");
+		auto index = config.phoneResources.countUntil!(x => x.path == p2);
 		
 		if(index == -1) return;
-		ubyte[1024 * 16] bytes = void;
+		ubyte[0xFFFF] bytes = void;
 		foreach(player; players)
 			sendAsset(player.id, config.phoneResources[index], bytes);
+
+
+		size_t offset = 2;
+		auto msg = bytes[];
+		msg.write!ubyte(NetworkMessage.fileReload, &offset);
+		msg.write(p2, &offset);
+		msg.write!ushort(cast(ushort)offset, 0);
+		foreach(player; players)
+			server.send(player.id, msg[0 .. offset]);
 	}
 
 
 	void sendAsset(ulong id, Asset asset, ubyte[] chunkBuffer)
 	{
 		import util.bitmanip;
-		import std.stdio, std.path, content.common, std.file;
+		import std.path, content.common, std.file, std.stdio : File;
 
 		string s = buildPath(resourceDir, asset.path);
 		assert(s.exists, format("The file : %s does not exist!", s));
 
 		File file = File(buildPath(resourceDir, asset.path), "r");
+		if(file.size == 0) return;
+
 		ubyte[] first = chunkBuffer;
 
-		size_t offset = 0;
-		first.write!ushort(cast(ushort)(ubyte.sizeof + ulong.sizeof), &offset);
+		size_t offset = 2;
 		first.write!ubyte(NetworkMessage.file,&offset);
 		first.write!ubyte(cast(ubyte)asset.type, &offset);
-		first.write!ushort(cast(ushort)asset.path.length, &offset);
-		foreach(c; asset.path)
-			first.write!ubyte(c, &offset);
+		first.write(asset.path, &offset);
 
 		auto size = file.size;
 		first.write!ulong(size, &offset);
+
+		first.write!ushort(cast(ushort)(offset), 0);
 		server.send(id, first[0 .. offset]);
+
+		import logging;
+		auto l = LogChannel("MSG");
+		l.info("sendin asset of size ", size);
 
 		while(!file.eof)
 		{
