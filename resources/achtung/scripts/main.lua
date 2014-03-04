@@ -1,28 +1,19 @@
 local sensorNetworkID = 1
 local deathNetworkID  = 50
 local score = 0
+local font
 
---Timing related stuff below
-local fpsCounter = 0
-local fps = 0
-local lastSecond = 0
-
-local function updateTime()
-	if Time.total - lastSecond > 1 then
-		fps = fpsCounter
-		fpsCounter = 0
-		lastSecond = Time.total
-	end
-	fpsCounter = fpsCounter + 1
-end
-
+local button
 
 function init()
-	frame = Loader.loadFrame("textures/wallpaper.png")
-	font  = Loader.loadFont("fonts/Blocked72.fnt")
+	local frame = Loader.loadFrame("textures/wallpaper.png")
+	font  = Loader.loadFont("fonts/Segoe54.fnt")
     rotation = 0
 
-    --log(string.format("Loaded %d, %d", frame, font));
+    log(string.format("Loaded %d, %d", frame, font));
+    log("Hello tihs is helloman");
+
+    button = Button(0xFF0000FF, frame, "helloman", Rect(vec2(50, 50), vec2(140, 140)), toggleButton, 0xFFFFFFFF)
 end
 
 function term()
@@ -44,7 +35,7 @@ function update()
 
 	if useButtons then
 		--Send le buttons
-	else 
+	else
 		Out.writeShort(25)
 		Out.writeByte(sensorNetworkID)
 		Out.writeVec3(Sensors.acceleration)
@@ -55,14 +46,23 @@ function update()
 end
 
 function render()
-	local pos = vec2(0, 0);
-	local text = string.format("Score: %d", score)
-
-	local dim = vec2(Screen.width, Screen.height)
-	Renderer.addFrame(frame, pos, dim, 0xFF0000FF)
-
-	pos.y = Screen.height - 50;
-	--Renderer.addText(font, text, pos, 0xFF00cccc)
+  drawButton(button, font)
 
 	renderTime(fps)
+end
+
+function onTap(x, y)
+    if pointInRect(button.rect, vec2(x,y)) then
+      button.callback()
+    end
+end
+
+function toggleButton()
+  if button.tint == 0xFF0000FF then
+    button.tint = 0xFFFF00FF
+    button.text = "READYMAN!!"
+    else
+    button.tint = 0xFF0000FF
+    button.text = "Not so ready man..."
+    end
 end

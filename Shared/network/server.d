@@ -51,11 +51,12 @@ struct ServerConfig
 
 enum NetworkMessage
 {
-	alias_   = 0,
-	sensor   = 1,
-	file     = 2,
+	alias_       = 0,
+	sensor       = 1,
+	file         = 2,
 	allFilesSent = 3,
-	fileReload = 4
+	fileReload   = 4,
+	luaLog       = 5
 }
 
 struct Server
@@ -300,7 +301,6 @@ struct Server
 
 		while(true) {
 			int sent = activeConnections[index].socket.send(message);
-			logChnl.info("Wrote ", sent, " out of ", message.length);
 
 			if(sent != -1)
 				message = message[sent .. $];

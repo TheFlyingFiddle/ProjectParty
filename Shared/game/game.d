@@ -219,6 +219,11 @@ struct Game_Impl
 				Mallocator.it.deallocate((cast(void[])players[index].name));
 
 			players[index].name = cast(string)s;
+		} else if (message[0] == NetworkMessage.luaLog) {
+			import logging;
+
+			auto logChannel = LogChannel("lua");
+			logChannel.info(cast(char[]) message[3..$]);
 		}
 	}
 

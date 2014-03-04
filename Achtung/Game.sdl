@@ -44,8 +44,10 @@ resources = [
 { type = font	 path = |achtung\fonts\Blocked72.fnt| } ]
 
 phoneResources = [
-{ type = script path = |achtung/scripts/main.lua| } ,
-{ type = script path = |achtung/scripts/rendertime.lua| } ,
-{ type = font	path = |achtung/fonts/Blocked72.fnt| },
-{ type = texture path = |achtung/fonts/Blocked72_0.png| },
+{ type = script path = |achtung/scripts/main.lua| },
+{ type = script path = |achtung/scripts/rendertime.lua| },
+{ type = script path = |achtung/scripts/button.lua| },
+{ type = script path = |achtung/scripts/rect.lua| },
+{ type = font	path = |achtung/fonts/Segoe54.fnt| },
+{ type = texture path = |achtung/fonts/Segoe54_0.png| },
 { type = texture path = |achtung/textures/wallpaper.png| } ]
