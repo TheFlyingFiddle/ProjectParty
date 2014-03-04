@@ -37,12 +37,15 @@ serverConfig =
 	connectionTimeout = 10
 }
 
+gameName = achtung 
+
 resources = [ 
-{ type = texture path = |textures/pixel.png| name = snake },
-{ type = font	 path = |fonts/Blocked72.fnt| } ]
+{ type = texture path = |achtung\textures\pixel.png| },
+{ type = font	 path = |achtung\fonts\Blocked72.fnt| } ]
 
 phoneResources = [
-//{ type = script path = |scripts/main.lua| } ,
-//{ type = font	path = |fonts/Blocked72.fnt| },
-{ type = texture path = |fonts/Blocked72_0.png| } ]
-//{ type = texture path = |textures/orb.png| } ]
+{ type = script path = |achtung/scripts/main.lua| } ,
+{ type = script path = |achtung/scripts/rendertime.lua| } ,
+{ type = font	path = |achtung/fonts/Blocked72.fnt| },
+{ type = texture path = |achtung/fonts/Blocked72_0.png| },
+{ type = texture path = |achtung/textures/wallpaper.png| } ]

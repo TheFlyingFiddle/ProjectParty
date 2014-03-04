@@ -49,6 +49,8 @@ struct GameConfig
 
 	Asset[] resources;
 	Asset[] phoneResources;
+
+	string gameName;
 }
 
 
@@ -112,25 +114,14 @@ struct Game_Impl
 			sendAsset(id, asset, bytes);
 		}
 
-		import util.bitmanip;
-		auto b = bytes[];
-		size_t offset = 0;
-		b.write!ushort(1, &offset);
-		b.write!ubyte(cast(ubyte)NetworkMessage.allFilesSent, &offset);
-		server.send(id, b[0 .. offset]);
+		sendAllAssetsSent(id);
 	}
 
 	void onReconnect(ulong id)
 	{
 		players ~= Player(id, "unknown");
 
-		import util.bitmanip;
-		ubyte[1024 * 16] bytes = void;
-		auto b = bytes[];
-		size_t offset = 0;
-		b.write!ushort(1, &offset);
-		b.write!ubyte(cast(ubyte)NetworkMessage.allFilesSent, &offset);
-		server.send(id, b[0 .. offset]);
+		sendAllAssetsSent(id);
 	}
 
 	void onAssetReload(AssetType type, const(char)[] path)
@@ -177,7 +168,7 @@ struct Game_Impl
 		auto size = file.size;
 		first.write!ulong(size, &offset);
 
-		first.write!ushort(cast(ushort)(offset), 0);
+		first.write!ushort(cast(ushort)(offset - 2), 0);
 		server.send(id, first[0 .. offset]);
 
 		import logging;
@@ -189,6 +180,18 @@ struct Game_Impl
 			auto result = file.rawRead(chunkBuffer);
 			server.send(id, result);
 		}
+	}
+
+	void sendAllAssetsSent(ulong id)
+	{
+		ubyte[128] bytes = void;
+ 		import util.bitmanip;
+		auto b = bytes[];
+		size_t offset = 2;
+		b.write!ubyte(cast(ubyte)NetworkMessage.allFilesSent, &offset);
+		b.write(config.gameName, &offset);
+		b.write!ushort(cast(ushort)(offset - 2), 0);
+		server.send(id, b[0 .. offset]);
 	}
 
 
