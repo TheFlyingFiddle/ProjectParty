@@ -303,8 +303,4 @@ class AchtungGameState : IGameState
 		buffer.draw(snakes, agd, config.snakeSize);
 	}
 
-	enum AchtungMessages
-	{
-		death = 50
-	}
 }

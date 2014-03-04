@@ -25,3 +25,9 @@ struct InputEvent
 	Color color;
 	float input;
 }
+
+enum AchtungMessages
+{
+	death = 50,
+	toggleReady = 51
+}

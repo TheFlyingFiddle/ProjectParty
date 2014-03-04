@@ -26,6 +26,7 @@ final class MainMenu : IGameState
 	Layout layout;
 	AchtungGameData agd;
 	int playerCount = 0;
+	int playersReady = 0;
 
 	this(string title, AchtungGameData agd, int numOfPlayers)
 	{
@@ -41,6 +42,7 @@ final class MainMenu : IGameState
 		Game.router.connectionHandlers ~= &connection;
 		Game.router.reconnectionHandlers ~= &connection;
 		Game.router.disconnectionHandlers ~= &disconnection;
+		Game.router.messageHandlers ~= &message;
 	} 
 
 	void exit()  
@@ -55,6 +57,13 @@ final class MainMenu : IGameState
 	{
 		if(Keyboard.isDown(Key.enter) && Game.players.length > 0)
 			Game.gameStateMachine.transitionTo("Achtung");
+
+		/**
+		if(playerCount != 0 && playerCount == playersReady)
+		{
+			
+		}
+		*/
 	}
 
 	void connection(ulong id)
@@ -65,14 +74,16 @@ final class MainMenu : IGameState
 
 	void disconnection(ulong id)
 	{
-
 		auto playerData = agd.data.find!((x) => x.playerId == id)[0];
 		agd.data.remove(playerData);
 		layout.colors.remove(playerData.color.packedValue);
 		layout.colors ~= playerData.color.packedValue;
 		playerCount --;
+		foreach(i, player; Game.players)if(player.id == id && player.ready)
+		{
+			playersReady --;
+		}
 	}
-
 
 	void render()
 	{
@@ -98,13 +109,31 @@ final class MainMenu : IGameState
 			sb.addText(font, text(buffer, player.name), 
 						   float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing), 
 						   agd.data[i].color,float2(0.33, 0.33));
-
+			
+			if(player.ready)
+			{
+				sb.addRect(float4(s.x * 0.6, s.y * 0.75 - (i + 1) * layout.playerSpacing,
+								  50, 15), Color.green, float2(0, font.messure(player.name).y));
+			}
+			else
 			sb.addRect(float4(s.x * 0.6, s.y * 0.75 - (i + 1) * layout.playerSpacing,
-							  35, 8), Color.red, float2(0, font.messure(player.name).y));
+							  50, 15), Color.red, float2(0, font.messure(player.name).y));
 		}
 
 
 		auto serverText = text(buffer, "Server: ", Game.server.listenerString);
 		sb.addText(font, serverText, float2(2,2),Color.white,float2(0.5,0.5), float2(0, font.messure(serverText).y));
+	}
+
+	void message(ulong id, ubyte[] message)
+	{
+		if(messge[0] == AchtungMessages.toggleReady)
+		{
+			playersReady ++;
+			foreach(i, player; Game.players)if(player.id == id)
+			{
+				player.ready = true;
+			}
+		}
 	}
 }

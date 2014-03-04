@@ -34,6 +34,7 @@ struct Player
 {
 	ulong id;
 	string name;
+	bool ready;
 }
 
 struct GameConfig
