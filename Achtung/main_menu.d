@@ -11,6 +11,7 @@ import graphics.color;
 import content.sdl, allocation;
 import std.algorithm : find;
 import game.debuging;
+import types;
 
 struct Layout
 {
@@ -127,7 +128,7 @@ final class MainMenu : IGameState
 
 	void message(ulong id, ubyte[] message)
 	{
-		if(messge[0] == AchtungMessages.toggleReady)
+		if(message[0] == AchtungMessages.toggleReady)
 		{
 			playersReady ++;
 			foreach(i, player; Game.players)if(player.id == id)
