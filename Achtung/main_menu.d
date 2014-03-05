@@ -21,6 +21,7 @@ struct Layout
 	List!uint colors;
 }
 
+
 final class MainMenu : IGameState
 {
 	string title;
@@ -29,6 +30,10 @@ final class MainMenu : IGameState
 	AchtungGameData agd;
 	int playerCount = 0;
 	int playersReady = 0;
+	bool allReady = false;
+	bool countdown = false;
+	float timer = 5.0;
+	
 
 	this(string title, AchtungGameData agd, int numOfPlayers)
 	{
@@ -57,15 +62,26 @@ final class MainMenu : IGameState
 
 	void update()
 	{
-		if(Keyboard.isDown(Key.enter) && Game.players.length > 0)
-			Game.gameStateMachine.transitionTo("Achtung");
-
-		/**
+	
 		if(playerCount != 0 && playerCount == playersReady)
-		{
-			
+		{	
+			allReady = true;
+
+			if(Keyboard.isDown(Key.enter) && Game.players.length > 0){
+				countdown = true;
+				timer -= Time.delta;
+				if(timer <= 0)
+				{
+					Game.gameStateMachine.transitionTo("Achtung");
+				}
+			}
+				
 		}
-		*/
+		else 
+		{
+			allReady = false;
+			timer = 5;
+		}
 	}
 
 	void connection(ulong id)
@@ -105,7 +121,24 @@ final class MainMenu : IGameState
 		sb.addText(font, title, pos, Color(0xFFFFCC00),float2(0.95,0.95),-size/2);	
 		sb.addText(font, playerReadyText, float2(s.x/2,s.y * 0.75), 
 				   Color(0xFFFFCC00), float2(0.4, 0.4), -font.messure(playerReadyText)/2);
-		
+
+		if(countdown && allReady)
+		{
+			sb.addText(font, "Game Starting in:", 
+				float2(s.x * 0.8, s.y * 0.20), 
+				Color(0xFFFFCC00),float2(0.33, 0.33));
+
+			sb.addText(font, text(buffer, cast (int)(timer) + 1),
+					   float2(s.x * 0.8, s.y * 0.15),
+					   Color(0xFFFFCC00), float2(0.6, 0.6));
+		}
+
+		else if(allReady)
+		{
+			sb.addText(font, "Press Enter to start:", 
+				float2(s.x * 0.8, s.y * 0.20), 
+				Color(0xFFFFCC00),float2(0.5, 0.5));
+		}
 		foreach(i, player; Game.players)
 		{
 			float2 textPos = float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing);
