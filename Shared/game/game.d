@@ -233,6 +233,28 @@ struct Game_Impl
 		}
 	}
 
+	void transitionTo(string newState)
+	{
+		gameStateMachine.transitionTo(newState);
+
+		import util.bitmanip;
+		import std.path, content.common, std.file, std.stdio : File;
+
+		ubyte[128] buffer = void;
+		auto first = buffer[];
+
+		size_t offset = 2;
+		first.write!ubyte(NetworkMessage.transition, &offset);
+
+
+		first.write(newState, &offset);
+
+		first.write!ushort(cast(ushort)(offset - 2), 0);
+		foreach (player ; players)
+			server.send(player.id, first[0 .. offset]);
+		
+	}
+
 	void run(Timestep timestep, Duration target = 0.msecs)
 	{
 		StopWatch watch;

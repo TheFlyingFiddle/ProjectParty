@@ -62,7 +62,9 @@ final class MainMenu : IGameState
 
 	void update()
 	{
-	
+		if(Keyboard.isDown(Key.enter) && Game.players.length > 0)
+			Game.transitionTo("Achtung");
+
 		if(playerCount != 0 && playerCount == playersReady)
 		{	
 			allReady = true;

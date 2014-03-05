@@ -48,8 +48,7 @@ function Lobby()
 
 		cfuns.C.networkSend(Network)
 	end
-	function lobby.onTap()
-		log(string.format("Tapping! %d %d", x, y))
+	function lobby.onTap(x, y)
 	    if pointInRect(button.rect, vec2(x,y)) then
 	      button.callback(button)
 	    end

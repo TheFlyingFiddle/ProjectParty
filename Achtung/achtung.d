@@ -84,7 +84,7 @@ class AchtungGameState : IGameState
 	{
 		foreach(playerData; agd.data) if(playerData.score > config.winningScore)
 		{
-			Game.gameStateMachine.transitionTo("GameOver");
+			Game.transitionTo("GameOver");
 			return;
 		}
 	

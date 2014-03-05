@@ -1,10 +1,19 @@
-local transitionID = 52
+local transitionID = 6
 
 function init()
     fsm = FSM()
-    fsm:addState(Lobby(), "lobby")
-    fsm:addState(GamePlay(), "gamePlay")
-    fsm:enterState("lobby")
+    log(tostring(fsm))
+    cfuns.C.networkSend(Network)
+    fsm:addState(Lobby(), "MainMenu")
+    log(tostring(fsm))
+    cfuns.C.networkSend(Network)
+    fsm:addState(GamePlay(), "Achtung")
+    log(tostring(fsm))
+    cfuns.C.networkSend(Network)
+    fsm:enterState("MainMenu")
+
+    log(cfuns.string(cfuns.C.testStr()))
+    cfuns.C.networkSend(Network)
 end
 
 function term()
@@ -12,8 +21,13 @@ end
 
 function handleMessage(id, length)
 	if id == transitionID then
-		string = In.readUTF8()
-		fsm:enterState(string)
+        log("Transitioning")
+        cfuns.C.networkSend(Network)
+		s = "Achtung"--In.readUTF8()
+        log("Transitioning to "..s)
+        cfuns.C.networkSend(Network)
+
+		fsm:enterState(s)
 	end
 	if fsm.active.handleMessage then fsm.active.handleMessage() end
 end
@@ -27,5 +41,7 @@ function render()
 end
 
 function onTap(x, y)
-	if fsm.active.onTap then fsm.active.onTap(x, y) end
+	if fsm.active.onTap then 
+    	fsm.active.onTap(x, y)
+    end
 end

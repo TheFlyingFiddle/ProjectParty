@@ -32,7 +32,7 @@ class GameOverGameState : IGameState
 		elapsed += Time.delta;
 		if(elapsed >= interval)
 		{
-			Game.gameStateMachine.transitionTo("MainMenu");
+			Game.transitionTo("MainMenu");
 		}
 	}
 
