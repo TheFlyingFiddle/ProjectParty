@@ -12,6 +12,7 @@ import content.sdl, allocation;
 import std.algorithm : find;
 import game.debuging;
 import types;
+import logging;
 
 struct Layout
 {
@@ -131,6 +132,8 @@ final class MainMenu : IGameState
 		if(message[0] == AchtungMessages.toggleReady)
 		{
 			playersReady ++;
+			auto logChnl = LogChannel("toggle");
+			logChnl.info("ready signal recieved");
 			foreach(i, player; Game.players)if(player.id == id)
 			{
 				player.ready = true;
