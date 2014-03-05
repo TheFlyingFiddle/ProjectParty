@@ -7,7 +7,7 @@ local button
 
 
 function init()
-	local frame = Loader.loadFrame("textures/wallpaper.png")
+	local frame = Loader.loadFrame("textures/pixel.png")
 	font  = Loader.loadFont("fonts/Segoe54.fnt")
     rotation = 0
 
@@ -15,7 +15,7 @@ function init()
     log("Hello tihs is helloman");
 
 
-    button = Button(0xFF0000FF, frame, "helloman", Rect(vec2(Screen.width / 2 - 150, Screen.height / 2 - 70), vec2(300, 140)), toggleButton, 0xFFFFFFFF)
+    button = Button(0xFF0000FF, frame, "Press to be ready", Rect(vec2(Screen.width / 2 - 380 / 2, Screen.height / 2 - 70), vec2(380, 140)), toggleButton, 0xFFFFFFFF)
 end
 
 function term()
@@ -62,10 +62,10 @@ end
 function toggleButton(button)
   if button.tint == 0xFF00FF00 then
     button.tint = 0xFF00FFFF
-    button.text = "READYMAN!!"
+    button.text = "Press to be ready"
   else
     button.tint = 0xFF00FF00
-    button.text = "Not so ready man..."
+    button.text = "Press to be not ready"
   end
 
   Out.writeShort(1)

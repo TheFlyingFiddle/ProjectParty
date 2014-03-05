@@ -108,18 +108,17 @@ final class MainMenu : IGameState
 		
 		foreach(i, player; Game.players)
 		{
+			float2 textPos = float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing);
+
 			sb.addText(font, text(buffer, player.name), 
-						   float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing), 
-						   agd.data[i].color,float2(0.33, 0.33));
+					   textPos, agd.data[i].color,float2(0.33, 0.33));
 			
+			
+
 			if(player.ready)
-			{
-				sb.addRect(float4(s.x * 0.6, s.y * 0.75 - (i + 1) * layout.playerSpacing,
-								  50, 15), Color.green, float2(0, font.messure(player.name).y));
-			}
+				sb.addRect(float4(textPos.x + 200, textPos.y, 50, 15), Color.green, float2(0, 20));
 			else
-			sb.addRect(float4(s.x * 0.6, s.y * 0.75 - (i + 1) * layout.playerSpacing,
-							  50, 15), Color.red, float2(0, font.messure(player.name).y));
+				sb.addRect(float4(textPos.x + 200, textPos.y,  50, 15), Color.red, float2(0, 20));
 		}
 
 
@@ -134,9 +133,9 @@ final class MainMenu : IGameState
 			playersReady ++;
 			auto logChnl = LogChannel("toggle");
 			logChnl.info("ready signal recieved");
-			foreach(i, player; Game.players)if(player.id == id)
+			foreach(i, ref player; Game.players)if(player.id == id)
 			{
-				player.ready = true;
+				player.ready = !player.ready;
 			}
 		}
 	}
