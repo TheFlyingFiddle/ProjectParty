@@ -203,7 +203,7 @@ struct SDLIterator
                 auto next = obj.nextIndex;          //  So we need to save this index to not
 													//  get lost.
 
-				static if( UnknownType!A) 
+				static if(NeedsAllocator!A) 
 					elem = as!A(allocator);
                 else 
 					elem = as!A;
@@ -279,6 +279,15 @@ struct SDLIterator
 		} else static assert(0, Vec.stringof ~ " is not a vector type.");
 	}
 
+
+	private template NeedsAllocator(T)
+	{
+		enum NeedsAllocator = UnknownType!T  ||
+			isSomeString!T || 
+			isArray!T		 || 
+			isList!T;
+	}
+
 	private template UnknownType(T)
 	{
 		enum UnknownType = !(isNumeric!T	||
@@ -335,9 +344,7 @@ struct SDLIterator
 				}
 			} else {
 				goToNext!member; //Changes the index to point to the member we want.
-				static if(isArray!fieldType 
-						  || is(fieldType f == List!E, E) 
-						  || UnknownType!fieldType) {
+				static if(NeedsAllocator!fieldType) {
 					__traits(getMember, toReturn, member) = 
 						as!(fieldType, Allocator)(a);
 				} else {
@@ -1525,5 +1532,42 @@ freeColor=0";
 		auto alloc2 = RegionAllocator(buf2);
 		
 		assertEquals(a, obj.structa.as!StructA(alloc2));
+	}
+
+	@Test public void testStringArray()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		import collections.list;
+
+		struct StructA  { string[] phoneResources; }
+		auto source = 
+			"phoneResources = [
+			|achtung/scripts/main.lua|,
+			|achtung/scripts/rendertime.lua|,
+			|achtung/scripts/button.lua|,
+			|achtung/scripts/rect.lua|,
+			|achtung/fonts/Segoe54.fnt|,
+			|achtung/fonts/Segoe54_0.png|,
+			|achtung/textures/wallpaper.png|
+			]";
+		auto obj = fromSDL(app, source);
+
+		auto a = StructA();
+		a.phoneResources = [
+			"achtung/scripts/main.lua",
+			"achtung/scripts/rendertime.lua",
+			"achtung/scripts/button.lua",
+			"achtung/scripts/rect.lua",
+			"achtung/fonts/Segoe54.fnt",
+			"achtung/fonts/Segoe54_0.png",
+			"achtung/textures/wallpaper.png"
+			];
+
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+
+		assertEquals(a, obj.as!StructA(alloc2));
 	}
 }
