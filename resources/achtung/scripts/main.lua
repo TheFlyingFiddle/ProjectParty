@@ -1,75 +1,31 @@
-local sensorNetworkID = 1
-local deathNetworkID  = 50
-local toggleReadyID   = 51
-local score = 0
-local font
-local button
-
+local transitionID = 52
 
 function init()
-	local frame = Loader.loadFrame("textures/pixel.png")
-	font  = Loader.loadFont("fonts/Segoe54.fnt")
-    rotation = 0
-
-    log(string.format("Loaded %d, %d", frame, font));
-    log("Hello tihs is helloman");
-
-
-    button = Button(0xFF0000FF, frame, "Press to be ready", Rect(vec2(Screen.width / 2 - 380 / 2, Screen.height / 2 - 70), vec2(380, 140)), toggleButton, 0xFFFFFFFF)
+    fsm = FSM()
+    fsm:addState(Lobby(), "lobby")
+    fsm:addState(GamePlay(), "gamePlay")
+    fsm:enterState("lobby")
 end
 
 function term()
 end
 
 function handleMessage(id, length)
-	if id == deathNetworkID then
-		score = In.readShort()
+	if id == transitionID then
+		string = In.readUTF8()
+		fsm:enterState(string)
 	end
+	if fsm.active.handleMessage then fsm.active.handleMessage() end
 end
 
 function update()
-	updateTime();
-
-	if not cfuns.C.networkIsAlive(Network) then
-		log("We are not connected :(")
-		return;
-	end
-
-	if useButtons then
-		--Send le buttons
-	else
-		Out.writeShort(25)
-		Out.writeByte(sensorNetworkID)
-		Out.writeVec3(Sensors.acceleration)
-		Out.writeVec3(Sensors.gyroscope)
-	end
-
-	cfuns.C.networkSend(Network)
+	if fsm.active.update then fsm.active.update() end
 end
 
 function render()
- 	drawButton(button, font)
-	renderTime(font)
+	if fsm.active.render then fsm.active.render() end
 end
 
 function onTap(x, y)
-	log(string.format("Tapping! %d %d", x, y))
-    if pointInRect(button.rect, vec2(x,y)) then
-      button.callback(button)
-    end
+	if fsm.active.onTap then fsm.active.onTap(x, y) end
 end
-
-function toggleButton(button)
-  if button.tint == 0xFF00FF00 then
-    button.tint = 0xFF00FFFF
-    button.text = "Press to be ready"
-  else
-    button.tint = 0xFF00FF00
-    button.text = "Press to be not ready"
-  end
-
-  Out.writeShort(1)
-  Out.writeByte(toggleReadyID)
-end
-
-init()
