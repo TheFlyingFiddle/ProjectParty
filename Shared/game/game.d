@@ -48,7 +48,7 @@ struct GameConfig
 	ContentConfig contentConfig;
 
 	Asset[] resources;
-	Asset[] phoneResources;
+	string[] phoneResources;
 
 	string gameName;
 }
@@ -99,7 +99,7 @@ struct Game_Impl
 			content.loadAsset(asset);
 
 		foreach(asset ; config.phoneResources)
-			ContentReloader.registerTracked(asset.path);
+			ContentReloader.registerTracked(asset);
 	}
 
 	~this()
@@ -114,7 +114,7 @@ struct Game_Impl
 		ubyte[1024 * 16] bytes = void;
 		foreach(asset; config.phoneResources)
 		{
-			sendAsset(id, asset.path, bytes);
+			sendAsset(id, asset, bytes);
 		}
 
 		sendAllAssetsSent(id);
@@ -132,12 +132,12 @@ struct Game_Impl
 		import util.bitmanip,std.array;
 		import std.path;
 		auto p2 = path.replace("\\", "/");
-		auto index = config.phoneResources.countUntil!(x => x.path == p2);
+		auto index = config.phoneResources.countUntil!(x => x == p2);
 		if(index == -1) return;
 
 		ubyte[0xFFFF] bytes = void;
 		foreach(player; players)
-			sendAsset(player.id, config.phoneResources[index].path, bytes);
+			sendAsset(player.id, config.phoneResources[index], bytes);
 
 
 		size_t offset = 2;
@@ -165,6 +165,10 @@ struct Game_Impl
 
 		size_t offset = 2;
 		first.write!ubyte(NetworkMessage.file,&offset);
+
+		//TODO: We should write the file type here.
+		//first.write(type, &offset);
+		
 		first.write(path, &offset);
 
 		auto size = file.size;
