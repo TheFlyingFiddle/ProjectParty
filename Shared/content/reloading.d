@@ -17,13 +17,16 @@ struct ContentReloader
 	import collections.list, std.algorithm;
 	static List!string loadedResources;
 	static List!ReloadHandler reloadFunctions;
-	static void delegate(AssetType type, const(char)[] path) onReload;
+	
+	static List!string trackedResources;
+	static void delegate(const(char)[] path) onTrackedChanged;
 
-	static void init(A)(ref A allocator, size_t maxResources, size_t maxLoaders)
+	static void init(A)(ref A allocator, size_t maxResources, size_t maxLoaders, size_t maxTrackedResouces)
 	{
 		loadedResources = List!string(allocator, maxResources);
 		reloadFunctions = List!ReloadHandler(allocator, maxLoaders);
-		
+		trackedResources = List!string(allocator, maxTrackedResouces);
+
 		spawn(&listenOnDirectory, thisTid, resourceDir);
 	}
 
@@ -52,7 +55,12 @@ struct ContentReloader
 	{
 		loadedResources.remove!(x => x == filePath);
 	}
-	
+
+	static void registerTracked(const(char)[] filePath)
+	{
+		trackedResources ~= filePath.idup;
+	}
+
 	static void processReloadRequests()
 	{
 		import std.concurrency, std.datetime;
@@ -79,10 +87,16 @@ struct ContentReloader
 
 					auto reloadHandler = reloadFunctions.find!(x => x.extention == fileExt)[0];
 					reloadHandler.reload(fileChanged.filePath);
-
-					if(onReload)
-						onReload(reloadHandler.assetType, fileChanged.filePath);
 				}	
+
+				import std.array;
+				auto path = fileChanged.filePath.replace("\\", "/");
+				if(trackedResources.canFind!(x => x == path))
+				{
+					if(onTrackedChanged)
+						onTrackedChanged(fileChanged.filePath);
+				}
+
 			});
 		}
 	}

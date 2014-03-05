@@ -93,10 +93,13 @@ struct Game_Impl
 
 		this.config = config;
 
-		ContentReloader.onReload = &onAssetReload;
+		ContentReloader.onTrackedChanged = &onAssetReload;
 
 		foreach(asset ; config.resources)
 			content.loadAsset(asset);
+
+		foreach(asset ; config.phoneResources)
+			ContentReloader.registerTracked(asset.path);
 	}
 
 	~this()
@@ -111,7 +114,7 @@ struct Game_Impl
 		ubyte[1024 * 16] bytes = void;
 		foreach(asset; config.phoneResources)
 		{
-			sendAsset(id, asset, bytes);
+			sendAsset(id, asset.path, bytes);
 		}
 
 		sendAllAssetsSent(id);
@@ -124,17 +127,17 @@ struct Game_Impl
 		sendAllAssetsSent(id);
 	}
 
-	void onAssetReload(AssetType type, const(char)[] path)
+	void onAssetReload(const(char)[] path)
 	{
 		import util.bitmanip,std.array;
 		import std.path;
 		auto p2 = path.replace("\\", "/");
 		auto index = config.phoneResources.countUntil!(x => x.path == p2);
-		
 		if(index == -1) return;
+
 		ubyte[0xFFFF] bytes = void;
 		foreach(player; players)
-			sendAsset(player.id, config.phoneResources[index], bytes);
+			sendAsset(player.id, config.phoneResources[index].path, bytes);
 
 
 		size_t offset = 2;
@@ -147,23 +150,22 @@ struct Game_Impl
 	}
 
 
-	void sendAsset(ulong id, Asset asset, ubyte[] chunkBuffer)
+	void sendAsset(ulong id, const(char)[] path, ubyte[] chunkBuffer)
 	{
 		import util.bitmanip;
 		import std.path, content.common, std.file, std.stdio : File;
 
-		string s = buildPath(resourceDir, asset.path);
+		string s = buildPath(resourceDir, path);
 		assert(s.exists, format("The file : %s does not exist!", s));
 
-		File file = File(buildPath(resourceDir, asset.path), "r");
+		File file = File(s, "r");
 		if(file.size == 0) return;
 
 		ubyte[] first = chunkBuffer;
 
 		size_t offset = 2;
 		first.write!ubyte(NetworkMessage.file,&offset);
-		first.write!ubyte(cast(ubyte)asset.type, &offset);
-		first.write(asset.path, &offset);
+		first.write(path, &offset);
 
 		auto size = file.size;
 		first.write!ulong(size, &offset);

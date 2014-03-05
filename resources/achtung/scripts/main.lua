@@ -2,8 +2,8 @@ local sensorNetworkID = 1
 local deathNetworkID  = 50
 local score = 0
 local font
-
 local button
+
 
 function init()
 	local frame = Loader.loadFrame("textures/wallpaper.png")
@@ -13,7 +13,7 @@ function init()
     log(string.format("Loaded %d, %d", frame, font));
     log("Hello tihs is helloman");
 
-    button = Button(0xFF0000FF, frame, "helloman", Rect(vec2(50, 50), vec2(140, 140)), toggleButton, 0xFFFFFFFF)
+    button = Button(0xFF0000FF, frame, "helloman", Rect(vec2(50, 50), vec2(350, 140)), toggleButton, 0xFFFFFFFF)
 end
 
 function term()
@@ -46,23 +46,25 @@ function update()
 end
 
 function render()
-  drawButton(button, font)
-
-	renderTime(fps)
+ 	drawButton(button, font)
+	renderTime(font)
 end
 
 function onTap(x, y)
+	log(string.format("Tapping! %d %d", x, y))
     if pointInRect(button.rect, vec2(x,y)) then
-      button.callback()
+      button.callback(button)
     end
 end
 
-function toggleButton()
-  if button.tint == 0xFF0000FF then
-    button.tint = 0xFFFF00FF
+function toggleButton(button)
+  if button.tint == 0xFF00FF00 then
+    button.tint = 0xFF00FFFF
     button.text = "READYMAN!!"
+    button.textTint = 0xFFFF0000
     else
-    button.tint = 0xFF0000FF
+    button.tint = 0xFF00FF00
     button.text = "Not so ready man..."
+    button.t234extTint = 0xFF0000FF
     end
 end

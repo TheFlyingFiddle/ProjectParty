@@ -398,6 +398,7 @@
    <File path="content\common.d" />
    <File path="content\font.d" />
    <File path="content\package.d" />
+   <File path="content\phoneReloading.d" />
    <File path="content\reloading.d" />
    <File path="content\sdl.d" />
    <File path="content\texture.d" />

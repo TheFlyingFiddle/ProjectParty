@@ -18,7 +18,7 @@ struct Content
 {
 	this(A)(ref A allocator, ContentConfig c)
 	{
-		ContentReloader.init(allocator, c.maxTrackingResources, c.maxReloaders);
+		ContentReloader.init(allocator, c.maxTrackingResources, c.maxReloaders, c.maxTrackingResources);
 		TextureManager.init(allocator, c.maxTextures);
 
 		import allocation;
