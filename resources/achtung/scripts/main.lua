@@ -1,5 +1,6 @@
 local sensorNetworkID = 1
 local deathNetworkID  = 50
+local toggleReadyID   = 51
 local score = 0
 local font
 local button
@@ -13,7 +14,8 @@ function init()
     log(string.format("Loaded %d, %d", frame, font));
     log("Hello tihs is helloman");
 
-    button = Button(0xFF0000FF, frame, "helloman", Rect(vec2(50, 50), vec2(350, 140)), toggleButton, 0xFFFFFFFF)
+
+    button = Button(0xFF0000FF, frame, "helloman", Rect(vec2(Screen.width / 2 - 150, Screen.height / 2 - 70), vec2(300, 140)), toggleButton, 0xFFFFFFFF)
 end
 
 function term()
@@ -61,10 +63,13 @@ function toggleButton(button)
   if button.tint == 0xFF00FF00 then
     button.tint = 0xFF00FFFF
     button.text = "READYMAN!!"
-    button.textTint = 0xFFFF0000
-    else
+  else
     button.tint = 0xFF00FF00
     button.text = "Not so ready man..."
-    button.t234extTint = 0xFF0000FF
-    end
+  end
+
+  Out.writeShort(1)
+  Out.writeByte(toggleReadyID)
 end
+
+init()
