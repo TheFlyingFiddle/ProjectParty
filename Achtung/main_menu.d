@@ -62,34 +62,29 @@ final class MainMenu : IGameState
 
 	void update()
 	{
-		if(Keyboard.isDown(Key.enter) && Game.players.length > 0)
-			Game.transitionTo("Achtung");
-
 		if(playerCount != 0 && playerCount == playersReady)
 		{	
 			allReady = true;
 
-			if(Keyboard.isDown(Key.enter) && Game.players.length > 0){
-				countdown = true;
-				timer -= Time.delta;
-				if(timer <= 0)
-				{
-					Game.gameStateMachine.transitionTo("Achtung");
-				}
+			if(Keyboard.isDown(Key.enter)){
+				Game.transitionTo("Achtung");
 			}
 				
 		}
 		else 
 		{
 			allReady = false;
-			timer = 5;
 		}
 	}
 
 	void connection(ulong id)
 	{
-		agd.data ~= PlayerData(id, Color(layout.colors[playerCount]), 0);
-		playerCount ++;
+		import network.message;
+		auto color = Color(layout.colors[playerCount++]);
+		agd.data ~= PlayerData(id, color, 0);
+		ubyte[uint.sizeof + ubyte.sizeof + short.sizeof] buf = void;
+		auto length = buf.writeMessage(ColorMessage(color.packedValue));
+		Game.server.send(id, buf[0..length]);
 	}
 
 	void disconnection(ulong id)

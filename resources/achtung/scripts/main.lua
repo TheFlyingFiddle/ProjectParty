@@ -1,35 +1,23 @@
-local transitionID = 6
+Network.messages.death = 50
+Network.messages.toggleReady = 51
+Network.messages.color = 52
 
 function init()
     fsm = FSM()
-    log(tostring(fsm))
-    cfuns.C.networkSend(Network)
     fsm:addState(Lobby(), "MainMenu")
-    log(tostring(fsm))
-    cfuns.C.networkSend(Network)
-    fsm:addState(GamePlay(), "Achtung")
-    log(tostring(fsm))
-    cfuns.C.networkSend(Network)
+    fsm:addState(GamePlay(), "Achtung")    
     fsm:enterState("MainMenu")
-
-    log(cfuns.string(cfuns.C.testStr()))
-    cfuns.C.networkSend(Network)
 end
 
 function term()
 end
 
 function handleMessage(id, length)
-	if id == transitionID then
-        log("Transitioning")
-        cfuns.C.networkSend(Network)
-		s = "Achtung"--In.readUTF8()
-        log("Transitioning to "..s)
-        cfuns.C.networkSend(Network)
-
+	if id == Network.messages.transition then
+		s = In.readUTF8()
 		fsm:enterState(s)
 	end
-	if fsm.active.handleMessage then fsm.active.handleMessage() end
+	if fsm.active.handleMessage then fsm.active.handleMessage(id, length) end
 end
 
 function update()

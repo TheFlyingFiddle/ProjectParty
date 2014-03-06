@@ -16,9 +16,12 @@ function Lobby()
 		local frame = Loader.loadFrame("textures/pixel.png")
 		font  = Loader.loadFont("fonts/Segoe54.fnt")
 	    rotation = 0
+	    playerColor = 0xFFFFFFFF
+
 	    log(string.format("Loaded %d, %d", frame, font));
 
-	    button = Button(notReadyColor, frame, "Press to be ready", Rect(vec2(Screen.width / 2 - 380 / 2, Screen.height / 2 - 70),
+	    button = Button(notReadyColor, frame, "Press to be ready", 
+	    	Rect(vec2(Screen.width / 2 - 380 / 2, Screen.height / 2 - 70),
 	    			    vec2(380, 140)), toggleButton, textColor)
 	end
 	function lobby.exit()
@@ -30,13 +33,7 @@ function Lobby()
 		renderTime(font)
 	end
 	function lobby.update()
-		updateTime();
-
-		if not cfuns.C.networkIsAlive(Network) then
-			log("We are not connected :(")
-			return;
-		end
-
+		updateTime()
 		if useButtons then
 			--Send le buttons
 		else
@@ -46,12 +43,17 @@ function Lobby()
 			Out.writeVec3(Sensors.gyroscope)
 		end
 
-		cfuns.C.networkSend(Network)
+		Network.send()
 	end
 	function lobby.onTap(x, y)
 	    if pointInRect(button.rect, vec2(x,y)) then
 	      button.callback(button)
 	    end
+	end
+	function lobby.handleMessage(id, length)
+		if id == Network.messages.color then
+			playerColor = In.readInt()
+		end
 	end
 	return lobby
 end

@@ -26,8 +26,15 @@ struct InputEvent
 	float input;
 }
 
-enum AchtungMessages
+enum AchtungMessages : ubyte
 {
 	death = 50,
-	toggleReady = 51
+	toggleReady = 51,
+	color = 52
+}
+
+struct ColorMessage
+{
+	enum ubyte id = AchtungMessages.color;
+	uint color;
 }
