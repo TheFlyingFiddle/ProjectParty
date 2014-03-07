@@ -160,11 +160,14 @@ final class MainMenu : IGameState
 	{
 		if(message[0] == AchtungMessages.toggleReady)
 		{
-			playersReady ++;
 			auto logChnl = LogChannel("toggle");
 			logChnl.info("ready signal recieved");
 			foreach(i, ref player; Game.players)if(player.id == id)
 			{
+				if (player.ready)
+					playersReady--;
+				else
+					playersReady++;
 				player.ready = !player.ready;
 			}
 		}
