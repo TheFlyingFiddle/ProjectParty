@@ -5,7 +5,7 @@ Network.messages.color = 52
 function init()
     fsm = FSM()
     fsm:addState(Lobby(), "MainMenu")
-    fsm:addState(GamePlay(), "Achtung")    
+    fsm:addState(GamePlay(), "Achtung")
     fsm:enterState("MainMenu")
 end
 
@@ -13,6 +13,8 @@ function term()
 end
 
 function handleMessage(id, length)
+  log(string.format("Handle message called %d", id))
+  Network.send()
 	if id == Network.messages.transition then
 		s = In.readUTF8()
 		fsm:enterState(s)
@@ -29,7 +31,7 @@ function render()
 end
 
 function onTap(x, y)
-	if fsm.active.onTap then 
+	if fsm.active.onTap then
     	fsm.active.onTap(x, y)
     end
 end

@@ -20,7 +20,7 @@ function Lobby()
 
 	    log(string.format("Loaded %d, %d", frame, font));
 
-	    button = Button(notReadyColor, frame, "Press to be ready", 
+	    button = Button(notReadyColor, frame, "Press to be ready",
 	    	Rect(vec2(Screen.width / 2 - 380 / 2, Screen.height / 2 - 70),
 	    			    vec2(380, 140)), toggleButton, textColor)
 	end
@@ -51,6 +51,7 @@ function Lobby()
 	    end
 	end
 	function lobby.handleMessage(id, length)
+    log(string.format("Handle message called %d", id))
 		if id == Network.messages.color then
 			playerColor = In.readInt()
 		end

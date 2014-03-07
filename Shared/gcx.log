@@ -1,50 +1,50 @@
-GC::malloc(gcx = 002D69E8, size = 120 bits = 1, ti = core.thread.Thread)
-Setting a pointer bitmap for core.thread.Thread at 01F90F80 + 120
+GC::malloc(gcx = 002F69E8, size = 120 bits = 1, ti = core.thread.Thread)
+Setting a pointer bitmap for core.thread.Thread at 00600F80 + 120
 	Setting bitmap for new object (core.thread.Thread)
-		at 01F90F80		copying from 0044A784 + 120: 001000110001111111010000000011
-	malloc => 01F90F80
+		at 00600F80		copying from 0044A784 + 120: 001000110001111111010000000011
+	malloc => 00600F80
 GC.addRange_hp(0045A760 - 0045AA20, tls=0)
 GC.addRange_hp(0045AACC - 0045AB1C, tls=1)
-GC::malloc(gcx = 002D69E8, size = 11 bits = 4a, ti = TypeInfo_a)
-	malloc => 01F91FF0
-GC::malloc(gcx = 002D69E8, size = 4 bits = 4a, ti = TypeInfo_a)
-	malloc => 01F91FE0
-GC::malloc(gcx = 002D69E8, size = 19 bits = 4a, ti = TypeInfo_a)
-	malloc => 01F92FE0
-GC::malloc(gcx = 002D69E8, size = 43 bits = 4a, ti = TypeInfo_a)
-	malloc => 01F93FC0
-GC::malloc(gcx = 002D69E8, size = 78 bits = 4a, ti = TypeInfo_a)
-	malloc => 01F90F00
-GC::malloc(gcx = 002D69E8, size = 129 bits = 4a, ti = TypeInfo_a)
-	malloc => 01F94F00
-GC::malloc(gcx = 002D69E8, size = 164 bits = 4a, ti = TypeInfo_a)
-	malloc => 01F94E00
-GC::malloc(gcx = 002D69E8, size = 2065 bits = 2a, ti = TypeInfo_a)
+GC::malloc(gcx = 002F69E8, size = 11 bits = 4a, ti = TypeInfo_a)
+	malloc => 00601FF0
+GC::malloc(gcx = 002F69E8, size = 4 bits = 4a, ti = TypeInfo_a)
+	malloc => 00601FE0
+GC::malloc(gcx = 002F69E8, size = 19 bits = 4a, ti = TypeInfo_a)
+	malloc => 00602FE0
+GC::malloc(gcx = 002F69E8, size = 43 bits = 4a, ti = TypeInfo_a)
+	malloc => 00603FC0
+GC::malloc(gcx = 002F69E8, size = 78 bits = 4a, ti = TypeInfo_a)
+	malloc => 00600F00
+GC::malloc(gcx = 002F69E8, size = 129 bits = 4a, ti = TypeInfo_a)
+	malloc => 00604F00
+GC::malloc(gcx = 002F69E8, size = 164 bits = 4a, ti = TypeInfo_a)
+	malloc => 00604E00
+GC::malloc(gcx = 002F69E8, size = 2065 bits = 2a, ti = TypeInfo_a)
 In bigAlloc.  Size:  2065
 Gcx.fullcollect()
 Set bits
 Marked free entries.
 	scan stacks.
 marking tls range from 0018F764 to 00190000
-		@0018FA5C -> 01F94E00: mark(x4e0) = 0
-		@0018FAF0 -> 01F94F00: mark(x4f0) = 0
-		@0018FB6C -> 01F94E00: mark(x4e0) = 1
-marking tls range from 01F90FD0 to 01F90FF0
-		@01F90FD4 -> 01F90F80: mark(xf8) = 0
-not skipping 01F90FB0, biti = 1009, at 01F90FC4
-		@01F90FC4 -> 01F90FB0: mark(xf8) = 16777216
-marking tls hp range from 0045AACC to 0045AB1C, base 002C3838
-Mark call for 1 002C3848 with type info TypeInfo_AssociativeArray: rtInfo: has 1 pointers
-Mark call for 1 002C3858 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002C3868 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002C3878 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002C387C with type info core.thread.Thread: class reference
-		@002C387C -> 01F90F80: mark(xf8) = 16777216
-Mark call for 1 002C3898 with type info core.thread.Fiber: class reference
-Mark call for 1 002C38A8 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002C38AC with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002C38B0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002C38B8 with type info std.file.DirIteratorImpl: mark with rtInfo
+		@0018FA5C -> 00604E00: mark(x4e0) = 0
+		@0018FAF0 -> 00604F00: mark(x4f0) = 0
+		@0018FB6C -> 00604E00: mark(x4e0) = 1
+marking tls range from 00600FD0 to 00600FF0
+		@00600FD4 -> 00600F80: mark(xf8) = 0
+not skipping 00600FB0, biti = 1009, at 00600FC4
+		@00600FC4 -> 00600FB0: mark(xf8) = 16777216
+marking tls hp range from 0045AACC to 0045AB1C, base 002E3838
+Mark call for 1 002E3848 with type info TypeInfo_AssociativeArray: rtInfo: has 1 pointers
+Mark call for 1 002E3858 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 002E3868 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 002E3878 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 002E387C with type info core.thread.Thread: class reference
+		@002E387C -> 00600F80: mark(xf8) = 16777216
+Mark call for 1 002E3898 with type info core.thread.Fiber: class reference
+Mark call for 1 002E38A8 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 002E38AC with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 002E38B0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 002E38B8 with type info std.file.DirIteratorImpl: mark with rtInfo
 	scan roots[]
 	scan ranges[]
 	mark hasPointer area
@@ -118,11 +118,11 @@ Mark call for 1 0045ADA0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045ADB0 with type info rt.critical_.D_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE40 with type info core.sys.windows.windows._RTL_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE6C with type info core.thread.Thread: class reference
-		@0045AE6C -> 01F90F80: mark(xf8) = 16777216
+		@0045AE6C -> 00600F80: mark(xf8) = 16777216
 Mark call for 1 0045AEC0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-		@0045AEC0 -> 01F90FB0: mark(xf8) = 16777216
+		@0045AEC0 -> 00600FB0: mark(xf8) = 16777216
 Mark call for 1 0045AEC8 with type info core.thread.Thread: class reference
-		@0045AEC8 -> 01F90F80: mark(xf8) = 16777216
+		@0045AEC8 -> 00600F80: mark(xf8) = 16777216
 Mark call for 1 0045AEE0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 00448320 with type info std.datetime.UTC: rtInfo: has 1 pointers
 Mark call for 1 00448A90 with type info std.datetime.LocalTime: rtInfo: has 1 pointers
@@ -142,22 +142,22 @@ Mark call for 1 00457A20 with type info TypeInfo_Array: rtInfo: has 2 pointers
 Mark call for 1 00458C30 with type info std.uni.Trie!(BitPacked!(bool, 1), dchar, 1114112u, sliceBits!(13u, 21u), sliceBits!(8u, 13u), sliceBits!(0u, 8u)).Trie: rtInfo: has 8 pointers
 	scan heap
 	free'ing
-	collecting 01F90F00
-	collecting 01F91FE0
-	collecting 01F91FF0
-	collecting 01F92FE0
-	collecting 01F93FC0
+	collecting 00600F00
+	collecting 00601FE0
+	collecting 00601FF0
+	collecting 00602FE0
+	collecting 00603FC0
 	free complete pages
 	recovered pages = 3
 	free'd 256 bytes, 0 pages from 1 pools
 Minimizing.
 Done minimizing.
-Pool 003B0B08:  256 really free, 256 supposedly free
-Pool 003B0B08:  255 really free, 255 supposedly free
-Got large alloc:  02090000, pt = 8, np = 1
-	malloc => 02090000
-Emplacing TypeInfo_a at 02090010 + 4080
-Setting a pointer bitmap for TypeInfo_a at 02090010 + 4080
+Pool 003D0B08:  256 really free, 256 supposedly free
+Pool 003D0B08:  255 really free, 255 supposedly free
+Got large alloc:  02110000, pt = 8, np = 1
+	malloc => 02110000
+Emplacing TypeInfo_a at 02110010 + 4080
+Setting a pointer bitmap for TypeInfo_a at 02110010 + 4080
 	Compiler generated rtInfo: no pointers
 Gcx.fullcollect()
 Set bits
@@ -235,13 +235,13 @@ Mark call for 1 0045ADA0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045ADB0 with type info rt.critical_.D_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE40 with type info core.sys.windows.windows._RTL_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE6C with type info core.thread.Thread: class reference
-		@0045AE6C -> 01F90F80: mark(xf8) = 0
-not skipping 01F90FB0, biti = 1009, at 01F90FC4
-		@01F90FC4 -> 01F90FB0: mark(xf8) = 16777216
+		@0045AE6C -> 00600F80: mark(xf8) = 0
+not skipping 00600FB0, biti = 1009, at 00600FC4
+		@00600FC4 -> 00600FB0: mark(xf8) = 16777216
 Mark call for 1 0045AEC0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-		@0045AEC0 -> 01F90FB0: mark(xf8) = 16777216
+		@0045AEC0 -> 00600FB0: mark(xf8) = 16777216
 Mark call for 1 0045AEC8 with type info core.thread.Thread: class reference
-		@0045AEC8 -> 01F90F80: mark(xf8) = 16777216
+		@0045AEC8 -> 00600F80: mark(xf8) = 16777216
 Mark call for 1 0045AEE0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 00448320 with type info std.datetime.UTC: rtInfo: has 1 pointers
 Mark call for 1 00448A90 with type info std.datetime.LocalTime: rtInfo: has 1 pointers
@@ -261,9 +261,9 @@ Mark call for 1 00457A20 with type info TypeInfo_Array: rtInfo: has 2 pointers
 Mark call for 1 00458C30 with type info std.uni.Trie!(BitPacked!(bool, 1), dchar, 1114112u, sliceBits!(13u, 21u), sliceBits!(8u, 13u), sliceBits!(0u, 8u)).Trie: rtInfo: has 8 pointers
 	scan heap
 	free'ing
-	collecting 01F94E00
-	collecting 01F94F00
-	collecting big 02090000
+	collecting 00604E00
+	collecting 00604F00
+	collecting big 02110000
 	free complete pages
 	recovered pages = 1
 	free'd 512 bytes, 1 pages from 2 pools
