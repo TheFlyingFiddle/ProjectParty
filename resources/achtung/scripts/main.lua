@@ -1,11 +1,13 @@
 Network.messages.death = 50
 Network.messages.toggleReady = 51
 Network.messages.color = 52
+Network.messages.position = 53
 
 function init()
     fsm = FSM()
     fsm:addState(Lobby(), "MainMenu")
-    fsm:addState(GamePlay(), "Achtung")    
+    fsm:addState(GamePlay(), "Achtung")
+    fsm:addState(GameOver(), "GameOver")
     fsm:enterState("MainMenu")
 end
 
@@ -29,7 +31,7 @@ function render()
 end
 
 function onTap(x, y)
-	if fsm.active.onTap then 
+	if fsm.active.onTap then
     	fsm.active.onTap(x, y)
     end
 end

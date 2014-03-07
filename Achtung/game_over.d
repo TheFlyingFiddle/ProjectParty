@@ -7,22 +7,34 @@ import collections;
 import types;
 import util.strings;
 import math;
+import types;
+import achtung_game_data;
 
 class GameOverGameState : IGameState
 {
+	AchtungGameData agd;
 	FontID font;
 	float elapsed;
 	float interval;
 
-	this(float interval)
+	this(AchtungGameData agd, float interval)
 	{
+		this.agd		= agd;
 		this.interval	= interval;
 		this.font		= FontManager.load("fonts\\Blocked72.fnt");
 	}
 
 	void enter()
 	{
+		import std.algorithm;
+
 		this.elapsed = 0;
+		sort!("a.score > b.score")(this.agd.data.buffer[0 .. agd.data.length]);
+		foreach(i, player ; agd.data)
+		{
+			import network.message;
+			Game.server.sendMessage(player.playerId, PositionMessage(cast(short)(i + 1)));
+		}
 	}
 
 	void exit() {}

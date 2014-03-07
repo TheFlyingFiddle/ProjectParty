@@ -15,12 +15,12 @@ function GamePlay()
 	function gamePlay.render()
 		local scoreStr = string.format("Score: %d", score)
 		local size = Font.measure(font, scoreStr)
-		local pos = vec2(Screen.width / 2 - size.x / 2, 
+		local pos = vec2(Screen.width / 2 - size.x / 2,
 			Screen.height / 2 - size.y / 2)
 
 		Renderer.addText(font, scoreStr, pos, playerColor)
 	end
-	function gamePlay.update()	
+	function gamePlay.update()
 		updateTime()
 
 		if useButtons then

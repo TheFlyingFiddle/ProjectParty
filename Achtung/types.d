@@ -30,11 +30,18 @@ enum AchtungMessages : ubyte
 {
 	death = 50,
 	toggleReady = 51,
-	color = 52
+	color = 52,
+	position = 53
 }
 
 struct ColorMessage
 {
 	enum ubyte id = AchtungMessages.color;
 	uint color;
+}
+
+struct PositionMessage
+{
+	enum ubyte id = AchtungMessages.position;
+	ushort position;
 }

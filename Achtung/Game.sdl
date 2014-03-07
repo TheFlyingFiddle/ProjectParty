@@ -51,6 +51,7 @@ phoneResources = [
 	|achtung/scripts/lobby.lua|,
 	|achtung/scripts/states.lua|,
 	|achtung/scripts/gameplay.lua|,
+	|achtung/scripts/gameover.lua|,
 	|achtung/fonts/Segoe54.fnt|,
 	|achtung/fonts/Segoe54_0.png|,
 	|achtung/textures/wallpaper.png|,

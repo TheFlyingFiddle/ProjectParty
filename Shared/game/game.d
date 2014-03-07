@@ -235,8 +235,6 @@ struct Game_Impl
 
 	void transitionTo(string newState)
 	{
-		gameStateMachine.transitionTo(newState);
-
 		import util.bitmanip;
 		import std.path, content.common, std.file, std.stdio : File;
 
@@ -252,7 +250,8 @@ struct Game_Impl
 		first.write!ushort(cast(ushort)(offset - 2), 0);
 		foreach (player ; players)
 			server.send(player.id, first[0 .. offset]);
-		
+
+		gameStateMachine.transitionTo(newState);		
 	}
 
 	void run(Timestep timestep, Duration target = 0.msecs)
