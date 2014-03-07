@@ -283,8 +283,8 @@ struct SDLIterator
 	private template NeedsAllocator(T)
 	{
 		enum NeedsAllocator = UnknownType!T  ||
-			isSomeString!T || 
-			isArray!T		 || 
+			isSomeString!T	|| 
+			isArray!T		|| 
 			isList!T;
 	}
 
@@ -307,35 +307,44 @@ struct SDLIterator
 		}
 	}
 
+	private template memberName(string fullName)
+	{
+		import std.string;
+		enum index = lastIndexOf(fullName, '.');
+		static if (index == -1)
+			enum memberName = fullName;
+		else
+			enum memberName = fullName[index+1..$];
+	}
+
     T as(T, Allocator)(ref Allocator a) if (UnknownType!T)
 	{        
 		goToChild();
         T toReturn;
 
-        foreach(member; __traits(allMembers, T)) {
-			
-            alias fieldType = typeof(__traits(getMember, toReturn, member));
-			alias attributeType = typeof(__traits(getAttributes, __traits(getMember, toReturn, member)));
-            //  Can only traverse the tree downwards
-            //  So we need to save this index to not
-            //  get lost.
-            auto firstIndex = currentIndex;
+        foreach(i, dummy; toReturn.tupleof) {
+			enum member = memberName!(toReturn.tupleof[i].stringof);
+			pragma(msg, toReturn.tupleof[i].stringof);
+
+			alias fieldType = typeof(toReturn.tupleof[i]);
+			alias attributeType = typeof(__traits(getAttributes, toReturn.tupleof[i]));
+			//  Can only traverse the tree downwards
+			//  So we need to save this index to not
+			//  get lost.
+			auto firstIndex = currentIndex;
 			//Did the field have an attribute?
-			static if(__traits(getAttributes, __traits(getMember, toReturn, member)).length >= 1) {
+			static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) {
 				static if(is(attributeType == Unpack!(OptionalStruct!fieldType))) {
 					try {
 						goToNext!member; //Changes the index to point to the member we want.
-						static if(isArray!fieldType || is(fieldType f == List!E, E)) {
-							__traits(getMember, toReturn, member) = 
-								as!fieldType(a);
+						 static if(isArray!fieldType || is(fieldType f == List!E, E)) {
+							toReturn.tupleof[i] = as!fieldType(a);
 						} else {
-							__traits(getMember, toReturn, member) = 
-								as!fieldType;
+							toReturn.tupleof[i] = as!fieldType;
 						}
 					} catch (ObjectNotFoundException e) {
 						//Set the field to the default value contained in the attribute.
-						__traits(getMember, toReturn, member) = 
-							__traits(getAttributes, __traits(getMember, toReturn, member))[0].defaultValue;
+						toReturn.tupleof[i] = __traits(getAttributes, toReturn.tupleof[i])[0].defaultValue;
 					}
 				} else {
 					static assert(0, "Field type mismatch: \n Field "
@@ -345,15 +354,13 @@ struct SDLIterator
 			} else {
 				goToNext!member; //Changes the index to point to the member we want.
 				static if(NeedsAllocator!fieldType) {
-					__traits(getMember, toReturn, member) = 
-						as!(fieldType, Allocator)(a);
+					toReturn.tupleof[i] = as!(fieldType, Allocator)(a);
 				} else {
-					__traits(getMember, toReturn, member) = 
-						as!fieldType;
+					toReturn.tupleof[i] = as!fieldType;
 				}
 			}
-            // We want to search the whole object for every name.
-            currentIndex = firstIndex;
+			// We want to search the whole object for every name.
+			currentIndex = firstIndex;
         }
         return toReturn;
 	}
@@ -363,10 +370,11 @@ struct SDLIterator
         goToChild();
         T toReturn;
 
-        foreach(member; __traits(allMembers, T)) {
-			
-            alias fieldType = typeof(__traits(getMember, toReturn, member));
-			alias attributeType = typeof(__traits(getAttributes, __traits(getMember, toReturn, member)));
+        foreach(i, dummy; toReturn.tupleof) {
+			enum member = memberName!(toReturn.tupleof[i].stringof);
+			alias fieldType = typeof(toReturn.tupleof[i]);
+			//We need to be able to assign to it.
+			alias attributeType = typeof(__traits(getAttributes, toReturn.tupleof[i]));
 			static if(isArray!fieldType) {
 				static assert(0, "Structs cotaining arrays need an allocator to be parsed.\n"~
 						"Field "~member~" was an array, and prevented parsing.");
@@ -379,16 +387,15 @@ struct SDLIterator
 				//  get lost.
 				auto firstIndex = currentIndex;
 				//Did the field have an attribute?
-				static if(__traits(getAttributes, __traits(getMember, toReturn, member)).length >= 1) {
+				static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) {
 					static if(is(attributeType == Unpack!(OptionalStruct!fieldType))) {
 						try {
 							goToNext!member; //Changes the index to point to the member we want.
-							__traits(getMember, toReturn, member) = 
-								as!fieldType;
+							toReturn.tupleof[i] = as!fieldType;
 						} catch (ObjectNotFoundException a) {
 							//Set the field to the default value contained in the attribute.
-							__traits(getMember, toReturn, member) = 
-								__traits(getAttributes, __traits(getMember, toReturn, member))[0].defaultValue;
+							toReturn.tupleof[i] = 
+								__traits(getAttributes, toReturn.tupleof[i])[0].defaultValue;
 						}
 					} else {
 						static assert(0, "Field type mismatch: \n Field "
@@ -397,8 +404,9 @@ struct SDLIterator
 					}
 				} else {
 						goToNext!member;
-						__traits(getMember, toReturn, member) = 
-							as!fieldType;
+						import std.conv;
+						pragma(msg, text(fieldType.stringof, " ", member));
+						toReturn.tupleof[i] = as!fieldType;
 				}
 				// We want to search the whole object for every name.
 				currentIndex = firstIndex;
@@ -1569,5 +1577,20 @@ freeColor=0";
 		auto alloc2 = RegionAllocator(buf2);
 
 		assertEquals(a, obj.as!StructA(alloc2));
+	}
+
+	@Test public void testColor()
+	{
+		import graphics.color;
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		import collections.list;
+
+		struct StructA  { string[] phoneResources; }
+		auto source = "packedValue = 0xFFFFFFFF";
+		auto obj = fromSDL(app, source);
+
+		assertEquals(Color(0xFFFFFFFF), obj.as!Color);
 	}
 }

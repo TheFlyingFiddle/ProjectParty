@@ -76,6 +76,6 @@ unittest {
 
 	ubyte[7] buf = void;
 	buf.writeMessage(Message());
-	sendMessage(null, 234, Message());
-	sendMessage(null, 23, IndirectMessage());
+	assert(__traits(compiles, sendMessage(null, 234, Message())));
+	assert(__traits(compiles, sendMessage(null, 23, IndirectMessage())));
 }
