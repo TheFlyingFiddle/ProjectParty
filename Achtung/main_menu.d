@@ -164,10 +164,7 @@ final class MainMenu : IGameState
 			logChnl.info("ready signal recieved");
 			foreach(i, ref player; Game.players)if(player.id == id)
 			{
-				if (player.ready)
-					playersReady--;
-				else
-					playersReady++;
+				player.ready ? playersReady-- : playersReady++;
 				player.ready = !player.ready;
 			}
 		}

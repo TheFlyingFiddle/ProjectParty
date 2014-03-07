@@ -131,7 +131,7 @@ class AchtungGameState : IGameState
 			if(Phone.exists(playerData.playerId) && snakes.indexOf(playerData.color) != -1)
 			{
 				PhoneState state = Phone.state(playerData.playerId);
-				stream.push(InputEvent(playerData.color, state.accelerometer.y / 50));
+				stream.push(InputEvent(playerData.color, -state.accelerometer.y / 50));
 			}	
 		}
 	}
