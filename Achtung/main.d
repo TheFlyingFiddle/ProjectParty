@@ -58,7 +58,7 @@ void init(A)(ref A allocator)
 
 	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl", agd), "Achtung");
 	fsm.addState(allocator.allocate!MainMenu("Achtung Main Menu", agd,config.serverConfig.maxConnections), "MainMenu");
-	fsm.addState(allocator.allocate!GameOverGameState(10), "GameOver");
+	fsm.addState(allocator.allocate!GameOverGameState(agd, 10), "GameOver");
 	Game.transitionTo("MainMenu");
 
 

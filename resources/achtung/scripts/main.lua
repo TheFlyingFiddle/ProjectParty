@@ -1,11 +1,13 @@
 Network.messages.death = 50
 Network.messages.toggleReady = 51
 Network.messages.color = 52
+Network.messages.position = 53
 
 function init()
     fsm = FSM()
     fsm:addState(Lobby(), "MainMenu")
     fsm:addState(GamePlay(), "Achtung")
+    fsm:addState(GameOver(), "GameOver")
     fsm:enterState("MainMenu")
 end
 
@@ -13,8 +15,6 @@ function term()
 end
 
 function handleMessage(id, length)
-  log(string.format("Handle message called %d", id))
-  Network.send()
 	if id == Network.messages.transition then
 		s = In.readUTF8()
 		fsm:enterState(s)
