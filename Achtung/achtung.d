@@ -71,7 +71,7 @@ class AchtungGameState : IGameState
 
 	void exit()
 	{
-		Game.window.onFboSizeChanged = null;
+		Game.window.onSizeChanged = null;
 	}
 
 	void sizeChanged(int x, int y)
@@ -82,7 +82,7 @@ class AchtungGameState : IGameState
 
 	void reset()
 	{
-		foreach(playerData; agd.data) if(playerData.score > config.winningScore)
+		foreach(playerData; agd.data) if(playerData.score >= config.winningScore)
 		{
 			Game.transitionTo("GameOver");
 			return;

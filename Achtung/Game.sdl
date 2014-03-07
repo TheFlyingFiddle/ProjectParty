@@ -34,7 +34,7 @@ serverConfig =
 	broadcastPort  = 7331
 	maxMessageSize = 0xffff
 	broadcastInterval = 1.0
-	connectionTimeout = 10
+	connectionTimeout = 15
 }
 
 gameName = achtung 

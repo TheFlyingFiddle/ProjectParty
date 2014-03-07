@@ -50,15 +50,26 @@ class GameOverGameState : IGameState
 
 	void render() 
 	{
+		import std.algorithm;
+
 		gl.clear(ClearFlags.color);
 		
 		char[128] buffer = void;
-		auto msg = text(buffer, "Game Over! Transitioning to start in: ", interval - elapsed);
+		
+		float2 base = float2(0, 500);
+		foreach(i, playerData; agd.data)
+		{
+			auto player = Game.players.find!(x => x.id == playerData.playerId)[0];
+			auto str = text(buffer, "Player ", player.name, " Place ", i + 1,  " Score ", playerData.score);
+			Game.renderer.addText(font, str, base + float2(0, -100) * i, playerData.color, float2(0.5, 0.5));
+		}
+		
+		auto msg = text(buffer, "Transitioning to start in: ", interval - elapsed);
 
 		auto size    = font.messure(msg);
 		auto fsize   = float2(Game.window.fboSize);
 		
-		Game.renderer.addText(font, msg, fsize / 2, Color.white, float2(1,1),  -size / 2);
+		Game.renderer.addText(font, msg, float2(0, size.y), Color.white, float2(1,1));
 	}
 
 }

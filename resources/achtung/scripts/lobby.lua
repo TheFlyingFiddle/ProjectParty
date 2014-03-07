@@ -2,8 +2,9 @@ local sensorNetworkID = 1
 local deathNetworkID  = 50
 local toggleReadyID   = 51
 
-local readyColor      = 0xFFcc0000
-local notReadyColor   = 0xFF00cc00
+local readyColor      = 0xFF00cc00
+local notReadyColor   = 0xFF0000cc
+
 local textColor       = 0xFF000000
 
 local score = 0
@@ -62,11 +63,12 @@ end
 function toggleButton(button)
   if button.tint == notReadyColor then
     button.tint = readyColor
-    button.text = "Press to be ready"
+    button.text = "Press to be not ready"
   else
     button.tint = notReadyColor
-    button.text = "Press to be not ready"
+    button.text = "Press to be ready"
   end
+  log("Ima toggle button!")
 
   Out.writeShort(1)
   Out.writeByte(toggleReadyID)

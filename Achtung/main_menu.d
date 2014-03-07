@@ -45,6 +45,13 @@ final class MainMenu : IGameState
 
 	void enter() 
 	{
+		foreach(ref player ; Game.players) player.ready = false;
+
+		playerCount = Game.players.length;
+		playersReady = 0;
+		allReady = false;
+		countdown = false;
+
 		font = FontManager.load("Blocked72");
 		Game.router.connectionHandlers ~= &connection;
 		Game.router.reconnectionHandlers ~= &connection;
@@ -57,6 +64,7 @@ final class MainMenu : IGameState
 		Game.router.connectionHandlers.remove(&connection);
 		Game.router.reconnectionHandlers.remove(&connection);
 		Game.router.disconnectionHandlers.remove(&disconnection);
+		Game.router.messageHandlers.remove(&message);
 
 	}
 
@@ -133,7 +141,7 @@ final class MainMenu : IGameState
 		else if(allReady)
 		{
 			sb.addText(font, "Press Enter to start:", 
-				float2(s.x * 0.8, s.y * 0.20), 
+				float2(s.x * 0.6, s.y * 0.20), 
 				Color(0xFFFFCC00),float2(0.5, 0.5));
 		}
 		foreach(i, player; Game.players)
