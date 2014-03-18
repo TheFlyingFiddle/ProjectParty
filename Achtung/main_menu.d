@@ -160,8 +160,8 @@ final class MainMenu : IGameState
 		}
 
 
-		auto serverText = text(buffer, "Server: ", Game.server.listenerString);
-		sb.addText(font, serverText, float2(2,2),Color.white,float2(0.5,0.5), float2(0, font.messure(serverText).y));
+		//auto serverText = text(buffer, "Server: ", Game.server.listenerString);
+		//sb.addText(font, serverText, float2(2,2),Color.white,float2(0.5,0.5), float2(0, font.messure(serverText).y));
 	}
 
 	void message(ulong id, ubyte[] message)
