@@ -41,7 +41,7 @@ gameName = achtung
 
 resources = [ 
 { type = texture path = |achtung\textures\pixel.png| },
-{ type = font	 path = |achtung\fonts\Blocked72.fnt| } ]
+{ type = fontA	 path = |achtung\fonts\Blocked72.fnt| } ]
 
 phoneResources = [
 	|achtung/scripts/main.lua|,

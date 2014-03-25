@@ -12,6 +12,8 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Logger", "Logger\Logger.vis
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "FakePhone", "FakePhone\FakePhone.visualdproj", "{F7376E73-F8E3-4749-89B4-87701C9E76A8}"
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Elements", "Elements\Elements.visualdproj", "{27538216-E3A6-4426-B3E8-1AAF3DCC7619}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -46,6 +48,12 @@ Global
 		{F7376E73-F8E3-4749-89B4-87701C9E76A8}.Release|Win32.ActiveCfg = Release|Win32
 		{F7376E73-F8E3-4749-89B4-87701C9E76A8}.Release|Win32.Build.0 = Release|Win32
 		{F7376E73-F8E3-4749-89B4-87701C9E76A8}.Release|x64.ActiveCfg = Release|Win32
+		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Debug|Win32.ActiveCfg = Debug|Win32
+		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Debug|Win32.Build.0 = Debug|Win32
+		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Debug|x64.ActiveCfg = Debug|Win32
+		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Release|Win32.ActiveCfg = Release|Win32
+		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Release|Win32.Build.0 = Release|Win32
+		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
