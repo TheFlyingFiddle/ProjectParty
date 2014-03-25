@@ -229,7 +229,10 @@ struct SDLIterator
 			foreach(i; 0 .. listLength) {
 				auto obj = over.root[currentIndex];
 				auto next = obj.nextIndex;
-				list.put = as!U;
+				static if(NeedsAllocator!U) 
+					list.put = as!U(allocator);
+				else 
+					list.put = as!U;
 				currentIndex = next;
 			}
 			return list;
@@ -324,7 +327,6 @@ struct SDLIterator
 
         foreach(i, dummy; toReturn.tupleof) {
 			enum member = memberName!(toReturn.tupleof[i].stringof);
-			pragma(msg, toReturn.tupleof[i].stringof);
 
 			alias fieldType = typeof(toReturn.tupleof[i]);
 			alias attributeType = typeof(__traits(getAttributes, toReturn.tupleof[i]));
@@ -405,7 +407,6 @@ struct SDLIterator
 				} else {
 						goToNext!member;
 						import std.conv;
-						pragma(msg, text(fieldType.stringof, " ", member));
 						toReturn.tupleof[i] = as!fieldType;
 				}
 				// We want to search the whole object for every name.
@@ -636,7 +637,9 @@ if (isStringOrVoid!StringOrVoid)
 		if(c == '\n' || c == '\t' 
 		   || c == '\r' || c == ' ' || 
 		   c == '='||
-		   c == '/') {
+		   c == '/' ||
+		   c == '}' ||
+		   c == ']') {
 			   static if(isSomeString!StringOrVoid)
 				   return str(saved, range);
 			   else
@@ -646,8 +649,13 @@ if (isStringOrVoid!StringOrVoid)
 		range.popFront();
 	}
 
-	enforce(0, "EOF while reading identifier");
-	assert(0);
+   static if(isSomeString!StringOrVoid)
+	   return str(saved, range);
+   else
+	   return;
+	// If we reach end of file, we actually just want to stop parsing.
+	//enforce(0, "EOF while reading identifier");
+	//assert(0);
 }
 
 template isBoolOrVoid(T) {
@@ -1592,5 +1600,87 @@ freeColor=0";
 		auto obj = fromSDL(app, source);
 
 		assertEquals(Color(0xFFFFFFFF), obj.as!Color);
+	}
+
+	@Test public void testRecursiveList()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "arr = [[1,2,3],[4],[5]]");
+
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+		auto list1 = List!long(alloc2, 3);
+		list1.put(1);
+		list1.put(2);
+		list1.put(3);
+		auto list2 = List!long(alloc2, 1);
+		list2.put(4);
+		auto list3 = List!long(alloc2, 1);
+		list3.put(5);
+		auto listOfLists = List!(List!long)(alloc2, 3);
+		listOfLists.put(list1);
+		listOfLists.put(list2);
+		listOfLists.put(list3);
+
+		auto sList = obj.arr.as!(List!(List!long))(alloc2);
+
+		assertEquals(sList, listOfLists);
+	}
+
+
+	@Test public void testRecursiveArray()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto obj = fromSDL(app, "arr = [[1,2,3],[4],[5]]");
+
+		auto buf2 = new void[1024];
+		auto alloc2 = RegionAllocator(buf2);
+		auto list1 = List!long(alloc2, 3);
+		list1.put(1);
+		list1.put(2);
+		list1.put(3);
+		auto list2 = List!long(alloc2, 1);
+		list2.put(4);
+		auto list3 = List!long(alloc2, 1);
+		list3.put(5);
+		auto listOfLists = List!(List!long)(alloc2, 3);
+		listOfLists.put(list1);
+		listOfLists.put(list2);
+		listOfLists.put(list3);
+
+		auto sList = obj.arr.as!(List!(List!long))(alloc2);
+
+		assertEquals(sList, listOfLists);
+	}
+
+	@Test public void testNoWhiteSpaceDontEndWithSpace()
+	{
+		{
+			auto buf = new void[1024];
+			auto alloc = RegionAllocator(buf);
+			auto app = RegionAppender!SDLObject(alloc);
+			auto obj = fromSDL(app, "teststring = { s = nowhitespace}"); // No space before } curly brace
+
+			auto buf2 = new void[1024];
+			auto alloc2 = RegionAllocator(buf2);
+
+			assertEquals(obj.teststring.s.as!string(alloc2), "nowhitespace");
+		}
+
+		{
+			auto buf = new void[1024];
+			auto alloc = RegionAllocator(buf);
+			auto app = RegionAppender!SDLObject(alloc);
+			auto obj = fromSDL(app, "teststring = nowhitespace"); // sudden EOF while parsing identifier
+
+			auto buf2 = new void[1024];
+			auto alloc2 = RegionAllocator(buf2);
+
+			assertEquals(obj.teststring.as!string(alloc2), "nowhitespace");
+		}
 	}
 }
