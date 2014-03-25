@@ -1637,24 +1637,14 @@ freeColor=0";
 		auto app = RegionAppender!SDLObject(alloc);
 		auto obj = fromSDL(app, "arr = [[1,2,3],[4],[5]]");
 
+		long[][] arrOfArrs = [[1,2,3],[4],[5]];
+
 		auto buf2 = new void[1024];
 		auto alloc2 = RegionAllocator(buf2);
-		auto list1 = List!long(alloc2, 3);
-		list1.put(1);
-		list1.put(2);
-		list1.put(3);
-		auto list2 = List!long(alloc2, 1);
-		list2.put(4);
-		auto list3 = List!long(alloc2, 1);
-		list3.put(5);
-		auto listOfLists = List!(List!long)(alloc2, 3);
-		listOfLists.put(list1);
-		listOfLists.put(list2);
-		listOfLists.put(list3);
 
-		auto sList = obj.arr.as!(List!(List!long))(alloc2);
+		auto sList = obj.arr.as!(long[][])(alloc2);
 
-		assertEquals(sList, listOfLists);
+		assertEquals(sList, arrOfArrs);
 	}
 
 	@Test public void testNoWhiteSpaceDontEndWithSpace()
