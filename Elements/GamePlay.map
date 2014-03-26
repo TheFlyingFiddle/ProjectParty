@@ -1,0 +1,23 @@
+map = |Map1.png|
+tileSize = { x = 40 y = 40 }
+tiles  = [ 
+{ color = 0xFF63c07d type = buildable texture = grass0 },
+{ color = 0xFF456a90 type = nonbuildable  texture = road0  },
+{ color = 0xFF905745 type = nonbuildable  texture = water0 } ]
+
+path = [ 
+{ x = 0  y = 8 }, { x = 6 y = 8},  { x = 6 y = 3 }, 
+{ x = 13 y = 3 }, { x = 13 y = 7}, { x = 17 y = 7},
+{ x = 17 y = 9 }, { x = 32 y = 9} ]
+
+waves = [
+{
+    count = 15  		rate = 1
+    type  = nature  	hp   = 100
+    speed = 10  		gold = 15
+} ,
+{ 
+    count = 20  		rate = 0.5
+    type  = fire 		hp   = 150
+    speed = 6		gold = 17
+} ]
