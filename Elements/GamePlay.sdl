@@ -1,4 +1,4 @@
-map = |C:\Github\ProjectParty\resources\elements\textures\map1.png|
+map = |..\resources\elements\textures\map1.png|
 tileSize = { x = 40 y = 40 }
 tiles  = [ 
 { color = 0xFF000000 type = buildable texture = grass0 },
@@ -6,7 +6,7 @@ tiles  = [
 { color = 0xFF00FF00 type = nonbuildable  texture = water0 } ]
 
 path = [ 
-{ x = 0  y = 8 }, { x = 6 y = 8},  { x = 6 y = 3 }, 
+{ x = 0  y = 8 }, { x = 7 y = 8},  { x = 7 y = 3 }, 
 { x = 13 y = 3 }, { x = 13 y = 7}, { x = 17 y = 7},
 { x = 17 y = 9 }, { x = 32 y = 9} ]
 

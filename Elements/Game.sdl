@@ -45,6 +45,8 @@ resources = [
 { type = texture path = |elements\textures\water0.jpg| },
 { type = texture path = |elements\textures\grass0.jpg| },
 { type = texture path = |elements\textures\baws.jpg| },
-{ type = font	 path = |elements\fonts\Blocked72.fnt| } ]
+{ type = font	 path = |elements\fonts\Blocked72.fnt| },
+{  type = texture path = |elements\textures\tower0.jpg| },
+{  type = texture path = |elements\textures\projectile.png| } ]
 
 phoneResources = [ |elements\textures\pixel.png| ]
