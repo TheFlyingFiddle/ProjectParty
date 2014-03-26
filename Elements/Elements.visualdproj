@@ -193,5 +193,6 @@
   <File path="gameplay.d" />
   <File path="GamePlay.sdl" />
   <File path="main.d" />
+  <File path="types.d" />
  </Folder>
 </DProject>

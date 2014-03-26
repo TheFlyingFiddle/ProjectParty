@@ -53,8 +53,8 @@ void init(A)(ref A allocator)
 	initDebugging("textures\\pixel.png");
 
 	auto fsm = Game.gameStateMachine;
-	fsm.addState(allocator.allocate!GamePlayState(allocator, "GamePlay.sdl"), "GamePlay");
-	Game.transitionTo("GamePlay");
+	fsm.addState(new GamePlayState(allocator, "GamePlay.sdl"), "Elements");
+	Game.transitionTo("Elements");
 
 	import graphics; 
 	gl.enable(Capability.blend);

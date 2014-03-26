@@ -1,96 +1,16 @@
 module gameplay;
 import game, math, collections, content, graphics;
 import derelict.freeimage.freeimage, util.strings;
+import game.debuging;
+import types;
+import network.message;
 
-enum TileType
-{
-	buildable = 0,
-	nonbuildable = 1
-}
-
-enum ElementType
-{
-	nature = 0,
-	fire = 1,
-	water = 2,
-	ice = 3,
-	wind = 4,
-	lightning = 5
-}
-
-struct MapConfig
-{
-	string map;
-	TileConfig[] tiles;
-	WaveConfig[] waves;
-	uint2[] path;
-	uint2 tileSize;
-}
-
-struct TileConfig
-{
-	uint color;
-	TileType type;
-	string texture;
-}
-
-struct WaveConfig
-{
-	uint count; 
-	float rate;
-	ElementType type;
-	float speed;
-	uint gold;
-	uint hp;
-}
-
-struct Tile
-{
-	TextureID texture;
-	TileType type;
-}
-
-struct Enemy
-{
-	float2 pos;
-	uint index;
-	float speed;
-	int health;
-	int worth;
-}
-
-struct Wave
-{
-	int nbrOfEnemies;
-	float spawnRate;
-}
-
-struct Tower
-{
-	float range;
-	float attackDmg;
-	float attackSpeed;
-	float deltaAttackTime;
-	int cost;
-	uint2 position;
-	float2 pixelPos(uint2 tileSize)
-	{
-		return float2 (position.x * tileSize.x + tileSize.x/2, position.y * tileSize.y + tileSize.y/2);	
-	}
-}
-
-struct Projectile
-{
-	float attackDmg;
-	float2 position;
-	int target;
-}
 
 class GamePlayState : IGameState
 {
 
 	FontID lifeFont;
-	Grid!Tile tileMap;
+	Grid!TileType tileMap;
 	uint2[] path;
 	uint2 tileSize;
 	List!Enemy enemies;
@@ -130,13 +50,13 @@ class GamePlayState : IGameState
 		uint bpp    = FreeImage_GetBPP(bitmap);
 		uint[] mapBits = (cast(uint*)FreeImage_GetBits(bitmap))[0 .. width * height];
 
-		tileMap = Grid!Tile(allocator, width, height);
+		tileMap = Grid!TileType(allocator, width, height);
 		foreach(row; 0 .. height) {
 			foreach(col; 0 .. width) {
 				uint color = mapBits[row * width + col];
 				auto tile  = map.tiles.find!(x => x.color == color);
 				if(!tile.length == 0)
-					tileMap[uint2(col, row)] = Tile(Game.content.loadTexture(tile[0].texture), tile[0].type);
+					tileMap[uint2(col, row)] = tile[0].type;
 			}
 		}
 
@@ -157,7 +77,16 @@ class GamePlayState : IGameState
 
 	void enter()
 	{
+		Game.router.connectionHandlers ~= &connect;
+	}
 
+	void connect(ulong playerId)
+	{
+		MapMessage msg;
+		msg.width = tileMap.width;
+		msg.height = tileMap.height;
+		msg.tiles = cast (ubyte[])tileMap.buffer[0 .. tileMap.width * tileMap.height];
+		Game.server.sendMessage(playerId, msg);
 	}
 
 	void exit()
@@ -246,8 +175,14 @@ class GamePlayState : IGameState
 	{
 		foreach(cell, item; tileMap) 
 		{
-			auto frame = Frame(item.texture);
-			Game.renderer.addFrame( frame, float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y)); 
+			Color color;
+			final switch(item) with (TileType)
+			{
+				case buildable: color = Color.green; break;
+				case nonbuildable: color = Color.white; break;
+			}
+
+			Game.renderer.addRect(float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y), color); 
 		}
 
 		auto tex = Game.content.loadTexture("baws");
