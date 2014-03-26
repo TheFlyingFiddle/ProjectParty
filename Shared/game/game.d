@@ -144,7 +144,10 @@ struct Game_Impl
 		auto msg = bytes[];
 		msg.write!ubyte(NetworkMessage.fileReload, &offset);
 		msg.write(p2, &offset);
-		msg.write!ushort(cast(ushort)offset, 0);
+		msg.write!ushort(cast(ushort)(offset - 2), 0);
+  import logging;
+		auto logChnl = LogChannel("GAME");
+		logChnl.info("Offset:", offset);
 		foreach(player; players)
 			server.send(player.id, msg[0 .. offset]);
 	}

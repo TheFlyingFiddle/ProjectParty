@@ -37,7 +37,7 @@ serverConfig =
 	connectionTimeout = 15
 }
 
-gameName = achtung 
+gameName = elements
 
 resources = [ 
 { type = texture path = |elements\textures\pixel.png| },

@@ -13,6 +13,9 @@ EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "FakePhone", "FakePhone\FakePhone.visualdproj", "{F7376E73-F8E3-4749-89B4-87701C9E76A8}"
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Elements", "Elements\Elements.visualdproj", "{27538216-E3A6-4426-B3E8-1AAF3DCC7619}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06AA8B71-5362-45F3-AE99-60E15D95960C} = {06AA8B71-5362-45F3-AE99-60E15D95960C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

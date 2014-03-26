@@ -3,7 +3,7 @@ import math;
 
 struct MapMessage
 {
-	enum ubyte id = ElementsMessages.mapMessage;
+	enum ubyte id = ElementsMessages.map;
 	enum maxSize = 8192;
 	uint width;
 	uint height;
@@ -12,7 +12,9 @@ struct MapMessage
 
 enum ElementsMessages : ubyte
 {
-	mapMessage = 50
+	map = 50,
+	towerRequest = 51
+
 }
 
 enum TileType : ubyte

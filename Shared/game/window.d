@@ -10,7 +10,7 @@ import util.strings;
 import std.exception;
 import game.input;
 
-auto logChnl = LogChannel("WINDOW");
+private auto logChnl = LogChannel("WINDOW");
 
 struct WindowManager
 {

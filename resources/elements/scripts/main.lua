@@ -1,7 +1,5 @@
-Network.messages.death = 50
-Network.messages.toggleReady = 51
-Network.messages.color = 52
-Network.messages.position = 53
+Network.messages.map= 50
+Network.messages.towerRequest = 51
 
 function init()
     fsm = FSM()
@@ -15,6 +13,8 @@ end
 function handleMessage(id, length)
 	if id == Network.messages.transition then
 		s = In.readUTF8()
+		log("sdlkfj")
+		Network.send()
 		fsm:enterState(s)
 	end
 	if fsm.active.handleMessage then fsm.active.handleMessage(id, length) end

@@ -71,13 +71,14 @@ class GamePlayState : IGameState
 		}
 		float2 position = float2(path[0].x * tileSize.x + tileSize.x / 2, 
 								 path[0].y * tileSize.y + tileSize.y / 2);
-		enemies ~= Enemy(position, 1, 60, 10);
+		enemies ~= Enemy(position, 1, 60, 400);
 		wave.nbrOfEnemies -= 1;
 	}
 
 	void enter()
 	{
 		Game.router.connectionHandlers ~= &connect;
+		Game.router.messageHandlers ~= &handleMessage;
 	}
 
 	void connect(ulong playerId)
@@ -87,6 +88,19 @@ class GamePlayState : IGameState
 		msg.height = tileMap.height;
 		msg.tiles = cast (ubyte[])tileMap.buffer[0 .. tileMap.width * tileMap.height];
 		Game.server.sendMessage(playerId, msg);
+	}
+	
+	void handleMessage(ulong playerId, ubyte[] msg)
+	{
+		import util.bitmanip;
+		auto id = msg.read!ubyte;
+		if (id == ElementsMessages.towerRequest) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+			auto type = msg.read!ubyte;
+
+			towers ~= Tower(175,7,1,0,0,uint2(x,y));
+		}
 	}
 
 	void exit()
