@@ -3,8 +3,11 @@ local sensorNetworkID = 1
 local font
 local map
 local pixel
+local circle
+local ring
 local tilesize = 40
 local cameraPos = vec2(0,0)
+local selections = {}
 
 local state
 
@@ -15,7 +18,6 @@ local function toGridPos(pos)
 end
 
 local function addTower(x, y)
-
 	Out.writeShort(10)
 	Out.writeByte(Network.messages.towerRequest)
 	Out.writeInt(x)
@@ -23,14 +25,84 @@ local function addTower(x, y)
 	Out.writeByte(0)
 end
 
+local function sendSelectionMessage(pos)
+	Out.writeShort(9)
+	Out.writeByte(Network.messages.selectRequest)
+	Out.writeInt(pos.x)
+	Out.writeInt(pos.y)
+end
 		
+local function sendDeselectionMessage(x, y)
+	Out.writeShort(9)
+	Out.writeByte(Network.messages.deselect)
+	Out.writeInt(x)
+	Out.writeInt(y)
+end
+
+local function drawSelectionCircle(cell, radius) 
+	local pos = vec2(cell.x * tilesize + tilesize / 2 + cameraPos.x - radius,
+					 cell.y * tilesize + tilesize / 2 + cameraPos.y - radius)
+
+	local dim = vec2(radius * 2, radius * 2)
+	local smallRadius = radius / 4;
+	local smallDim = vec2(smallRadius * 2, smallRadius * 2);
+
+	local smallPos1 = vec2(pos.x + radius/3 - smallRadius, pos.y + radius - smallRadius)
+	local smallPos2 = vec2(pos.x + radius - smallRadius, pos.y + radius + radius * 0.66 - smallRadius)
+	local smallPos3 = vec2(pos.x + radius + radius * 0.66 - smallRadius, pos.y + radius - smallRadius)
+	local smallPos4 = vec2(pos.x + radius - smallRadius, pos.y + radius / 3 - smallRadius)
+
+	Renderer.addFrame(circle, pos, dim, 0x88FF00FF)
+	Renderer.addFrame(circle, smallPos1, smallDim, 0xFFFFFF00)
+	Renderer.addFrame(circle, smallPos2, smallDim, 0xFF0000FF)
+	Renderer.addFrame(circle, smallPos3, smallDim, 0xFF00D7FF)
+	Renderer.addFrame(circle, smallPos4, smallDim, 0xFF32CD32)
+end
+
+local function drawConfirmationItems(cell, radius)
+	local pos = vec2(cell.x * tilesize + tilesize / 2 + cameraPos.x - radius,
+					 cell.y * tilesize + tilesize / 2 + cameraPos.y - radius)
+
+	local dim = vec2(radius * 2, radius * 2)
+	local smallRadius = radius / 4;
+	local smallDim = vec2(smallRadius * 2, smallRadius * 2);
+
+	local smallPos1 = vec2(pos.x + radius - smallRadius, pos.y + radius + radius * 0.66 - smallRadius)
+	local smallPos2 = vec2(pos.x + radius - smallRadius, pos.y + radius / 3 - smallRadius)
+
+	Renderer.addFrame(circle, smallPos1, smallDim, 0xFFFFFF00)
+	Renderer.addFrame(circle, smallPos2, smallDim, 0xFF00D7FF)
+end
+
+local function drawTowerRadius(cell, towerRadius)
+	local pos = vec2(cell.x * tilesize + tilesize / 2 + cameraPos.x - towerRadius,
+					 cell.y * tilesize + tilesize / 2 + cameraPos.y - towerRadius)
+
+	local dim = vec2(towerRadius * 2, towerRadius * 2)
+
+	Renderer.addFrame(ring, pos, dim, 0x88FF00FF)
+end
+
+
+
 local function Idle()
 	local t = { draw = function() end}
 	function t.onTap(pos)
 		local gridPos = toGridPos(pos)
 		if map.tiles[gridPos.y * map.width + gridPos.x] == 0 then
+			for i = 1, #selections, 1 do
+				if gridPos.x == selections[i].x and gridPos.y == selections[i].y then
+					return
+				end
+			end
+
+			sendSelectionMessage(gridPos)
 			state:enterState("Selected", gridPos)
 		end
+	end
+
+	function t.enter(x, y) 
+		if x and y then sendDeselectionMessage(x, y) end
 	end
 	return t
 end
@@ -42,13 +114,15 @@ local function Selected()
 		Renderer.addFrame(pixel, vec2(t.x*tilesize + cameraPos.x, 
 									  t.y*tilesize + cameraPos.y), 
 										vec2(tilesize,tilesize), 0xFF0000FF)
+
+		drawSelectionCircle(t, Screen.height / 4)
 	end
 	function t.onTap(pos)
 		local gridPos = toGridPos(pos)
 		if gridPos.x == t.x and gridPos.y == t.y then
 			state:enterState("Confirm", gridPos)
 		else
-			state:enterState("Idle")
+			state:enterState("Idle", t.x, t.y)
 		end
 	end
 	function t.enter(cell)
@@ -61,10 +135,15 @@ end
 local function Confirm()
 	local t = { }
 	function t.draw()
+		local towerRadius = 3 * tilesize
+
 		Renderer.addText(font, "In Confirm state", vec2(0,100), 0xFFFF00FF)
 		Renderer.addFrame(pixel, vec2(t.x*tilesize + cameraPos.x, 
 									  t.y*tilesize + cameraPos.y), 
 										vec2(tilesize,tilesize), 0xFFFF0000)
+		
+		drawTowerRadius(t, towerRadius)
+		drawConfirmationItems(t, towerRadius)
 	end
 	function t.onTap(pos)
 		local gridPos = toGridPos(pos)
@@ -72,7 +151,7 @@ local function Confirm()
 			addTower(t.x, t.y)
 
 		end
-		state:enterState("Idle")
+		state:enterState("Idle", t.x, t.y)
 	end
 	function t.enter(cell)
 		t.x = cell.x
@@ -86,6 +165,8 @@ function Elements()
 	function elements.enter()
 		font  = Loader.loadFont("fonts/Segoe54.fnt")
 		pixel = Loader.loadFrame("textures/pixel.png")
+		circle = Loader.loadFrame("textures/circle.png")
+		ring = Loader.loadFrame("textures/ring.png")
 
 		state = FSM()
 		state:addState(Idle(), "Idle")
@@ -125,6 +206,12 @@ function Elements()
 			pos.x = cameraPos.x
 			pos.y = pos.y + dim.y
 		end
+		for i = 1, #selections, 1 do 
+			Renderer.addFrame(pixel, vec2(selections[i].x * tilesize + cameraPos.x,
+										  selections[i].y * tilesize + cameraPos.y), dim, 
+				selections[i].color)
+		end
+
 		renderTime(font)
 		state.active.draw()
 	end
@@ -153,6 +240,22 @@ function Elements()
 			local y = In.readInt()
 			local type = In.readByte()
 			map.tiles[y*map.width + x] = 2
+		elseif id == Network.messages.selectRequest then
+			local rx = In.readInt()
+			local ry = In.readInt()
+			local rcolor = In.readInt()
+
+			selections[#selections + 1] = {x = rx, y = ry, color = rcolor} 
+		elseif id == Network.messages.deselect then
+			local rx = In.readInt()
+			local ry = In.readInt()
+
+			for i = 1, #selections, 1 do
+				if selections[i].x == rx and selections[i].y == ry then
+					table.remove(selections, i)
+					return
+				end
+			end 
 		end
 	end
 	function elements.onTap(x,y)

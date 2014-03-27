@@ -10,6 +10,18 @@ struct MapMessage
 	ubyte[] tiles;
 }
 
+struct SelectedMessage 
+{
+	enum ubyte id = ElementsMessages.selectRequest;
+	uint x, y, color;
+}
+
+struct DeselectedMessage 
+{
+	enum ubyte id = ElementsMessages.deselect;
+	uint x, y;
+}
+
 struct TowerBuiltMessage
 {
 	enum ubyte id = ElementsMessages.towerBuilt;
@@ -21,14 +33,16 @@ enum ElementsMessages : ubyte
 {
 	map = 50,
 	towerRequest = 51,
-	towerBuilt = 52
-
+	towerBuilt = 52,
+	selectRequest = 53,
+	deselect = 54
 }
 
 enum TileType : ubyte
 {
 	buildable = 0,
-	nonbuildable = 1
+	nonbuildable = 1,
+	standardTower = 2
 }
 
 enum ElementType

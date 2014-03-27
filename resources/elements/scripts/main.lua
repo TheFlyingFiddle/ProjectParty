@@ -1,6 +1,8 @@
 Network.messages.map= 50
 Network.messages.towerRequest = 51
 Network.messages.towerBuilt = 52
+Network.messages.selectRequest = 53
+Network.messages.deselect = 54
 
 function init()
     fsm = FSM()

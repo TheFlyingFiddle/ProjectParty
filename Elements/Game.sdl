@@ -45,9 +45,10 @@ resources = [
 { type = texture path = |elements\textures\water0.jpg| },
 { type = texture path = |elements\textures\grass0.jpg| },
 { type = texture path = |elements\textures\baws.jpg| },
+{ type = texture path = |elements\textures\image_map1.png| },
 { type = font	 path = |elements\fonts\Blocked72.fnt| },
-{  type = texture path = |elements\textures\tower0.jpg| },
-{  type = texture path = |elements\textures\projectile.png| } ]
+{ type = texture path = |elements\textures\tower0.jpg| },
+{ type = texture path = |elements\textures\projectile.png| } ]
 
 phoneResources = [
 	|elements/scripts/main.lua|,
@@ -59,5 +60,7 @@ phoneResources = [
 	|elements/scripts/selectionlist.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
-	|elements/textures/pixel.png|
+	|elements/textures/pixel.png|,
+	|elements/textures/circle.png|,
+	|elements/textures/ring.png|
 ]

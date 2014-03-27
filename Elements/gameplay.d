@@ -19,6 +19,7 @@ class GamePlayState : IGameState
 	int lifeTotal;
 	List!Projectile projectiles;
 	List!Tower towers;
+	List!uint2 selections;
 
 	this(A)(ref A allocator, string configFile)
 	{
@@ -28,6 +29,7 @@ class GamePlayState : IGameState
 		lifeTotal = 50;
 		projectiles = List!Projectile(allocator, 10000);
 		towers = List!Tower(allocator, 1000);
+		selections = List!uint2(allocator, 10);
 		import std.algorithm;
 		auto map = fromSDLFile!MapConfig(allocator, configFile);
 		path = map.path;
@@ -100,6 +102,24 @@ class GamePlayState : IGameState
 					towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
 				buildTower(uint2(x,y));
 			}
+		} else if (id == ElementsMessages.selectRequest) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+			auto index = selections.countUntil!(s=> s == uint2(x, y));
+
+			if(index == -1) {
+				foreach(player ; Game.players) if (player.id != playerId) 
+					Game.server.sendMessage(player.id, SelectedMessage(x, y, 0x88AACCBB));
+
+				selections ~= uint2(x,y);
+			}
+		} else if (id == ElementsMessages.deselect) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+			selections.remove(uint2(x,y));
+
+			foreach(player ; Game.players) if (player.id != playerId) 
+				Game.server.sendMessage(player.id, DeselectedMessage(x, y));
 		}
 	}
 
@@ -187,6 +207,10 @@ class GamePlayState : IGameState
 
 	void render()
 	{
+		auto imageTex = Game.content.loadTexture("image_map1.png");
+		auto imageFrame = Frame(imageTex);
+		Game.renderer.addFrame(imageFrame, float4(0,0, 1280, 720));
+
 		foreach(cell, item; tileMap) 
 		{
 			Color color;
@@ -194,9 +218,10 @@ class GamePlayState : IGameState
 			{
 				case buildable: color = Color.green; break;
 				case nonbuildable: color = Color.white; break;
+				case standardTower: break;
 			}
 
-			Game.renderer.addRect(float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y), color); 
+			//Game.renderer.addRect(float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y), color); 
 		}
 
 		auto tex = Game.content.loadTexture("baws");
@@ -210,7 +235,7 @@ class GamePlayState : IGameState
 		}
 		import util.strings;
 		char[128] buffer;
-		Game.renderer.addText(lifeFont, text(buffer, lifeTotal), float2(0,Game.window.size.y), Color(0xFFFFFFFF));
+		Game.renderer.addText(lifeFont, text(buffer, lifeTotal), float2(0,Game.window.size.y), Color(0x88FFFFFF));
 		
 
 		auto towerTexture = Game.content.loadTexture("tower0");
@@ -226,6 +251,13 @@ class GamePlayState : IGameState
 		foreach(projectile; projectiles)
 		{
 			Game.renderer.addFrame(projectileFrame, projectile.position, Color.white, float2(3,3));
+		}
+
+		auto selectionTexture = Game.content.loadTexture("pixel");
+		auto selectionFrame = Frame(selectionTexture);
+		foreach(selection; selections) 
+		{
+			Game.renderer.addFrame(selectionFrame, float4(selection.x * tileSize.x, selection.y * tileSize.y, tileSize.x, tileSize.y), Color(0x55FF0000)); 
 		}
 	}
 
@@ -261,6 +293,8 @@ class GamePlayState : IGameState
 		towers ~= Tower(175,7,1,0,0,pos);
 		foreach(player; Game.players)
 			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, 0));
+
+		tileMap[pos] = TileType.standardTower;
 	}
 
 	void gameOver()
