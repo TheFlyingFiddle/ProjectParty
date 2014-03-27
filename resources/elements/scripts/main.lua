@@ -33,3 +33,27 @@ function onTap(x, y)
     	fsm.active.onTap(x, y)
     end
 end
+
+function onTouch(x, y, pointerIndex)
+	if fsm.active.onTouch then
+		fsm.active.onTouch(x, y, pointerIndex)
+	end
+end
+
+function onDrag(x, y)
+	if fsm.active.onDrag then
+		fsm.active.onDrag(x,y)
+	end
+end
+
+function onDragBegin(x, y)
+	if fsm.active.onDragBegin then
+		fsm.active.onDragBegin(x,y)
+	end
+end
+
+function onDragEnd(x, y)
+	if fsm.active.onDragEnd then
+		fsm.active.onDragEnd(x,y)
+	end
+end

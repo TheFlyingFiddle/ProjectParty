@@ -25,7 +25,7 @@ class GamePlayState : IGameState
 		enemies = List!Enemy(allocator, 100);
 		wave = Wave(42, 1);
 		deltaspawn = 0;
-		lifeTotal = 10;
+		lifeTotal = 50;
 		projectiles = List!Projectile(allocator, 1000);
 		towers = List!Tower(allocator, 100);
 		towers ~= Tower(175,7,1,0,0,uint2(6,7));

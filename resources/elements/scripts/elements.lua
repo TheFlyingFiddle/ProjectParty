@@ -4,6 +4,7 @@ local font
 local map
 local pixel
 local tilesize = 40
+local cameraPos = vec2(0,0)
 
 function Elements()
 	local elements = {}
@@ -21,8 +22,9 @@ function Elements()
 		--local pos = vec2(Screen.width / 2 - size.x / 2,
 			--Screen.height / 2 - size.y / 2)
 
-		--Renderer.addText(font, scoreStr, pos, playerColor)
-		local pos = vec2(0,0)
+		Renderer.addText(font, string.format("CameraPos:%d,%d",
+			cameraPos.x, cameraPos.y), vec2(0,100), 0xFFFFFF00)
+		local pos = vec2(cameraPos)
 		local dim = vec2(tilesize,tilesize)
 		for row=0, map.height-1, 1 do
 			for col=0, map.width-1, 1 do
@@ -36,7 +38,7 @@ function Elements()
 				Renderer.addFrame(pixel, pos, dim, color)
 				pos.x = pos.x + dim.x
 			end
-			pos.x = 0
+			pos.x = cameraPos.x
 			pos.y = pos.y + dim.y
 		end
 		renderTime(font)
@@ -73,5 +75,20 @@ function Elements()
 		Out.writeInt(celly)
 		Out.writeByte(0)
 	end
+
+	local oldDrag
+	function elements.onDrag(x, y)
+		local deltaX = x - oldDrag.x
+		local deltaY = y - oldDrag.y
+		cameraPos.x = cameraPos.x + deltaX
+		cameraPos.y = cameraPos.y + deltaY
+		oldDrag = vec2(x,y)
+
+	end
+
+	function elements.onDragBegin(x, y)
+		oldDrag = vec2(x,y)
+	end
+
 	return elements
 end
