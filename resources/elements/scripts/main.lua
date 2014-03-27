@@ -61,3 +61,21 @@ function onDragEnd(x, y)
 		fsm.active.onDragEnd(x,y)
 	end
 end
+
+function onPinchBegin(x0, y0, x1, y1)
+	if fsm.active.onPinchBegin then
+		fsm.active.onPinchBegin(x,y)
+	end
+end
+
+function onPinch(x0, y0, x1, y1)
+	if fsm.active.onPinchBegin then
+		fsm.active.onPinchBegin(x,y)
+	end
+end
+
+function onPinchEnd(x0, y0, x1, y1)
+	if fsm.active.onPinchBegin then
+		fsm.active.onPinchBegin(x,y)
+	end
+end
