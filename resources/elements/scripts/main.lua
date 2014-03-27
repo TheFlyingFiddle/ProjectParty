@@ -1,5 +1,6 @@
 Network.messages.map= 50
 Network.messages.towerRequest = 51
+Network.messages.towerBuilt = 52
 
 function init()
     fsm = FSM()
@@ -63,7 +64,6 @@ function onDragEnd(x, y)
 end
 
 function onPinchBegin(x0, y0, x1, y1)
-	log("Pinch begin")
 	Network.send()
 	if fsm.active.onPinchBegin then
 		fsm.active.onPinchBegin(x0,y0, x1, x1)
@@ -71,7 +71,6 @@ function onPinchBegin(x0, y0, x1, y1)
 end
 
 function onPinch(x0, y0, x1, y1)
-	log("Pinch punch")
 	Network.send()
 	if fsm.active.onPinch then
 		fsm.active.onPinch(x0, y0, x1, y1)

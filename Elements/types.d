@@ -10,10 +10,18 @@ struct MapMessage
 	ubyte[] tiles;
 }
 
+struct TowerBuiltMessage
+{
+	enum ubyte id = ElementsMessages.towerBuilt;
+	uint x, y;
+	ubyte towerType;
+}
+
 enum ElementsMessages : ubyte
 {
 	map = 50,
-	towerRequest = 51
+	towerRequest = 51,
+	towerBuilt = 52
 
 }
 

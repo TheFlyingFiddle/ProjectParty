@@ -26,10 +26,8 @@ class GamePlayState : IGameState
 		wave = Wave(42, 1);
 		deltaspawn = 0;
 		lifeTotal = 50;
-		projectiles = List!Projectile(allocator, 1000);
-		towers = List!Tower(allocator, 100);
-		towers ~= Tower(175,7,1,0,0,uint2(6,7));
-		towers ~= Tower(175,7,1,0,0,uint2(4,7));
+		projectiles = List!Projectile(allocator, 10000);
+		towers = List!Tower(allocator, 1000);
 		import std.algorithm;
 		auto map = fromSDLFile!MapConfig(allocator, configFile);
 		path = map.path;
@@ -71,7 +69,7 @@ class GamePlayState : IGameState
 		}
 		float2 position = float2(path[0].x * tileSize.x + tileSize.x / 2, 
 								 path[0].y * tileSize.y + tileSize.y / 2);
-		enemies ~= Enemy(position, 1, 60, 400);
+		enemies ~= Enemy(position, 1, 60, 22);
 		wave.nbrOfEnemies -= 1;
 	}
 
@@ -98,8 +96,10 @@ class GamePlayState : IGameState
 			auto x = msg.read!uint;
 			auto y = msg.read!uint;
 			auto type = msg.read!ubyte;
-
-			towers ~= Tower(175,7,1,0,0,uint2(x,y));
+			if (tileMap[uint2(x,y)] == TileType.buildable && 
+					towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
+				buildTower(uint2(x,y));
+			}
 		}
 	}
 
@@ -254,6 +254,13 @@ class GamePlayState : IGameState
 				}
 			}
 		}
+	}
+
+	void buildTower(uint2 pos) 
+	{
+		towers ~= Tower(175,7,1,0,0,pos);
+		foreach(player; Game.players)
+			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, 0));
 	}
 
 	void gameOver()

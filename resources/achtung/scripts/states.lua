@@ -8,9 +8,11 @@ local fsmMetaTable = {
 			fsm[name] = nil
 		end,
 		enterState = function(fsm, name)
-			if fsm.active then fsm.active.exit() end
+			if fsm.active and fsm.active.exit then fsm.active.exit() end
 			fsm.active = fsm[name]
-			fsm.active.enter()
+			if fsm.active.enter then
+				fsm.active.enter()
+			end
 		end
 }
 }
