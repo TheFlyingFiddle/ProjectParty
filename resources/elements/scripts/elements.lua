@@ -82,7 +82,19 @@ function Elements()
 		local deltaY = y - oldDrag.y
 		cameraPos.x = cameraPos.x + deltaX
 		cameraPos.y = cameraPos.y + deltaY
+
 		oldDrag = vec2(x,y)
+		if cameraPos.x > 0 then
+			cameraPos.x = 0
+		elseif cameraPos.x < -map.width * tilesize + Screen.width then
+			cameraPos.x = -map.width * tilesize + Screen.width
+		end
+
+		if cameraPos.y > 0 then
+			cameraPos.y = 0
+		elseif cameraPos.y < -map.height * tilesize + Screen.height then
+			cameraPos.y = -map.height * tilesize + Screen.height
+		end
 
 	end
 

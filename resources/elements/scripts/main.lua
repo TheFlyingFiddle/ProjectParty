@@ -11,13 +11,17 @@ function term()
 end
 
 function handleMessage(id, length)
+		log(string.format("Got a netowrk message id=%d len=%d", id, length))
+		Network.send()
 	if id == Network.messages.transition then
 		s = In.readUTF8()
-		log("sdlkfj")
-		Network.send()
 		fsm:enterState(s)
 	end
-	if fsm.active.handleMessage then fsm.active.handleMessage(id, length) end
+	if fsm.active.handleMessage then 
+		log("Sending message to active state")
+		Network.send()
+		fsm.active.handleMessage(id, length) 
+	end
 end
 
 function update()
