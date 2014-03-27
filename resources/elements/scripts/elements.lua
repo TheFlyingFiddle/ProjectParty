@@ -102,5 +102,24 @@ function Elements()
 		oldDrag = vec2(x,y)
 	end
 
+	local oldDist, centerP
+	function elements.onPinchBegin(x0, y0, x1, y1)
+		centerP = vec2((x0 + x1) / 2, (y0 + y1) / 2)
+		oldDist    = math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1))
+	end
+
+	function elements.onPinch(x0, y0, x1, y1)
+		local dist    = math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1))
+		tilesize = tilesize + (dist - oldDist) * 0.01
+
+		local minTile = Screen.width / map.width
+
+		if tilesize < minTile then
+			tilesize = minTile
+		elseif tilesize > 150 then
+			tilesizze = 150
+		end
+	end
+
 	return elements
 end

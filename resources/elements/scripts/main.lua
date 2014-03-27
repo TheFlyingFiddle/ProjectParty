@@ -63,19 +63,17 @@ function onDragEnd(x, y)
 end
 
 function onPinchBegin(x0, y0, x1, y1)
+	log("Pinch begin")
+	Network.send()
 	if fsm.active.onPinchBegin then
-		fsm.active.onPinchBegin(x,y)
+		fsm.active.onPinchBegin(x0,y0, x1, x1)
 	end
 end
 
 function onPinch(x0, y0, x1, y1)
-	if fsm.active.onPinchBegin then
-		fsm.active.onPinchBegin(x,y)
-	end
-end
-
-function onPinchEnd(x0, y0, x1, y1)
-	if fsm.active.onPinchBegin then
-		fsm.active.onPinchBegin(x,y)
+	log("Pinch punch")
+	Network.send()
+	if fsm.active.onPinch then
+		fsm.active.onPinch(x0, y0, x1, y1)
 	end
 end
