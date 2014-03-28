@@ -14,7 +14,7 @@ local tileColors =
 		0xFF559567,
 		0xFF456a90,
 		0xFF0000FF,
-		0xFFFF00FF,
+		0xFFFF0000,
 		0xFFFFFF00,
 		0xFF00FFFF,
 		0xFF88FF88,
@@ -73,7 +73,7 @@ local function drawConfirmationItems(cell, radius)
 	local smallPos1 = vec2(pos.x + radius - smallRadius, pos.y + radius + radius * 0.66 - smallRadius)
 	local smallPos2 = vec2(pos.x + radius - smallRadius, pos.y + radius / 3 - smallRadius)
 
-	Renderer.addFrame(circle, smallPos1, smallDim, 0xFFFFFF00)
+	Renderer.addFrame(buyIcon, smallPos1, smallDim, 0xFFFFFF00)
 	Renderer.addFrame(cancelIcon, smallPos2, smallDim, 0xFF00D7FF)
 end
 
@@ -220,17 +220,18 @@ end
 function Elements()
 	local elements = {}
 	function elements.enter()
-		font  = Loader.loadFont("fonts/Segoe54.fnt")
-		pixel = Loader.loadFrame("textures/pixel.png")
-		circle = Loader.loadFrame("textures/circle.png")
-		ring = Loader.loadFrame("textures/ring.png")
-		fireIcon = Loader.loadFrame("textures/fire_icon.png")
-		waterIcon = Loader.loadFrame("textures/water_icon.png")
-		iceIcon = Loader.loadFrame("textures/ice_icon.png")
-		lightningIcon = Loader.loadFrame("textures/lightning_icon.png")
-		windIcon = Loader.loadFrame("textures/wind_icon.png")
-		natureIcon = Loader.loadFrame("textures/nature_icon.png")
-		cancelIcon = Loader.loadFrame("textures/cancel_icon.png")
+		font  			= Loader.loadFont("fonts/Segoe54.fnt")
+		pixel 			= Loader.loadFrame("textures/pixel.png")
+		circle 			= Loader.loadFrame("textures/circle.png")
+		ring 			= Loader.loadFrame("textures/ring.png")
+		fireIcon 		= Loader.loadFrame("textures/fire_icon.png")
+		waterIcon 		= Loader.loadFrame("textures/water_icon.png")
+		iceIcon 		= Loader.loadFrame("textures/ice_icon.png")
+		lightningIcon 	= Loader.loadFrame("textures/lightning_icon.png")
+		windIcon 		= Loader.loadFrame("textures/wind_icon.png")
+		natureIcon 		= Loader.loadFrame("textures/nature_icon.png")
+		cancelIcon 		= Loader.loadFrame("textures/cancel_icon.png")
+		buyIcon 		= Loader.loadFrame("textures/buy_icon.png")
 
 
 		state = FSM()
