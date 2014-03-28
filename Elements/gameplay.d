@@ -210,18 +210,28 @@ class GamePlayState : IGameState
 		auto imageTex = Game.content.loadTexture("image_map1.png");
 		auto imageFrame = Frame(imageTex);
 		Game.renderer.addFrame(imageFrame, float4(0,0, 1280, 720));
+		
+		auto towerTexture = Game.content.loadTexture("tower");
+		auto towerFrame = Frame(towerTexture);
 
 		foreach(cell, item; tileMap) 
 		{
+			if(item < 2) continue;
+
 			Color color;
 			final switch(item) with (TileType)
 			{
 				case buildable: color = Color.green; break;
 				case nonbuildable: color = Color.white; break;
-				case standardTower: break;
+				case fireTower: color = Color(0xFF3366FF); break;
+				case waterTower: color = Color.blue; break;
+				case iceTower: color = Color(0xFFFCC66); break;
+				case lightningTower: color = Color(0xFF00FFFF); break;
+				case windTower: color = Color(0xFFCCCCCC); break;
+				case natureTower: color = Color.green; break;
 			}
 
-			//Game.renderer.addRect(float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y), color); 
+			Game.renderer.addFrame(towerFrame,float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y), color); 
 		}
 
 		auto tex = Game.content.loadTexture("baws");
@@ -236,15 +246,6 @@ class GamePlayState : IGameState
 		import util.strings;
 		char[128] buffer;
 		Game.renderer.addText(lifeFont, text(buffer, lifeTotal), float2(0,Game.window.size.y), Color(0x88FFFFFF));
-		
-
-		auto towerTexture = Game.content.loadTexture("tower");
-		auto towerFrame = Frame(towerTexture);
-
-		foreach(tower; towers) 
-		{
-			Game.renderer.addFrame( towerFrame, float4(tower.position.x * tileSize.x, tower.position.y * tileSize.y, tileSize.x, tileSize.y)); 
-		}
 
 		auto projectileTexture = Game.content.loadTexture("towe");
 		auto projectileFrame = Frame(projectileTexture);
@@ -294,7 +295,7 @@ class GamePlayState : IGameState
 		foreach(player; Game.players)
 			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, 0));
 
-		tileMap[pos] = TileType.standardTower;
+		tileMap[pos] = TileType.fireTower;
 	}
 
 	void gameOver()

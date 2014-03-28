@@ -42,7 +42,12 @@ enum TileType : ubyte
 {
 	buildable = 0,
 	nonbuildable = 1,
-	standardTower = 2
+	fireTower = 2,
+	waterTower = 3,
+	iceTower = 4,
+	lightningTower = 5,
+	windTower = 6,
+	natureTower = 7
 }
 
 enum ElementType
