@@ -62,5 +62,12 @@ phoneResources = [
 	|elements/fonts/Segoe54_0.png|,
 	|elements/textures/pixel.png|,
 	|elements/textures/circle.png|,
-	|elements/textures/ring.png|
+	|elements/textures/ring.png|,
+	|elements/textures/fire_icon.png|,
+	|elements/textures/water_icon.png|,
+	|elements/textures/ice_icon.png|,
+	|elements/textures/lightning_icon.png|,
+	|elements/textures/wind_icon.png|,
+	|elements/textures/nature_icon.png|,
+	|elements/textures/cancel_icon.png|
 ]
