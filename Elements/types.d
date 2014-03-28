@@ -116,6 +116,8 @@ struct Tower
 {
 	float range;
 	float attackDmg;
+	int projectileType;
+
 	float attackSpeed;
 	float deltaAttackTime;
 	int cost;
@@ -126,9 +128,18 @@ struct Tower
 	}
 }
 
+enum ProjectileType 
+{
+	normal = 0,
+	splash  = 1,
+	slow   = 2,
+	dot    = 4
+}
+
 struct Projectile
 {
 	float attackDmg;
 	float2 position;
 	int target;
+	int type;
 }

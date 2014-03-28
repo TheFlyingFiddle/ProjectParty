@@ -199,7 +199,7 @@ class GamePlayState : IGameState
 			projectiles[i].position += dir * Time.delta * 150;
 			if(distanceSquared(target, projectiles[i].position) <= 9)
 			{
-				enemies[projectiles[i].target].health -= projectiles[i].attackDmg;
+				projectileHit(projectiles[i]);
 				projectiles.removeAt(i);
 			}
 		}
@@ -264,7 +264,29 @@ class GamePlayState : IGameState
 
 	void spawnProjectile(int enemyIndex, Tower tower)
 	{
-		projectiles ~= Projectile(tower.attackDmg, tower.pixelPos(tileSize), enemyIndex);
+		projectiles ~= Projectile(tower.attackDmg, tower.pixelPos(tileSize), enemyIndex, tower.projectileType);
+	}
+
+	void projectileHit(Projectile projectile)
+	{
+		if(projectile.type == ProjectileType.normal)
+		{
+			enemies[projectile.target].health -= projectile.attackDmg;
+		}
+
+		if((projectile.type & ProjectileType.splash) == ProjectileType.splash)
+		{
+			immutable radius = tileSize.x * 3;
+			foreach(ref enemy; enemies) if(distanceSquared(enemy.pos, projectile.position) < radius * radius)
+			{
+				enemy.health -= projectile.attackDmg;
+			}
+		}
+		
+		if((projectile.type & ProjectileType.slow) == ProjectileType.slow)
+		{
+			//Placeholder.
+		}
 	}
 
 	void killEnemies()
@@ -291,7 +313,25 @@ class GamePlayState : IGameState
 
 	void buildTower(uint2 pos, ubyte type) 
 	{
-		towers ~= Tower(175,7,1,0,0,pos);
+		int projectileType;
+
+		switch(type) with (TileType)
+		{
+			case fireTower: 
+				projectileType = ProjectileType.normal;
+			break;
+			case waterTower:
+				projectileType = ProjectileType.splash;
+			break;
+			case iceTower:
+				projectileType = ProjectileType.slow;
+			break;
+			default:
+				projectileType = ProjectileType.normal;
+			break;
+		}
+
+		towers ~= Tower(175, 7, projectileType, 1, 0, 0, pos);
 		foreach(player; Game.players)
 			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, type));
 
