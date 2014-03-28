@@ -86,6 +86,38 @@ struct WaveConfig
 	uint hp;
 }
 
+struct IceStatus
+{
+	int targetIndex;
+	float amount;
+	float duration;
+	float elapsed;
+}
+
+struct NatureStatus
+{
+	int targetIndex;
+	float amount;
+	float duration;
+	float elapsed;
+}
+
+struct FireStatus
+{
+	int targetIndex;
+	float amount;
+	int numTicks;
+	float duration;
+	float elapsed;
+}
+
+struct WaterStatus
+{
+	int targetIndex;
+	float duration;
+	float elapsed;
+}
+
 struct Enemy
 {
 	float2 pos;

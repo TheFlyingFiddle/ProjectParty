@@ -21,9 +21,22 @@ class GamePlayState : IGameState
 	List!Tower towers;
 	List!uint2 selections;
 
+	List!WaterStatus	waterStatuses;
+	List!FireStatus		fireStatuses;
+	List!NatureStatus	natureStatuses;
+	List!IceStatus		iceStatuses;
+	List!WindStatus		windStatuses;
+
 	this(A)(ref A allocator, string configFile)
 	{
 		enemies = List!Enemy(allocator, 100);
+
+		fireStatuses = List!FireStatus(allocator, 100);
+		waterStatuses = List!WaterStatus(allocator, 100);
+		iceStatuses = List!IceStatus(allocator, 100);
+		windStatuses = List!WindStatus(allocator, 100);
+		natureStatuses = List!NatureStatus(allocator, 100);
+
 		wave = Wave(42, 1);
 		deltaspawn = 0;
 		lifeTotal = 50;
