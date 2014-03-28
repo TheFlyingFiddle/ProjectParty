@@ -94,6 +94,17 @@ struct Wave
 {
 	int nbrOfEnemies;
 	float spawnRate;
+	@property auto opDispatch(string s)()
+	{
+        static if (s == "integral")
+            return nbrOfEnemies;
+        else static if (s == "floating")
+            return spawnRate;
+        else static if (s == "text")
+            return s;
+        else
+            static assert(0, "FU");
+	}
 }
 
 struct Tower

@@ -47,8 +47,8 @@ resources = [
 { type = texture path = |elements\textures\baws.jpg| },
 { type = texture path = |elements\textures\image_map1.png| },
 { type = font	 path = |elements\fonts\Blocked72.fnt| },
-{ type = texture path = |elements\textures\tower0.jpg| },
-{ type = texture path = |elements\textures\projectile.png| } ]
+{  type = texture path = |elements\textures\tower.png| },
+{  type = texture path = |elements\textures\projectile.png| } ]
 
 phoneResources = [
 	|elements/scripts/main.lua|,

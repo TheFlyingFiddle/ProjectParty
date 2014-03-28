@@ -238,7 +238,7 @@ class GamePlayState : IGameState
 		Game.renderer.addText(lifeFont, text(buffer, lifeTotal), float2(0,Game.window.size.y), Color(0x88FFFFFF));
 		
 
-		auto towerTexture = Game.content.loadTexture("tower0");
+		auto towerTexture = Game.content.loadTexture("tower");
 		auto towerFrame = Frame(towerTexture);
 
 		foreach(tower; towers) 
@@ -246,7 +246,7 @@ class GamePlayState : IGameState
 			Game.renderer.addFrame( towerFrame, float4(tower.position.x * tileSize.x, tower.position.y * tileSize.y, tileSize.x, tileSize.y)); 
 		}
 
-		auto projectileTexture = Game.content.loadTexture("tower0");
+		auto projectileTexture = Game.content.loadTexture("towe");
 		auto projectileFrame = Frame(projectileTexture);
 		foreach(projectile; projectiles)
 		{
