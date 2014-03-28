@@ -9,6 +9,18 @@ local tilesize = 40
 local cameraPos = vec2(0,0)
 local selections = {}
 
+local tileColors = 
+	{
+		0xFF559567,
+		0xFF456a90,
+		0xFF0000FF,
+		0xFFFF00FF,
+		0xFFFFFF00,
+		0xFF00FFFF,
+		0xFF88FF88,
+		0xFF00FF00
+}
+
 local state
 
 local function toGridPos(pos)
@@ -192,14 +204,7 @@ function Elements()
 			for col=0, map.width-1, 1 do
 				local color
 				local type = map.tiles[row*map.width + col]
-				if type == 0 then
-					color = 0xFF00FF00
-				elseif type == 1 then
-					color = 0xFFFFFFFF
-				elseif type == 2 then
-					color = 0xFF00FFFF
-				end
-
+				color = tileColors[type]
 				Renderer.addFrame(pixel, pos, dim, color)
 				pos.x = pos.x + dim.x
 			end
