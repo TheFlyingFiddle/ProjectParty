@@ -36,10 +36,9 @@ end
 
 
 local function confirmSelect(localPos, cell, radius)
-	local worldPos = vec2(localPos.x + cameraPos.x, localPos.y + cameraPos.y)
 	local pos = vec2(cell.x * tilesize + tilesize / 2 + cameraPos.x - radius,
 					 cell.y * tilesize + tilesize / 2 + cameraPos.y - radius)
-	log(string.format("wp: %d,%d, pos:%d,%d", worldPos.x, worldPos.y, pos.x, pos.y))
+	log(string.format("wp: %d,%d, pos:%d,%d", localPos.x, localPos.y, pos.x, pos.y))
 
 	local dim = vec2(radius * 2, radius * 2)
 	local smallRadius = radius / 4
@@ -49,11 +48,11 @@ local function confirmSelect(localPos, cell, radius)
 	local smallPos2 = vec2(pos.x + radius, pos.y + radius + radius * 0.66)
 	local smallPos4 = vec2(pos.x + radius, pos.y + radius / 3)
 
-	if distance(worldPos, smallPos2)<= smallRadius then
+	if distance(localPos, smallPos2)<= smallRadius then
 		return true
-	elseif distance(worldPos, smallPos4)<= smallRadius then
+	elseif distance(localPos, smallPos4)<= smallRadius then
 		return false 
-	elseif distance(worldPos, vec2(pos.x + radius, pos.y + radius)) <= radius then
+	elseif distance(localPos, vec2(pos.x + radius, pos.y + radius)) <= radius then
 		return 0
 	end
 	return nil
@@ -132,7 +131,7 @@ local function Selected(item1, item2, item3)
 		Renderer.addFrame(cancelIcon, smallPos4, smallDim, 0xFF32CD32)
 	end
 	function selectType(localPos, cell, radius)
-		local worldPos = vec2(localPos.x + cameraPos.x, localPos.y + cameraPos.y)
+		local worldPos = vec2(localPos.x, localPos.y)
 		local pos = vec2(cell.x * tilesize + tilesize / 2 + cameraPos.x - radius,
 						 cell.y * tilesize + tilesize / 2 + cameraPos.y - radius)
 		log(string.format("wp: %d,%d, pos:%d,%d", worldPos.x, worldPos.y, pos.x, pos.y))
