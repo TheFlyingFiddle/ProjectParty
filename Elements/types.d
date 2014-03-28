@@ -1,5 +1,7 @@
 module types;
 import math;
+import graphics;
+import collections;
 
 struct MapMessage
 {
@@ -35,7 +37,8 @@ enum ElementsMessages : ubyte
 	towerRequest = 51,
 	towerBuilt = 52,
 	selectRequest = 53,
-	deselect = 54
+	deselect = 54,
+	mapRequest = 55
 }
 
 enum TileType : ubyte
@@ -64,7 +67,8 @@ struct MapConfig
 {
 	string map;
 	TileConfig[] tiles;
-	WaveConfig[] waves;
+	SpawnerConfig[][] waves;
+	EnemyConfig[] enemies;
 	uint2[] path;
 	uint2 tileSize;
 }
@@ -76,46 +80,72 @@ struct TileConfig
 	string texture;
 }
 
-struct WaveConfig
+struct SpawnerConfig
 {
-	uint count; 
-	float rate;
-	ElementType type;
+	float startTime;
+	int prototypeIndex;
+	float spawnInterval;
+	int numEnemies;
+}
+
+struct EnemyConfig
+{
+	int health;
 	float speed;
-	uint gold;
-	uint hp;
+	int worth;
+	string textureResource;
+}
+
+enum StatusType
+{
+	ice = 1,
+	fire = 2,
+	water = 3,
+	nature = 4,
+	wind = 5
+}
+
+struct Status
+{
+	int targetIndex;
+	float duration;
+	float elapsed;
+	StatusType type;
+	union
+	{
+		IceStatus ice;
+		FireStatus fire;
+		WaterStatus water;
+		NatureStatus nature;
+		WindStatus wind;
+	}
 }
 
 struct IceStatus
 {
-	int targetIndex;
 	float amount;
-	float duration;
-	float elapsed;
 }
 
 struct NatureStatus
 {
-	int targetIndex;
 	float amount;
-	float duration;
-	float elapsed;
 }
 
 struct FireStatus
 {
-	int targetIndex;
 	float amount;
 	int numTicks;
-	float duration;
 	float elapsed;
+
 }
 
 struct WaterStatus
 {
-	int targetIndex;
-	float duration;
-	float elapsed;
+}
+
+struct WindStatus
+{
+	float speed;
 }
 
 struct Enemy
@@ -123,25 +153,23 @@ struct Enemy
 	float2 pos;
 	uint index;
 	float speed;
-	int health;
+	float health;
 	int worth;
+	Frame frame;
+}
+
+struct Spawner
+{
+	int prototypeIndex;
+	float startTime;
+	float spawnInterval;
+	int numEnemies;
+	float elapsed;
 }
 
 struct Wave
 {
-	int nbrOfEnemies;
-	float spawnRate;
-	@property auto opDispatch(string s)()
-	{
-        static if (s == "integral")
-            return nbrOfEnemies;
-        else static if (s == "floating")
-            return spawnRate;
-        else static if (s == "text")
-            return s;
-        else
-            static assert(0, "FU");
-	}
+	List!Spawner spawners;
 }
 
 struct Tower

@@ -10,14 +10,15 @@ path = [
 { x = 13 y = 3 }, { x = 13 y = 7}, { x = 17 y = 7},
 { x = 17 y = 9 }, { x = 32 y = 9} ]
 
+enemies = [ { health = 22	speed = 70	worth = 5	textureResource = baws },
+			{ health = 100	speed = 42	worth = 15	textureResource = teddy } ]
+
 waves = [
-{
-    count = 15  		rate = 1
-    type  = nature  	hp   = 100
-    speed = 10  		gold = 15
-} ,
-{ 
-    count = 20  		rate = 0.5
-    type  = fire 		hp   = 150
-    speed = 6		gold = 17
-} ]
+[
+	{ startTime = 5		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 },
+	{ startTime = 10.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5}
+] ,
+[ 
+	{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 },
+	{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25}
+]] 

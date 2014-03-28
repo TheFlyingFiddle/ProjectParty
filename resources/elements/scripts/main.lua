@@ -3,11 +3,35 @@ Network.messages.towerRequest = 51
 Network.messages.towerBuilt = 52
 Network.messages.selectRequest = 53
 Network.messages.deselect = 54
+Network.messages.mapRequest = 55
+
+assets = {}
 
 function init()
+	font  			= Loader.loadFont("fonts/SegoeUILight72.fnt")
+	pixel 			= Loader.loadFrame("textures/pixel.png")
+	circle 			= Loader.loadFrame("textures/circle.png")
+	ring 			= Loader.loadFrame("textures/ring.png")
+	fireIcon 		= Loader.loadFrame("textures/fire_icon.png")
+	waterIcon 		= Loader.loadFrame("textures/water_icon.png")
+	iceIcon 		= Loader.loadFrame("textures/ice_icon.png")
+	lightningIcon 	= Loader.loadFrame("textures/lightning_icon.png")
+	windIcon 		= Loader.loadFrame("textures/wind_icon.png")
+	natureIcon 		= Loader.loadFrame("textures/nature_icon.png")
+	cancelIcon 		= Loader.loadFrame("textures/cancel_icon.png")
+	buyIcon 		= Loader.loadFrame("textures/buy_icon.png")
+
+	assets.fire  		= { id = 2, frame = fireIcon, 		color = 0xFF0066FF }
+	assets.water 		= { id = 3, frame = waterIcon, 		color = 0xFFFFaa22 }
+	assets.ice   		= { id = 4, frame = iceIcon,		color = 0xFFFFFFCC }
+	assets.lightning 	= { id = 5, frame = lightningIcon, 	color = 0xFF00FFFF }
+	assets.wind 		= { id = 6, frame = windIcon, 		color = 0xFFaaFFaa }
+	assets.nature 		= { id = 7, frame = natureIcon,		color = 0xFF00FF00 }
+
     fsm = FSM()
     fsm:addState(Elements(), "Elements")
-    fsm:enterState("Elements")
+    fsm:addState(ElementSelection(), "ElementSelection")
+    fsm:enterState("ElementSelection")
 end
 
 function term()

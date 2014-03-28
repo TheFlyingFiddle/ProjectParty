@@ -14,6 +14,16 @@ struct Frame
 		return _srcRect;
 	} 
 
+	@property float width() 
+	{
+		return texture.width;
+	}
+
+	@property float height() 
+	{
+		return texture.height;
+	}
+
 	this(TextureID texture)
 	{
 		this.texture = texture;

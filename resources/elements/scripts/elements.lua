@@ -1,10 +1,6 @@
 local sensorNetworkID = 1
 
-local font
 local map
-local pixel
-local circle
-local ring
 local tilesize = 40
 local cameraPos = vec2(0,0)
 local selections = {}
@@ -72,8 +68,8 @@ local function drawConfirmationItems(cell, radius)
 	local smallPos1 = vec2(pos.x + radius - smallRadius, pos.y + radius + radius * 0.66 - smallRadius)
 	local smallPos2 = vec2(pos.x + radius - smallRadius, pos.y + radius / 3 - smallRadius)
 
-	Renderer.addFrame(buyIcon, smallPos1, smallDim, 0xFFFFFF00)
-	Renderer.addFrame(cancelIcon, smallPos2, smallDim, 0xFF00D7FF)
+	Renderer.addFrame(buyIcon, smallPos1, smallDim, 0xFF00FFFF)
+	Renderer.addFrame(cancelIcon, smallPos2, smallDim, 0xFF0000FF)
 end
 
 local function drawTowerRadius(cell, towerRadius)
@@ -124,11 +120,11 @@ local function Selected(item1, item2, item3)
 		local smallPos3 = vec2(pos.x + radius + radius * 0.66 - smallRadius, pos.y + radius - smallRadius)
 		local smallPos4 = vec2(pos.x + radius - smallRadius, pos.y + radius / 3 - smallRadius)
 
-		Renderer.addFrame(circle, pos, dim, 0x88FF00FF)
-		Renderer.addFrame(item1.frame, smallPos1, smallDim, 0xFFFFFF00)
-		Renderer.addFrame(item2.frame, smallPos2, smallDim, 0xFF0000FF)
-		Renderer.addFrame(item3.frame, smallPos3, smallDim, 0xFF00D7FF)
-		Renderer.addFrame(cancelIcon, smallPos4, smallDim, 0xFF32CD32)
+		Renderer.addFrame(circle, pos, dim, 0x88FFFFFF)
+		Renderer.addFrame(item1.frame, smallPos1, smallDim, item1.color)
+		Renderer.addFrame(item2.frame, smallPos2, smallDim, item2.color)
+		Renderer.addFrame(item3.frame, smallPos3, smallDim, item3.color)
+		Renderer.addFrame(cancelIcon, smallPos4, smallDim, 0xFF0000AA)
 	end
 	function selectType(localPos, cell, radius)
 		local worldPos = vec2(localPos.x, localPos.y)
@@ -218,28 +214,11 @@ end
 
 function Elements()
 	local elements = {}
-	function elements.enter()
-		font  			= Loader.loadFont("fonts/Segoe54.fnt")
-		pixel 			= Loader.loadFrame("textures/pixel.png")
-		circle 			= Loader.loadFrame("textures/circle.png")
-		ring 			= Loader.loadFrame("textures/ring.png")
-		fireIcon 		= Loader.loadFrame("textures/fire_icon.png")
-		waterIcon 		= Loader.loadFrame("textures/water_icon.png")
-		iceIcon 		= Loader.loadFrame("textures/ice_icon.png")
-		lightningIcon 	= Loader.loadFrame("textures/lightning_icon.png")
-		windIcon 		= Loader.loadFrame("textures/wind_icon.png")
-		natureIcon 		= Loader.loadFrame("textures/nature_icon.png")
-		cancelIcon 		= Loader.loadFrame("textures/cancel_icon.png")
-		buyIcon 		= Loader.loadFrame("textures/buy_icon.png")
-
-
+	function elements.enter(item1, item2, item3)
+		sendMapRequestMessage()
 		state = FSM()
 		state:addState(Idle(), "Idle")
-		state:addState(Selected(
-					{ id = 2, frame = fireIcon}, 
-					{ id = 3, frame = waterIcon}, 
-					{ id = 4, frame = iceIcon}), 
-					"Selected")
+		state:addState(Selected(item1, item2, item3), "Selected")
 		state:addState(Confirm(), "Confirm")
 		state:enterState("Idle")
 		--score = 0

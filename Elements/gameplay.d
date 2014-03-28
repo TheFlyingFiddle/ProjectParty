@@ -14,31 +14,23 @@ class GamePlayState : IGameState
 	uint2[] path;
 	uint2 tileSize;
 	List!Enemy enemies;
-	Wave wave;
-	float deltaspawn;
+	List!Wave waves;
+
+	List!Enemy prototypes;
+	
 	int lifeTotal;
 	List!Projectile projectiles;
 	List!Tower towers;
 	List!uint2 selections;
 
-	List!WaterStatus	waterStatuses;
-	List!FireStatus		fireStatuses;
-	List!NatureStatus	natureStatuses;
-	List!IceStatus		iceStatuses;
-	List!WindStatus		windStatuses;
+	List!Status statuses;
 
 	this(A)(ref A allocator, string configFile)
 	{
 		enemies = List!Enemy(allocator, 100);
 
-		fireStatuses = List!FireStatus(allocator, 100);
-		waterStatuses = List!WaterStatus(allocator, 100);
-		iceStatuses = List!IceStatus(allocator, 100);
-		windStatuses = List!WindStatus(allocator, 100);
-		natureStatuses = List!NatureStatus(allocator, 100);
+		statuses = List!Status(allocator, 1000);
 
-		wave = Wave(42, 1);
-		deltaspawn = 0;
 		lifeTotal = 50;
 		projectiles = List!Projectile(allocator, 10000);
 		towers = List!Tower(allocator, 1000);
@@ -46,6 +38,35 @@ class GamePlayState : IGameState
 		import std.algorithm;
 		auto map = fromSDLFile!MapConfig(allocator, configFile);
 		path = map.path;
+
+		prototypes = List!Enemy(allocator, map.enemies.length);
+		foreach(enemyConfig; map.enemies)
+		{
+			Enemy enemy;
+			enemy.speed = enemyConfig.speed;
+			enemy.health = enemyConfig.health;
+			enemy.worth = enemyConfig.worth;
+			enemy.frame = Frame(Game.content.loadTexture(enemyConfig.textureResource));
+			prototypes ~= enemy;
+		}
+
+		waves = List!Wave(allocator, map.waves.length);
+		foreach (waveConfig; map.waves)
+		{
+			Wave wave = Wave(List!Spawner(allocator, waveConfig.length));
+			foreach (spawnerConfig; waveConfig) {
+				Spawner spawner;
+				spawner.prototypeIndex = spawnerConfig.prototypeIndex;
+				spawner.startTime = spawnerConfig.startTime;
+				spawner.spawnInterval = spawnerConfig.spawnInterval;
+				spawner.numEnemies = spawnerConfig.numEnemies;
+				spawner.elapsed = 0;
+
+				wave.spawners ~= spawner;
+			}
+			waves ~= wave;
+		}
+
 		lifeFont = Game.content.loadFont("Blocked72");
 
 		char* c_path = map.map.toCString();
@@ -76,18 +97,6 @@ class GamePlayState : IGameState
 		tileSize = map.tileSize;
 	}
 
-	void spawn()
-	{
-		if(wave.nbrOfEnemies == 0)
-		{
-			return;
-		}
-		float2 position = float2(path[0].x * tileSize.x + tileSize.x / 2, 
-								 path[0].y * tileSize.y + tileSize.y / 2);
-		enemies ~= Enemy(position, 1, 60, 22);
-		wave.nbrOfEnemies -= 1;
-	}
-
 	void enter()
 	{
 		Game.router.connectionHandlers ~= &connect;
@@ -96,11 +105,7 @@ class GamePlayState : IGameState
 
 	void connect(ulong playerId)
 	{
-		MapMessage msg;
-		msg.width = tileMap.width;
-		msg.height = tileMap.height;
-		msg.tiles = cast (ubyte[])tileMap.buffer[0 .. tileMap.width * tileMap.height];
-		Game.server.sendMessage(playerId, msg);
+
 	}
 	
 	void handleMessage(ulong playerId, ubyte[] msg)
@@ -133,6 +138,12 @@ class GamePlayState : IGameState
 
 			foreach(player ; Game.players) if (player.id != playerId) 
 				Game.server.sendMessage(player.id, DeselectedMessage(x, y));
+		} else if (id == ElementsMessages.mapRequest) {
+			MapMessage mapmsg;
+			mapmsg.width = tileMap.width;
+			mapmsg.height = tileMap.height;
+			mapmsg.tiles = cast (ubyte[])tileMap.buffer[0 .. tileMap.width * tileMap.height];
+			Game.server.sendMessage(playerId, mapmsg);
 		}
 	}
 
@@ -143,17 +154,46 @@ class GamePlayState : IGameState
 
 	void update()
 	{
-
-		deltaspawn += Time.delta;
-		if(deltaspawn >= wave.spawnRate)
-		{
-			deltaspawn -= wave.spawnRate;
-			spawn();
-		}
+		updateWave();
+		updateStatuses();
 		updateEnemies();
 		updateTowers();
 		updateProjectiles();
 		killEnemies();
+	}
+
+	void updateWave()
+	{
+		for(int i = waves[0].spawners.length - 1; i >= 0; --i)
+		{
+			updateSpawner(waves[0].spawners[i]);
+			if (waves[0].spawners[i].numEnemies == 0)
+				waves[0].spawners.removeAt(i);
+		}
+		if (waves[0].spawners.length == 0 &&
+			enemies.length == 0) {
+			if (waves.length > 1)
+				waves.removeAt(0);
+			else
+				gameOver();
+		}
+			
+	}
+
+	private void updateSpawner(ref Spawner spawner)
+	{
+		spawner.startTime -= Time.delta;
+		if (spawner.startTime <= 0) {
+			spawner.elapsed += Time.delta;
+			if (spawner.elapsed >= spawner.spawnInterval) {
+				auto enemy = prototypes[spawner.prototypeIndex];
+				enemy.index = 1;
+				enemy.pos = float2(tileSize * path[0] + tileSize/2);
+				enemies ~= enemy;
+				spawner.numEnemies--;
+				spawner.elapsed = 0;
+			}
+		}
 	}
 
 	void updateEnemies()
@@ -218,6 +258,58 @@ class GamePlayState : IGameState
 		}
 	}
 
+	void updateStatuses()
+	{
+		for(int i = statuses.length -1; i>= 0; i--)
+		{
+			statuses[i].elapsed += Time.delta;
+			updateStatus(statuses[i]);
+			if (statuses[i].elapsed >= statuses[i].duration) {
+				statusEnd(statuses[i]);
+				statuses.removeAt(i);
+			}
+		}
+	}
+
+	void updateStatus(ref Status status)
+	{
+		switch (status.type) with (StatusType)
+		{
+			case fire:
+				status.fire.elapsed += Time.delta;
+				if (status.duration / status.fire.numTicks < status.fire.elapsed) {
+					enemies[status.targetIndex].health -= status.fire.amount;
+					status.fire.elapsed = 0;
+				}
+				break;
+			case water:
+				break;
+			case nature:
+				break;
+			case wind:
+				break;
+			default:
+				break;
+		}
+	}
+
+	void statusEnd(Status status)
+	{
+		final switch (status.type) with (StatusType)
+		{
+			case ice:
+				enemies[status.targetIndex].speed /= status.ice.amount;
+				break;
+			case fire:
+				break;
+			case water:
+				break;
+			case nature:
+				break;
+			case wind:
+				break;
+		}
+	}
 	void render()
 	{
 		auto imageTex = Game.content.loadTexture("image_map1.png");
@@ -247,14 +339,12 @@ class GamePlayState : IGameState
 			Game.renderer.addFrame(towerFrame,float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y), color); 
 		}
 
-		auto tex = Game.content.loadTexture("baws");
-		auto frame = Frame(tex);
 
 		foreach(ref enemy; enemies)
 		{
-			Game.renderer.addFrame(frame, float4(enemy.pos.x - tileSize.x / 4, 
+			Game.renderer.addFrame(enemy.frame, float4(enemy.pos.x - tileSize.x / 4, 
 												 enemy.pos.y - tileSize.y / 4,
-												 tileSize.x / 2, tileSize.x / 2));
+												 enemy.frame.width, enemy.frame.height));
 		}
 		import util.strings;
 		char[128] buffer;
@@ -298,7 +388,32 @@ class GamePlayState : IGameState
 		
 		if((projectile.type & ProjectileType.slow) == ProjectileType.slow)
 		{
-			//Placeholder.
+			auto index = statuses.countUntil!((x) => x.targetIndex == projectile.target
+											  && x.type == StatusType.ice);
+			if (index == -1) {
+				enemies[projectile.target].speed *= 0.5;
+				statuses ~= Status(projectile.target, 5, 0, 
+								   StatusType.ice, IceStatus(0.5));
+			} else {
+				statuses[index].elapsed = 0;
+			}
+		}
+
+		if((projectile.type & ProjectileType.dot) == ProjectileType.dot)
+		{
+			auto index = statuses.countUntil!((x) => x.targetIndex == projectile.target
+											  && x.type == StatusType.fire);
+			if (index == -1) {
+				Status s;
+				s.targetIndex = projectile.target;
+				s.duration = 30;
+				s.elapsed = 0;
+				s.type = StatusType.fire;
+				s.fire = FireStatus(1, 50, 0);
+				statuses ~= s;
+			} else {
+				statuses[index].elapsed = 0;
+			}
 		}
 	}
 
@@ -320,6 +435,17 @@ class GamePlayState : IGameState
 						projectiles[j].target--;
 					}
 				}
+				for(int j = statuses.length -1; j >= 0; j--)
+				{
+					if(statuses[j].targetIndex == i)
+					{
+						statuses.removeAt(j);
+					}
+					else if(statuses[j].targetIndex > i)
+					{
+						statuses[j].targetIndex--;
+					}
+				}
 			}
 		}
 	}
@@ -331,7 +457,7 @@ class GamePlayState : IGameState
 		switch(type) with (TileType)
 		{
 			case fireTower: 
-				projectileType = ProjectileType.normal;
+				projectileType = ProjectileType.dot;
 			break;
 			case waterTower:
 				projectileType = ProjectileType.splash;

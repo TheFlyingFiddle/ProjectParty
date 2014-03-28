@@ -20,3 +20,8 @@ function sendDeselectionMessage(x, y)
 	Out.writeInt(x)
 	Out.writeInt(y)
 end
+
+function sendMapRequestMessage()
+	Out.writeShort(1)
+	Out.writeByte(Network.messages.mapRequest)
+end
