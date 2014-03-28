@@ -9,16 +9,12 @@ local fsmMetaTable = {
 		end,
 		enterState = function(fsm, name, ...)
 
-		log("2")
-			if fsm.active and fsm.active.exit then fsm.active.exit() end
-		log("3")
-			fsm.active = fsm[name]
-		log("4")
+		if fsm.active and fsm.active.exit then fsm.active.exit() end
+		fsm.active = fsm[name]
 		if fsm.active then log("active") end
 			if fsm.active.enter then
 				fsm.active.enter(...)
 			end
-		log("5")
 		end
 	}
 }

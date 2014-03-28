@@ -29,26 +29,62 @@ local function toGridPos(pos)
 	return vec2(cellx,celly)
 end
 
-local function addTower(x, y)
-	Out.writeShort(10)
-	Out.writeByte(Network.messages.towerRequest)
-	Out.writeInt(x)
-	Out.writeInt(y)
-	Out.writeByte(0)
+local function distance(pos1, pos2)
+	return math.sqrt((pos1.x - pos2.x)*(pos1.x - pos2.x) + (pos1.y - pos2.y)*(pos1.y - pos2.y))
 end
 
-local function sendSelectionMessage(pos)
-	Out.writeShort(9)
-	Out.writeByte(Network.messages.selectRequest)
-	Out.writeInt(pos.x)
-	Out.writeInt(pos.y)
+local function selectType(localPos, cell, radius)
+	local worldPos = vec2(localPos.x + cameraPos.x, localPos.y + cameraPos.y)
+	local pos = vec2(cell.x * tilesize + tilesize / 2 + cameraPos.x - radius,
+					 cell.y * tilesize + tilesize / 2 + cameraPos.y - radius)
+	log(string.format("wp: %d,%d, pos:%d,%d", worldPos.x, worldPos.y, pos.x, pos.y))
+
+	local dim = vec2(radius * 2, radius * 2)
+	local smallRadius = radius / 4
+	local smallDim = vec2(smallRadius * 2, smallRadius * 2)
+
+	local smallPos1 = vec2(pos.x + radius/3, pos.y + radius)
+	local smallPos2 = vec2(pos.x + radius, pos.y + radius + radius * 0.66)
+	local smallPos3 = vec2(pos.x + radius + radius * 0.66, pos.y + radius)
+	local smallPos4 = vec2(pos.x + radius, pos.y + radius / 3)
+
+	if distance(worldPos, smallPos1)<= smallRadius then
+		return 2
+	elseif distance(worldPos, smallPos2)<= smallRadius then
+		return 3
+	elseif distance(worldPos, smallPos3)<= smallRadius then
+		return 4
+	elseif distance(worldPos, smallPos4)<= smallRadius then
+		return nil
+	elseif distance(worldPos, vec2(pos.x + radius, pos.y + radius)) <= radius then
+		return 0
+	end
+	return nil
 end
-		
-local function sendDeselectionMessage(x, y)
-	Out.writeShort(9)
-	Out.writeByte(Network.messages.deselect)
-	Out.writeInt(x)
-	Out.writeInt(y)
+
+local function confirmSelect(localPos, cell, radius)
+	local worldPos = vec2(localPos.x + cameraPos.x, localPos.y + cameraPos.y)
+	local pos = vec2(cell.x * tilesize + tilesize / 2 + cameraPos.x - radius,
+					 cell.y * tilesize + tilesize / 2 + cameraPos.y - radius)
+	log(string.format("wp: %d,%d, pos:%d,%d", worldPos.x, worldPos.y, pos.x, pos.y))
+
+	local dim = vec2(radius * 2, radius * 2)
+	local smallRadius = radius / 4
+	local smallDim = vec2(smallRadius * 2, smallRadius * 2);
+
+
+	local smallPos2 = vec2(pos.x + radius, pos.y + radius + radius * 0.66)
+	local smallPos4 = vec2(pos.x + radius, pos.y + radius / 3)
+
+	if distance(worldPos, smallPos2)<= smallRadius then
+		return true
+	elseif distance(worldPos, smallPos4)<= smallRadius then
+		return false 
+	elseif distance(worldPos, vec2(pos.x + radius, pos.y + radius)) <= radius then
+		return 0
+	end
+	return nil
+
 end
 
 local function drawSelectionCircle(cell, radius) 
@@ -130,9 +166,11 @@ local function Selected()
 		drawSelectionCircle(t, Screen.height / 4)
 	end
 	function t.onTap(pos)
-		local gridPos = toGridPos(pos)
-		if gridPos.x == t.x and gridPos.y == t.y then
-			state:enterState("Confirm", gridPos)
+		local type = selectType(pos, vec2(t.x,t.y), Screen.height/4)
+		if type == 0 then
+			return
+		elseif type then
+			state:enterState("Confirm", vec2(t.x,t.y) , type)
 		else
 			state:enterState("Idle", t.x, t.y)
 		end
@@ -158,16 +196,21 @@ local function Confirm()
 		drawConfirmationItems(t, towerRadius)
 	end
 	function t.onTap(pos)
-		local gridPos = toGridPos(pos)
-		if gridPos.x == t.x and gridPos.y == t.y then
-			addTower(t.x, t.y)
-
+		local towerRadius = 3 * tilesize
+		local type = confirmSelect(pos, vec2(t.x,t.y), towerRadius)
+		if type == 0 then
+			return
+		elseif type then
+			sendAddTower(t.x, t.y, t.type)
+			state:enterState("Idle", t.x, t.y)
+		else
+			state:enterState("Idle", t.x, t.y)
 		end
-		state:enterState("Idle", t.x, t.y)
 	end
-	function t.enter(cell)
+	function t.enter(cell, type)
 		t.x = cell.x
 		t.y = cell.y
+		t.type = type
 	end
 	return t	
 end
@@ -204,7 +247,7 @@ function Elements()
 			for col=0, map.width-1, 1 do
 				local color
 				local type = map.tiles[row*map.width + col]
-				color = tileColors[type]
+				color = tileColors[type+1]
 				Renderer.addFrame(pixel, pos, dim, color)
 				pos.x = pos.x + dim.x
 			end
@@ -244,7 +287,7 @@ function Elements()
 			local x = In.readInt()
 			local y = In.readInt()
 			local type = In.readByte()
-			map.tiles[y*map.width + x] = 2
+			map.tiles[y*map.width + x] = type
 		elseif id == Network.messages.selectRequest then
 			local rx = In.readInt()
 			local ry = In.readInt()

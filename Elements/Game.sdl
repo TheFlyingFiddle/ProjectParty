@@ -57,7 +57,7 @@ phoneResources = [
 	|elements/scripts/rect.lua|,
 	|elements/scripts/states.lua|,
 	|elements/scripts/elements.lua|,
-	|elements/scripts/selectionlist.lua|,
+	|elements/scripts/networking.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/textures/pixel.png|,

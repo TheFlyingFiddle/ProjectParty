@@ -100,7 +100,7 @@ class GamePlayState : IGameState
 			auto type = msg.read!ubyte;
 			if (tileMap[uint2(x,y)] == TileType.buildable && 
 					towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
-				buildTower(uint2(x,y));
+				buildTower(uint2(x,y), type);
 			}
 		} else if (id == ElementsMessages.selectRequest) {
 			auto x = msg.read!uint;
@@ -225,7 +225,7 @@ class GamePlayState : IGameState
 				case nonbuildable: color = Color.white; break;
 				case fireTower: color = Color(0xFF3366FF); break;
 				case waterTower: color = Color.blue; break;
-				case iceTower: color = Color(0xFFFCC66); break;
+				case iceTower: color = Color(0xFFFFCC66); break;
 				case lightningTower: color = Color(0xFF00FFFF); break;
 				case windTower: color = Color(0xFFCCCCCC); break;
 				case natureTower: color = Color.green; break;
@@ -289,13 +289,13 @@ class GamePlayState : IGameState
 		}
 	}
 
-	void buildTower(uint2 pos) 
+	void buildTower(uint2 pos, ubyte type) 
 	{
 		towers ~= Tower(175,7,1,0,0,pos);
 		foreach(player; Game.players)
-			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, 0));
+			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, type));
 
-		tileMap[pos] = TileType.fireTower;
+		tileMap[pos] = cast(TileType)type;
 	}
 
 	void gameOver()
