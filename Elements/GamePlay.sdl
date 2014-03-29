@@ -10,15 +10,44 @@ path = [
 { x = 13 y = 3 }, { x = 13 y = 7}, { x = 17 y = 7},
 { x = 17 y = 9 }, { x = 32 y = 9} ]
 
-enemies = [ { health = 22	speed = 70	worth = 5	textureResource = baws },
-			{ health = 100	speed = 42	worth = 15	textureResource = teddy } ]
+enemies = [ { health = 50	speed = 70	worth = 5	textureResource = baws },
+			{ health = 200	speed = 42	worth = 15	textureResource = teddy } ]
 
 waves = [
 [
-	{ startTime = 5		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 },
-	{ startTime = 10.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5}
+	{ startTime = 1		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 },
+	{ startTime = 1.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5}
 ] ,
 [ 
 	{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 },
 	{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25}
 ]] 
+
+statuses = [
+	{ duration = 10 type = fire common1 = 3 common2 = 5 },
+	{ duration = 4	type = water },
+	{ duration = 2	type = ice },
+	{ duration = 0.1 type = lightning common1 = 430 common2 = 7 common3 = 0.8 },
+	{ duration = 0.1 type= wind common1 = 600 },
+	{ duration = 5	type = nature common1 = 0.5 }
+]
+
+projectiles = [
+	{ attackDmg = 10 type = normal statusIndex = 0 },
+	{ attackDmg = 1  type = splash  statusIndex = 1 },
+	{ attackDmg = 10 type = normal statusIndex = 2 },
+	{ attackDmg = 10 type = normal statusIndex = 3 },
+	{ attackDmg = 10 type = normal statusIndex = 4 },
+	{ attackDmg = 10 type = normal statusIndex = 5 }
+]
+
+towers = [
+	{ range = 100 type = cone		cost = 0 common1 = 1 common2 = 20 common3 = 0 
+											 common4 = 4 common5 = 2.5},
+	{ range = 100 type = cone		cost = 0 common1 = 1 common2 = 10 common3 = 1
+											 common4 = 0.1 common5 = 0.02},
+	{ range = 200 type = projectile cost = 0 common1 = 1 common3 = 2},
+	{ range = 200 type = projectile cost = 0 common1 = 1 common3 = 3},
+	{ range = 200 type = effect cost = 0 common1 = 1 common3 = 4 common4 = 5},
+	{ range = 200 type = projectile cost = 0 common1 = 1 common3 = 5}
+]
