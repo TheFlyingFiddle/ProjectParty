@@ -3,6 +3,7 @@ import math;
 import graphics;
 import collections;
 import content;
+import allocation;
 
 struct MapMessage
 {
@@ -67,7 +68,6 @@ enum ElementType
 struct MapConfig
 {
 	string map;
-	TileConfig[] tiles;
 	SpawnerConfig[][] waves;
 	EnemyConfig[] enemies;
 	uint2[] path;
@@ -77,11 +77,104 @@ struct MapConfig
 	TowerConfig[] towers;
 }
 
-struct TileConfig
+struct PathConfig
 {
-	uint color;
-	TileType type;
-	string texture;
+	uint2[] wayPoints;
+	uint2 tileSize;
+}
+
+struct Level
+{
+	@Convert!mapConverter() Grid!TileType tileMap;
+	List!Wave waves;
+	@Convert!pathConverter() Path path;
+	uint2 tileSize;
+	List!EnemyPrototype enemyPrototypes;
+	List!StatusPrototype statusPrototypes;
+	List!ProjectilePrototype projectilePrototypes;
+	List!TowerPrototype towerPrototypes;
+}
+
+struct EnemyPrototype
+{
+	int worth;
+	float maxHealth;
+	float speed;
+	@Convert!stringToFrame() Frame frame;
+}
+
+struct StatusPrototype
+{
+	float duration;
+	ElementType type;
+	@Optional(IceStatus()) IceStatus ice;
+	@Optional(FireStatus()) FireStatus fire;
+	@Optional(WaterStatus()) WaterStatus water;
+	@Optional(LightningStatus()) LightningStatus lightning;
+	@Optional(NatureStatus()) NatureStatus nature;
+	@Optional(WindStatus()) WindStatus wind;
+}
+
+struct ProjectilePrototype
+{
+	float speed;
+	float damage;
+	ProjectileType type;
+	int statusIndex;
+}
+
+struct TowerPrototype
+{
+	float range;
+	int cost;
+
+	TowerType type;
+	@Optional(ProjectileTower()) ProjectileTower pTower;
+	@Optional(ConeTower()) ConeTower cTower;
+	@Optional(EffectTower()) EffectTower eTower;
+}
+
+
+auto stringToFrame(string ID)
+{
+	import game, graphics;
+	return Frame(Game.content.loadTexture(ID));
+}
+
+Path pathConverter(PathConfig pc)
+{
+	return Path(GC.it, pc.tileSize, pc.wayPoints);
+}
+
+Grid!TileType mapConverter(string path)
+{
+	import derelict.freeimage.freeimage, util.strings;
+	char* c_path = path.toCString();
+	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_path);
+	if(format == FIF_UNKNOWN)
+	{
+		format = FreeImage_GetFIFFromFilename(c_path);
+	}
+
+	FIBITMAP* bitmap = FreeImage_Load(format, c_path, 0);
+	scope(exit) FreeImage_Unload(bitmap);
+
+	uint width  = FreeImage_GetWidth(bitmap);
+	uint height = FreeImage_GetHeight(bitmap);
+	uint bpp    = FreeImage_GetBPP(bitmap);
+	uint[] mapBits = (cast(uint*)FreeImage_GetBits(bitmap))[0 .. width * height];
+
+	auto tileMap = Grid!TileType(GC.it, width, height);
+	foreach(row; 0 .. height) {
+		foreach(col; 0 .. width) {
+			uint color = mapBits[row * width + col];
+			if (color == Color.white.packedValue)
+				tileMap[uint2(col, row)] = TileType.nonbuildable;
+			else
+				tileMap[uint2(col, row)] = TileType.buildable;
+		}
+	}
+	return tileMap;
 }
 
 struct SpawnerConfig
@@ -180,6 +273,35 @@ struct Status
 		NatureStatus nature;
 		WindStatus wind;
 	}
+	
+	this(StatusPrototype prefab, int target)
+	{
+		this.targetIndex = target;
+		this.duration = prefab.duration;
+		this.elapsed = 0;
+		this.type = prefab.type;
+		final switch(this.type) with (ElementType)
+		{
+			case ice:
+				this.ice = prefab.ice;
+				break;
+			case fire:
+				this.fire = prefab.fire;
+				break;
+			case water:
+				this.water = prefab.water;
+				break;
+			case lightning:
+				this.lightning = prefab.lightning;
+				break;
+			case nature:
+				this.nature = prefab.nature;
+				break;
+			case wind:
+				this.wind = prefab.wind;
+				break;
+		}
+	}
 }
 
 struct IceStatus
@@ -196,7 +318,7 @@ struct FireStatus
 {
 	float amount;
 	int numTicks;
-	float elapsed;
+	@Optional(0f) float elapsed;
 }
 
 struct WaterStatus
@@ -206,7 +328,7 @@ struct WaterStatus
 struct WindStatus
 {
 	float speed;
-	float previousSpeed;
+	@Optional(0f) float previousSpeed;
 }
 
 struct LightningStatus
@@ -224,6 +346,15 @@ struct Enemy
 	float maxHealth;
 	int worth;
 	Frame frame;
+	this(EnemyPrototype prefab)
+	{
+		this.distance = 0;
+		this.speed = prefab.speed;
+		this.health = prefab.maxHealth;
+		this.maxHealth = prefab.maxHealth;
+		this.worth = prefab.worth;
+		this.frame = prefab.frame;
+	}
 }
 
 struct Spawner
@@ -232,7 +363,7 @@ struct Spawner
 	float startTime;
 	float spawnInterval;
 	int numEnemies;
-	float elapsed;
+	@Optional(0f) float elapsed;
 }
 
 struct Wave
@@ -250,7 +381,7 @@ enum TowerType
 struct ProjectileTower
 {
 	float attackSpeed;
-	float deltaAttackTime;
+	@Optional(0f) float deltaAttackTime;
 	int projectileIndex;
 }
 
@@ -261,13 +392,13 @@ struct ConeTower
 	int statusIndex;
 	float reactivationTime;
 	float activeTime;
-	float elapsed;
+	@Optional(0f) float elapsed;
 }
 
 struct EffectTower
 {
 	float attackSpeed;
-	float deltaAttackTime;
+	@Optional(0f) float deltaAttackTime;
 	int statusIndex;
 	float damage;
 }
@@ -287,6 +418,26 @@ struct Tower
 		EffectTower eTower;
 	}
 
+	this(TowerPrototype prefab, uint2 position)
+	{
+		this.range = prefab.range;
+		this.cost = prefab.cost;
+		this.position = position;
+		this.type = prefab.type;
+		final switch(this.type) with (TowerType)
+		{
+			case projectile:
+				this.pTower = prefab.pTower;
+				break;
+			case cone:
+				this.cTower = prefab.cTower;
+				break;
+			case effect:
+				this.eTower = prefab.eTower;
+				break;
+		}
+	}
+
 	float2 pixelPos(uint2 tileSize)
 	{
 		return float2 (position.x * tileSize.x + tileSize.x/2, position.y * tileSize.y + tileSize.y/2);	
@@ -302,8 +453,19 @@ enum ProjectileType
 struct Projectile
 {
 	float attackDmg;
+	float speed;
 	ProjectileType type;
 	uint statusIndex;
 	@Optional(float2.zero) float2 position;
 	@Optional(-1) int target;
+
+	this(ProjectilePrototype prefab, float2 position, int target)
+	{
+		this.attackDmg = prefab.damage;
+		this.speed = prefab.speed;
+		this.type = prefab.type;
+		this.statusIndex = prefab.statusIndex;
+		this.position = position;
+		this.target = target;
+	}
 }

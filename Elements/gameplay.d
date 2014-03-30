@@ -10,25 +10,16 @@ import network.message;
 
 class GamePlayState : IGameState
 {
+	Level level;
 
 	FontID lifeFont;
-	Grid!TileType tileMap;
-	Path path;
-	uint2 tileSize;
 	List!Enemy enemies;
-	List!Wave waves;
 
-	List!Enemy enemyPrototypes;
-	List!Status statusPrototypes;
-	List!Projectile projectilePrototypes;
-	List!Tower towerPrototypes;
-	
 	int lifeTotal;
 	List!Projectile projectiles;
 	List!Tower towers;
-	List!uint2 selections;
-
 	List!Status statuses;
+	List!uint2 selections;
 
 	this(A)(ref A allocator, string configFile)
 	{
@@ -41,135 +32,11 @@ class GamePlayState : IGameState
 		towers = List!Tower(allocator, 1000);
 		selections = List!uint2(allocator, 10);
 		import std.algorithm;
-		auto map = fromSDLFile!MapConfig(allocator, configFile);
-		tileSize = map.tileSize;
-		path = Path(allocator, tileSize, map.path);
-
-
-		enemyPrototypes = List!Enemy(allocator, map.enemies.length);
-		foreach(enemyConfig; map.enemies)
-		{
-			Enemy enemy;
-			enemy.speed = enemyConfig.speed;
-			enemy.maxHealth = enemyConfig.health;
-			enemy.health = enemy.maxHealth;
-			enemy.worth = enemyConfig.worth;
-			enemy.frame = Frame(Game.content.loadTexture(enemyConfig.textureResource));
-			enemyPrototypes ~= enemy;
-		}
-
-		waves = List!Wave(allocator, map.waves.length);
-		foreach (waveConfig; map.waves)
-		{
-			Wave wave = Wave(List!Spawner(allocator, waveConfig.length));
-			foreach (spawnerConfig; waveConfig) {
-				Spawner spawner;
-				spawner.prototypeIndex = spawnerConfig.prototypeIndex;
-				spawner.startTime = spawnerConfig.startTime;
-				spawner.spawnInterval = spawnerConfig.spawnInterval;
-				spawner.numEnemies = spawnerConfig.numEnemies;
-				spawner.elapsed = 0;
-
-				wave.spawners ~= spawner;
-			}
-			waves ~= wave;
-		}
-
-		statusPrototypes = List!Status(allocator, map.statuses.length);
-		foreach(s; map.statuses)
-		{
-			Status status;
-			status.duration = s.duration;
-			status.elapsed = 0;
-			status.type = s.type;
-			switch (status.type) with (ElementType)
-			{
-				case fire:
-					status.fire.amount = s.common1;
-					status.fire.numTicks = cast(int)s.common2;
-					status.fire.elapsed = 0;
-					break;
-				case nature:
-					status.nature.amount = s.common1;
-					break;
-				case lightning:
-					status.lightning.jumpDistance = s.common1;
-					status.lightning.damage = s.common2;
-					status.lightning.reduction = s.common3;
-					break;
-				case wind:
-					status.wind.speed = s.common1;
-					break;
-				default:
-					break;
-			}
-			statusPrototypes ~= status;
-		}
-
-		projectilePrototypes = List!Projectile(allocator, map.projectiles.length);
-		foreach(p; map.projectiles)
-		{
-			projectilePrototypes ~= p;
-		}
-
-		towerPrototypes = List!Tower(allocator, map.towers.length);
-		foreach(t; map.towers)
-		{
-			Tower tower;
-			tower.range = t.range;
-			tower.cost = t.cost;
-			tower.type = t.type;
-			switch(tower.type) with (TowerType)
-			{
-				case projectile:
-					tower.pTower.attackSpeed = t.common1;
-					tower.pTower.deltaAttackTime = 0;
-					tower.pTower.projectileIndex = t.common3;
-					break;
-				case cone:
-					tower.cTower.width = t.common1;
-					tower.cTower.dps = t.common2;
-					tower.cTower.statusIndex = t.common3;
-					tower.cTower.reactivationTime = t.common4;
-					tower.cTower.activeTime = t.common5;
-					tower.cTower.elapsed = 0;
-					break;
-				case effect:
-					tower.eTower.attackSpeed = t.common1;
-					tower.eTower.deltaAttackTime = 0;
-					tower.eTower.statusIndex = t.common3;
-					tower.eTower.damage = t.common4;
-					break;
-			}
-			towerPrototypes ~= tower;
-		}
 
 		lifeFont = Game.content.loadFont("Blocked72");
 
-		char* c_path = map.map.toCString();
-		FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_path);
-		if(format == FIF_UNKNOWN)
-		{
-			format = FreeImage_GetFIFFromFilename(c_path);
-		}
+		level = fromSDLFile!Level(allocator, configFile);
 
-		FIBITMAP* bitmap = FreeImage_Load(format, c_path, 0);
-		scope(exit) FreeImage_Unload(bitmap);
-
-		uint width  = FreeImage_GetWidth(bitmap);
-		uint height = FreeImage_GetHeight(bitmap);
-		uint bpp    = FreeImage_GetBPP(bitmap);
-		uint[] mapBits = (cast(uint*)FreeImage_GetBits(bitmap))[0 .. width * height];
-
-		tileMap = Grid!TileType(allocator, width, height);
-		foreach(row; 0 .. height) {
-			foreach(col; 0 .. width) {
-				uint color = mapBits[row * width + col];
-				auto tile  = map.tiles.find!(x => x.color == color);
-				if(!tile.length == 0)
-					tileMap[uint2(col, row)] = tile[0].type;
-			}
-		}
 	}
 
 	void enter()
@@ -191,7 +58,7 @@ class GamePlayState : IGameState
 			auto x = msg.read!uint;
 			auto y = msg.read!uint;
 			auto type = msg.read!ubyte;
-			if (tileMap[uint2(x,y)] == TileType.buildable && 
+			if (level.tileMap[uint2(x,y)] == TileType.buildable && 
 					towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
 				buildTower(uint2(x,y), type);
 			}
@@ -215,9 +82,9 @@ class GamePlayState : IGameState
 				Game.server.sendMessage(player.id, DeselectedMessage(x, y));
 		} else if (id == ElementsMessages.mapRequest) {
 			MapMessage mapmsg;
-			mapmsg.width = tileMap.width;
-			mapmsg.height = tileMap.height;
-			mapmsg.tiles = cast (ubyte[])tileMap.buffer[0 .. tileMap.width * tileMap.height];
+			mapmsg.width = level.tileMap.width;
+			mapmsg.height = level.tileMap.height;
+			mapmsg.tiles = cast (ubyte[])level.tileMap.buffer[0 .. level.tileMap.width * level.tileMap.height];
 			Game.server.sendMessage(playerId, mapmsg);
 		}
 	}
@@ -239,16 +106,16 @@ class GamePlayState : IGameState
 
 	void updateWave()
 	{
-		for(int i = waves[0].spawners.length - 1; i >= 0; --i)
+		for(int i = level.waves[0].spawners.length - 1; i >= 0; --i)
 		{
-			updateSpawner(waves[0].spawners[i]);
-			if (waves[0].spawners[i].numEnemies == 0)
-				waves[0].spawners.removeAt(i);
+			updateSpawner(level.waves[0].spawners[i]);
+			if (level.waves[0].spawners[i].numEnemies == 0)
+				level.waves[0].spawners.removeAt(i);
 		}
-		if (waves[0].spawners.length == 0 &&
+		if (level.waves[0].spawners.length == 0 &&
 			enemies.length == 0) {
-			if (waves.length > 1)
-				waves.removeAt(0);
+			if (level.waves.length > 1)
+				level.waves.removeAt(0);
 			else
 				gameOver();
 		}
@@ -261,8 +128,7 @@ class GamePlayState : IGameState
 		if (spawner.startTime <= 0) {
 			spawner.elapsed += Time.delta;
 			if (spawner.elapsed >= spawner.spawnInterval) {
-				auto enemy = enemyPrototypes[spawner.prototypeIndex];
-				enemy.distance = 0;
+				auto enemy = Enemy(level.enemyPrototypes[spawner.prototypeIndex]);
 				enemies ~= enemy;
 				spawner.numEnemies--;
 				spawner.elapsed = 0;
@@ -277,7 +143,7 @@ class GamePlayState : IGameState
 			enemies[i].distance += enemies[i].speed * Time.delta;
 			if (enemies[i].distance < 0)
 				enemies[i].distance = 0;
-			if (enemies[i].distance > path.endDistance)
+			if (enemies[i].distance > level.path.endDistance)
 			{
 				lifeTotal--;
 				killEnemy(i);
@@ -313,7 +179,7 @@ class GamePlayState : IGameState
 		int index = -1;
 		foreach(i, ref enemy; enemies)
 		{
-			float distance = distance(path.position(enemy.distance), towerPos);
+			float distance = distance(level.path.position(enemy.distance), towerPos);
 			if (distance <= range)
 			{
 				if(index == -1)
@@ -331,7 +197,7 @@ class GamePlayState : IGameState
 		float lowestDistance = float.infinity;
 		foreach(i, ref enemy; enemies)
 		{
-			float distance = distance(path.position(enemy.distance), towerPos);
+			float distance = distance(level.path.position(enemy.distance), towerPos);
 			if (distance <= range)
 			{
 				if(index == -1)
@@ -355,7 +221,8 @@ class GamePlayState : IGameState
 		if(tower.pTower.deltaAttackTime >= tower.pTower.attackSpeed)
 		{
 			tower.pTower.deltaAttackTime -= tower.pTower.attackSpeed;
-			float2 towerPos = tower.pixelPos(tileSize);
+			float2 towerPos = tower.pixelPos(
+							level.tileSize);
 			int index = findFarthestReachableEnemy(towerPos, tower.range);
 		
 			if(index != -1)
@@ -370,14 +237,14 @@ class GamePlayState : IGameState
 		tower.cTower.elapsed += Time.delta;
 		if ( tower.cTower.elapsed < tower.cTower.activeTime)
 		{
-			float2 towerPos = tower.pixelPos(tileSize);
+			float2 towerPos = tower.pixelPos(level.tileSize);
 			int index = findNearestReachableEnemy(towerPos, tower.range);
 			if(index != -1)
 			{
-				auto angle = (towerPos - path.position(enemies[index].distance)).toPolar.angle;
-				foreach(i, ref enemy; enemies) if(distance(towerPos, path.position(enemy.distance)) < tower.range)
+				auto angle = (towerPos - level.path.position(enemies[index].distance)).toPolar.angle;
+				foreach(i, ref enemy; enemies) if(distance(towerPos, level.path.position(enemy.distance)) < tower.range)
 				{
-					auto eAngle = (towerPos - path.position(enemy.distance)).toPolar.angle;
+					auto eAngle = (towerPos - level.path.position(enemy.distance)).toPolar.angle;
 					if(eAngle > (angle - tower.cTower.width/2)%TAU && eAngle < (angle + tower.cTower.width/2)%TAU)
 					{
 						enemy.health -= tower.cTower.dps * Time.delta;
@@ -397,7 +264,7 @@ class GamePlayState : IGameState
 		if (tower.eTower.deltaAttackTime >= tower.eTower.attackSpeed)
 		{
 			tower.eTower.deltaAttackTime = 0;
-			auto index = findFarthestReachableEnemy(tower.pixelPos(tileSize), tower.range);
+			auto index = findFarthestReachableEnemy(tower.pixelPos(level.tileSize), tower.range);
 			if (index != -1)
 			{
 				addStatus(tower.eTower.statusIndex, index);
@@ -409,7 +276,7 @@ class GamePlayState : IGameState
 	{
 		for(int i =  projectiles.length -1; i >= 0; i--)
 		{
-			float2 target = path.position(enemies[projectiles[i].target].distance);
+			float2 target = level.path.position(enemies[projectiles[i].target].distance);
 			float2 dir = (target - projectiles[i].position).normalized();
 			projectiles[i].position += dir * Time.delta * 300;
 			if(distanceSquared(target, projectiles[i].position) <= 9)
@@ -476,8 +343,8 @@ class GamePlayState : IGameState
 				if (status.lightning.damage < 1 )
 					return;
 				status.elapsed = 0;
-				foreach(i, enemy; enemies) if ( distance(path.position(enemy.distance),
-														 path.position(enemies[status.targetIndex].distance))
+				foreach(i, enemy; enemies) if ( distance(level.path.position(enemy.distance),
+														 level.path.position(enemies[status.targetIndex].distance))
 													<	status.lightning.jumpDistance)
 				{
 					auto sIndex = statuses.countUntil!(x => x.targetIndex == i 
@@ -504,10 +371,10 @@ class GamePlayState : IGameState
 		
 		TextureID towerTexture;
 
-		foreach(cell, item; tileMap) 
+		foreach(cell, item; level.tileMap) 
 		{
 			if(item < 2) continue;
-			Tower t = towerPrototypes[item - 2];
+			auto t = level.towerPrototypes[item - 2];
 			final switch (t.type) with (TowerType)
 			{
 				case projectile:
@@ -535,13 +402,14 @@ class GamePlayState : IGameState
 				case natureTower: color = Color.green; break;
 			}
 
-			Game.renderer.addFrame(towerFrame,float4(cell.x * tileSize.x, cell.y * tileSize.y, tileSize.x, tileSize.y), color); 
+			Game.renderer.addFrame(towerFrame,float4(cell.x * level.tileSize.x, 
+					cell.y * level.tileSize.y, level.tileSize.x, level.tileSize.y), color); 
 		}
 
 
 		foreach(ref enemy; enemies)
 		{
-			float2 position = path.position(enemy.distance);
+			float2 position = level.path.position(enemy.distance);
 			float2 origin = float2(enemy.frame.width/2, enemy.frame.height/2);
 			Game.renderer.addFrame(enemy.frame, float4(position.x, 
 												 position.y,
@@ -558,7 +426,7 @@ class GamePlayState : IGameState
 		foreach(status; statuses)
 		{
 			auto enemy = enemies[status.targetIndex];
-			auto pos = path.position(enemy.distance);
+			auto pos = level.path.position(enemy.distance);
 			switch(status.type) with (ElementType)
 			{
 				case ice:
@@ -599,7 +467,8 @@ class GamePlayState : IGameState
 		auto selectionFrame = Frame(selectionTexture);
 		foreach(selection; selections) 
 		{
-			Game.renderer.addFrame(selectionFrame, float4(selection.x * tileSize.x, selection.y * tileSize.y, tileSize.x, tileSize.y), Color(0x55FF0000)); 
+			Game.renderer.addFrame(selectionFrame, 
+						float4(selection.x * level.tileSize.x, selection.y * level.tileSize.y, level.tileSize.x, level.tileSize.y), Color(0x55FF0000)); 
 		}
 
 		auto coneTexture = Game.content.loadTexture("cone");
@@ -608,12 +477,12 @@ class GamePlayState : IGameState
 		{		
 			if ( tower.cTower.elapsed < tower.cTower.activeTime)
 			{
-				auto index = findNearestReachableEnemy(tower.pixelPos(tileSize), tower.range);
+				auto index = findNearestReachableEnemy(tower.pixelPos(level.tileSize), tower.range);
 				if (index != -1)
 				{
 
 					Color color;
-					final switch(statusPrototypes[tower.cTower.statusIndex].type) with (ElementType)
+					final switch(level.statusPrototypes[tower.cTower.statusIndex].type) with (ElementType)
 					{
 						case fire: color = Color(0xFF3366FF); break;
 						case water: color = Color.blue; break;
@@ -622,8 +491,8 @@ class GamePlayState : IGameState
 						case wind: color = Color(0xFFCCCCCC); break;
 						case nature: color = Color.green; break;
 					}
-					auto towerPos = tower.pixelPos(tileSize),
-						 enemyPos = path.position(enemies[index].distance);
+					auto towerPos = tower.pixelPos(level.tileSize),
+						 enemyPos = level.path.position(enemies[index].distance);
 					auto polar = (enemyPos - towerPos).toPolar;
 					auto angle = polar.angle;
 					auto origin = float2(0, coneFrame.height/2);
@@ -636,9 +505,8 @@ class GamePlayState : IGameState
 
 	void spawnProjectile(int enemyIndex, Tower tower)
 	{
-		Projectile projectile = projectilePrototypes[tower.pTower.projectileIndex];
-		projectile.target = enemyIndex;
-		projectile.position = tower.pixelPos(tileSize);
+		Projectile projectile = Projectile(level.projectilePrototypes[tower.pTower.projectileIndex], 
+										   tower.pixelPos(level.tileSize), enemyIndex);
 		projectiles ~= projectile;
 	}
 
@@ -653,8 +521,8 @@ class GamePlayState : IGameState
 
 		if((projectile.type & ProjectileType.splash) == ProjectileType.splash)
 		{
-			immutable radius = tileSize.x * 3;
-			foreach(i, ref enemy; enemies) if(distanceSquared(path.position(enemy.distance), projectile.position) < radius * radius)
+			immutable radius = level.tileSize.x * 3;
+			foreach(i, ref enemy; enemies) if(distanceSquared(level.path.position(enemy.distance), projectile.position) < radius * radius)
 			{
 				enemy.health -= projectile.attackDmg;
 				addStatus(projectile.statusIndex, i);
@@ -664,8 +532,7 @@ class GamePlayState : IGameState
 
 	void addStatus(uint statusIndex, uint enemyIndex)
 	{
-		auto status = statusPrototypes[statusIndex];
-		status.targetIndex = enemyIndex;
+		auto status = Status(level.statusPrototypes[statusIndex], enemyIndex);
 		auto index = statuses.countUntil!((x) => x.targetIndex == enemyIndex);
 		if (index == -1) {
 			applyStatus(status);
@@ -706,7 +573,11 @@ class GamePlayState : IGameState
 				if (currentStatus.type == ElementType.wind)
 					statuses[currentStatusIndex].elapsed = 0;
 				else
+				{
+					statusEnd(currentStatus);
+					statuses.removeAt(currentStatusIndex);
 					applyStatus(status);
+				}
 				break;
 			case fire:
 				switch(currentStatus.type)
@@ -809,13 +680,12 @@ class GamePlayState : IGameState
 
 	void buildTower(uint2 pos, ubyte type) 
 	{
-		Tower tower = towerPrototypes[type - 2];
-		tower.position = pos;
+		Tower tower = Tower(level.towerPrototypes[type - 2], pos);
 		towers ~= tower;
 		foreach(player; Game.players)
 			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, type));
 
-		tileMap[pos] = cast(TileType)type;
+		level.tileMap[pos] = cast(TileType)type;
 	}
 
 	void gameOver()

@@ -56,6 +56,24 @@ struct OptionalStruct(T)
 	this(T)(T t) { defaultValue = t; }
 }
 
+auto Convert(alias F)()
+{
+	return ConvertStruct!(ReturnType!F, ParameterTypeTuple!F)(&F);
+}
+
+struct ConvertStruct(R, T)
+{
+	alias argType = T;
+	alias returnType = R;
+
+	R function(T) convert;
+
+	this(R function(T) converter)
+	{
+		this.convert = converter;
+	}
+}
+
 struct SDLIterator
 {
     SDLContainer* over;
@@ -329,25 +347,50 @@ struct SDLIterator
 			enum member = memberName!(toReturn.tupleof[i].stringof);
 
 			alias fieldType = typeof(toReturn.tupleof[i]);
-			alias attributeType = typeof(__traits(getAttributes, toReturn.tupleof[i]));
+			alias attributeTypes = typeof(__traits(getAttributes, toReturn.tupleof[i]));
+			static if (attributeTypes.length >= 1) 
+				alias attributeType = attributeTypes[0];
+			else
+				alias attributeType = void;
 			//  Can only traverse the tree downwards
 			//  So we need to save this index to not
 			//  get lost.
 			auto firstIndex = currentIndex;
 			//Did the field have an attribute?
 			static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) {
-				static if(is(attributeType == Unpack!(OptionalStruct!fieldType))) {
-					try {
-						goToNext!member; //Changes the index to point to the member we want.
-						 static if(isArray!fieldType || is(fieldType f == List!E, E)) {
-							toReturn.tupleof[i] = as!fieldType(a);
-						} else {
-							toReturn.tupleof[i] = as!fieldType;
+				static if(is(attributeType == OptionalStruct!fieldType)) {
+					static if(is(attributeType == OptionalStruct!fieldType)) {
+						bool thrown = false;
+						try {
+							goToNext!member; //Changes the index to point to the member we want.
+						} catch (ObjectNotFoundException a) {
+							//Set the field to the default value contained in the attribute.
+							thrown = true;
 						}
-					} catch (ObjectNotFoundException e) {
-						//Set the field to the default value contained in the attribute.
-						toReturn.tupleof[i] = __traits(getAttributes, toReturn.tupleof[i])[0].defaultValue;
+						if (thrown)
+						{
+							toReturn.tupleof[i] = 
+								__traits(getAttributes, toReturn.tupleof[i])[0].defaultValue;
+						}
+						else
+						{
+							static if (NeedsAllocator!fieldType)
+								toReturn.tupleof[i] = as!fieldType(a);
+							else
+								toReturn.tupleof[i] = as!fieldType;
+						}
 					}
+				} else static if(is(attributeType at == ConvertStruct!(R, A), R, A)) {
+					goToNext!member;
+					static assert(is(at.returnType : fieldType), 
+								  "Incorrect returntype for convert function." ~
+						" Should be "~at.returnType.stringof~" was "~fieldType.stringof);
+					static if (NeedsAllocator!(at.argType))
+						at.argType item = as!(at.argType)(a);
+					else
+						at.argType item = as!(at.argType);
+					toReturn.tupleof[i] = 
+						__traits(getAttributes, toReturn.tupleof[i])[0].convert(item);
 				} else {
 					static assert(0, "Field type mismatch: \n Field "
 						   ~member~" was of type "~fieldType.stringof~
@@ -363,7 +406,7 @@ struct SDLIterator
 			}
 			// We want to search the whole object for every name.
 			currentIndex = firstIndex;
-        }
+		}
         return toReturn;
 	}
 
@@ -372,39 +415,73 @@ struct SDLIterator
         goToChild();
         T toReturn;
 
-        foreach(i, dummy; toReturn.tupleof) {
+        foreach(i, dummy; toReturn.tupleof) 
+		{
 			enum member = memberName!(toReturn.tupleof[i].stringof);
 			alias fieldType = typeof(toReturn.tupleof[i]);
 			//We need to be able to assign to it.
-			alias attributeType = typeof(__traits(getAttributes, toReturn.tupleof[i]));
-			static if(isArray!fieldType) {
+			alias attributeTypes = typeof(__traits(getAttributes, toReturn.tupleof[i]));
+			static if (attributeTypes.length >= 1) 
+				alias attributeType = attributeTypes[0];
+			else
+				alias attributeType = void;
+			static if(isArray!fieldType) 
 				static assert(0, "Structs cotaining arrays need an allocator to be parsed.\n"~
 						"Field "~member~" was an array, and prevented parsing.");
-			} else static if(is(fieldType f == List!E, E)) {
+			else static if(is(fieldType f == List!E, E))
 				static assert(0, "Structs cotaining lists need an allocator to be parsed.\n"~
 						"Field "~member~" was a list, and prevented parsing.");
-			} else {
+			else 
+			{
 				//  Can only traverse the tree downwards
 				//  So we need to save this index to not
 				//  get lost.
 				auto firstIndex = currentIndex;
 				//Did the field have an attribute?
-				static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) {
-					static if(is(attributeType == Unpack!(OptionalStruct!fieldType))) {
-						try {
+				static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) 
+				{
+					static if(is(attributeType == OptionalStruct!fieldType)) 
+					{
+						bool thrown = false;
+						try 
+						{
 							goToNext!member; //Changes the index to point to the member we want.
-							toReturn.tupleof[i] = as!fieldType;
-						} catch (ObjectNotFoundException a) {
+						} 
+						catch (ObjectNotFoundException a) 
+						{
 							//Set the field to the default value contained in the attribute.
+							thrown = true;
+						}
+						
+						if (thrown)
 							toReturn.tupleof[i] = 
 								__traits(getAttributes, toReturn.tupleof[i])[0].defaultValue;
-						}
-					} else {
+						else
+							toReturn.tupleof[i] = as!fieldType;						
+	  				} 
+					else static if(is(attributeType at == ConvertStruct!(R, A), R, A)) 
+					{
+						goToNext!member;
+						static assert(is(at.returnType : fieldType), 
+									  "Incorrect returntype for convert function." ~
+									  " Should be "~at.returnType.stringof~" was "~fieldType.stringof);
+						static if (NeedsAllocator!(at.argType))
+							static assert(0, "Convertible field of type "~at.argType.stringof~
+										  " needs an allocator to be parsed.");
+						else
+							at.argType item = as!(at.argType);
+					
+						toReturn.tupleof[i] = __traits(getAttributes, toReturn.tupleof[i])[0].convert(item);
+					} 
+					else 
+					{
 						static assert(0, "Field type mismatch: \n Field "
 							   ~member~" was of type "~fieldType.stringof~
 							   ", attribute was of type "~attributeType.stringof);
 					}
-				} else {
+				} 
+				else 
+				{
 						goToNext!member;
 						import std.conv;
 						toReturn.tupleof[i] = as!fieldType;
@@ -416,10 +493,6 @@ struct SDLIterator
         return toReturn;
 	}
 
-	private template Unpack(T...)
-	{
-		alias Unpack = T;
-	}
 
     ref SDLIterator opIndex(size_t index)
     {
@@ -1673,4 +1746,60 @@ freeColor=0";
 			assertEquals(obj.teststring.as!string(alloc2), "nowhitespace");
 		}
 	}
+
+	@Test void testConversion()
+	{
+		import graphics;
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		struct TestStruct
+		{
+			@Convert!cFun() Color color;
+		}
+		auto obj = fromSDL(app, "color = 0xFF0000FF");
+		assertEquals(obj.as!TestStruct, TestStruct(Color.red));
+	}
+
+	@Test void testConversionString()
+	{
+		import graphics;
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		struct TestStruct
+		{
+			@Convert!cFun2() int str;
+		}
+		auto obj = fromSDL(app, "str = |asdf4|");
+		assertEquals(obj.as!TestStruct(GC.it), TestStruct(5));
+	}
+
+	@Test void testConversionStruct()
+	{
+		import graphics;
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+
+		struct TestStruct
+		{
+			@Convert!cFun3() TestStruct2 str;
+			@Convert!cFun3() TestStruct2 str2;
+		}
+		auto obj = fromSDL(app, "str = |asdf4| str2 = |asdf6|");
+		assertEquals(obj.as!TestStruct(GC.it), TestStruct(TestStruct2(1,2), TestStruct2(1,2)));
+	}
+}
+
+version(unittest) {		
+	struct TestStruct2
+	{
+		int x, y;
+	}
+	//Global testing functions
+	import graphics.color;
+	Color cFun(uint c) { return Color(c); }
+	int cFun2(string s) { return s.length; }
+	TestStruct2 cFun3(string s) { return TestStruct2(1,2); }
 }

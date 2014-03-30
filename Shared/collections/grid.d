@@ -9,6 +9,7 @@ struct Grid(T)
 
 	this(Allocator)(ref Allocator allocator, uint width, uint height)
 	{
+		import allocation;
 		this.buffer = allocator.allocate!(T[])(height * width).ptr;
 		this.width  = width;
 		this.height = height;
@@ -69,5 +70,4 @@ struct Grid(T)
 	}
 
 
-	@disable this(this);
 }
