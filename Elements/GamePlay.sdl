@@ -49,6 +49,7 @@ projectilePrototypes = [
 ]
 
 towerPrototypes = [
+	{ range = 200 type = interaction cost = 0},
 	{ range = 100 type = cone	cost = 0
 			cTower = { width = 1 dps = 20 statusIndex = 0 
 					 reactivationTime = 4 activeTime = 2.5}},

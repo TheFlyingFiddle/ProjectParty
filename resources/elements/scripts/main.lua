@@ -1,10 +1,3 @@
-Network.messages.map= 50
-Network.messages.towerRequest = 51
-Network.messages.towerBuilt = 52
-Network.messages.selectRequest = 53
-Network.messages.deselect = 54
-Network.messages.mapRequest = 55
-
 assets = {}
 
 function init()
@@ -31,6 +24,7 @@ function init()
     fsm = FSM()
     fsm:addState(Elements(), "Elements")
     fsm:addState(ElementSelection(), "ElementSelection")
+    fsm:addState(Slingshot(), "Slingshot")
     fsm:enterState("ElementSelection")
 end
 
