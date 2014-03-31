@@ -21,11 +21,15 @@ class GamePlayState : IGameState
 	List!Status statuses;
 	List!uint2 selections;
 
+	List!Boulder boulders;
+
 	this(A)(ref A allocator, string configFile)
 	{
 		enemies = List!Enemy(allocator, 100);
 
 		statuses = List!Status(allocator, 1000);
+
+		boulders = List!Boulder(allocator, 1000);
 
 		lifeTotal = 1000;
 		projectiles = List!Projectile(allocator, 10000);
@@ -86,7 +90,7 @@ class GamePlayState : IGameState
 			mapmsg.height = level.tileMap.height;
 			mapmsg.tiles = cast (ubyte[])level.tileMap.buffer[0 .. level.tileMap.width * level.tileMap.height];
 			Game.server.sendMessage(playerId, mapmsg);
-		} else if (id == IncomingMessages.towerEnter) {
+		} else if (id == IncomingMessages.towerEntered) {
 			auto x = msg.read!uint;
 			auto y = msg.read!uint;
 
@@ -98,16 +102,40 @@ class GamePlayState : IGameState
 
 			foreach(player; Game.players) if (player.id != playerId)
 				Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
-		} else if (id == IncomingMessages.slingshotBegin) {
+		} else if (id == IncomingMessages.slingshotStart) {
 			auto x = msg.read!uint;
 			auto y = msg.read!uint;
 			auto startPos = float2(msg.read!(float), msg.read!(float));
 
-			auto index = towers.countUntil!(x => x.position == uint2(x,y));
+			auto index = towers.countUntil!(t => t.position == uint2(x,y));
 
 			if(index != -1) {
 				towers[index].sTower.startPos = startPos;
 				towers[index].sTower.endPos = startPos;
+			}
+		} else if (id == IncomingMessages.slingshotUpdate) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+			auto endPos = float2(msg.read!(float), msg.read!(float));
+
+			auto index = towers.countUntil!(t => t.position == uint2(x,y));
+
+			if(index != -1) {
+				towers[index].sTower.endPos = endPos;
+			}
+		} else if (id == IncomingMessages.slingshotEnd) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+			auto index = towers.countUntil!(t => t.position == uint2(x,y));
+
+			if(index != -1) {
+				auto diff = towers[index].sTower.startPos - towers[index].sTower.endPos;
+				auto polar = diff.toPolar();
+				if(polar.magnitude > 100 && polar.magnitude < 200)
+				{
+					auto boulder = Boulder(50, towers[index].pixelPos(level.tileSize), towers[index].sTower.startPos - towers[index].sTower.endPos, 50);
+					boulders ~= boulder;
+				}
 			}
 		}
 	}
@@ -124,7 +152,23 @@ class GamePlayState : IGameState
 		updateEnemies();
 		updateTowers();
 		updateProjectiles();
+		updateBoulders();
 		killEnemies();
+	}
+
+	void updateBoulders()
+	{
+		for(int i = boulders.length - 1; i >= 0; --i)
+		{
+			boulders[i].position += boulders[i].velocity * Time.delta;
+			auto index = enemies.countUntil!(x => distance(level.path.position(x.distance),
+					boulders[i].position) < boulders[i].radius);
+			if (index != -1)
+			{
+				enemies[index].health -= boulders[i].attackDmg;
+				boulders.removeAt(i);
+			}
+		}
 	}
 
 	void updateWave()
@@ -529,6 +573,15 @@ class GamePlayState : IGameState
 							color, float2(tower.range, coneFrame.height), origin, angle);
 				}
 			}
+		}
+
+		auto boulderTex = Game.content.loadTexture("baws");
+		auto boulderFrame = Frame(boulderTex);
+
+		foreach(boulder; boulders)
+		{
+			Game.renderer.addFrame(boulderFrame, boulder.position, 
+					Color.white, float2(boulderFrame.width, boulderFrame.height), float2(boulderFrame.width/2, boulderFrame.height/2), 4*Time.total);
 		}
 	}
 

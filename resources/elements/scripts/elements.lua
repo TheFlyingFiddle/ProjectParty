@@ -303,10 +303,10 @@ function Elements()
 		end
 	end
 	function elements.onTap(x,y)
-		local cellIndex = toGridPos(x,y)
+		local cellIndex = toGridPos(vec2(x,y))
 
 		if map.tiles[cellIndex.y * map.width + cellIndex.x] == 2 then
-			fsm:enterState("Slingshot")
+			fsm:enterState("Slingshot", cellIndex.x, cellIndex.y)
 		end
 
 		state.active.onTap(vec2(x,y))

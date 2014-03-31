@@ -12,7 +12,7 @@ function Slingshot()
 	end
 
 	function t.update()
-
+		Network.send()
 	end
 
 	function t.render()

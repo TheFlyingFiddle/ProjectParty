@@ -506,3 +506,11 @@ struct Projectile
 		this.target = target;
 	}
 }
+
+struct Boulder
+{
+	float attackDmg;
+	float2 position;
+	float2 velocity;
+	float radius;
+}
