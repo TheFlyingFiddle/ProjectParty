@@ -215,6 +215,9 @@ end
 function Elements()
 	local elements = {}
 	function elements.enter(item1, item2, item3)
+		log(tostring(Network.outgoing.mapRequest))
+		Network.send()
+
 		sendMapRequestMessage()
 		state = FSM()
 		state:addState(Idle(), "Idle")
@@ -271,23 +274,23 @@ function Elements()
 		Network.send()
 	end
 	function elements.handleMessage(id, length)
-		if id == Network.messages.map then
+		if id == Network.incoming.map then
 			map = {}
 			map.width = In.readInt()
 			map.height = In.readInt()
 			map.tiles = In.readByteArray() 
-		elseif id == Network.messages.towerBuilt then
+		elseif id == Network.incoming.towerBuilt then
 			local x = In.readInt()
 			local y = In.readInt()
 			local type = In.readByte()
 			map.tiles[y*map.width + x] = type
-		elseif id == Network.messages.selectRequest then
+		elseif id == Network.incoming.selectRequest then
 			local rx = In.readInt()
 			local ry = In.readInt()
 			local rcolor = In.readInt()
 
 			selections[#selections + 1] = {x = rx, y = ry, color = rcolor} 
-		elseif id == Network.messages.deselect then
+		elseif id == Network.incoming.deselect then
 			local rx = In.readInt()
 			local ry = In.readInt()
 
@@ -300,6 +303,12 @@ function Elements()
 		end
 	end
 	function elements.onTap(x,y)
+		local cellIndex = toGridPos(x,y)
+
+		if map.tiles[cellIndex.y * map.width + cellIndex.x] == 2 then
+			fsm:enterState("Slingshot")
+		end
+
 		state.active.onTap(vec2(x,y))
 	end
 

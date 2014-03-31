@@ -7,7 +7,7 @@ import allocation;
 
 struct MapMessage
 {
-	enum ubyte id = ElementsMessages.map;
+	enum ubyte id = OutgoingMessages.map;
 	enum maxSize = 8192;
 	uint width;
 	uint height;
@@ -16,31 +16,56 @@ struct MapMessage
 
 struct SelectedMessage 
 {
-	enum ubyte id = ElementsMessages.selectRequest;
+	enum ubyte id = OutgoingMessages.selected;
 	uint x, y, color;
 }
 
 struct DeselectedMessage 
 {
-	enum ubyte id = ElementsMessages.deselect;
+	enum ubyte id = OutgoingMessages.deselected;
 	uint x, y;
 }
 
 struct TowerBuiltMessage
 {
-	enum ubyte id = ElementsMessages.towerBuilt;
+	enum ubyte id = OutgoingMessages.towerBuilt;
 	uint x, y;
 	ubyte towerType;
 }
 
-enum ElementsMessages : ubyte
+struct TowerEnteredMessage
+{
+	enum ubyte id = OutgoingMessages.towerEntered;
+	uint x, y;
+}
+
+struct TowerExitedMessage
+{
+	enum ubyte id = OutgoingMessages.towerExited;
+	uint x, y;
+}
+
+enum IncomingMessages : ubyte
+{
+	towerRequest = 50,
+	selectRequest = 51,
+	deselect = 52,
+	mapRequest = 53,
+	slingshotStart = 54,
+	slingshotUpdate = 55,
+	slingshotEnd = 56,
+	towerEntered = 57,
+	towerExited = 58
+}
+
+enum OutgoingMessages : ubyte
 {
 	map = 50,
-	towerRequest = 51,
-	towerBuilt = 52,
-	selectRequest = 53,
-	deselect = 54,
-	mapRequest = 55
+	towerBuilt = 51,
+	selected = 52,
+	deselected = 53,
+	towerEntered = 54,
+	towerExited = 55
 }
 
 enum TileType : ubyte
@@ -52,7 +77,8 @@ enum TileType : ubyte
 	iceTower = 4,
 	lightningTower = 5,
 	windTower = 6,
-	natureTower = 7
+	natureTower = 7,
+	slingshotTower = 8
 }
 
 enum ElementType
@@ -132,6 +158,7 @@ struct TowerPrototype
 	@Optional(ProjectileTower()) ProjectileTower pTower;
 	@Optional(ConeTower()) ConeTower cTower;
 	@Optional(EffectTower()) EffectTower eTower;
+	@Optional(SlingshotTower()) SlingshotTower sTower;
 }
 
 
@@ -375,7 +402,8 @@ enum TowerType
 {
 	projectile = 0,
 	cone = 1,
-	effect = 2
+	effect = 2,
+	interaction = 3
 }
 
 struct ProjectileTower
@@ -403,6 +431,12 @@ struct EffectTower
 	float damage;
 }
 
+struct SlingshotTower
+{
+	float2 startPos;
+	float2 endPos;
+}
+
 struct Tower
 {
 	float range;
@@ -416,6 +450,7 @@ struct Tower
 		ProjectileTower pTower;
 		ConeTower cTower;
 		EffectTower eTower;
+		SlingshotTower sTower;
 	}
 
 	this(TowerPrototype prefab, uint2 position)
@@ -434,6 +469,8 @@ struct Tower
 				break;
 			case effect:
 				this.eTower = prefab.eTower;
+				break;
+			case interaction:
 				break;
 		}
 	}

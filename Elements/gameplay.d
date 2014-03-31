@@ -27,7 +27,7 @@ class GamePlayState : IGameState
 
 		statuses = List!Status(allocator, 1000);
 
-		lifeTotal = 50;
+		lifeTotal = 1000;
 		projectiles = List!Projectile(allocator, 10000);
 		towers = List!Tower(allocator, 1000);
 		selections = List!uint2(allocator, 10);
@@ -54,7 +54,7 @@ class GamePlayState : IGameState
 	{
 		import util.bitmanip;
 		auto id = msg.read!ubyte;
-		if (id == ElementsMessages.towerRequest) {
+		if (id == IncomingMessages.towerRequest) {
 			auto x = msg.read!uint;
 			auto y = msg.read!uint;
 			auto type = msg.read!ubyte;
@@ -62,7 +62,7 @@ class GamePlayState : IGameState
 					towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
 				buildTower(uint2(x,y), type);
 			}
-		} else if (id == ElementsMessages.selectRequest) {
+		} else if (id == IncomingMessages.selectRequest) {
 			auto x = msg.read!uint;
 			auto y = msg.read!uint;
 			auto index = selections.countUntil!(s=> s == uint2(x, y));
@@ -73,19 +73,42 @@ class GamePlayState : IGameState
 
 				selections ~= uint2(x,y);
 			}
-		} else if (id == ElementsMessages.deselect) {
+		} else if (id == IncomingMessages.deselect) {
 			auto x = msg.read!uint;
 			auto y = msg.read!uint;
 			selections.remove(uint2(x,y));
 
 			foreach(player ; Game.players) if (player.id != playerId) 
 				Game.server.sendMessage(player.id, DeselectedMessage(x, y));
-		} else if (id == ElementsMessages.mapRequest) {
+		} else if (id == IncomingMessages.mapRequest) {
 			MapMessage mapmsg;
 			mapmsg.width = level.tileMap.width;
 			mapmsg.height = level.tileMap.height;
 			mapmsg.tiles = cast (ubyte[])level.tileMap.buffer[0 .. level.tileMap.width * level.tileMap.height];
 			Game.server.sendMessage(playerId, mapmsg);
+		} else if (id == IncomingMessages.towerEnter) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+
+			foreach(player; Game.players) if (player.id != playerId)
+				Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
+		} else if (id == IncomingMessages.towerExited) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+
+			foreach(player; Game.players) if (player.id != playerId)
+				Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
+		} else if (id == IncomingMessages.slingshotBegin) {
+			auto x = msg.read!uint;
+			auto y = msg.read!uint;
+			auto startPos = float2(msg.read!(float), msg.read!(float));
+
+			auto index = towers.countUntil!(x => x.position == uint2(x,y));
+
+			if(index != -1) {
+				towers[index].sTower.startPos = startPos;
+				towers[index].sTower.endPos = startPos;
+			}
 		}
 	}
 
@@ -169,6 +192,8 @@ class GamePlayState : IGameState
 					break;
 				case effect:
 					updateETower(tower);
+					break;
+				case interaction:
 					break;
 			}
 		}
@@ -386,20 +411,24 @@ class GamePlayState : IGameState
 				case effect:
 					towerTexture = Game.content.loadTexture("tower_effect");
 					break;
+				case interaction:
+					towerTexture = Game.content.loadTexture("slingshot");
+					break;
 			}
 			auto towerFrame = Frame(towerTexture);
 
 			Color color;
 			final switch(item) with (TileType)
 			{
-				case buildable: color = Color.green; break;
-				case nonbuildable: color = Color.white; break;
-				case fireTower: color = Color(0xFF3366FF); break;
-				case waterTower: color = Color.blue; break;
-				case iceTower: color = Color(0xFFFFCC66); break;
+				case buildable:      color = Color.green; break;
+				case nonbuildable:   color = Color.white; break;
+				case fireTower:      color = Color(0xFF3366FF); break;
+				case waterTower:     color = Color.blue; break;
+				case iceTower:       color = Color(0xFFFFCC66); break;
 				case lightningTower: color = Color(0xFF00FFFF); break;
-				case windTower: color = Color(0xFFCCCCCC); break;
-				case natureTower: color = Color.green; break;
+				case windTower:      color = Color(0xFFCCCCCC); break;
+				case natureTower:    color = Color.green; break;
+				case slingshotTower: color = Color(0xFFAC838A); break;
 			}
 
 			Game.renderer.addFrame(towerFrame,float4(cell.x * level.tileSize.x, 
