@@ -40,6 +40,7 @@ class GamePlayState : IGameState
 		VentInstance.prototypes = level.ventPrototypes;
 		
 		ventController.instances ~= VentInstance(float2(100,100), 0);
+		level.tileMap[ventController.instances[0].cell(level.tileSize)] = cast(TileType)2;
 	}
 
 	void enter()
@@ -50,7 +51,7 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.towerEntered, &handleTowerEntered);
 		Game.router.setMessageHandler(IncomingMessages.towerExited, &handleTowerExited);
 		Game.router.setMessageHandler(IncomingMessages.deselect, &handleDeselect);
-
+		Game.router.setMessageHandler(IncomingMessages.ventValue, &handleVentValue);
 	}
 
 	void handleTowerRequest(ulong id, ubyte[] msg)
@@ -58,10 +59,23 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
 		auto type = msg.read!ubyte;
-		if (level.tileMap[uint2(x,y)] == TileType.buildable  ) { //&&
-			//towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
-			//buildTower(uint2(x,y), type);
+		auto typeIndex = msg.read!ubyte;
+		if (level.tileMap[uint2(x,y)] == TileType.buildable) {
+			buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
+							  y * level.tileSize.y + level.tileSize.y / 2), 
+						type, typeIndex);
+			level.tileMap[uint2(x,y)] = cast(TileType) type;
+
+			foreach(player; Game.players)
+			{
+				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type));
+			}
 		}
+	}
+
+	void buildTower(float2 position, ubyte towerType, ubyte towerTypeIndex)
+	{
+		ventController.instances ~= VentInstance(position, towerTypeIndex);
 	}
 
 	void handleTowerEntered(ulong id, ubyte[] msg)
@@ -114,6 +128,19 @@ class GamePlayState : IGameState
 
 		foreach(player ; Game.players) if (player.id != id) 
 			Game.server.sendMessage(player.id, DeselectedMessage(x, y));
+	}
+
+	void handleVentValue(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto value = msg.read!float;
+
+		auto index = ventController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			ventController.instances[index].open = value;
+		}
 	}
 
 	void exit()
@@ -257,7 +284,7 @@ class GamePlayState : IGameState
 						float4(selection.x * level.tileSize.x, selection.y * level.tileSize.y, level.tileSize.x, level.tileSize.y), Color(0x55FF0000)); 
 		}
 
-		ventController.render(Game.renderer);
+		ventController.render(Game.renderer, float2(level.tileSize));
 	}
 
 	void killEnemies()

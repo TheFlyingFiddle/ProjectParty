@@ -1,4 +1,3 @@
-local sensorNetworkID = 1
 
 local map
 local tilesize = 40
@@ -87,15 +86,17 @@ local function Idle()
 	local t = { draw = function() end}
 	function t.onTap(pos)
 		local gridPos = toGridPos(pos)
-		if map.tiles[gridPos.y * map.width + gridPos.x] == 0 then
+		local tileType = map.tiles[gridPos.y * map.width + gridPos.x]
+		if tileType == 0 then
 			for i = 1, #selections, 1 do
 				if gridPos.x == selections[i].x and gridPos.y == selections[i].y then
 					return
 				end
 			end
-
 			sendSelectionMessage(gridPos)
 			state:enterState("Selected", gridPos)
+		elseif tileType == 2 then
+			fsm:enterState("Vent", gridPos.x, gridPos.y)
 		end
 	end
 
@@ -214,20 +215,17 @@ end
 
 function Elements()
 	local elements = {}
-	function elements.enter(item1, item2, item3)
-		log(tostring(Network.outgoing.mapRequest))
-		Network.send()
-
+	function elements.enter()
+		state:enterState("Idle")
+	end
+	function elements.init(item1, item2, item3)
 		sendMapRequestMessage()
 		state = FSM()
 		state:addState(Idle(), "Idle")
 		state:addState(Selected(item1, item2, item3), "Selected")
 		state:addState(Confirm(), "Confirm")
-		state:enterState("Idle")
-		--score = 0
 	end
 	function elements.exit()
-		Loader.unloadFont(font)
 	end
 	function elements.render()
 		--local scoreStr = string.format("Score: %d", score)
@@ -260,18 +258,7 @@ function Elements()
 		state.active.draw()
 	end
 	function elements.update()
-		updateTime()
 
-		if useButtons then
-			--Send le buttons
-		else
-			Out.writeShort(25)
-			Out.writeByte(sensorNetworkID)
-			Out.writeVec3(Sensors.acceleration)
-			Out.writeVec3(Sensors.gyroscope)
-		end
-
-		Network.send()
 	end
 	function elements.handleMessage(id, length)
 		if id == Network.incoming.map then
@@ -303,11 +290,6 @@ function Elements()
 		end
 	end
 	function elements.onTap(x,y)
-		local cellIndex = toGridPos(vec2(x,y))
-
-		if map.tiles[cellIndex.y * map.width + cellIndex.x] == 2 then
-			fsm:enterState("Slingshot", cellIndex.x, cellIndex.y)
-		end
 
 		state.active.onTap(vec2(x,y))
 	end

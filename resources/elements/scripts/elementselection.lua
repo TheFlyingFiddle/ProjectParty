@@ -50,12 +50,9 @@ function ElementSelection()
 		end
 	end
 	function t.onTap(x, y)
-		log("ONTAP")
-		Network.send()
 		local position = vec2(x,y)
 		for i=1, #elements, 1 do
 			if pointInRect(elements[i].area, position) then
-			Network.send()
 				if not selected1 then
 					selected1 = elements[i].item
 					elements[i].area.pos = vec2(Screen.width/2 - size - 60 - size/2, Screen.height/2)
@@ -71,7 +68,8 @@ function ElementSelection()
 		if selected1 and selected2 and selected3 then
 			local pos = vec2(Screen.width/2 - 100, Screen.height/2 - (size+20)/2 - 40)
 			if pointInRect(Rect(pos, vec2(200, 100)), position) then
-				fsm:enterState("Elements", selected1, selected2, selected3)
+				fsm.Elements.init(selected1, selected2, selected3)
+				fsm:enterState("Elements")
 			end
 		end
 

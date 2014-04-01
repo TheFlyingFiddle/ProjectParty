@@ -1,7 +1,7 @@
 assets = {}
 
 function init()
-	font  			= Loader.loadFont("fonts/SegoeUILight72.fnt")
+	font  			= Loader.loadFont("fonts/Segoe54.fnt")
 	pixel 			= Loader.loadFrame("textures/pixel.png")
 	circle 			= Loader.loadFrame("textures/circle.png")
 	ring 			= Loader.loadFrame("textures/ring.png")
@@ -24,7 +24,7 @@ function init()
     fsm = FSM()
     fsm:addState(Elements(), "Elements")
     fsm:addState(ElementSelection(), "ElementSelection")
-    fsm:addState(Slingshot(), "Slingshot")
+    fsm:addState(Vent(), "Vent")
     fsm:enterState("ElementSelection")
 end
 
@@ -32,21 +32,30 @@ function term()
 end
 
 function handleMessage(id, length)
-		log(string.format("Got a netowrk message id=%d len=%d", id, length))
-		Network.send()
 	if id == Network.messages.transition then
 		s = In.readUTF8()
 		fsm:enterState(s)
 	end
 	if fsm.active.handleMessage then 
-		log("Sending message to active state")
-		Network.send()
 		fsm.active.handleMessage(id, length) 
 	end
 end
 
 function update()
 	if fsm.active.update then fsm.active.update() end
+
+	Network.sendElapsed = Network.sendElapsed + Time.elapsed
+	if Network.sendElapsed > Network.sendRate then
+		Out.writeShort(25)
+		Out.writeByte(Network.outgoing.sensor)
+		Out.writeVec3(Sensors.acceleration)
+		Out.writeVec3(Sensors.gyroscope)
+
+		Network.send()
+
+		Network.sendElapsed = 0
+	end
+
 end
 
 function render()
@@ -84,14 +93,12 @@ function onDragEnd(x, y)
 end
 
 function onPinchBegin(x0, y0, x1, y1)
-	Network.send()
 	if fsm.active.onPinchBegin then
 		fsm.active.onPinchBegin(x0,y0, x1, x1)
 	end
 end
 
 function onPinch(x0, y0, x1, y1)
-	Network.send()
 	if fsm.active.onPinch then
 		fsm.active.onPinch(x0, y0, x1, y1)
 	end

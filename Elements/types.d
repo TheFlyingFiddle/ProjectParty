@@ -53,7 +53,8 @@ enum IncomingMessages : ubyte
 	deselect = 52,
 	mapRequest = 53,
 	towerEntered = 54,
-	towerExited = 55
+	towerExited = 55,
+	ventValue = 56
 }
 
 enum OutgoingMessages : ubyte
@@ -70,12 +71,7 @@ enum TileType : ubyte
 {
 	buildable = 0,
 	nonbuildable = 1,
-	fireTower = 2,
-	waterTower = 3,
-	iceTower = 4,
-	lightningTower = 5,
-	windTower = 6,
-	natureTower = 7
+	flameVent = 2
 }
 
 struct MapConfig
