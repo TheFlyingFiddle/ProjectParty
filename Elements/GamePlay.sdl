@@ -1,11 +1,13 @@
 tileMap = |..\resources\elements\textures\map2_tiletypes.png|
-tileSize = { x = 40 y = 40 }
+tileSize = { x = 23 y = 23 }
 path =  {
 wayPoints = [ 
-	{ x = 0  y = 8 }, { x = 7 y = 8},  { x = 7 y = 3 }, 
-	{ x = 13 y = 3 }, { x = 13 y = 7}, { x = 17 y = 7},
-	{ x = 17 y = 9 }, { x = 32 y = 9} ]
-	tileSize = { x = 40 y = 40 }
+	{ x = 1  y = 32 }, { x = 1 y = 25},  { x = 23 y = 25 }, 
+	{ x = 23 y = 18 }, { x = 1 y = 18}, { x = 1 y = 1},
+	{ x = 8 y = 1 }, { x = 8 y = 11}, { x = 20 y = 11}, 
+	{ x = 20 y = 1 }, { x = 27 y = 1}, { x = 27 y = 12}
+	]
+	tileSize = { x = 23 y = 23 }
 }
 
 enemyPrototypes = [ { maxHealth = 50	speed = 70	worth = 5	frame = baws },
@@ -49,7 +51,6 @@ projectilePrototypes = [
 ]
 
 towerPrototypes = [
-	{ range = 200 type = interaction cost = 0},
 	{ range = 100 type = cone	cost = 0
 			cTower = { width = 1 dps = 20 statusIndex = 0 
 					 reactivationTime = 4 activeTime = 2.5}},

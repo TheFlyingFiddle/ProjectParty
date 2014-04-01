@@ -19,6 +19,8 @@ struct Router
 	List!DisconnectonHandler disconnectionHandlers;
 	List!MessageHandler messageHandlers;
 
+	MessageHandler[ubyte.max] specificMessageHandlers;
+
 	this(A)(ref A allocator, ref Server server)
 	{
 		enum maxHandlers = 255;
@@ -57,5 +59,15 @@ struct Router
 		//Decode message but not right now. 
 		foreach(handler; messageHandlers)
 			handler(id, mess);
+
+		import util.bitmanip;
+		auto msgid = mess.read!ubyte;
+		if(specificMessageHandlers[msgid] != null)
+			specificMessageHandlers[msgid](id, mess);
+	}
+
+	void setMessageHandler(ubyte messageId, MessageHandler messageHandler)
+	{
+		specificMessageHandlers[messageId] = messageHandler;
 	}
 }

@@ -32,22 +32,22 @@ struct WindowManager
 	static Window create(WindowConfig config)
 	{	
 		if(config.fullScreen) 
-			return create(config.size, null, Monitor.primary, config.blocking);
+			return create(config.size, null, Monitor.primary, config.blocking, config.decorated);
 		else
-			return create(config.size, null, config.blocking);
+			return create(config.size, null, config.blocking, config.decorated);
 	}
 
-	static Window create(uint2 size, const(char)[] title, bool blocking)
+	static Window create(uint2 size, const(char)[] title, bool blocking, bool decorated)
 	{
-		return create(size, title, Monitor(), blocking);
+		return create(size, title, Monitor(), blocking, decorated);
 	}
 
-	static Window create(uint2 size, const(char)[] title, Monitor monitor, bool blocking)
+	static Window create(uint2 size, const(char)[] title, Monitor monitor, bool blocking, bool decorated)
 	{
 		//glfwWindowHint(GLFW_VERSION_MAJOR, 3);
 		//glfwWindowHint(GLFW_VERSION_MINOR, 3);
 		//glfwWindowHint(GLFW_SAMPLES, 16);
-		glfwWindowHint(GLFW_DECORATED, false);
+		glfwWindowHint(GLFW_DECORATED, decorated);
 
 		auto glfwWindow = glfwCreateWindow(size.x, size.y, title.toCString(), monitor._monitor, null);
 		auto window = Window(glfwWindow);
@@ -227,6 +227,7 @@ struct WindowConfig
 	uint2 size;
 	bool fullScreen;
 	bool blocking;
+	bool decorated;
 	//@Optional("Project Party") string title;
 }
 

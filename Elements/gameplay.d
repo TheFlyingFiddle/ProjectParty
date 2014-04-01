@@ -6,6 +6,7 @@ import derelict.freeimage.freeimage, util.strings;
 import game.debuging;
 import types;
 import network.message;
+import util.bitmanip;
 
 
 class GamePlayState : IGameState
@@ -40,104 +41,80 @@ class GamePlayState : IGameState
 		lifeFont = Game.content.loadFont("Blocked72");
 
 		level = fromSDLFile!Level(allocator, configFile);
-
 	}
 
 	void enter()
 	{
-		Game.router.connectionHandlers ~= &connect;
-		Game.router.messageHandlers ~= &handleMessage;
+		Game.router.setMessageHandler(IncomingMessages.towerRequest, &handleTowerRequest);
+		Game.router.setMessageHandler(IncomingMessages.selectRequest, &handleSelectRequest);
+		Game.router.setMessageHandler(IncomingMessages.mapRequest, &handleMapRequest);
+		Game.router.setMessageHandler(IncomingMessages.towerEntered, &handleTowerEntered);
+		Game.router.setMessageHandler(IncomingMessages.towerExited, &handleTowerExited);
+		Game.router.setMessageHandler(IncomingMessages.deselect, &handleDeselect);
+
 	}
 
-	void connect(ulong playerId)
-	{
-
-	}
-	
-	void handleMessage(ulong playerId, ubyte[] msg)
-	{
-		import util.bitmanip;
-		auto id = msg.read!ubyte;
-		if (id == IncomingMessages.towerRequest) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-			auto type = msg.read!ubyte;
-			if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-					towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
-				buildTower(uint2(x,y), type);
-			}
-		} else if (id == IncomingMessages.selectRequest) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-			auto index = selections.countUntil!(s=> s == uint2(x, y));
-
-			if(index == -1) {
-				foreach(player ; Game.players) if (player.id != playerId) 
-					Game.server.sendMessage(player.id, SelectedMessage(x, y, 0x88AACCBB));
-
-				selections ~= uint2(x,y);
-			}
-		} else if (id == IncomingMessages.deselect) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-			selections.remove(uint2(x,y));
-
-			foreach(player ; Game.players) if (player.id != playerId) 
-				Game.server.sendMessage(player.id, DeselectedMessage(x, y));
-		} else if (id == IncomingMessages.mapRequest) {
-			MapMessage mapmsg;
-			mapmsg.width = level.tileMap.width;
-			mapmsg.height = level.tileMap.height;
-			mapmsg.tiles = cast (ubyte[])level.tileMap.buffer[0 .. level.tileMap.width * level.tileMap.height];
-			Game.server.sendMessage(playerId, mapmsg);
-		} else if (id == IncomingMessages.towerEntered) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-
-			foreach(player; Game.players) if (player.id != playerId)
-				Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
-		} else if (id == IncomingMessages.towerExited) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-
-			foreach(player; Game.players) if (player.id != playerId)
-				Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
-		} else if (id == IncomingMessages.slingshotStart) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-			auto startPos = float2(msg.read!(float), msg.read!(float));
-
-			auto index = towers.countUntil!(t => t.position == uint2(x,y));
-
-			if(index != -1) {
-				towers[index].sTower.startPos = startPos;
-				towers[index].sTower.endPos = startPos;
-			}
-		} else if (id == IncomingMessages.slingshotUpdate) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-			auto endPos = float2(msg.read!(float), msg.read!(float));
-
-			auto index = towers.countUntil!(t => t.position == uint2(x,y));
-
-			if(index != -1) {
-				towers[index].sTower.endPos = endPos;
-			}
-		} else if (id == IncomingMessages.slingshotEnd) {
-			auto x = msg.read!uint;
-			auto y = msg.read!uint;
-			auto index = towers.countUntil!(t => t.position == uint2(x,y));
-
-			if(index != -1) {
-				auto diff = towers[index].sTower.startPos - towers[index].sTower.endPos;
-				auto polar = diff.toPolar();
-				if(polar.magnitude > 100 && polar.magnitude < 200)
-				{
-					auto boulder = Boulder(50, towers[index].pixelPos(level.tileSize), towers[index].sTower.startPos - towers[index].sTower.endPos, 50);
-					boulders ~= boulder;
-				}
-			}
+	void handleTowerRequest(ulong id, ubyte[] msg)
+	{			
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto type = msg.read!ubyte;
+		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
+			towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
+			buildTower(uint2(x,y), type);
 		}
+	}
+
+	void handleTowerEntered(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+
+		foreach(player; Game.players) if (player.id != id)
+			Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
+	}
+
+	void handleTowerExited(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+
+		foreach(player; Game.players) if (player.id != id)
+			Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
+	}
+
+
+	void handleMapRequest(ulong id, ubyte[] msg)
+	{
+		MapMessage mapmsg;
+		mapmsg.width = level.tileMap.width;
+		mapmsg.height = level.tileMap.height;
+		mapmsg.tiles = cast (ubyte[])level.tileMap.buffer[0 .. level.tileMap.width * level.tileMap.height];
+		Game.server.sendMessage(id, mapmsg);
+	}
+
+	void handleSelectRequest(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto index = selections.countUntil!(s=> s == uint2(x, y));
+
+		if(index == -1) {
+			foreach(player ; Game.players) if (player.id != id) 
+				Game.server.sendMessage(player.id, SelectedMessage(x, y, 0x88AACCBB));
+
+			selections ~= uint2(x,y);
+		}
+	}
+
+	void handleDeselect(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		selections.remove(uint2(x,y));
+
+		foreach(player ; Game.players) if (player.id != id) 
+			Game.server.sendMessage(player.id, DeselectedMessage(x, y));
 	}
 
 	void exit()
