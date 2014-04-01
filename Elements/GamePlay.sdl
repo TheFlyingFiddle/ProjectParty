@@ -1,4 +1,4 @@
-tileMap = |..\resources\elements\textures\map1.png|
+tileMap = |..\resources\elements\textures\map2_tiletypes.png|
 tileSize = { x = 40 y = 40 }
 path =  {
 wayPoints = [ 

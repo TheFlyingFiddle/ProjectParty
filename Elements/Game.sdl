@@ -20,11 +20,11 @@ windowConfig =
 {
 	size = 
 	{
-		x=1280 
-		y=720
+		x=1920 
+		y=1080
 	}
 
-	fullScreen = false
+	fullScreen = true
 	blocking   = false
 }
 
@@ -53,7 +53,8 @@ resources = [
 { type = texture path = |elements\textures\projectile.png| },
 { type = texture path = |elements\textures\tower_cone.png| },
 { type = texture path = |elements\textures\tower_effect.png| },
-{ type = texture path = |elements\textures\cone.png| }
+{ type = texture path = |elements\textures\cone.png| },
+{ type = texture path = |elements\textures\map2.png| }
 ]
 
 phoneResources = [

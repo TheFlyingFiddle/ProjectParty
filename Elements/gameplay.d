@@ -434,10 +434,9 @@ class GamePlayState : IGameState
 	}
 	void render()
 	{
-		auto imageTex = Game.content.loadTexture("image_map1.png");
+		auto imageTex = Game.content.loadTexture("map2.png");
 		auto imageFrame = Frame(imageTex);
-		Game.renderer.addFrame(imageFrame, float4(0,0, 1280, 720));
-		
+		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;
 
 		foreach(cell, item; level.tileMap) 
