@@ -13,11 +13,8 @@ Network.outgoing.towerRequest = 50
 Network.outgoing.selectRequest = 51
 Network.outgoing.deselect = 52
 Network.outgoing.mapRequest = 53
-Network.outgoing.slingshotStart = 54
-Network.outgoing.slingshotUpdate = 55
-Network.outgoing.slingshotEnd = 56
-Network.outgoing.towerEntered = 57
-Network.outgoing.towerExited = 58
+Network.outgoing.towerEntered = 54
+Network.outgoing.towerExited = 55
 
 function sendAddTower(x, y, type)
 	Out.writeShort(10)
@@ -44,29 +41,6 @@ end
 function sendMapRequestMessage()
 	Out.writeShort(1)
 	Out.writeByte(Network.outgoing.mapRequest)
-end
-
-function sendSlingshotBegin(x, y, pos) 
-	Out.writeShort(17)
-	Out.writeByte(Network.outgoing.slingshotStart)
-	Out.writeInt(x)
-	Out.writeInt(y)
-	Out.writeVec2(pos)
-end
-
-function sendSlingshotUpdate(x, y, pos) 
-	Out.writeShort(17)
-	Out.writeByte(Network.outgoing.slingshotUpdate)
-	Out.writeInt(x)
-	Out.writeInt(y)
-	Out.writeVec2(pos)
-end
-
-function sendSlingshotEnd(x, y) 
-	Out.writeShort(9)
-	Out.writeByte(Network.outgoing.slingshotEnd)
-	Out.writeInt(x)
-	Out.writeInt(y)
 end
 
 function sendTowerEntered(x, y)

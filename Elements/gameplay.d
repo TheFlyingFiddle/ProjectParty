@@ -7,6 +7,7 @@ import game.debuging;
 import types;
 import network.message;
 import util.bitmanip;
+import vent;
 
 
 class GamePlayState : IGameState
@@ -17,30 +18,28 @@ class GamePlayState : IGameState
 	List!Enemy enemies;
 
 	int lifeTotal;
-	List!Projectile projectiles;
-	List!Tower towers;
-	List!Status statuses;
 	List!uint2 selections;
 
-	List!Boulder boulders;
+	VentController ventController;
+
 
 	this(A)(ref A allocator, string configFile)
 	{
-		enemies = List!Enemy(allocator, 100);
-
-		statuses = List!Status(allocator, 1000);
-
-		boulders = List!Boulder(allocator, 1000);
-
 		lifeTotal = 1000;
-		projectiles = List!Projectile(allocator, 10000);
-		towers = List!Tower(allocator, 1000);
+		enemies = List!Enemy(allocator, 100);
 		selections = List!uint2(allocator, 10);
+
 		import std.algorithm;
+
 
 		lifeFont = Game.content.loadFont("Blocked72");
 
 		level = fromSDLFile!Level(allocator, configFile);
+		Enemy.paths = level.paths;
+		ventController = VentController(allocator);
+		VentInstance.prototypes = level.ventPrototypes;
+		
+		ventController.instances ~= VentInstance(float2(100,100), 0);
 	}
 
 	void enter()
@@ -59,9 +58,9 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
 		auto type = msg.read!ubyte;
-		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-			towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
-			buildTower(uint2(x,y), type);
+		if (level.tileMap[uint2(x,y)] == TileType.buildable  ) { //&&
+			//towers.countUntil!( tower => tower.position.x == x && tower.position.y == y) == -1) {
+			//buildTower(uint2(x,y), type);
 		}
 	}
 
@@ -125,27 +124,9 @@ class GamePlayState : IGameState
 	void update()
 	{
 		updateWave();
-		updateStatuses();
 		updateEnemies();
-		updateTowers();
-		updateProjectiles();
-		updateBoulders();
+		ventController.update(enemies);
 		killEnemies();
-	}
-
-	void updateBoulders()
-	{
-		for(int i = boulders.length - 1; i >= 0; --i)
-		{
-			boulders[i].position += boulders[i].velocity * Time.delta;
-			auto index = enemies.countUntil!(x => distance(level.path.position(x.distance),
-					boulders[i].position) < boulders[i].radius);
-			if (index != -1)
-			{
-				enemies[index].health -= boulders[i].attackDmg;
-				boulders.removeAt(i);
-			}
-		}
 	}
 
 	void updateWave()
@@ -172,7 +153,7 @@ class GamePlayState : IGameState
 		if (spawner.startTime <= 0) {
 			spawner.elapsed += Time.delta;
 			if (spawner.elapsed >= spawner.spawnInterval) {
-				auto enemy = Enemy(level.enemyPrototypes[spawner.prototypeIndex]);
+				auto enemy = Enemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
 				enemies ~= enemy;
 				spawner.numEnemies--;
 				spawner.elapsed = 0;
@@ -187,7 +168,7 @@ class GamePlayState : IGameState
 			enemies[i].distance += enemies[i].speed * Time.delta;
 			if (enemies[i].distance < 0)
 				enemies[i].distance = 0;
-			if (enemies[i].distance > level.path.endDistance)
+			if (enemies[i].distance > level.paths[enemies[i].pathIndex].endDistance)
 			{
 				lifeTotal--;
 				killEnemy(i);
@@ -199,33 +180,12 @@ class GamePlayState : IGameState
 		}
 	}
 
-	void updateTowers()
-	{
-		foreach(ref tower; towers)
-		{
-			final switch(tower.type) with (TowerType)
-			{
-				case projectile:
-					updatePTower(tower);
-					break;
-				case cone:
-					updateCTower(tower);
-					break;
-				case effect:
-					updateETower(tower);
-					break;
-				case interaction:
-					break;
-			}
-		}
-	}
-
 	int findFarthestReachableEnemy(float2 towerPos, float range)
 	{
 		int index = -1;
 		foreach(i, ref enemy; enemies)
 		{
-			float distance = distance(level.path.position(enemy.distance), towerPos);
+			float distance = distance(enemy.position, towerPos);
 			if (distance <= range)
 			{
 				if(index == -1)
@@ -243,7 +203,7 @@ class GamePlayState : IGameState
 		float lowestDistance = float.infinity;
 		foreach(i, ref enemy; enemies)
 		{
-			float distance = distance(level.path.position(enemy.distance), towerPos);
+			float distance = distance(enemy.position, towerPos);
 			if (distance <= range)
 			{
 				if(index == -1)
@@ -261,154 +221,6 @@ class GamePlayState : IGameState
 		return index;
 	}
 
-	void updatePTower(ref Tower tower)
-	{
-		tower.pTower.deltaAttackTime += Time.delta;
-		if(tower.pTower.deltaAttackTime >= tower.pTower.attackSpeed)
-		{
-			tower.pTower.deltaAttackTime -= tower.pTower.attackSpeed;
-			float2 towerPos = tower.pixelPos(
-							level.tileSize);
-			int index = findFarthestReachableEnemy(towerPos, tower.range);
-		
-			if(index != -1)
-			{
-				spawnProjectile(index, tower);	
-			}
-		}
-	}
-
-	void updateCTower(ref Tower tower)
-	{
-		tower.cTower.elapsed += Time.delta;
-		if ( tower.cTower.elapsed < tower.cTower.activeTime)
-		{
-			float2 towerPos = tower.pixelPos(level.tileSize);
-			int index = findNearestReachableEnemy(towerPos, tower.range);
-			if(index != -1)
-			{
-				auto angle = (towerPos - level.path.position(enemies[index].distance)).toPolar.angle;
-				foreach(i, ref enemy; enemies) if(distance(towerPos, level.path.position(enemy.distance)) < tower.range)
-				{
-					auto eAngle = (towerPos - level.path.position(enemy.distance)).toPolar.angle;
-					if(eAngle > (angle - tower.cTower.width/2)%TAU && eAngle < (angle + tower.cTower.width/2)%TAU)
-					{
-						enemy.health -= tower.cTower.dps * Time.delta;
-						addStatus(tower.cTower.statusIndex, i);
-					}
-				}
-			}
-		} else if ( tower.cTower.elapsed > tower.cTower.reactivationTime) {
-			tower.cTower.elapsed = 0;
-		}
-			
-	}
-
-	void updateETower(ref Tower tower)
-	{
-		tower.eTower.deltaAttackTime += Time.delta;
-		if (tower.eTower.deltaAttackTime >= tower.eTower.attackSpeed)
-		{
-			tower.eTower.deltaAttackTime = 0;
-			auto index = findFarthestReachableEnemy(tower.pixelPos(level.tileSize), tower.range);
-			if (index != -1)
-			{
-				addStatus(tower.eTower.statusIndex, index);
-				enemies[index].health -= tower.eTower.damage;
-			}
-		}
-	}
-	void updateProjectiles()
-	{
-		for(int i =  projectiles.length -1; i >= 0; i--)
-		{
-			float2 target = level.path.position(enemies[projectiles[i].target].distance);
-			float2 dir = (target - projectiles[i].position).normalized();
-			projectiles[i].position += dir * Time.delta * 300;
-			if(distanceSquared(target, projectiles[i].position) <= 9)
-			{
-				projectileHit(projectiles[i]);
-				projectiles.removeAt(i);
-			}
-		}
-	}
-
-	void updateStatuses()
-	{
-		for(int i = statuses.length -1; i>= 0; i--)
-		{
-			statuses[i].elapsed += Time.delta;
-			updateStatus(statuses[i]);
-			if (statuses[i].elapsed >= statuses[i].duration) {
-				statusEnd(statuses[i]);
-				statuses.removeAt(i);
-			}
-		}
-	}
-
-	void updateStatus(ref Status status)
-	{
-		switch (status.type) with (ElementType)
-		{
-			case fire:
-				status.fire.elapsed += Time.delta;
-				if (status.duration / status.fire.numTicks < status.fire.elapsed) {
-					enemies[status.targetIndex].health -= status.fire.amount;
-					status.fire.elapsed = 0;
-				}
-				break;
-			case water:
-				break;
-			case nature:
-				break;
-			case wind:
-				
-				break;
-			default:
-				break;
-		}
-	}
-
-	void statusEnd(Status status)
-	{
-		final switch (status.type) with (ElementType)
-		{
-			case ice:
-				enemies[status.targetIndex].speed = status.ice.previousSpeed;
-				break;
-			case fire:
-				break;
-			case water:
-				break;
-			case nature:
-				enemies[status.targetIndex].speed /= status.nature.amount;
-				break;
-			case lightning:
-				enemies[status.targetIndex].health -= status.lightning.damage;
-				status.lightning.damage *= status.lightning.reduction;
-				if (status.lightning.damage < 1 )
-					return;
-				status.elapsed = 0;
-				foreach(i, enemy; enemies) if ( distance(level.path.position(enemy.distance),
-														 level.path.position(enemies[status.targetIndex].distance))
-													<	status.lightning.jumpDistance)
-				{
-					auto sIndex = statuses.countUntil!(x => x.targetIndex == i 
-													   && x.type == ElementType.water
-													   && x.targetIndex != status.targetIndex);
-					if (sIndex != -1)
-					{
-						status.targetIndex = i;
-						statuses[sIndex] = status;
-						return;
-					}
-				}
-				break;
-			case wind:
-				enemies[status.targetIndex].speed = status.wind.previousSpeed;
-				break;
-		}
-	}
 	void render()
 	{
 		auto imageTex = Game.content.loadTexture("map2.png");
@@ -416,49 +228,10 @@ class GamePlayState : IGameState
 		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;
 
-		foreach(cell, item; level.tileMap) 
-		{
-			if(item < 2) continue;
-			auto t = level.towerPrototypes[item - 2];
-			final switch (t.type) with (TowerType)
-			{
-				case projectile:
-					towerTexture = Game.content.loadTexture("tower");
-					break;
-				case cone:
-					towerTexture = Game.content.loadTexture("tower_cone");
-					break;
-				case effect:
-					towerTexture = Game.content.loadTexture("tower_effect");
-					break;
-				case interaction:
-					towerTexture = Game.content.loadTexture("slingshot");
-					break;
-			}
-			auto towerFrame = Frame(towerTexture);
-
-			Color color;
-			final switch(item) with (TileType)
-			{
-				case buildable:      color = Color.green; break;
-				case nonbuildable:   color = Color.white; break;
-				case fireTower:      color = Color(0xFF3366FF); break;
-				case waterTower:     color = Color.blue; break;
-				case iceTower:       color = Color(0xFFFFCC66); break;
-				case lightningTower: color = Color(0xFF00FFFF); break;
-				case windTower:      color = Color(0xFFCCCCCC); break;
-				case natureTower:    color = Color.green; break;
-				case slingshotTower: color = Color(0xFFAC838A); break;
-			}
-
-			Game.renderer.addFrame(towerFrame,float4(cell.x * level.tileSize.x, 
-					cell.y * level.tileSize.y, level.tileSize.x, level.tileSize.y), color); 
-		}
-
-
+		
 		foreach(ref enemy; enemies)
 		{
-			float2 position = level.path.position(enemy.distance);
+			float2 position = enemy.position;
 			float2 origin = float2(enemy.frame.width/2, enemy.frame.height/2);
 			Game.renderer.addFrame(enemy.frame, float4(position.x, 
 												 position.y,
@@ -472,45 +245,9 @@ class GamePlayState : IGameState
 										hBWidth*amount, 5), Color.green);
 		}
 
-		foreach(status; statuses)
-		{
-			auto enemy = enemies[status.targetIndex];
-			auto pos = level.path.position(enemy.distance);
-			switch(status.type) with (ElementType)
-			{
-				case ice:
-					Game.renderer.addCircleOutline(pos, max(enemy.frame.width, enemy.frame.height)/2, Color.white);
-					break;
-				case fire:
-					Game.renderer.addCircleOutline(pos, max(enemy.frame.width, enemy.frame.height)/2, Color.red);
-					break;
-				case water:
-					Game.renderer.addCircleOutline(pos, max(enemy.frame.width, enemy.frame.height)/2, Color.blue);
-					break;
-				case lightning:
-					Game.renderer.addCircleOutline(pos, max(enemy.frame.width, enemy.frame.height)/2, Color(0xFF00FFFF));
-					break;
-				case wind:
-					Game.renderer.addCircleOutline(pos, max(enemy.frame.width, enemy.frame.height)/2, Color.black);
-					break;
-				case nature:
-					Game.renderer.addCircleOutline(pos, max(enemy.frame.width, enemy.frame.height)/2, Color.green);
-					break;
-
-				default:
-					break;
-			}
-		}
 		import util.strings;
 		char[128] buffer;
 		Game.renderer.addText(lifeFont, text(buffer, lifeTotal), float2(0,Game.window.size.y), Color(0x88FFFFFF));
-
-		auto projectileTexture = Game.content.loadTexture("projectile");
-		auto projectileFrame = Frame(projectileTexture);
-		foreach(projectile; projectiles)
-		{
-			Game.renderer.addFrame(projectileFrame, projectile.position, Color.white, float2(3,3));
-		}
 
 		auto selectionTexture = Game.content.loadTexture("pixel");
 		auto selectionFrame = Frame(selectionTexture);
@@ -520,182 +257,7 @@ class GamePlayState : IGameState
 						float4(selection.x * level.tileSize.x, selection.y * level.tileSize.y, level.tileSize.x, level.tileSize.y), Color(0x55FF0000)); 
 		}
 
-		auto coneTexture = Game.content.loadTexture("cone");
-		auto coneFrame = Frame(coneTexture);
-		foreach(tower; towers) if (tower.type == TowerType.cone)
-		{		
-			if ( tower.cTower.elapsed < tower.cTower.activeTime)
-			{
-				auto index = findNearestReachableEnemy(tower.pixelPos(level.tileSize), tower.range);
-				if (index != -1)
-				{
-
-					Color color;
-					final switch(level.statusPrototypes[tower.cTower.statusIndex].type) with (ElementType)
-					{
-						case fire: color = Color(0xFF3366FF); break;
-						case water: color = Color.blue; break;
-						case ice: color = Color(0xFFFFCC66); break;
-						case lightning: color = Color(0xFF00FFFF); break;
-						case wind: color = Color(0xFFCCCCCC); break;
-						case nature: color = Color.green; break;
-					}
-					auto towerPos = tower.pixelPos(level.tileSize),
-						 enemyPos = level.path.position(enemies[index].distance);
-					auto polar = (enemyPos - towerPos).toPolar;
-					auto angle = polar.angle;
-					auto origin = float2(0, coneFrame.height/2);
-					Game.renderer.addFrame(coneFrame, towerPos, 
-							color, float2(tower.range, coneFrame.height), origin, angle);
-				}
-			}
-		}
-
-		auto boulderTex = Game.content.loadTexture("baws");
-		auto boulderFrame = Frame(boulderTex);
-
-		foreach(boulder; boulders)
-		{
-			Game.renderer.addFrame(boulderFrame, boulder.position, 
-					Color.white, float2(boulderFrame.width, boulderFrame.height), float2(boulderFrame.width/2, boulderFrame.height/2), 4*Time.total);
-		}
-	}
-
-	void spawnProjectile(int enemyIndex, Tower tower)
-	{
-		Projectile projectile = Projectile(level.projectilePrototypes[tower.pTower.projectileIndex], 
-										   tower.pixelPos(level.tileSize), enemyIndex);
-		projectiles ~= projectile;
-	}
-
-	void projectileHit(Projectile projectile)
-	{
-		if(projectile.type == ProjectileType.normal)
-		{
-			enemies[projectile.target].health -= projectile.attackDmg;
-		
-			addStatus(projectile.statusIndex, projectile.target);
-		}
-
-		if((projectile.type & ProjectileType.splash) == ProjectileType.splash)
-		{
-			immutable radius = level.tileSize.x * 3;
-			foreach(i, ref enemy; enemies) if(distanceSquared(level.path.position(enemy.distance), projectile.position) < radius * radius)
-			{
-				enemy.health -= projectile.attackDmg;
-				addStatus(projectile.statusIndex, i);
-			}
-		}
-	}
-
-	void addStatus(uint statusIndex, uint enemyIndex)
-	{
-		auto status = Status(level.statusPrototypes[statusIndex], enemyIndex);
-		auto index = statuses.countUntil!((x) => x.targetIndex == enemyIndex);
-		if (index == -1) {
-			applyStatus(status);
-		} else {
-			changeStatus(status, index);
-		}
-	}
-
-	void applyStatus(ref Status status)
-	{
-		final switch(status.type) with (ElementType)
-		{
-			case fire: case water:
-				break;
-			case lightning:
-				return;
-			case ice:
-				status.ice.previousSpeed = enemies[status.targetIndex].speed;
-				enemies[status.targetIndex].speed = 0;
-				break;
-			case wind:
-				status.wind.previousSpeed = enemies[status.targetIndex].speed;
-				enemies[status.targetIndex].speed = -status.wind.speed;
-				break;
-			case nature:
-				enemies[status.targetIndex].speed *= status.nature.amount;
-				break;
-		}
-		statuses ~= status;
-	}
-
-	void changeStatus(ref Status status, uint currentStatusIndex)
-	{
-		Status currentStatus = statuses[currentStatusIndex];
-		switch(status.type) with (ElementType)
-		{
-			case wind:
-				if (currentStatus.type == ElementType.wind)
-					statuses[currentStatusIndex].elapsed = 0;
-				else
-				{
-					statusEnd(currentStatus);
-					statuses.removeAt(currentStatusIndex);
-					applyStatus(status);
-				}
-				break;
-			case fire:
-				switch(currentStatus.type)
-				{
-					case fire:
-						statuses[currentStatusIndex].elapsed = 0;
-						break;
-					case water: case ice:
-						statusEnd(currentStatus);
-						statuses.removeAt(currentStatusIndex);
-						break;
-					case nature:
-						statusEnd(currentStatus);
-						status.fire.amount *= 2;
-						statuses[currentStatusIndex] = status;
-						break;
-					default:
-						applyStatus(status);
-						break;
-				}
-				break;
-			case lightning:
-				if (currentStatus.type == ElementType.water)
-				{
-					statuses[currentStatusIndex] = status;
-				}
-				break;
-			case nature:
-				if (currentStatus.type == ElementType.fire || 
-					currentStatus.type == ElementType.nature)
-				{
-					statuses[currentStatusIndex].elapsed = 0;
-				} 
-				else
-				{
-					statusEnd(statuses[currentStatusIndex]);
-					statuses.removeAt(currentStatusIndex);
-					applyStatus(status);
-				}				
-				break;
-			case water:
-				if (currentStatus.type == ElementType.fire)
-				{
-					statusEnd(currentStatus);
-					statuses.removeAt(currentStatusIndex);
-				}
-				else if (currentStatus.type == ElementType.water)
-				{
-					statuses[currentStatusIndex].elapsed = 0;
-				}
-				else
-				{
-					statusEnd(currentStatus);
-					statuses[currentStatusIndex] = status;
-				}
-				break;
-			default:
-				break;
-		}
-		return;
+		ventController.render(Game.renderer);
 	}
 
 	void killEnemies()
@@ -712,38 +274,7 @@ class GamePlayState : IGameState
 	void killEnemy(uint i)
 	{
 		enemies.removeAt(i);
-		for(int j = projectiles.length -1; j >= 0; j--)
-		{
-			if(projectiles[j].target == i)
-			{
-				projectiles.removeAt(j);
-			}
-			else if(projectiles[j].target > i)
-			{
-				projectiles[j].target--;
-			}
-		}
-		for(int j = statuses.length -1; j >= 0; j--)
-		{
-			if(statuses[j].targetIndex == i)
-			{
-				statuses.removeAt(j);
-			}
-			else if(statuses[j].targetIndex > i)
-			{
-				statuses[j].targetIndex--;
-			}
-		}
-	}
 
-	void buildTower(uint2 pos, ubyte type) 
-	{
-		Tower tower = Tower(level.towerPrototypes[type - 2], pos);
-		towers ~= tower;
-		foreach(player; Game.players)
-			Game.server.sendMessage(player.id, TowerBuiltMessage(pos.x, pos.y, type));
-
-		level.tileMap[pos] = cast(TileType)type;
 	}
 
 	void gameOver()

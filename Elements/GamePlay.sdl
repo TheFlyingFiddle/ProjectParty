@@ -1,68 +1,35 @@
 tileMap = |..\resources\elements\textures\map2_tiletypes.png|
 tileSize = { x = 23 y = 23 }
-path =  {
-wayPoints = [ 
-	{ x = 1  y = 32 }, { x = 1 y = 25},  { x = 23 y = 25 }, 
-	{ x = 23 y = 18 }, { x = 1 y = 18}, { x = 1 y = 1},
-	{ x = 8 y = 1 }, { x = 8 y = 11}, { x = 20 y = 11}, 
-	{ x = 20 y = 1 }, { x = 27 y = 1}, { x = 27 y = 12}
-	]
-	tileSize = { x = 23 y = 23 }
-}
+paths =  [ 
+	{
+		wayPoints = [ 
+			{ x = 1  y = 32 }, { x = 1 y = 25},  { x = 23 y = 25 }, 
+			{ x = 23 y = 18 }, { x = 1 y = 18}, { x = 1 y = 1},
+			{ x = 8 y = 1 }, { x = 8 y = 11}, { x = 20 y = 11}, 
+			{ x = 20 y = 1 }, { x = 27 y = 1}, { x = 27 y = 12}
+			]
+			tileSize = { x = 23 y = 23 }
+	}
+]
 
 enemyPrototypes = [ { maxHealth = 50	speed = 70	worth = 5	frame = baws },
 					{ maxHealth = 200	speed = 42	worth = 15	frame = teddy } ]
+
+ventPrototypes = [ { damage = 10 range = 100 maxPressure = 100 regenRate = 10 
+					frame = cone towerFrame = tower_cone } ]
 
 waves = 
 [  
 	{spawners = 
 		[
-			{ startTime = 1		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 },
-			{ startTime = 1.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5}
+			{ startTime = 1		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 1.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
 		] 
 	},
 	{spawners =
 		[ 
-			{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 },
-			{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25}
+			{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
 		]
 	}
 ] 
-
-statusPrototypes = [
-	{ duration = 10 type = fire fire = { amount = 3 numTicks = 5 }},
-	{ duration = 4	type = water },
-	{ duration = 2	type = ice},
-	{ duration = 0.1 type = lightning 
-			lightning = { jumpDistance = 430 damage = 7 reduction = 0.8 }},
-	{ duration = 0.1 type= wind 
-			wind = { speed = 600 } },
-	{ duration = 5	type = nature 
-			nature = { amount = 0.5 }}
-]
-
-projectilePrototypes = [
-	{ speed = 300 damage = 10 type = normal statusIndex = 0 },
-	{ speed = 300 damage = 1  type = splash  statusIndex = 1 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 2 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 3 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 4 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 5 }
-]
-
-towerPrototypes = [
-	{ range = 100 type = cone	cost = 0
-			cTower = { width = 1 dps = 20 statusIndex = 0 
-					 reactivationTime = 4 activeTime = 2.5}},
-	{ range = 100 type = cone	cost = 0 
-			cTower = { width = 1 dps = 10 statusIndex = 1
-					 reactivationTime = 0.1 activeTime = 0.02}},
-	{ range = 200 type = projectile cost = 0 
-			pTower = { attackSpeed = 1 projectileIndex = 2}},
-	{ range = 200 type = projectile cost = 0 
-			pTower = { attackSpeed = 1 projectileIndex = 3}},
-	{ range = 200 type = effect cost = 0 
-			eTower = { attackSpeed = 1 statusIndex = 4 damage = 5}},
-	{ range = 200 type = projectile cost = 0 
-			pTower = { attackSpeed = 1 projectileIndex = 5}}
-]

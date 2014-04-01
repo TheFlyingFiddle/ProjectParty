@@ -194,5 +194,6 @@
   <File path="GamePlay.sdl" />
   <File path="main.d" />
   <File path="types.d" />
+  <File path="vent.d" />
  </Folder>
 </DProject>
