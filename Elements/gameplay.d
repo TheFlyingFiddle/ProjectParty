@@ -281,12 +281,18 @@ class GamePlayState : IGameState
 												 position.y,
 												 enemy.frame.width, enemy.frame.height),
 												 Color.white, origin);
+		}
+
+		foreach(ref enemy; enemies)
+		{
+			float2 position = enemy.position;
+			float2 origin = float2(enemy.frame.width/2, enemy.frame.height/2);
 			float amount = enemy.health/enemy.maxHealth;
 			float hBWidth = min(50, enemy.maxHealth);
 			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + enemy.frame.height/2, 
-										hBWidth, 5), Color.red);
+										 hBWidth, 5), Color.red);
 			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + enemy.frame.height/2, 
-										hBWidth*amount, 5), Color.green);
+										 hBWidth*amount, 5), Color.green);
 		}
 
 		import util.strings;
