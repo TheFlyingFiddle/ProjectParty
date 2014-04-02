@@ -20,6 +20,7 @@ Network.outgoing.mapRequest = 53
 Network.outgoing.towerEntered = 54
 Network.outgoing.towerExited = 55
 Network.outgoing.ventValue = 56
+Network.outgoing.ventDirection = 57
 
 function sendAddTower(x, y, type)
 	Out.writeShort(11)
@@ -69,4 +70,12 @@ function sendVentValue(x, y, ventValue)
 	Out.writeInt(x)
 	Out.writeInt(y)
 	Out.writeFloat(ventValue)
+end
+
+function sendVentDirection(x,y, ventDir)
+	Out.writeShort(13)
+	Out.writeByte(Network.outgoing.ventDirection)
+	Out.writeInt(x)
+	Out.writeInt(y)
+	Out.writeFloat(ventDir)
 end

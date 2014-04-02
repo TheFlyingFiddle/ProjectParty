@@ -1,28 +1,56 @@
+local function checkTapped(item, x, y)
+    if item.callback and pointInRect(item.rect, vec2(x,y)) then
+        item.callback()
+    end
+end
+
 local ButtonMT = { 
   __index = { 
-    onTap = function(button, x, y)
-                if button.callback and pointInRect(button.rect, vec2(x, y)) then
-                    button.callback()
-                end
-            end,
-    draw =  function(button, font)
-                Renderer.addFrame(button.frame, button.rect.pos, button.rect.dim, button.tint)
-                local size = Font.measure(font, button.text)
-                local pos  = vec2(button.rect.pos.x + button.rect.dim.x / 2 - size.x / 2,
-                                  button.rect.pos.y + button.rect.dim.y / 2 - size.y / 2)
-                Renderer.addText(font, button.text, pos, button.textTint)
+    onTap = checkTapped,
+    draw =  function(self)
+                Renderer.addFrame(self.frame, self.rect.pos, 
+                                  self.rect.dim, self.tint)
+                local size = Font.measure(self.font, self.text)
+                local pos  = vec2(self.rect.pos.x + self.rect.dim.x / 2 - size.x / 2,
+                                  self.rect.pos.y + self.rect.dim.y / 2 - size.y / 2)
+                Renderer.addText(self.font, self.text, pos, self.textTint)
             end
           }
  }
 
-function Button (tint, frame, text, rect, callback, textTint)
+local SimpleButtonMT = 
+{
+  __index = 
+  {
+    onTap = checkTapped,
+    draw  = function(self)
+        Renderer.addFrame(self.frame, self.rect.pos, 
+                          self.rect.dim, self.tint)
+    end
+  } 
+}
+
+function Button (tint, frame, rect, callback, font, text, textTint)
   local button = {}
   button.tint = tint
   button.frame = frame
-  button.text = text
   button.rect = rect
   button.callback = callback
+
+  button.font = font
+  button.text = text
   button.textTint = textTint
   setmetatable(button, ButtonMT)
   return button
+end
+
+function SimpleButton(tint, frame, rect, callback)
+  local t = { }
+  t.frame = frame
+  t.tint  = tint
+  t.rect  = rect
+  t.callback = callback
+
+  setmetatable(t, SimpleButtonMT)
+  return t
 end

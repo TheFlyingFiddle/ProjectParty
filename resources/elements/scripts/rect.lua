@@ -1,19 +1,30 @@
-local RectMT = {__index = {
-left = function(rect)
-  return rect.pos.x
-end,
+local RectMT = 
+{
+  __index = 
+  {
+    left = function(rect)
+    return rect.pos.x
+  end,
+  
+  right = function(rect)
+    return rect.pos.x + rect.dim.x
+  end,
 
-right = function(rect)
-  return rect.pos.x + rect.dim.x
-end,
+  top = function(rect)
+    return rect.pos.y + rect.dim.y
+  end,
 
-top = function(rect)
-  return rect.pos.y + rect.dim.y
-end,
+  bottom = function(rect)
+    return rect.pos.y
+  end,
+    
+  center = function(rect)
+    return vec2(rect.pos.x + rect.dim.x / 2, 
+                rect.pos.y + rect.dim.y / 2)
+  end
 
-bottom = function(rect)
-  return rect.pos.y
-end}}
+  }
+}
 
 function Rect(pos, dim)
   local rect = {}
@@ -23,6 +34,11 @@ function Rect(pos, dim)
   setmetatable(rect, RectMT)
   return rect
 end
+
+function Rect2(x,y,w,h)
+  return Rect(vec2(x,y), vec2(w,h))
+end
+
 
 function pointInRect(rect, point)
   return point.x > rect:left() and

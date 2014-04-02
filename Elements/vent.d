@@ -102,27 +102,6 @@ struct VentController
 			if(instance.open == 0)
 				instance.pressure = min(instance.pressure + instance.regenRate * Time.delta, instance.maxPressure);
 		}
-
-//		tower.elapsed += Time.delta;
-//		if ( tower.cTower.elapsed < tower.cTower.activeTime)
-//		{
-//			float2 towerPos = tower.pixelPos(level.tileSize);
-//			int index = findNearestReachableEnemy(towerPos, tower.range);
-//			if(index != -1)
-//			{
-//				auto angle = (towerPos - level.path.position(enemies[index].distance)).toPolar.angle;
-//				foreach(i, ref enemy; enemies) if(distance(towerPos, level.path.position(enemy.distance)) < tower.range)
-//				{
-//					auto eAngle = (towerPos - level.path.position(enemy.distance)).toPolar.angle;
-//					if(eAngle > (angle - tower.cTower.width/2)%TAU && eAngle < (angle + tower.cTower.width/2)%TAU)
-//					{
-//						enemy.health -= tower.cTower.dps * Time.delta;
-//					}
-//				}
-//			}
-//		} else if ( tower.cTower.elapsed > tower.cTower.reactivationTime) {
-//			tower.cTower.elapsed = 0;
-//		}
 	}
 
 	void render(Renderer* renderer, float2 tileSize)

@@ -45,7 +45,7 @@ function update()
 	if fsm.active.update then fsm.active.update() end
 
 	Network.sendElapsed = Network.sendElapsed + Time.elapsed
-	if Network.sendElapsed > Network.sendRate then
+	if true then
 		Out.writeShort(25)
 		Out.writeByte(Network.outgoing.sensor)
 		Out.writeVec3(Sensors.acceleration)

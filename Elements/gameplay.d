@@ -52,6 +52,7 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.towerExited, &handleTowerExited);
 		Game.router.setMessageHandler(IncomingMessages.deselect, &handleDeselect);
 		Game.router.setMessageHandler(IncomingMessages.ventValue, &handleVentValue);
+		Game.router.setMessageHandler(IncomingMessages.ventDirection, &handleVentDirection);
 	}
 
 	void handleTowerRequest(ulong id, ubyte[] msg)
@@ -142,6 +143,22 @@ class GamePlayState : IGameState
 			ventController.instances[index].open = value;
 		}
 	}
+
+	void handleVentDirection(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto value = msg.read!float;
+
+		auto index = ventController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			ventController.instances[index].direction = value;
+		}
+	}
+
+
+
 
 	void exit()
 	{

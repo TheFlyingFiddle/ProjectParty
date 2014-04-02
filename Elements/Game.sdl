@@ -69,6 +69,8 @@ phoneResources = [
 	|elements/scripts/networking.lua|,
 	|elements/scripts/elementselection.lua|,
 	|elements/scripts/vent.lua|,
+	|elements/scripts/vector2.lua|,
+	|elements/scripts/direction_selector.lua|,	
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/fonts/SegoeUILight72.fnt|,

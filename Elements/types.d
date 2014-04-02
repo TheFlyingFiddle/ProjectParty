@@ -54,7 +54,8 @@ enum IncomingMessages : ubyte
 	mapRequest = 53,
 	towerEntered = 54,
 	towerExited = 55,
-	ventValue = 56
+	ventValue = 56,
+	ventDirection = 57
 }
 
 enum OutgoingMessages : ubyte
