@@ -54,6 +54,8 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.deselect, &handleDeselect);
 		Game.router.setMessageHandler(IncomingMessages.ventValue, &handleVentValue);
 		Game.router.setMessageHandler(IncomingMessages.ventDirection, &handleVentDirection);
+		Game.router.setMessageHandler(IncomingMessages.towerSell, &handleTowerSell);
+
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
 	}
@@ -205,7 +207,24 @@ class GamePlayState : IGameState
 		}
 	}
 
+	void handleTowerSell(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint,
+			  y = msg.read!uint;
 
+		auto index = ventController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			level.tileMap[uint2(x,y)] = TileType.buildable;
+
+			sendTransaction(id, 100); //Placeholder
+			ventController.instances.removeAt(index);
+
+
+			foreach(player; Game.players)
+				Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
+		}
+	}
 
 
 	void exit()

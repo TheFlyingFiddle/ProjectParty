@@ -38,9 +38,9 @@ local function Idle()
 				end
 			end
 			sendSelectionMessage(gridPos)
-			state:enterState("Selected", gridPos)
+			state:enterState("BuildableSelected", gridPos)
 		elseif tileType == 2 then
-			fsm:enterState("Vent", gridPos.x, gridPos.y)
+			state:enterState("TowerSelected", gridPos)
 		end
 	end
 
@@ -50,7 +50,50 @@ local function Idle()
 	return t
 end
 
-local function Selected()
+local function TowerSelected()
+	local t = { }
+
+	local function callback(item)
+		if item.id == 0 then
+			fsm:enterState("Vent", t.x, t.y)
+		elseif item.id == 1 then
+			--Do upgrade if possible
+		elseif item.id == 3 then
+			sendSellTowerRequest(t.x, t.y)
+			state:enterState("Idle", t.x, ty)
+		else
+			state:enterState("Idle", t.x, ty)
+		end
+	end
+
+	local enter    = { id = 0, frame = fireIcon,	color = 0xFFFFFFFF }
+	local upgrade  = { id = 1, frame = buyIcon,		color = 0xFF00FF00 }
+	local cancel   = { id = 2, frame = cancelIcon,  color = 0xFF0000FF }
+	local sell     = { id = 3, frame = buyIcon,     color = 0xFF0000FF }
+	local selector = Selector(Rect(0,0,0,0), callback, {enter, upgrade, cancel, sell})
+	
+	function t.draw()
+		local radius = Screen.height / 4
+		selector.rect.pos = vec2(t.x * tilesize + tilesize / 2 + cameraPos.x - radius,
+					 			 t.y * tilesize + tilesize / 2 + cameraPos.y - radius)
+		selector.rect.dim = vec2(radius * 2, radius * 2)
+
+		selector:draw()
+	end
+
+	function t.onTap(pos)
+		selector:onTap(pos)
+	end
+
+	function t.enter(cell)
+		t.x = cell.x
+		t.y = cell.y
+	end
+
+	return t
+end
+
+local function BuildableSelected()
 	local t = { }
 	
 	local function callback(item)
@@ -137,9 +180,11 @@ function Elements()
 		sendMapRequestMessage()
 		state = FSM()
 		state:addState(Idle(), "Idle")
-		state:addState(Selected(), "Selected")
+		state:addState(BuildableSelected(), "BuildableSelected")
+		state:addState(TowerSelected(), "TowerSelected")
 		state:addState(Confirm(), "Confirm")
 	end
+
 	function elements.exit()
 	end
 	function elements.render()
@@ -163,7 +208,6 @@ function Elements()
 		end
 		for k,v in pairs(towerImages) do
 			pos = cameraPos + v.pos * tilesize
-			log(tostring(pos))
 			Renderer.addFrame(v.frame, pos, dim, v.color)
 		end
 
@@ -235,12 +279,28 @@ function Elements()
 		money = money + amount
 	end
 
+	local function handleTowerSold()
+		local x = In.readInt()
+		local y = In.readInt()
+
+		map.tiles[y*map.width + x] = 0
+
+		for k, v in pairs(towerImages) do
+			if v.pos.x == x and v.pos.y == y then
+				table.remove(towerImages, k)
+				return
+			end
+		end
+
+	end
+
 	Network.setMessageHandler(Network.incoming.map, handleMap)
 	Network.setMessageHandler(Network.incoming.towerBuilt, handleTowerBuilt)
 	Network.setMessageHandler(Network.incoming.selected, handleSelectRequest)
 	Network.setMessageHandler(Network.incoming.deselected, handleDeselectRequest)
 	Network.setMessageHandler(Network.incoming.towerInfo, handleTowerInfo)
 	Network.setMessageHandler(Network.incoming.transaction, handleTransaction)
+	Network.setMessageHandler(Network.incoming.towerSold, handleTowerSold)
 
 	function elements.onTap(x,y)
 		state.active.onTap(vec2(x,y))

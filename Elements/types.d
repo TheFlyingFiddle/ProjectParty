@@ -47,6 +47,12 @@ struct TowerExitedMessage
 	uint x, y;
 }
 
+struct TowerSoldMessage
+{
+	enum ubyte id = OutgoingMessages.towerSold;
+	uint x, y;
+}
+
 struct TowerInfoMessage
 {
 	enum ubyte id = OutgoingMessages.towerInfo;
@@ -75,7 +81,8 @@ enum IncomingMessages : ubyte
 	towerEntered = 54,
 	towerExited = 55,
 	ventValue = 56,
-	ventDirection = 57
+	ventDirection = 57,
+	towerSell = 58
 }
 
 enum OutgoingMessages : ubyte
@@ -87,7 +94,8 @@ enum OutgoingMessages : ubyte
 	towerEntered = 54,
 	towerExited = 55, 
 	towerInfo = 56,
-	transaction = 57
+	transaction = 57,
+	towerSold = 58
 }
 
 enum TileType : ubyte

@@ -3,26 +3,28 @@ Network.incoming = {}
 Network.sendRate = 0.1
 Network.sendElapsed = 0
 
-Network.incoming.map = 50
-Network.incoming.towerBuilt = 51
-Network.incoming.selected = 52
-Network.incoming.deselected = 53
-Network.incoming.towerEntered = 54
-Network.incoming.towerExited = 55
-Network.incoming.towerInfo = 56
-Network.incoming.transaction = 57
+Network.incoming.map 			= 50
+Network.incoming.towerBuilt 	= 51
+Network.incoming.selected 		= 52
+Network.incoming.deselected 	= 53
+Network.incoming.towerEntered 	= 54
+Network.incoming.towerExited 	= 55
+Network.incoming.towerInfo 		= 56
+Network.incoming.transaction 	= 57
+Network.incoming.towerSold   	= 58
 
 Network.outgoing = {}
 
-Network.outgoing.sensor = 1
-Network.outgoing.towerRequest = 50
-Network.outgoing.selectRequest = 51
-Network.outgoing.deselect = 52
-Network.outgoing.mapRequest = 53
-Network.outgoing.towerEntered = 54
-Network.outgoing.towerExited = 55
-Network.outgoing.ventValue = 56
-Network.outgoing.ventDirection = 57
+Network.outgoing.sensor 		= 1
+Network.outgoing.towerRequest 	= 50
+Network.outgoing.selectRequest 	= 51
+Network.outgoing.deselect 		= 52
+Network.outgoing.mapRequest 	= 53
+Network.outgoing.towerEntered 	= 54
+Network.outgoing.towerExited 	= 55
+Network.outgoing.ventValue 		= 56
+Network.outgoing.ventDirection 	= 57
+Network.outgoing.sellTower	    = 58
 
 Network.handlers = {}
 
@@ -92,4 +94,11 @@ function sendVentDirection(x,y, ventDir)
 	Out.writeInt(x)
 	Out.writeInt(y)
 	Out.writeFloat(ventDir)
+end
+
+function sendSellTowerRequest(x,y)
+	Out.writeShort(9)
+	Out.writeByte(Network.outgoing.sellTower)
+	Out.writeInt(x)
+	Out.writeInt(y)
 end
