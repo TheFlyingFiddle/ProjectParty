@@ -2,8 +2,7 @@ local DirectionSelectorMT =
 {
 	__index = 
 	{
-		onDrag = function(self, x,y)
-			local pos = vec2(x,y)
+		onDrag = function(self, pos)
 			if pointInRect(self.rect, pos) then
 				local angle = Vector2.angleBetween(self.rect:center(), pos)
 				self.dir = angle

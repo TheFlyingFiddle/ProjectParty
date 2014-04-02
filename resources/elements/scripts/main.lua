@@ -21,6 +21,8 @@ function init()
 	assets.wind 		= { id = 6, frame = windIcon, 		color = 0xFFaaFFaa }
 	assets.nature 		= { id = 7, frame = natureIcon,		color = 0xFF00FF00 }
 
+	gui = Gui()
+
     fsm = FSM()
     fsm:addState(Elements(), "Elements")
     fsm:addState(ElementSelection(), "ElementSelection")
@@ -60,10 +62,11 @@ end
 
 function render()
 	if fsm.active.render then fsm.active.render() end
+	gui:draw()
 end
 
 function onTap(x, y)
-	if fsm.active.onTap then
+	if not gui:onTap(vec2(x, y)) and fsm.active.onTap then
     	fsm.active.onTap(x, y)
     end
 end
@@ -75,30 +78,33 @@ function onTouch(x, y, pointerIndex)
 end
 
 function onDrag(x, y)
-	if fsm.active.onDrag then
+	if not gui:onDrag(vec2(x, y)) and fsm.active.onDrag then
 		fsm.active.onDrag(x,y)
 	end
 end
 
 function onDragBegin(x, y)
-	if fsm.active.onDragBegin then
+	if not gui:onDragBegin(vec2(x, y)) and fsm.active.onDragBegin then
 		fsm.active.onDragBegin(x,y)
 	end
 end
 
 function onDragEnd(x, y)
-	if fsm.active.onDragEnd then
+	if not gui:onDragEnd(vec2(x, y)) and fsm.active.onDragEnd then
 		fsm.active.onDragEnd(x,y)
 	end
 end
 
 function onPinchBegin(x0, y0, x1, y1)
+	gui:onPinchBegin(vec2(x0, y0), vec2(x1, y1))
+
 	if fsm.active.onPinchBegin then
 		fsm.active.onPinchBegin(x0,y0, x1, x1)
 	end
 end
 
 function onPinch(x0, y0, x1, y1)
+	gui:onPinch(vec2(x0, y0), vec2(x1, y1))
 	if fsm.active.onPinch then
 		fsm.active.onPinch(x0, y0, x1, y1)
 	end

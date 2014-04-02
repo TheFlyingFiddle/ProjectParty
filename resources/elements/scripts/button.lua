@@ -1,5 +1,5 @@
-local function checkTapped(item, x, y)
-    if item.callback and pointInRect(item.rect, vec2(x,y)) then
+local function checkTapped(item, pos)
+    if item.callback and pointInRect(item.rect, pos) then
         item.callback()
     end
 end
