@@ -256,7 +256,7 @@ function Elements()
 				selections[i].color)
 		end
 
-		renderTime(font)
+		--renderTime(font)
 		state.active.draw()
 	end
 	function elements.update()
