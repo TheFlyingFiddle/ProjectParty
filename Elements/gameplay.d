@@ -21,13 +21,14 @@ class GamePlayState : IGameState
 	List!uint2 selections;
 
 	VentController ventController;
-
+	Table!(ulong, int)balances;
 
 	this(A)(ref A allocator, string configFile)
 	{
 		lifeTotal = 1000;
 		enemies = List!Enemy(allocator, 100);
 		selections = List!uint2(allocator, 10);
+		balances = Table!(ulong, int)(allocator, 10);
 
 		import std.algorithm;
 
@@ -53,6 +54,35 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.deselect, &handleDeselect);
 		Game.router.setMessageHandler(IncomingMessages.ventValue, &handleVentValue);
 		Game.router.setMessageHandler(IncomingMessages.ventDirection, &handleVentDirection);
+		Game.router.connectionHandlers ~= &connect;
+		Game.router.disconnectionHandlers ~= &disconnect;
+	}
+
+	int getCost(ubyte type, ubyte typeIndex) 
+	{
+		auto index = level.towers.countUntil!(x => x.type == type && x.typeIndex == typeIndex);
+		return level.towers[index].cost;
+	}
+
+	void sendTransaction(ulong id, int amount)
+	{
+		TransactionMessage tMsg;
+		tMsg.amount = amount;
+
+		Game.server.sendMessage(id, tMsg);
+
+		balances[id] += amount;
+	}
+
+	void connect(ulong id) 
+	{
+		balances[id] = level.startBalance;
+		sendTransaction(id, level.startBalance);
+	}
+
+	void disconnect(ulong id)
+	{
+		balances.remove(id);
 	}
 
 	void handleTowerRequest(ulong id, ubyte[] msg)
@@ -61,15 +91,16 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto type = msg.read!ubyte;
 		auto typeIndex = msg.read!ubyte;
-		if (level.tileMap[uint2(x,y)] == TileType.buildable) {
+		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
+			balances[id] >= getCost(type, typeIndex)) {
 			buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 							  y * level.tileSize.y + level.tileSize.y / 2), 
 						type, typeIndex);
 			level.tileMap[uint2(x,y)] = cast(TileType) type;
-
+			sendTransaction(id, -getCost(type, typeIndex));
 			foreach(player; Game.players)
 			{
-				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type));
+				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type, typeIndex));
 			}
 		}
 	}
@@ -105,6 +136,23 @@ class GamePlayState : IGameState
 		mapmsg.height = level.tileMap.height;
 		mapmsg.tiles = cast (ubyte[])level.tileMap.buffer[0 .. level.tileMap.width * level.tileMap.height];
 		Game.server.sendMessage(id, mapmsg);
+
+		foreach(i, tower; level.towers) {
+			TowerInfoMessage tiMsg;
+			tiMsg.cost = tower.cost;
+			tiMsg.range = tower.range;
+			tiMsg.type = tower.type;
+			tiMsg.phoneIcon = tower.phoneIcon;
+			tiMsg.color = tower.color;
+			tiMsg.index = tower.typeIndex;
+			tiMsg.upgradeIndex = tower.upgradeIndex;
+			Game.server.sendMessage(id, tiMsg);
+		}
+
+		balances[id] = level.startBalance;		
+		TransactionMessage tMsg;
+		tMsg.amount = balances[id];
+		Game.server.sendMessage(id, tMsg);
 	}
 
 	void handleSelectRequest(ulong id, ubyte[] msg)
@@ -323,8 +371,12 @@ class GamePlayState : IGameState
 
 	void killEnemy(uint i)
 	{
-		enemies.removeAt(i);
+		foreach(player; Game.players)
+		{
+			sendTransaction(player.id, enemies[i].worth / Game.players.length);
+		}	
 
+		enemies.removeAt(i);
 	}
 
 	void gameOver()

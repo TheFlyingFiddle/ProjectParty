@@ -25,22 +25,12 @@ function init()
 
     fsm = FSM()
     fsm:addState(Elements(), "Elements")
-    fsm:addState(ElementSelection(), "ElementSelection")
+    fsm.Elements.init()
     fsm:addState(Vent(), "Vent")
-    fsm:enterState("ElementSelection")
+    fsm:enterState("Elements")
 end
 
 function term()
-end
-
-function handleMessage(id, length)
-	if id == Network.messages.transition then
-		s = In.readUTF8()
-		fsm:enterState(s)
-	end
-	if fsm.active.handleMessage then 
-		fsm.active.handleMessage(id, length) 
-	end
 end
 
 function update()

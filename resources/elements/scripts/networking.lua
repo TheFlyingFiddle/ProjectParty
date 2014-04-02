@@ -9,6 +9,8 @@ Network.incoming.selected = 52
 Network.incoming.deselected = 53
 Network.incoming.towerEntered = 54
 Network.incoming.towerExited = 55
+Network.incoming.towerInfo = 56
+Network.incoming.transaction = 57
 
 Network.outgoing = {}
 
@@ -22,13 +24,25 @@ Network.outgoing.towerExited = 55
 Network.outgoing.ventValue = 56
 Network.outgoing.ventDirection = 57
 
-function sendAddTower(x, y, type)
+Network.handlers = {}
+
+function Network.setMessageHandler(id, callback)
+	Network.handlers[id] = callback
+end
+
+function handleMessage(id, length)
+	if Network.handlers[id] then
+		Network.handlers[id]()
+	end
+end
+
+function sendAddTower(x, y, type, index)
 	Out.writeShort(11)
 	Out.writeByte(Network.outgoing.towerRequest)
 	Out.writeInt(x)
 	Out.writeInt(y)
 	Out.writeByte(type)
-	Out.writeByte(0)
+	Out.writeByte(index)
 end
 
 function sendSelectionMessage(pos)

@@ -12,11 +12,21 @@ paths =  [
 	}
 ]
 
+startBalance = 200
+
 enemyPrototypes = [ { maxHealth = 50	speed = 70	worth = 5	frame = baws },
 					{ maxHealth = 200	speed = 42	worth = 15	frame = teddy } ]
 
 ventPrototypes = [ { damage = 10 range = 100 maxPressure = 100 regenRate = 10 
-					 frame = cone towerFrame = tower_cone } ]
+					 frame = cone towerFrame = tower_cone },
+					{ damage = 9001 range = 100 maxPressure = 500 regenRate = 2
+					 frame = baws towerFrame = tower_cone } ]
+
+towers = [{ cost = 10 range = 100 phoneIcon = |textures/fire_icon.png| 
+			type = vent typeIndex = 0 color = 0xFF00FF00 upgradeIndex = -1},
+		  { cost = 100 range = 140 phoneIcon = |textures/water_icon.png|
+		    type = vent typeIndex = 1 color = 0xFFFF0000 upgradeIndex = -1}
+		 ]
 
 waves = 
 [  

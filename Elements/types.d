@@ -32,6 +32,7 @@ struct TowerBuiltMessage
 	enum ubyte id = OutgoingMessages.towerBuilt;
 	uint x, y;
 	ubyte towerType;
+	ubyte typeIndex;
 }
 
 struct TowerEnteredMessage
@@ -44,6 +45,25 @@ struct TowerExitedMessage
 {
 	enum ubyte id = OutgoingMessages.towerExited;
 	uint x, y;
+}
+
+struct TowerInfoMessage
+{
+	enum ubyte id = OutgoingMessages.towerInfo;
+	enum maxSize = 512;
+	uint cost;
+	float range;
+	string phoneIcon;
+	uint color;
+	ubyte type;
+	ubyte index;
+	ubyte upgradeIndex;
+}
+
+struct TransactionMessage
+{
+	enum ubyte id = OutgoingMessages.transaction;
+	int amount;
 }
 
 enum IncomingMessages : ubyte
@@ -65,14 +85,17 @@ enum OutgoingMessages : ubyte
 	selected = 52,
 	deselected = 53,
 	towerEntered = 54,
-	towerExited = 55
+	towerExited = 55, 
+	towerInfo = 56,
+	transaction = 57
 }
 
 enum TileType : ubyte
 {
 	buildable = 0,
 	nonbuildable = 1,
-	flameVent = 2
+	vent = 2, 
+	rocketlauncher = 3
 }
 
 struct MapConfig
@@ -96,8 +119,21 @@ struct Level
 	List!Wave waves;
 	@Convert!pathConverter() List!Path paths;
 	uint2 tileSize;
+	uint startBalance;
 	List!EnemyPrototype enemyPrototypes;
 	List!VentTower		ventPrototypes;
+	List!Tower			towers;
+}
+
+struct Tower
+{
+	uint cost;
+	string phoneIcon;
+	uint color;
+	TileType type;
+	ubyte typeIndex;
+	float range;
+	ubyte upgradeIndex;
 }
 
 struct EnemyPrototype

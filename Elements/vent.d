@@ -106,17 +106,14 @@ struct VentController
 
 	void render(Renderer* renderer, float2 tileSize)
 	{
-		auto coneTexture = Game.content.loadTexture("cone");
-		auto coneFrame = Frame(coneTexture);
-
 		foreach(tower; instances)
 		{		
 			renderer.addFrame(tower.towerFrame, tower.position, Color.white, tileSize, tileSize/2);
 			if ( tower.open > 0 && tower.pressure > 0) {
 				Color color = Color.white;
-				auto origin = float2(0, coneFrame.height/2);
-				renderer.addFrame(coneFrame, tower.position, 
-									   color, float2(tower.range, coneFrame.height), origin, tower.direction);
+				auto origin = float2(0, tower.frame.height/2);
+				renderer.addFrame(tower.frame, tower.position, 
+									   color, float2(tower.range, tower.frame.height), origin, tower.direction);
 			}
 
 			float amount = tower.pressure/tower.maxPressure;
