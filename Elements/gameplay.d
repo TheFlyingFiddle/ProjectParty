@@ -150,11 +150,6 @@ class GamePlayState : IGameState
 			tiMsg.upgradeIndex = tower.upgradeIndex;
 			Game.server.sendMessage(id, tiMsg);
 		}
-
-		balances[id] = level.startBalance;		
-		TransactionMessage tMsg;
-		tMsg.amount = balances[id];
-		Game.server.sendMessage(id, tMsg);
 	}
 
 	void handleSelectRequest(ulong id, ubyte[] msg)
