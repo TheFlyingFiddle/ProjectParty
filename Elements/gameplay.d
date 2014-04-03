@@ -50,7 +50,8 @@ class GamePlayState : IGameState
 		HomingProjectileInstance.prefabs = level.homingPrototypes;
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
-		ballisticController.instances ~= BallisticInstance(float2(100, 520), 0);
+		ballisticController.instances ~= BallisticInstance(0, float2(100, 520));
+		level.tileMap[ventController.instances[0].cell(level.tileSize)] = TileType.rocket;
 
 	}
 
@@ -65,6 +66,9 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.ventValue, &handleVentValue);
 		Game.router.setMessageHandler(IncomingMessages.ventDirection, &handleVentDirection);
 		Game.router.setMessageHandler(IncomingMessages.towerSell, &handleTowerSell);
+		Game.router.setMessageHandler(IncomingMessages.ballisticValue, &handleBallisticValue);
+		Game.router.setMessageHandler(IncomingMessages.ballisticDirection, &handleBallisticDirection);
+		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch, &handleBallisticLaunch);
 
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
@@ -119,7 +123,17 @@ class GamePlayState : IGameState
 
 	void buildTower(float2 position, ubyte towerType, ubyte towerTypeIndex)
 	{
-		ventController.instances ~= VentInstance(position, towerTypeIndex);
+		switch(cast(TileType)towerType) with (TileType)
+		{
+			case vent:
+				ventController.instances ~= VentInstance(position, towerTypeIndex);
+				break;
+			case rocket:
+				ballisticController.instances ~= BallisticInstance(towerTypeIndex, position);
+				break;
+			default:
+				break;
+		}
 	}
 
 	void handleTowerEntered(ulong id, ubyte[] msg)
@@ -129,6 +143,13 @@ class GamePlayState : IGameState
 
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
+
+		auto index = ballisticController.instances.countUntil!(b=>b.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			import std.stdio;
+			ballisticController.instances[index].isControlled = true;
+		}
 	}
 
 	void handleTowerExited(ulong id, ubyte[] msg)
@@ -138,6 +159,13 @@ class GamePlayState : IGameState
 
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
+
+		auto index = ballisticController.instances.countUntil!(b=>b.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			import std.stdio;
+			ballisticController.instances[index].isControlled = false;
+		}
 	}
 
 
@@ -209,6 +237,45 @@ class GamePlayState : IGameState
 		if(index != -1)
 		{
 			ventController.instances[index].direction = value;
+		}
+	}
+
+	void handleBallisticValue(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto value = msg.read!float;
+
+		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			auto distance = ballisticController.instances[index].maxDistance * value;
+			ballisticController.instances[index].distance = distance;
+		}
+	}
+
+	void handleBallisticDirection(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto value = msg.read!float;
+
+		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			ballisticController.instances[index].angle = value;
+		}
+	}	
+	
+	void handleBallisticLaunch(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+
+		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			ballisticController.launch(index);
 		}
 	}
 

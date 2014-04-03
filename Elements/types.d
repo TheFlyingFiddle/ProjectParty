@@ -83,7 +83,10 @@ enum IncomingMessages : ubyte
 	towerExited = 55,
 	ventValue = 56,
 	ventDirection = 57,
-	towerSell = 58
+	towerSell = 58,
+	ballisticValue = 59,
+	ballisticDirection = 60,
+	ballisticLaunch = 61
 }
 
 enum OutgoingMessages : ubyte
@@ -104,7 +107,7 @@ enum TileType : ubyte
 	buildable = 0,
 	nonbuildable = 1,
 	vent = 2, 
-	rocketlauncher = 3
+	rocket = 3
 }
 
 struct MapConfig
@@ -220,17 +223,6 @@ struct EnemyConfig
 	string textureResource;
 }
 
-struct TowerConfig
-{
-	float range;
-	uint cost;
-	TowerType type;
-	@Optional(0.0f) float common1;
-	@Optional(0.0f) float common2;
-	@Optional(0) int common3;
-	@Optional(0.0f) float common4;
-	@Optional(0.0f) float common5;
-}
 
 struct Path
 {
@@ -318,11 +310,6 @@ struct Wave
 	List!Spawner spawners;
 }
 
-enum TowerType
-{
-	projectile = 0,
-	cone = 1
-}
 
 struct ProjectileTower
 {

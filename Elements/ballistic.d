@@ -22,7 +22,11 @@ struct BallisticProjectileInstance
 	this(int prefabIndex, float2 position, float2 target)
 	{
 		this.prefabIndex = prefabIndex;
-		this.velocity = float2.zero;
+
+		auto polar = (target - position).toPolar;
+		polar.magnitude = prefabs[prefabIndex].speed;
+		this.velocity = polar.toCartesian;
+
 		this.position = position;
 		this.target = target;
 	}
@@ -37,6 +41,11 @@ struct BallisticProjectileInstance
 		return prefabs[prefabIndex].radius;
 	}
 
+	@property float speed()
+	{
+		return prefabs[prefabIndex].speed;
+	}
+
 	@property ref Frame frame()
 	{
 		return prefabs[prefabIndex].frame;
@@ -47,6 +56,7 @@ struct BallisticProjectilePrefab
 {
 	float damage;
 	float radius;
+	float speed;
 	@Convert!stringToFrame() Frame frame;
 }
 
@@ -98,23 +108,18 @@ struct BallisticInstance
 
 	int prefabIndex;
 	float2 position;
-	float direction;
+	float angle;
 	float distance;
 	float elapsed;
 	bool isControlled;
 
-	this(float2 position, int prefabIndex)
+	this(int prefabIndex, float2 position)
 	{
 		this.prefabIndex = prefabIndex;
 		this.position = position;
-		this.direction = 0;
+		this.angle = 0;
 		this.distance = 0;
 		this.elapsed = 0;
-	}
-
-	@property float damage()
-	{
-		return prefabs[prefabIndex].damage;
 	}
 
 	@property float range()
@@ -132,10 +137,16 @@ struct BallisticInstance
 		return prefabs[prefabIndex].reloadTime;
 	}
 
-	@property int projectilePrefabIndex()
+	@property int homingPrefabIndex()
 	{
-		return prefabs[prefabIndex].projectilePrefabIndex;
+		return prefabs[prefabIndex].homingPrefabIndex;
 	}
+
+	@property int ballisticPrefabIndex()
+	{
+		return prefabs[prefabIndex].ballisticPrefabIndex;
+	}
+	
 
 	@property ref Frame frame()
 	{
@@ -151,8 +162,8 @@ struct BallisticInstance
 
 struct BallisticTower
 {
-	int projectilePrefabIndex;
-	float damage;
+	int homingPrefabIndex;
+	int ballisticPrefabIndex;
 	float range;
 	float maxDistance; //Separate range for manual projectiles.
 	float reloadTime;
@@ -170,6 +181,18 @@ struct BallisticController
 		this.instances = List!BallisticInstance(allocator, 100);
 		this.ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
 		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
+	}
+
+	void launch(int towerIndex)
+	{
+		auto target = Polar!float(
+							instances[towerIndex].angle,
+							instances[towerIndex].distance).toCartesian;
+		ballisticProjectiles ~= BallisticProjectileInstance(
+									instances[towerIndex].ballisticPrefabIndex,
+									instances[towerIndex].position,
+									instances[towerIndex].position + target);
+
 	}
 
 	void update(List!Enemy enemies)
@@ -199,13 +222,17 @@ struct BallisticController
 		// Update all non-homing projectiles
 		for(int i = ballisticProjectiles.length - 1; i >= 0; --i)
 		{
-			ballisticProjectiles[i].position += ballisticProjectiles[i].velocity;
-			auto index = enemies.countUntil!( e => 
-							distance(e.position, ballisticProjectiles[i].position) 
-							< ballisticProjectiles[i].radius);
-			if(index != -1)
+			ballisticProjectiles[i].position += ballisticProjectiles[i].velocity * Time.delta;
+			
+			if(distance(ballisticProjectiles[i].position, ballisticProjectiles[i].target)
+			   < 10)
 			{
-				enemies[index].health -= ballisticProjectiles[i].damage;
+				foreach(ref enemy; enemies)
+				{
+					if(distance(enemy.position, ballisticProjectiles[i].position) 
+								< ballisticProjectiles[i].radius)
+						enemy.health -= ballisticProjectiles[i].damage;
+				}
 				ballisticProjectiles.removeAt(i);
 			}
 		}
@@ -225,7 +252,7 @@ struct BallisticController
 					auto enemyIndex = findFarthestReachableEnemy(enemies, tower.position, tower.range);
 					if(enemyIndex != -1) 
 					{
-						spawnHomingProjectile(tower.projectilePrefabIndex, enemyIndex, tower.position);
+						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, tower.position);
 						tower.elapsed = 0;
 					}
 				}
@@ -236,7 +263,7 @@ struct BallisticController
 	void render(Renderer* renderer, float2 tileSize, List!Enemy enemies /*Quick hack*/)
 	{
 
-		auto targetTex = Game.content.loadTexture("rocket");
+		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
 		foreach(tower; instances)
 		{		
@@ -249,8 +276,8 @@ struct BallisticController
 				auto origin = size/2;
 
 				// Calculate the position
-				auto distance = max(tower.distance, tower.maxDistance);
-				auto vecToTarget = Polar!float(tower.direction, distance).toCartesian();
+				auto distance = min(tower.distance, tower.maxDistance);
+				auto vecToTarget = Polar!float(tower.angle, distance).toCartesian();
 				auto position = tower.position + vecToTarget;
 
 				renderer.addFrame(targetFrame, position, Color.white, size, origin);
@@ -264,6 +291,15 @@ struct BallisticController
 			renderer.addFrame(projectile.frame, projectile.position, Color.white, size, origin, 
 							  atan2(enemies[projectile.targetIndex].position.y - projectile.position.y, 
 									enemies[projectile.targetIndex].position.x - projectile.position.x));
+		}
+
+		foreach(projectile; ballisticProjectiles)
+		{
+			auto size = float2(projectile.frame.width, projectile.frame.height);
+			auto origin = size/2;
+			renderer.addFrame(	projectile.frame, projectile.position, Color.white, size, origin, 
+								atan2(	projectile.target.y - projectile.position.y, 
+										projectile.target.x - projectile.position.x));
 		}
 	}
 

@@ -39,7 +39,7 @@ local function Idle()
 			end
 			sendSelectionMessage(gridPos)
 			state:enterState("BuildableSelected", gridPos)
-		elseif tileType == 2 then
+		elseif tileType > 1 then
 			state:enterState("TowerSelected", gridPos)
 		end
 	end
@@ -55,7 +55,12 @@ local function TowerSelected()
 
 	local function callback(item)
 		if item.id == 0 then
-			fsm:enterState("Vent", t.x, t.y)
+			local type = map.tiles[t.y*map.width + t.x]
+			if type == 3 then
+				fsm:enterState("Ballistic", t.x, t.y)
+			elseif type == 2 then
+				fsm:enterState("Vent", t.x, t.y)
+			end
 		elseif item.id == 1 then
 			--Do upgrade if possible
 		elseif item.id == 3 then
