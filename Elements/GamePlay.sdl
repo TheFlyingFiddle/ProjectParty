@@ -28,6 +28,13 @@ towers = [{ cost = 10 range = 100 phoneIcon = |textures/fire_icon.png|
 		    type = vent typeIndex = 1 color = 0xFFFF0000 upgradeIndex = -1}
 		 ]
 
+ballisticProjectilePrototypes = [ { damage = 10 radius = 5 frame = rocket_big } ]
+
+homingPrototypes = [ { damage = 20 speed = 200 radius = 30 frame = rocket } ]
+
+ballisticTowerPrototypes = [ { projectilePrefabIndex = 0 damage = 30 range = 300
+						  maxDistance = 500 reloadTime = 2 frame = rocket } ]
+
 waves = 
 [  
 	{spawners = 

@@ -1,0 +1,281 @@
+module ballistic;
+
+import math;
+import collections;
+import types;
+import content;
+import graphics;
+import game;
+import game.debuging;
+import std.algorithm : max, min;
+import std.math : atan2;
+import gameplay : findFarthestReachableEnemy;
+
+struct BallisticProjectileInstance
+{
+	static List!BallisticProjectilePrefab prefabs;
+	int		prefabIndex;
+	float2	velocity;
+	float2	position;
+	float2	target;
+
+	this(int prefabIndex, float2 position, float2 target)
+	{
+		this.prefabIndex = prefabIndex;
+		this.velocity = float2.zero;
+		this.position = position;
+		this.target = target;
+	}
+	
+	@property float damage()
+	{
+		return prefabs[prefabIndex].damage;
+	}
+
+	@property float radius()
+	{
+		return prefabs[prefabIndex].radius;
+	}
+
+	@property ref Frame frame()
+	{
+		return prefabs[prefabIndex].frame;
+	}
+}
+
+struct BallisticProjectilePrefab
+{
+	float damage;
+	float radius;
+	@Convert!stringToFrame() Frame frame;
+}
+
+struct HomingProjectileInstance
+{
+	static List!HomingProjectilePrefab prefabs;
+	int		prefabIndex;
+	int		targetIndex;
+	float2	position;
+	this(int prefabIndex, int target, float2 position)
+	{
+		this.prefabIndex = prefabIndex;
+		this.targetIndex = target;
+		this.position = position;
+	}
+
+	@property float damage()
+	{
+		return prefabs[prefabIndex].damage;
+	}
+
+	@property float speed()
+	{
+		return prefabs[prefabIndex].speed;
+	}
+
+	@property float radius()
+	{
+		return prefabs[prefabIndex].radius;
+	}
+
+	@property ref Frame frame()
+	{
+		return prefabs[prefabIndex].frame;
+	}
+}
+
+struct HomingProjectilePrefab
+{
+	float damage;
+	float speed;
+	float radius;
+	@Convert!stringToFrame() Frame frame;
+}
+
+struct BallisticInstance
+{
+	static List!BallisticTower prefabs;
+
+	int prefabIndex;
+	float2 position;
+	float direction;
+	float distance;
+	float elapsed;
+	bool isControlled;
+
+	this(float2 position, int prefabIndex)
+	{
+		this.prefabIndex = prefabIndex;
+		this.position = position;
+		this.direction = 0;
+		this.distance = 0;
+		this.elapsed = 0;
+	}
+
+	@property float damage()
+	{
+		return prefabs[prefabIndex].damage;
+	}
+
+	@property float range()
+	{
+		return prefabs[prefabIndex].range;
+	}
+
+	@property float maxDistance()
+	{
+		return prefabs[prefabIndex].maxDistance;
+	}
+
+	@property float reloadTime()
+	{
+		return prefabs[prefabIndex].reloadTime;
+	}
+
+	@property int projectilePrefabIndex()
+	{
+		return prefabs[prefabIndex].projectilePrefabIndex;
+	}
+
+	@property ref Frame frame()
+	{
+		return prefabs[prefabIndex].frame;
+	}
+
+	uint2 cell(uint2 tileSize)
+	{
+		return uint2((position.x - tileSize.x/2)/tileSize.x, 
+					 (position.y - tileSize.y/2)/tileSize.y);
+	}
+}
+
+struct BallisticTower
+{
+	int projectilePrefabIndex;
+	float damage;
+	float range;
+	float maxDistance; //Separate range for manual projectiles.
+	float reloadTime;
+	@Convert!stringToFrame() Frame frame;
+}
+
+struct BallisticController
+{
+	List!BallisticInstance instances;
+	List!BallisticProjectileInstance ballisticProjectiles;
+	List!HomingProjectileInstance homingProjectiles;
+
+	this(A)(ref A allocator)
+	{
+		this.instances = List!BallisticInstance(allocator, 100);
+		this.ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
+		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
+	}
+
+	void update(List!Enemy enemies)
+	{
+
+		// Update all homing projectiles
+		for(int i = homingProjectiles.length - 1; i >= 0; --i)
+		{
+			
+			// Move the projectile towards the target.
+			auto velocity = (enemies[homingProjectiles[i].targetIndex].position 
+							 - homingProjectiles[i].position).normalized 
+							* homingProjectiles[i].speed 
+							* Time.delta;
+			homingProjectiles[i].position += velocity;
+
+			// Check for collision between the target and the projectile
+			if(distance(enemies[homingProjectiles[i].targetIndex].position, 
+										homingProjectiles[i].position) 
+							< homingProjectiles[i].radius)
+			{
+				enemies[homingProjectiles[i].targetIndex].health -= homingProjectiles[i].damage;
+				homingProjectiles.removeAt(i);
+			}
+		}
+
+		// Update all non-homing projectiles
+		for(int i = ballisticProjectiles.length - 1; i >= 0; --i)
+		{
+			ballisticProjectiles[i].position += ballisticProjectiles[i].velocity;
+			auto index = enemies.countUntil!( e => 
+							distance(e.position, ballisticProjectiles[i].position) 
+							< ballisticProjectiles[i].radius);
+			if(index != -1)
+			{
+				enemies[index].health -= ballisticProjectiles[i].damage;
+				ballisticProjectiles.removeAt(i);
+			}
+		}
+		
+		// Update all towers
+		foreach(i, ref tower; instances)
+		{
+			if(tower.isControlled)
+			{
+				//Nothing to do?
+			}
+			else // Tower is on autopilot. Just shoot projectiles steadily.
+			{
+				tower.elapsed += Time.delta;
+				if(tower.elapsed >= tower.reloadTime)
+				{
+					auto enemyIndex = findFarthestReachableEnemy(enemies, tower.position, tower.range);
+					if(enemyIndex != -1) 
+					{
+						spawnHomingProjectile(tower.projectilePrefabIndex, enemyIndex, tower.position);
+						tower.elapsed = 0;
+					}
+				}
+			}
+		}
+	}
+
+	void render(Renderer* renderer, float2 tileSize, List!Enemy enemies /*Quick hack*/)
+	{
+
+		auto targetTex = Game.content.loadTexture("rocket");
+		auto targetFrame = Frame(targetTex);
+		foreach(tower; instances)
+		{		
+			renderer.addFrame(tower.frame, tower.position, Color.white, tileSize, tileSize/2);
+
+			if(tower.isControlled)
+			{
+				// Calculate origin
+				auto size = float2(targetFrame.width, targetFrame.height);
+				auto origin = size/2;
+
+				// Calculate the position
+				auto distance = max(tower.distance, tower.maxDistance);
+				auto vecToTarget = Polar!float(tower.direction, distance).toCartesian();
+				auto position = tower.position + vecToTarget;
+
+				renderer.addFrame(targetFrame, position, Color.white, size, origin);
+			}
+		}
+
+		foreach(projectile; homingProjectiles)
+		{
+			auto size = float2(projectile.frame.width, projectile.frame.height);
+			auto origin = size/2;
+			renderer.addFrame(projectile.frame, projectile.position, Color.white, size, origin, 
+							  atan2(enemies[projectile.targetIndex].position.y - projectile.position.y, 
+									enemies[projectile.targetIndex].position.x - projectile.position.x));
+		}
+	}
+
+	private void spawnHomingProjectile(int projectilePrefabIndex, int enemyIndex, float2 position)
+	{
+		auto projectile = HomingProjectileInstance(projectilePrefabIndex, enemyIndex, position);
+		homingProjectiles ~= projectile;
+	}
+ 
+	private void spawnBallisticProjectile(int projectilePrefabIndex, float2 position, float2 target)
+	{
+		auto projectile = BallisticProjectileInstance(projectilePrefabIndex, position, target);
+		ballisticProjectiles ~= projectile;
+	}
+}

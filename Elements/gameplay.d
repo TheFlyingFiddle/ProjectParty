@@ -8,6 +8,7 @@ import types;
 import network.message;
 import util.bitmanip;
 import vent;
+import ballistic;
 
 
 class GamePlayState : IGameState
@@ -21,6 +22,8 @@ class GamePlayState : IGameState
 	List!uint2 selections;
 
 	VentController ventController;
+	BallisticController ballisticController;
+
 	Table!(ulong, int)balances;
 
 	this(A)(ref A allocator, string configFile)
@@ -37,11 +40,18 @@ class GamePlayState : IGameState
 
 		level = fromSDLFile!Level(allocator, configFile);
 		Enemy.paths = level.paths;
+
 		ventController = VentController(allocator);
 		VentInstance.prototypes = level.ventPrototypes;
-		
-		ventController.instances ~= VentInstance(float2(100,100), 0);
+		ventController.instances ~= VentInstance(float2(400,520), 0);
 		level.tileMap[ventController.instances[0].cell(level.tileSize)] = cast(TileType)2;
+
+		ballisticController = BallisticController(allocator);
+		HomingProjectileInstance.prefabs = level.homingPrototypes;
+		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
+		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
+		ballisticController.instances ~= BallisticInstance(float2(100, 520), 0);
+
 	}
 
 	void enter()
@@ -221,7 +231,6 @@ class GamePlayState : IGameState
 		}
 	}
 
-
 	void exit()
 	{
 
@@ -232,6 +241,7 @@ class GamePlayState : IGameState
 		updateWave();
 		updateEnemies();
 		ventController.update(enemies);
+		ballisticController.update(enemies);
 		killEnemies();
 	}
 
@@ -286,46 +296,6 @@ class GamePlayState : IGameState
 		}
 	}
 
-	int findFarthestReachableEnemy(float2 towerPos, float range)
-	{
-		int index = -1;
-		foreach(i, ref enemy; enemies)
-		{
-			float distance = distance(enemy.position, towerPos);
-			if (distance <= range)
-			{
-				if(index == -1)
-					index = i;
-				else if (enemy.distance > enemies[index].distance)
-					index = i;
-			}
-		}
-		return index;
-	}
-
-	int findNearestReachableEnemy(float2 towerPos, float range)
-	{
-		int index = -1;
-		float lowestDistance = float.infinity;
-		foreach(i, ref enemy; enemies)
-		{
-			float distance = distance(enemy.position, towerPos);
-			if (distance <= range)
-			{
-				if(index == -1)
-				{
-					index = i;
-					lowestDistance = distance;
-				}
-				else if (distance < lowestDistance)
-				{
-					index = i;
-					lowestDistance = distance;
-				}
-			}
-		}
-		return index;
-	}
 
 	void render()
 	{
@@ -370,6 +340,7 @@ class GamePlayState : IGameState
 		}
 
 		ventController.render(Game.renderer, float2(level.tileSize));
+		ballisticController.render(Game.renderer, float2(level.tileSize), enemies);
 	}
 
 	void killEnemies()
@@ -391,10 +362,87 @@ class GamePlayState : IGameState
 		}	
 
 		enemies.removeAt(i);
+
+		for (int j = ballisticController.homingProjectiles.length - 1; j >= 0; j--)
+		{
+			if(ballisticController.homingProjectiles[j].targetIndex == i)
+			{
+				auto nearest = findNearestEnemy(enemies, ballisticController.homingProjectiles[j].position);
+				if(nearest == -1)
+					ballisticController.homingProjectiles.removeAt(j);
+				else
+					ballisticController.homingProjectiles[j].targetIndex = nearest;
+			} 
+			else if(ballisticController.homingProjectiles[j].targetIndex > i)
+			{
+				ballisticController.homingProjectiles[j].targetIndex--;
+			}
+		}
 	}
 
 	void gameOver()
 	{
 		std.c.stdlib.exit(0);
 	}
+}
+
+int findNearestEnemy(ref List!Enemy enemies, float2 position)
+{
+	int index = -1;
+	auto lowestDistance = float.max;
+
+	foreach(i, ref enemy; enemies)
+	{
+		float distance = distance(enemy.position, position);
+
+		if(index == -1 || distance < lowestDistance)
+		{
+			index = i;
+			lowestDistance = distance;
+		}
+
+	}
+	return index;
+}
+
+int findFarthestReachableEnemy(List!Enemy enemies, float2 towerPos, float range)
+{
+	auto index = -1;
+	
+	foreach(i, ref enemy; enemies)
+	{
+		float distance = distance(enemy.position, towerPos);
+		if (distance <= range)
+		{
+			if(index == -1)
+				index = i;
+			else if (enemy.distance > enemies[index].distance)
+				index = i;
+		}
+	}
+	return index;
+}
+
+int findNearestReachableEnemy(List!Enemy enemies, float2 towerPos, float range)
+{
+	int index = -1;
+	float lowestDistance = float.infinity;
+	foreach(i, ref enemy; enemies)
+	{
+		float distance = distance(enemy.position, towerPos);
+		if (distance <= range)
+		{
+			if(index == -1)
+			{
+				index = i;
+				lowestDistance = distance;
+			}
+			else if (distance < lowestDistance)
+			{
+				index = i;
+				lowestDistance = distance;
+			}
+		}
+	}
+	return index;
 }

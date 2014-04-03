@@ -5,6 +5,7 @@ import collections;
 import content;
 import allocation;
 import vent;
+import ballistic;
 
 struct MapMessage
 {
@@ -130,6 +131,10 @@ struct Level
 	uint startBalance;
 	List!EnemyPrototype enemyPrototypes;
 	List!VentTower		ventPrototypes;
+	List!HomingProjectilePrefab		homingPrototypes;
+	List!BallisticProjectilePrefab	ballisticProjectilePrototypes;
+	List!BallisticTower				ballisticTowerPrototypes;
+
 	List!Tower			towers;
 }
 

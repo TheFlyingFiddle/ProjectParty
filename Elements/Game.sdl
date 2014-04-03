@@ -56,6 +56,9 @@ resources = [
 { type = texture path = |elements\textures\tower_cone.png| },
 { type = texture path = |elements\textures\tower_effect.png| },
 { type = texture path = |elements\textures\cone.png| },
+{ type = texture path = |elements\textures\rocket.png| },
+{ type = texture path = |elements\textures\rocket_big.png| },
+{ type = texture path = |elements\textures\target.png| },
 { type = texture path = |elements\textures\map2.png| }
 ]
 
