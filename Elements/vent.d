@@ -7,7 +7,7 @@ import graphics;
 import game;
 import game.debuging;
 import std.algorithm : max, min;
-
+import tower_controller;
 
 struct VentInstance
 {
@@ -77,13 +77,11 @@ struct VentTower
 	@Convert!stringToFrame() Frame towerFrame;
 }
 
-struct VentController
+final class VentController : TowerController!VentInstance
 {
-	List!VentInstance instances;
-
 	this(A)(ref A allocator)
 	{
-		this.instances = List!VentInstance(allocator, 100);
+		super(List!VentInstance(allocator, 100), TileType.vent);
 	}
 
 	void update(List!Enemy enemies)
@@ -123,5 +121,10 @@ struct VentController
 			Game.renderer.addRect(float4(tower.position.x - sBWidth/2, tower.position.y + tileSize.y/2, 
 										 sBWidth*amount, 5), Color.white);
 		}
+	}
+
+	void sendTowerInfo(uint towerIndex)
+	{
+		//Do something at a later point in time.
 	}
 }

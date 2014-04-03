@@ -8,6 +8,7 @@ import types;
 import network.message;
 import util.bitmanip;
 import vent;
+import tower_controller;
 
 
 class GamePlayState : IGameState
@@ -20,7 +21,9 @@ class GamePlayState : IGameState
 	int lifeTotal;
 	List!uint2 selections;
 
+	List!ITowerController towerControllers;
 	VentController ventController;
+
 	Table!(ulong, int)balances;
 
 	this(A)(ref A allocator, string configFile)
@@ -29,6 +32,7 @@ class GamePlayState : IGameState
 		enemies = List!Enemy(allocator, 100);
 		selections = List!uint2(allocator, 10);
 		balances = Table!(ulong, int)(allocator, 10);
+		towerControllers = List!ITowerController(allocator, 10);
 
 		import std.algorithm;
 
@@ -37,11 +41,11 @@ class GamePlayState : IGameState
 
 		level = fromSDLFile!Level(allocator, configFile);
 		Enemy.paths = level.paths;
-		ventController = VentController(allocator);
+		ventController = allocator.allocate!VentController(allocator);
 		VentInstance.prototypes = level.ventPrototypes;
 		
-		ventController.instances ~= VentInstance(float2(100,100), 0);
-		level.tileMap[ventController.instances[0].cell(level.tileSize)] = cast(TileType)2;
+		towerControllers ~= cast(ITowerController)ventController;
+
 	}
 
 	void enter()
@@ -60,10 +64,9 @@ class GamePlayState : IGameState
 		Game.router.disconnectionHandlers ~= &disconnect;
 	}
 
-	int getCost(ubyte type, ubyte typeIndex) 
+	Tower getMetaInfo(ubyte type, ubyte typeIndex) 
 	{
-		auto index = level.towers.countUntil!(x => x.type == type && x.typeIndex == typeIndex);
-		return level.towers[index].cost;
+		return level.towers.find!(x => x.type == type && x.typeIndex == typeIndex)[0];
 	}
 
 	void sendTransaction(ulong id, int amount)
@@ -93,23 +96,27 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto type = msg.read!ubyte;
 		auto typeIndex = msg.read!ubyte;
+
+		auto meta = getMetaInfo(type, typeIndex);
 		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-			balances[id] >= getCost(type, typeIndex)) {
+			balances[id] >= meta.cost) {
 			buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 							  y * level.tileSize.y + level.tileSize.y / 2), 
 						type, typeIndex);
 			level.tileMap[uint2(x,y)] = cast(TileType) type;
-			sendTransaction(id, -getCost(type, typeIndex));
+			sendTransaction(id, -meta.cost);
+
 			foreach(player; Game.players)
-			{
 				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type, typeIndex));
-			}
 		}
 	}
 
 	void buildTower(float2 position, ubyte towerType, ubyte towerTypeIndex)
 	{
-		ventController.instances ~= VentInstance(position, towerTypeIndex);
+		foreach(tc; towerControllers) if(tc.type == towerType)
+		{
+			tc.buildTower(position, towerTypeIndex);
+		}
 	}
 
 	void handleTowerEntered(ulong id, ubyte[] msg)
@@ -207,20 +214,21 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint,
 			  y = msg.read!uint;
 
-		auto index = ventController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
-		if(index != -1)
+
+		foreach(tc; towerControllers) 
 		{
-			level.tileMap[uint2(x,y)] = TileType.buildable;
-
-			sendTransaction(id, 100); //Placeholder
-			ventController.instances.removeAt(index);
-
-
-			foreach(player; Game.players)
-				Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
+			auto index = tc.hasTower(uint2(x,y), level.tileSize);
+			if(index != -1)
+			{
+				auto meta = tc.metaTower(index, level.towers);
+				tc.removeTower(index);
+				sendTransaction(id, cast(int)(-0.9 * meta.cost));
+			}
 		}
+		
+		foreach(player; Game.players)
+				Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
 	}
-
 
 	void exit()
 	{

@@ -193,6 +193,7 @@
   <File path="gameplay.d" />
   <File path="GamePlay.sdl" />
   <File path="main.d" />
+  <File path="tower_controller.d" />
   <File path="types.d" />
   <File path="vent.d" />
  </Folder>
