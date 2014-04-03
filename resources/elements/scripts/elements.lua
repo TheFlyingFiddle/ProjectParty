@@ -1,13 +1,13 @@
 local map
 local tilesize = 40
-local cameraPos = vec2(0,0)
 local selections = {}
 local towers = {}
 local towerImages = {}
 local money = 0
+local camera
 
 local tileColors = 
-	{
+{
 		0xFF559567,
 		0xFF456a90,
 		0xFF0000FF,
@@ -19,15 +19,20 @@ local tileColors =
 }
 
 local state
+local selector
+local selectedCell
 
 local function toGridPos(pos)
-	local cellx = math.floor((pos.x - cameraPos.x) / tilesize)
-	local celly = math.floor((pos.y - cameraPos.y) / tilesize)
-	return vec2(cellx,celly)
+	local worldPos = camera:worldPos(pos)
+	local cellx = math.floor( worldPos.x / tilesize)
+	local celly = math.floor( worldPos.y / tilesize)
+	log(string.format("gridPos %d,%d", cellx, celly))
+	return vec2(cellx, celly)
 end
 
 local function Idle()
-	local t = { draw = function() end}
+	local t = { }
+
 	function t.onTap(pos)
 		local gridPos = toGridPos(pos)
 		local tileType = map.tiles[gridPos.y * map.width + gridPos.x]
@@ -37,15 +42,23 @@ local function Idle()
 					return
 				end
 			end
+			selectedCell = gridPos
 			sendSelectionMessage(gridPos)
-			state:enterState("BuildableSelected", gridPos)
-		elseif tileType > 1 then
-			state:enterState("TowerSelected", gridPos)
+			state:enterState("BuildableSelected")
+		elseif tileType  == 1 then
+			return
+		else 
+			selectedCell = gridPos
+			state:enterState("TowerSelected", tileType)
 		end
 	end
 
-	function t.enter(x, y) 
-		if x and y then sendDeselectionMessage(x, y) end
+	function t.enter() 
+		selector = nil
+		if selectedCell then
+			sendDeselectionMessage(selectedCell)
+			selectedCell = nil
+		end
 	end
 	return t
 end
@@ -55,45 +68,29 @@ local function TowerSelected()
 
 	local function callback(item)
 		if item.id == 0 then
-			local type = map.tiles[t.y*map.width + t.x]
-			if type == 3 then
-				fsm:enterState("Ballistic", t.x, t.y)
-			elseif type == 2 then
-				fsm:enterState("Vent", t.x, t.y)
+			if t.tileType == 2 then
+				fsm:enterState("Vent", selectedCell)
+			elseif t.tileType == 3 then
+				fsm:enterState("Ballistic", selectedCell)
 			end
 		elseif item.id == 1 then
-			sendUpgradeTower(t.x, t.y)
-			state:enterState("Idle", t.x, t.y)
+			--Do upgrade if possible
 		elseif item.id == 3 then
-			sendSellTowerRequest(t.x, t.y)
-			state:enterState("Idle", t.x, ty)
+			sendSellTowerRequest(selectedCell)
+			state:enterState("Idle")
 		else
-			state:enterState("Idle", t.x, ty)
+			state:enterState("Idle")
 		end
 	end
 
-	local enter    = { id = 0, frame = fireIcon,	color = 0xFFFFFFFF }
-	local upgrade  = { id = 1, frame = buyIcon,		color = 0xFF00FF00 }
-	local cancel   = { id = 2, frame = cancelIcon,  color = 0xFF0000FF }
-	local sell     = { id = 3, frame = buyIcon,     color = 0xFF0000FF }
-	local selector = Selector(Rect(0,0,0,0), callback, {enter, upgrade, cancel, sell})
-	
-	function t.draw()
-		local radius = Screen.height / 4
-		selector.rect.pos = vec2(t.x * tilesize + tilesize / 2 + cameraPos.x - radius,
-					 			 t.y * tilesize + tilesize / 2 + cameraPos.y - radius)
-		selector.rect.dim = vec2(radius * 2, radius * 2)
+	function t.enter(type)
+		local enter    = { id = 0, frame = fireIcon,	color = 0xFFFFFFFF }
+		local upgrade  = { id = 1, frame = buyIcon,		color = 0xFF00FF00 }
+		local cancel   = { id = 2, frame = cancelIcon,  color = 0xFF0000FF }
+		local sell     = { id = 3, frame = buyIcon,     color = 0xFF0000FF }
+		selector = Selector(Rect(0,0,0,0), callback, {enter, upgrade, cancel, sell})
 
-		selector:draw()
-	end
-
-	function t.onTap(pos)
-		selector:onTap(pos)
-	end
-
-	function t.enter(cell)
-		t.x = cell.x
-		t.y = cell.y
+		t.tileType = type
 	end
 
 	return t
@@ -103,32 +100,11 @@ local function BuildableSelected()
 	local t = { }
 	
 	local function callback(item)
-		state:enterState("Confirm", vec2(t.x, t.y), item)
+		log("Tower selected ")
+		state:enterState("Confirm",item)
 	end	
 
-	local selector
-
-	function t.onTap(pos)
-		selector:onTap(pos)
-	end
-
-	function t.draw()
-		Renderer.addText(font, "In selected state", vec2(0,100), 0xFFFF0000)
-		Renderer.addFrame(pixel, vec2(t.x*tilesize + cameraPos.x, 
-									  t.y*tilesize + cameraPos.y), 
-										vec2(tilesize,tilesize), 0xFF0000FF)
-		local radius = Screen.height / 4
-		selector.rect.pos = vec2(t.x * tilesize + tilesize / 2 + cameraPos.x - radius,
-					 			 t.y * tilesize + tilesize / 2 + cameraPos.y - radius)
-		selector.rect.dim = vec2(radius * 2, radius * 2)
-
-		selector:draw()
-	end
-
-	function t.enter(cell)
-		t.x = cell.x
-		t.y = cell.y
-
+	function t.enter()
 		selector = Selector(Rect(0,0,0,0), callback, towers)
 	end
 
@@ -140,38 +116,17 @@ local function Confirm()
 
 	local function callback(item) 
 		if item.id == 0 then
-			sendAddTower(t.x, t.y, t.tower.type, t.tower.typeIndex)
-			state:enterState("Idle", t.x, t.y)
+			sendAddTower(selectedCell, t.tower.type, t.tower.typeIndex)
+			state:enterState("Idle")
 		else 
-			state:enterState("Idle", t.x, t.y)
+			state:enterState("Idle")
 		end
 	end
 
-	local buy = {id = 0, frame = buyIcon, color = 0xFFFFFFFF}
-	local cancel = {id = 1, frame = cancelIcon, color = 0xFF000000}
-	local selector = Selector(Rect(0,0,0,0), callback, {buy, cancel})
-
-	function t.draw()
-		local towerRadius = 3 * tilesize
-
-		Renderer.addText(font, "In Confirm state", vec2(0,100), 0xFFFF00FF)
-		Renderer.addFrame(pixel, vec2(t.x*tilesize + cameraPos.x, 
-									  t.y*tilesize + cameraPos.y), 
-										vec2(tilesize,tilesize), 0xFFFF0000)
-
-		local radius = Screen.height / 4
-		selector.rect.pos = vec2(t.x * tilesize + tilesize / 2 + cameraPos.x - radius,
-					 			 t.y * tilesize + tilesize / 2 + cameraPos.y - radius)
-		selector.rect.dim = vec2(radius * 2, radius * 2)
-
-		selector:draw()
-	end
-	function t.onTap(pos)
-		selector:onTap(pos)
-	end
-	function t.enter(cell, tower)
-		t.x = cell.x
-		t.y = cell.y
+	function t.enter(tower)
+		local buy = {id = 0, frame = buyIcon, color = 0xFFFFFFFF}
+		local cancel = {id = 1, frame = cancelIcon, color = 0xFF000000}
+		selector = Selector(Rect(0,0,0,0), callback, {buy, cancel})
 		t.tower = tower
 	end
 	return t	
@@ -179,9 +134,12 @@ end
 
 function Elements()
 	local elements = {}
+	camera = Camera( Rect2(0, 0, Screen.width, Screen.height), vec2(1000, 1000), 0.5, 3)
+
 	function elements.enter()
 		state:enterState("Idle")
 	end
+
 	function elements.init()
 		sendMapRequestMessage()
 		state = FSM()
@@ -191,11 +149,11 @@ function Elements()
 		state:addState(Confirm(), "Confirm")
 	end
 
-	function elements.exit()
-	end
 	function elements.render()
-		local pos = vec2(cameraPos)
-		local dim = vec2(tilesize,tilesize)
+		local origin = camera:transform(vec2(0,0))
+		local pos = vec2(origin)
+		local dim = camera:scale(vec2(tilesize, tilesize))
+
 		for row=0, map.height-1, 1 do
 			for col=0, map.width-1, 1 do
 				local color
@@ -204,24 +162,32 @@ function Elements()
 				Renderer.addFrame(pixel, pos, dim, color)
 				pos.x = pos.x + dim.x
 			end
-			pos.x = cameraPos.x
+			pos.x = origin.x
 			pos.y = pos.y + dim.y
 		end
+
 		for i = 1, #selections, 1 do 
-			Renderer.addFrame(pixel, vec2(selections[i].x * tilesize + cameraPos.x,
-										  selections[i].y * tilesize + cameraPos.y), dim, 
+			Renderer.addFrame(pixel, 
+				camera:transform(vec2(selections[i].x * dim.x,
+								      selections[i].y * dim.y)), dim, 
 				selections[i].color)
 		end
 		for k,v in pairs(towerImages) do
-			pos = cameraPos + v.pos * tilesize
+			pos = camera:transform(v.pos * dim.x)
 			Renderer.addFrame(v.frame, pos, dim, v.color)
 		end
 
 		renderTime(font)
-		Renderer.addText(font, string.format("Gold: %d", money), vec2(0, 300), 0xFFFFFFFF)
-		state.active.draw()
-	end
-	function elements.update()
+		Renderer.addText(font, string.format("Gold: %d ", money), vec2(0, 300), 0xFFFFFFFF)
+
+		if selector then
+			local radius = Screen.height / 4
+			selector.rect.pos = 
+			camera:transform(vec2(selectedCell.x * dim.x + dim.x / 2 - radius, 
+								  selectedCell.y * dim.y + dim.y / 2 - radius))
+			selector.rect.dim = vec2(radius * 2, radius * 2)
+			selector:draw()
+		end
 
 	end
 
@@ -230,6 +196,9 @@ function Elements()
 		map.width = In.readInt()
 		map.height = In.readInt()
 		map.tiles = In.readByteArray() 
+
+		camera.worldDim = vec2(map.width * tilesize, map.height * tilesize)
+
 	end
 
 	local function handleTowerBuilt() 
@@ -241,7 +210,6 @@ function Elements()
 
 		for k,v in pairs(towers) do
 			if v.type == type and v.typeIndex == typeIndex then
-				log("I'm in the if statement!")
 				table.insert(towerImages, {frame = v.frame, color = v.color, pos = vec2(x, y)})
 			end
 		end
@@ -309,71 +277,30 @@ function Elements()
 	Network.setMessageHandler(Network.incoming.towerSold, handleTowerSold)
 
 	function elements.onTap(x,y)
-		state.active.onTap(vec2(x,y))
+		if state.active.onTap then
+			state.active.onTap(vec2(x,y))
+		end
+
+		if selector then
+			selector:onTap(vec2(x,y))
+		end
 	end
 
-	local oldDrag
-	function elements.onDrag(x, y)
-		local deltaX = x - oldDrag.x
-		local deltaY = y - oldDrag.y
-		oldDrag = vec2(x,y)
-		moveCamera(deltaX, deltaY)
-	end
 
 	function elements.onDragBegin(x, y)
-		oldDrag = vec2(x,y)
+		camera:onDragBegin(vec2(x, y))
 	end
 
-	local oldDist, centerP
+	function elements.onDrag(x, y)
+		camera:onDrag(vec2(x,y))
+	end
+
 	function elements.onPinchBegin(x0, y0, x1, y1)
-		centerP = vec2((x0 + x1) / 2, (y0 + y1) / 2)
-		oldDist    = math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1))
+		camera:onPinchBegin(vec2(x0,y0), vec2(x1, y1))
 	end
 
 	function elements.onPinch(x0, y0, x1, y1)
-		log("pinch")
-		local dist    = math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1))
-		local delta   = dist - oldDist
-		oldDist = dist
-		if math.abs(delta) < 2 then
-			return
-		end
-		local oldTileSize = tilesize
-		tilesize = tilesize + delta * 0.06
-
-		log(tostring(tilesize))
-
-		local minTileX = Screen.width / map.width
-		local minTileY = Screen.height / map.height
-		local minTile = math.min(minTileX, minTileY)
-
-		local maxTile = Screen.height / 5
-
-		if tilesize < minTile then
-			tilesize = minTile
-		elseif tilesize > maxTile then
-			tilesize = maxTile
-		end
-
-		local x = (cameraPos.x / oldTileSize) * (tilesize - oldTileSize)
-		local y = (cameraPos.y / oldTileSize) * (tilesize - oldTileSize)
-		moveCamera(x,y)
-	end
-
-	function moveCamera(x, y)
-		cameraPos.x = cameraPos.x + x
-		cameraPos.y = cameraPos.y + y
-		if cameraPos.x > 0 then
-			cameraPos.x = 0
-		elseif cameraPos.x < -map.width * tilesize + Screen.width then
-			cameraPos.x = -map.width * tilesize + Screen.width
-		end
-
-		if cameraPos.y > 0 then
-			cameraPos.y = 0
-		elseif cameraPos.y < -map.height * tilesize + Screen.height then
-			cameraPos.y = -map.height * tilesize + Screen.height
-		end
+		camera:onPinch(vec2(x0,y0), vec2(x1, y1))
 	end
 
 	return elements

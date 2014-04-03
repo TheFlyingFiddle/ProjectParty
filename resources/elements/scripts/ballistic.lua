@@ -2,15 +2,15 @@ function Ballistic()
 	local t = {}
 
 	local function sendDirection(dir)
-		sendBallisticDirection(t.x, t.y, dir)
+		sendBallisticDirection(t.cell, dir)
 	end
 
 	local function sendAmount(amount)
-		sendBallisticValue(t.x, t.y, amount)
+		sendBallisticValue(t.cell, amount)
 	end
 
 	local function exit()
-		sendTowerExited(t.x, t.y)
+		sendTowerExited(t.cell)
 		fsm:enterState("Elements")
 	end
 
@@ -28,12 +28,12 @@ function Ballistic()
 							0xFF0000FF)
 
 	local function launch()
-		sendBallisticLaunch(t.x, t.y)
-		sendTowerExited(t.x, t.y)
+		sendBallisticLaunch(t.cell)
+		sendTowerExited(t.cell)
 		fsm:enterState("Elements")
 	end
 
-	function t.enter(x, y) 
+	function t.enter(cell) 
 	
 		gui:add(Button(0xFF0000FF, pixel, 
 				   Rect2(10,10, 400, 100), 
@@ -44,10 +44,9 @@ function Ballistic()
 		gui:add(dirSelector)
 		gui:add(amountSelector)
 
-		sendTowerEntered(x, y)
-		t.x = x
-		t.y = y
+		t.cell = cell
 		t.amount = 1
+		sendTowerEntered(t.cell)
 	end
 
 	function t.exit()

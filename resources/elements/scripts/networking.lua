@@ -42,27 +42,27 @@ function handleMessage(id, length)
 	end
 end
 
-function sendAddTower(x, y, type, index)
+function sendAddTower(cell, type, index)
 	Out.writeShort(11)
 	Out.writeByte(Network.outgoing.towerRequest)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 	Out.writeByte(type)
 	Out.writeByte(index)
 end
 
-function sendSelectionMessage(pos)
+function sendSelectionMessage(cell)
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.selectRequest)
-	Out.writeInt(pos.x)
-	Out.writeInt(pos.y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 end
 		
-function sendDeselectionMessage(x, y)
+function sendDeselectionMessage(cell)
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.deselect)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 end
 
 function sendMapRequestMessage()
@@ -70,69 +70,69 @@ function sendMapRequestMessage()
 	Out.writeByte(Network.outgoing.mapRequest)
 end
 
-function sendTowerEntered(x, y)
+function sendTowerEntered(cell)
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.towerEntered)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 end
 
-function sendTowerExited(x, y)
+function sendTowerExited(cell)
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.towerExited)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 end
 
-function sendVentValue(x, y, ventValue)
+function sendVentValue(cell, ventValue)
 	Out.writeShort(13)
 	Out.writeByte(Network.outgoing.ventValue)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 	Out.writeFloat(ventValue)
 end
 
-function sendVentDirection(x,y, ventDir)
+function sendVentDirection(cell, ventDir)
 	Out.writeShort(13)
 	Out.writeByte(Network.outgoing.ventDirection)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 	Out.writeFloat(ventDir)
 end
 
-function sendSellTowerRequest(x,y)
+function sendSellTowerRequest(cell)
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.sellTower)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 end
 
-function sendBallisticValue(x, y, ballisticValue)
+function sendBallisticValue(cell, ballisticValue)
 	Out.writeShort(13)
 	Out.writeByte(Network.outgoing.ballisticValue)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 	Out.writeFloat(ballisticValue)
 end
 
-function sendBallisticDirection(x,y, ballisticDir)
+function sendBallisticDirection(cell, ballisticDir)
 	Out.writeShort(13)
 	Out.writeByte(Network.outgoing.ballisticDirection)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 	Out.writeFloat(ballisticDir)
 end
 
-function sendBallisticLaunch(x,y)
+function sendBallisticLaunch(cell)
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.ballisticLaunch)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 end
 
-function sendUpgradeTower(x,y)
+function sendUpgradeTower(cell)
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.upgradeTower)
-	Out.writeInt(x)
-	Out.writeInt(y)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
 end

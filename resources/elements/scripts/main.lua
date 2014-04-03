@@ -88,7 +88,6 @@ end
 
 function onPinchBegin(x0, y0, x1, y1)
 	gui:onPinchBegin(vec2(x0, y0), vec2(x1, y1))
-
 	if fsm.active.onPinchBegin then
 		fsm.active.onPinchBegin(x0,y0, x1, x1)
 	end

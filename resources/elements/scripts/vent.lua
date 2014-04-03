@@ -7,7 +7,7 @@ function Vent()
 	local t = {}
 
 	local function sendDirection(dir)
-		sendVentDirection(t.x, t.y, dir)
+		sendVentDirection(t.cell, dir)
 	end
 
 	local selector = 
@@ -18,32 +18,32 @@ function Vent()
 
 	local function south()
 		selector.dir = math.pi * 3 / 2
-		sendVentDirection(t.x, t.y, math.pi * 3 / 2)
+		sendVentDirection(t.cell, math.pi * 3 / 2)
 	end
 
 	local function west()
 		selector.dir = math.pi
-		sendVentDirection(t.x, t.y, math.pi)
+		sendVentDirection(t.cell, math.pi)
 	end
 
 	local function east()
 		selector.dir = 0
-		sendVentDirection(t.x, t.y, 0)
+		sendVentDirection(t.cell, 0)
 	end
 
 	local function north()
 		selector.dir = math.pi / 2
-		sendVentDirection(t.x, t.y, math.pi / 2)
+		sendVentDirection(t.cell, math.pi / 2)
 	end
 
 	local function toggle()
 		if t.ventValue == 1 then t.ventValue = 0 else t.ventValue = 1 end
 
 		log("Going to send vent value!")
-		sendVentValue(t.x, t.y, t.ventValue)
+		sendVentValue(t.cell, t.ventValue)
 	end
 
-	function t.enter(x, y) 
+	function t.enter(cell) 
 	
 		gui:add(Button(0xFF0000FF, pixel, 
 				   Rect2(10,10, 400, 100), 
@@ -66,9 +66,8 @@ function Vent()
 		gui:add(selector)
 
 
-		sendTowerEntered(x, y)
-		t.x = x
-		t.y = y
+		sendTowerEntered(cell)
+		t.cell = cell
 		t.ventValue = 1
 	end
 
