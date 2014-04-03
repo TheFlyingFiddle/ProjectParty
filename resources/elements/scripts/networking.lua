@@ -15,16 +15,19 @@ Network.incoming.towerSold   	= 58
 
 Network.outgoing = {}
 
-Network.outgoing.sensor 		= 1
-Network.outgoing.towerRequest 	= 50
-Network.outgoing.selectRequest 	= 51
-Network.outgoing.deselect 		= 52
-Network.outgoing.mapRequest 	= 53
-Network.outgoing.towerEntered 	= 54
-Network.outgoing.towerExited 	= 55
-Network.outgoing.ventValue 		= 56
-Network.outgoing.ventDirection 	= 57
-Network.outgoing.sellTower	    = 58
+Network.outgoing.sensor 			= 1
+Network.outgoing.towerRequest 		= 50
+Network.outgoing.selectRequest 		= 51
+Network.outgoing.deselect 			= 52
+Network.outgoing.mapRequest 		= 53
+Network.outgoing.towerEntered 		= 54
+Network.outgoing.towerExited 		= 55
+Network.outgoing.ventValue 			= 56
+Network.outgoing.ventDirection 		= 57
+Network.outgoing.sellTower	    	= 58
+Network.outgoing.ballisticValue		= 59
+Network.outgoing.ballisticDirection	= 60
+Network.outgoing.ballisticLaunch	= 61
 
 Network.handlers = {}
 
@@ -102,3 +105,27 @@ function sendSellTowerRequest(x,y)
 	Out.writeInt(x)
 	Out.writeInt(y)
 end
+
+function sendBallisticValue(x, y, ballisticValue)
+	Out.writeShort(13)
+	Out.writeByte(Network.outgoing.ballisticValue)
+	Out.writeInt(x)
+	Out.writeInt(y)
+	Out.writeFloat(ballisticValue)
+end
+
+function sendBallisticDirection(x,y, ballisticDir)
+	Out.writeShort(13)
+	Out.writeByte(Network.outgoing.ballisticDirection)
+	Out.writeInt(x)
+	Out.writeInt(y)
+	Out.writeFloat(ballisticDir)
+end
+
+function sendBallisticLaunch(x,y)
+	Out.writeShort(9)
+	Out.writeByte(Network.outgoing.ballisticLaunch)
+	Out.writeInt(x)
+	Out.writeInt(y)
+end
+

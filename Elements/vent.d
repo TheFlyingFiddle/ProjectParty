@@ -12,16 +12,16 @@ import tower_controller;
 struct VentInstance
 {
 	static List!VentTower prototypes;
-	int index;
+	int prefab;
 	float2 position;
 	float direction;
 	float pressure;
 	float open;
 	
 
-	this(float2 position, int index)
+	this(float2 position, int prefab)
 	{
-		this.index = index;
+		this.prefab = prefab;
 		this.position = position;
 		this.direction = 0;
 		this.pressure = maxPressure;
@@ -30,32 +30,32 @@ struct VentInstance
 
 	@property float damage()
 	{
-		return prototypes[index].damage;
+		return prototypes[prefab].damage;
 	}
 
 	@property float range()
 	{
-		return prototypes[index].range;
+		return prototypes[prefab].range;
 	}
 
 	@property float maxPressure()
 	{
-		return prototypes[index].maxPressure;
+		return prototypes[prefab].maxPressure;
 	}
 	
 	@property float regenRate()
 	{
-		return prototypes[index].regenRate;
+		return prototypes[prefab].regenRate;
 	}
 
 	@property ref Frame frame()
 	{
-		return prototypes[index].frame;
+		return prototypes[prefab].frame;
 	}
 
 	@property ref Frame towerFrame()
 	{
-		return prototypes[index].towerFrame;
+		return prototypes[prefab].towerFrame;
 	}
 
 	uint2 cell(uint2 tileSize)

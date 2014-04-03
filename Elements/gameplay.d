@@ -9,6 +9,7 @@ import network.message;
 import util.bitmanip;
 import vent;
 import tower_controller;
+import ballistic;
 
 
 class GamePlayState : IGameState
@@ -23,6 +24,7 @@ class GamePlayState : IGameState
 
 	List!ITowerController towerControllers;
 	VentController ventController;
+	BallisticController ballisticController;
 
 	Table!(ulong, int)balances;
 
@@ -41,10 +43,18 @@ class GamePlayState : IGameState
 
 		level = fromSDLFile!Level(allocator, configFile);
 		Enemy.paths = level.paths;
+
 		ventController = allocator.allocate!VentController(allocator);
 		VentInstance.prototypes = level.ventPrototypes;
 		
 		towerControllers ~= cast(ITowerController)ventController;
+
+		ballisticController = allocator.allocate!BallisticController(allocator);
+		HomingProjectileInstance.prefabs = level.homingPrototypes;
+		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
+		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
+
+		towerControllers ~= cast(ITowerController)ballisticController;
 
 	}
 
@@ -59,6 +69,9 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.ventValue, &handleVentValue);
 		Game.router.setMessageHandler(IncomingMessages.ventDirection, &handleVentDirection);
 		Game.router.setMessageHandler(IncomingMessages.towerSell, &handleTowerSell);
+		Game.router.setMessageHandler(IncomingMessages.ballisticValue, &handleBallisticValue);
+		Game.router.setMessageHandler(IncomingMessages.ballisticDirection, &handleBallisticDirection);
+		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch, &handleBallisticLaunch);
 
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
@@ -126,6 +139,13 @@ class GamePlayState : IGameState
 
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
+
+		auto index = ballisticController.instances.countUntil!(b=>b.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			import std.stdio;
+			ballisticController.instances[index].isControlled = true;
+		}
 	}
 
 	void handleTowerExited(ulong id, ubyte[] msg)
@@ -135,6 +155,13 @@ class GamePlayState : IGameState
 
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
+
+		auto index = ballisticController.instances.countUntil!(b=>b.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			import std.stdio;
+			ballisticController.instances[index].isControlled = false;
+		}
 	}
 
 
@@ -209,6 +236,45 @@ class GamePlayState : IGameState
 		}
 	}
 
+	void handleBallisticValue(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto value = msg.read!float;
+
+		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			auto distance = ballisticController.instances[index].maxDistance * value;
+			ballisticController.instances[index].distance = distance;
+		}
+	}
+
+	void handleBallisticDirection(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto value = msg.read!float;
+
+		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			ballisticController.instances[index].angle = value;
+		}
+	}	
+	
+	void handleBallisticLaunch(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+
+		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		if(index != -1)
+		{
+			ballisticController.launch(index);
+		}
+	}
+
 	void handleTowerSell(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint,
@@ -222,7 +288,7 @@ class GamePlayState : IGameState
 			{
 				auto meta = tc.metaTower(index, level.towers);
 				tc.removeTower(index);
-				sendTransaction(id, cast(int)(-0.9 * meta.cost));
+				sendTransaction(id, cast(int)(0.9 * meta.cost));
 			}
 		}
 		
@@ -240,6 +306,7 @@ class GamePlayState : IGameState
 		updateWave();
 		updateEnemies();
 		ventController.update(enemies);
+		ballisticController.update(enemies);
 		killEnemies();
 	}
 
@@ -294,46 +361,6 @@ class GamePlayState : IGameState
 		}
 	}
 
-	int findFarthestReachableEnemy(float2 towerPos, float range)
-	{
-		int index = -1;
-		foreach(i, ref enemy; enemies)
-		{
-			float distance = distance(enemy.position, towerPos);
-			if (distance <= range)
-			{
-				if(index == -1)
-					index = i;
-				else if (enemy.distance > enemies[index].distance)
-					index = i;
-			}
-		}
-		return index;
-	}
-
-	int findNearestReachableEnemy(float2 towerPos, float range)
-	{
-		int index = -1;
-		float lowestDistance = float.infinity;
-		foreach(i, ref enemy; enemies)
-		{
-			float distance = distance(enemy.position, towerPos);
-			if (distance <= range)
-			{
-				if(index == -1)
-				{
-					index = i;
-					lowestDistance = distance;
-				}
-				else if (distance < lowestDistance)
-				{
-					index = i;
-					lowestDistance = distance;
-				}
-			}
-		}
-		return index;
-	}
 
 	void render()
 	{
@@ -378,6 +405,7 @@ class GamePlayState : IGameState
 		}
 
 		ventController.render(Game.renderer, float2(level.tileSize));
+		ballisticController.render(Game.renderer, float2(level.tileSize), enemies);
 	}
 
 	void killEnemies()
@@ -399,10 +427,87 @@ class GamePlayState : IGameState
 		}	
 
 		enemies.removeAt(i);
+
+		for (int j = ballisticController.homingProjectiles.length - 1; j >= 0; j--)
+		{
+			if(ballisticController.homingProjectiles[j].targetIndex == i)
+			{
+				auto nearest = findNearestEnemy(enemies, ballisticController.homingProjectiles[j].position);
+				if(nearest == -1)
+					ballisticController.homingProjectiles.removeAt(j);
+				else
+					ballisticController.homingProjectiles[j].targetIndex = nearest;
+			} 
+			else if(ballisticController.homingProjectiles[j].targetIndex > i)
+			{
+				ballisticController.homingProjectiles[j].targetIndex--;
+			}
+		}
 	}
 
 	void gameOver()
 	{
 		std.c.stdlib.exit(0);
 	}
+}
+
+int findNearestEnemy(ref List!Enemy enemies, float2 position)
+{
+	int index = -1;
+	auto lowestDistance = float.max;
+
+	foreach(i, ref enemy; enemies)
+	{
+		float distance = distance(enemy.position, position);
+
+		if(index == -1 || distance < lowestDistance)
+		{
+			index = i;
+			lowestDistance = distance;
+		}
+
+	}
+	return index;
+}
+
+int findFarthestReachableEnemy(List!Enemy enemies, float2 towerPos, float range)
+{
+	auto index = -1;
+	
+	foreach(i, ref enemy; enemies)
+	{
+		float distance = distance(enemy.position, towerPos);
+		if (distance <= range)
+		{
+			if(index == -1)
+				index = i;
+			else if (enemy.distance > enemies[index].distance)
+				index = i;
+		}
+	}
+	return index;
+}
+
+int findNearestReachableEnemy(List!Enemy enemies, float2 towerPos, float range)
+{
+	int index = -1;
+	float lowestDistance = float.infinity;
+	foreach(i, ref enemy; enemies)
+	{
+		float distance = distance(enemy.position, towerPos);
+		if (distance <= range)
+		{
+			if(index == -1)
+			{
+				index = i;
+				lowestDistance = distance;
+			}
+			else if (distance < lowestDistance)
+			{
+				index = i;
+				lowestDistance = distance;
+			}
+		}
+	}
+	return index;
 }

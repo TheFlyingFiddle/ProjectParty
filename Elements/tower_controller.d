@@ -32,7 +32,7 @@ abstract class TowerController(T) : ITowerController
 	final Tower metaTower(uint towerIndex, List!Tower metas)
 	{
 		import std.algorithm;
-		return metas.find!(x => x.type == type && x.typeIndex == instances[towerIndex].index)[0];
+		return metas.find!(x => x.type == type && x.typeIndex == instances[towerIndex].prefab)[0];
 	}
 	
 	final void buildTower(float2 position, uint prototypeIndex)

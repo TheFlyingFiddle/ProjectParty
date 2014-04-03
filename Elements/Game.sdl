@@ -56,6 +56,9 @@ resources = [
 { type = texture path = |elements\textures\tower_cone.png| },
 { type = texture path = |elements\textures\tower_effect.png| },
 { type = texture path = |elements\textures\cone.png| },
+{ type = texture path = |elements\textures\rocket.png| },
+{ type = texture path = |elements\textures\rocket_big.png| },
+{ type = texture path = |elements\textures\crosshair.png| },
 { type = texture path = |elements\textures\map2.png| }
 ]
 
@@ -73,6 +76,8 @@ phoneResources = [
 	|elements/scripts/direction_selector.lua|,
 	|elements/scripts/gui.lua|,	
 	|elements/scripts/selector.lua|,
+	|elements/scripts/ballistic.lua|,
+	|elements/scripts/amount_selector.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/fonts/SegoeUILight72.fnt|,
@@ -87,5 +92,6 @@ phoneResources = [
 	|elements/textures/wind_icon.png|,
 	|elements/textures/nature_icon.png|,
 	|elements/textures/cancel_icon.png|,
-	|elements/textures/buy_icon.png|
+	|elements/textures/buy_icon.png|,
+	|elements/textures/rocket_icon.png|
 ]
