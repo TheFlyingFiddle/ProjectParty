@@ -28,6 +28,7 @@ Network.outgoing.sellTower	    	= 58
 Network.outgoing.ballisticValue		= 59
 Network.outgoing.ballisticDirection	= 60
 Network.outgoing.ballisticLaunch	= 61
+Network.outgoing.upgradeTower		= 62
 
 Network.handlers = {}
 
@@ -129,3 +130,9 @@ function sendBallisticLaunch(x,y)
 	Out.writeInt(y)
 end
 
+function sendUpgradeTower(x,y)
+	Out.writeShort(9)
+	Out.writeByte(Network.outgoing.upgradeTower)
+	Out.writeInt(x)
+	Out.writeInt(y)
+end

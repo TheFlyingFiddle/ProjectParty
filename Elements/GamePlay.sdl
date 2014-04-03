@@ -23,7 +23,7 @@ ventPrototypes = [ { damage = 10 range = 100 maxPressure = 100 regenRate = 10
 					 frame = baws towerFrame = tower_cone } ]
 
 towers = [{ cost = 10 range = 100 phoneIcon = |textures/fire_icon.png| 
-			type = vent typeIndex = 0 color = 0xFF00FF00 upgradeIndex = -1},
+			type = vent typeIndex = 0 color = 0xFF00FF00 upgradeIndex = 1},
 		  { cost = 100 range = 140 phoneIcon = |textures/water_icon.png|
 		    type = vent typeIndex = 1 color = 0xFFFF0000 upgradeIndex = -1},
 		  { cost = 20 range = 300 phoneIcon = |textures/rocket_icon.png|

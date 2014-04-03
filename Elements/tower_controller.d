@@ -7,7 +7,7 @@ interface ITowerController
 {
 	@property TileType type();
 	void buildTower(float2 position, uint prototypeIndex);
-	uint hasTower(uint2 cell, uint2 tileSize);
+	uint towerIndex(uint2 cell, uint2 tileSize);
 	void removeTower(uint towerIndex);
 	void upgradeTower(uint towerIndex, uint upgradeIndex);
 	Tower metaTower(uint towerIndex, List!Tower metas);
@@ -40,7 +40,7 @@ abstract class TowerController(T) : ITowerController
 		instances ~= T(position, prototypeIndex);
 	}
 
-	final uint hasTower(uint2 cell, uint2 tileSize)
+	final uint towerIndex(uint2 cell, uint2 tileSize)
 	{
 		return instances.countUntil!(x => x.cell(tileSize) == cell);
 	}

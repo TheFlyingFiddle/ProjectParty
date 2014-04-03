@@ -72,6 +72,8 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.ballisticValue, &handleBallisticValue);
 		Game.router.setMessageHandler(IncomingMessages.ballisticDirection, &handleBallisticDirection);
 		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch, &handleBallisticLaunch);
+		Game.router.setMessageHandler(IncomingMessages.upgradeTower, &handleTowerUpgrade);
+
 
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
@@ -283,7 +285,7 @@ class GamePlayState : IGameState
 
 		foreach(tc; towerControllers) 
 		{
-			auto index = tc.hasTower(uint2(x,y), level.tileSize);
+			auto index = tc.towerIndex(uint2(x,y), level.tileSize);
 			if(index != -1)
 			{
 				auto meta = tc.metaTower(index, level.towers);
@@ -294,6 +296,38 @@ class GamePlayState : IGameState
 		
 		foreach(player; Game.players)
 				Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
+	}
+
+	void handleTowerUpgrade(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint,
+			y = msg.read!uint;
+		
+		foreach(tc; towerControllers)
+		{
+			auto towerIndex = tc.towerIndex(uint2(x,y), level.tileSize);
+
+			if(towerIndex != -1)
+			{
+				auto meta = tc.metaTower(towerIndex, level.towers);
+				if(meta.upgradeIndex == ubyte.max)
+					return;
+				auto upgradeMeta = level.towers[meta.upgradeIndex];
+				auto cost = upgradeMeta.cost - meta.cost;
+				if(balances[id] < cost)
+					return;
+				sendTransaction(id, -cost);
+	
+				tc.upgradeTower(towerIndex, upgradeMeta.typeIndex);
+
+				foreach(player; Game.players)
+					Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
+
+				foreach(player; Game.players)
+					Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex));
+			}
+		}
+
 	}
 
 	void exit()

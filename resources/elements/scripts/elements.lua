@@ -62,7 +62,8 @@ local function TowerSelected()
 				fsm:enterState("Vent", t.x, t.y)
 			end
 		elseif item.id == 1 then
-			--Do upgrade if possible
+			sendUpgradeTower(t.x, t.y)
+			state:enterState("Idle", t.x, t.y)
 		elseif item.id == 3 then
 			sendSellTowerRequest(t.x, t.y)
 			state:enterState("Idle", t.x, ty)

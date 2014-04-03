@@ -86,7 +86,8 @@ enum IncomingMessages : ubyte
 	towerSell = 58,
 	ballisticValue = 59,
 	ballisticDirection = 60,
-	ballisticLaunch = 61
+	ballisticLaunch = 61,
+	upgradeTower = 62
 }
 
 enum OutgoingMessages : ubyte
