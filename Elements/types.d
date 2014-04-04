@@ -6,6 +6,7 @@ import content;
 import allocation;
 import vent;
 import ballistic;
+import gatling;
 
 struct MapMessage
 {
@@ -155,8 +156,10 @@ struct Level
 	List!HomingProjectilePrefab		homingPrototypes;
 	List!BallisticProjectilePrefab	ballisticProjectilePrototypes;
 	List!BallisticTower				ballisticTowerPrototypes;
-	//List!GatlingTower				gatlingTowerPrototypes;
 
+	List!AutoProjectilePrefab		autoProjectilePrototypes;
+	List!GatlingProjectilePrefab	gatlingProjectilePrototypes;
+	List!GatlingTower				gatlingTowerPrototypes;
 
 	List!Tower			towers;
 }

@@ -56,9 +56,9 @@ struct GatlingProjectilePrefab
 	@Convert!stringToFrame() Frame frame;
 }
 
-struct HomingProjectileInstance
+struct AutoProjectileInstance
 {
-	static List!HomingProjectilePrefab prefabs;
+	static List!AutoProjectilePrefab prefabs;
 	int		prefabIndex;
 	int		targetIndex;
 	float2	position;
@@ -90,7 +90,7 @@ struct HomingProjectileInstance
 	}
 }
 
-struct HomingProjectilePrefab
+struct AutoProjectilePrefab
 {
 	float damage;
 	float speed;
@@ -158,29 +158,23 @@ struct GatlingTower
 final class GatlingController : TowerController!GatlingInstance
 {
 	List!GatlingProjectileInstance gatlingProjectiles;
-	List!HomingProjectileInstance homingProjectiles;
+	List!AutoProjectileInstance autoProjectiles;
 
 	this(A)(ref A allocator)
 	{
-		super(List!GatlingInstance(allocator, 100), TileType.rocket);
+		super(allocator, TileType.gatling);
 		this.gatlingProjectiles = List!GatlingProjectileInstance(allocator, 100);
-		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
+		this.autoProjectiles = List!AutoProjectileInstance(allocator, 1000);
 	}
 
 	void towerEntered(uint towerIndex, ulong playerId)
 	{
-		//TODO: Actually do stuff
+		instances[towerIndex].isControlled = true;
 	}
 
 	void towerExited(uint towerIndex, ulong playerId)
 	{
-		//TODO: Actually do stuff
-
-	}
-
-	void sendTowerInfo(uint towerIndex)
-	{
-
+		instances[towerIndex].isControlled = false;
 	}
 
 	void launch(int towerIndex)
@@ -199,23 +193,23 @@ final class GatlingController : TowerController!GatlingInstance
 	{
 
 		// Update all homing projectiles
-		for(int i = homingProjectiles.length - 1; i >= 0; --i)
+		for(int i = autoProjectiles.length - 1; i >= 0; --i)
 		{
 
 			// Move the projectile towards the target.
-			auto velocity = (enemies[homingProjectiles[i].targetIndex].position 
-							 - homingProjectiles[i].position).normalized 
-				* homingProjectiles[i].speed 
+			auto velocity = (enemies[autoProjectiles[i].targetIndex].position 
+							 - autoProjectiles[i].position).normalized 
+				* autoProjectiles[i].speed 
 				* Time.delta;
-			homingProjectiles[i].position += velocity;
+			autoProjectiles[i].position += velocity;
 
 			// Check for collision between the target and the projectile
-			if(distance(enemies[homingProjectiles[i].targetIndex].position, 
-						homingProjectiles[i].position) 
-			   < homingProjectiles[i].radius)
+			if(distance(enemies[autoProjectiles[i].targetIndex].position, 
+						autoProjectiles[i].position) 
+			   < autoProjectiles[i].radius)
 			{
-				enemies[homingProjectiles[i].targetIndex].health -= homingProjectiles[i].damage;
-				homingProjectiles.removeAt(i);
+				enemies[autoProjectiles[i].targetIndex].health -= autoProjectiles[i].damage;
+				autoProjectiles.removeAt(i);
 			}
 		}
 
@@ -268,34 +262,36 @@ final class GatlingController : TowerController!GatlingInstance
 				// Calculate the position
 				auto vecToTarget = Polar!float(tower.angle, tower.maxDistance).toCartesian();
 				auto position = common[i].position + vecToTarget;
+				import game.debuging;
+				renderer.addLine(position, common[i].position);
 
 				renderer.addFrame(targetFrame, position, Color.white, size, origin);
 			}
 		}
 
-		foreach(projectile; homingProjectiles)
+		foreach(projectile; autoProjectiles)
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			renderer.addFrame(projectile.frame, projectile.position, Color.white, size, origin, 
-							  atan2(enemies[projectile.targetIndex].position.y - projectile.position.y, 
-									enemies[projectile.targetIndex].position.x - projectile.position.x));
+			renderer.addFrame(	projectile.frame, projectile.position, Color(0xFF99FFFF), size, origin, 
+								atan2(	enemies[projectile.targetIndex].position.y - projectile.position.y, 
+										enemies[projectile.targetIndex].position.x - projectile.position.x));
 		}
 
 		foreach(projectile; gatlingProjectiles)
 		{
-//			auto size = float2(projectile.frame.width, projectile.frame.height);
-//			auto origin = size/2;
-//			renderer.addFrame(	projectile.frame, projectile.position, Color.white, size, origin, 
-//								atan2(	projectile.target.y - projectile.position.y, 
-//										projectile.target.x - projectile.position.x));
+			auto size = float2(projectile.frame.width, projectile.frame.height);
+			auto origin = size/2;
+			renderer.addFrame(	projectile.frame, projectile.position, Color.white, size, origin, 
+								atan2(	projectile.velocity.y, 
+										projectile.velocity.x));
 		}
 	}
 
 	private void spawnHomingProjectile(int projectilePrefabIndex, int enemyIndex, float2 position)
 	{
-		auto projectile = HomingProjectileInstance(projectilePrefabIndex, enemyIndex, position);
-		homingProjectiles ~= projectile;
+		auto projectile = AutoProjectileInstance(projectilePrefabIndex, enemyIndex, position);
+		autoProjectiles ~= projectile;
 	}
 
 	private void spawnGatlingProjectile(int projectilePrefabIndex, float2 position, float2 target)

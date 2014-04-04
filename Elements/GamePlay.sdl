@@ -43,10 +43,11 @@ ballisticTowerPrototypes = [ { homingPrefabIndex = 0 ballisticPrefabIndex = 0 ra
 						  { homingPrefabIndex = 0 ballisticPrefabIndex = 0 range = 300
 						  maxDistance = 500 reloadTime = 0.4 frame = rocket }  ]
 
-//gatlingTowerPrototypes = [ { homingPrefabIndex = 0 ballisticPrefabIndex = 0 range = 300
-//						maxDistance = 500 reloadTime = 2 frame = tower0 } ]
+gatlingTowerPrototypes = [ { homingPrefabIndex = 0 gatlingPrefabIndex = 0 range = 300
+						maxDistance = 500 reloadTime = 0.02 frame = tower0 } ]
 
-//gatlingProjectilePrototypes = [ { damage = 2 speed = 400 radius = 5 frame = bullet } ]
+gatlingProjectilePrototypes = [ { damage = 2 speed = 400 radius = 10 frame = bullet } ]
+autoProjectilePrototypes = [ { damage = 1 speed = 1200 radius = 40 frame = bullet } ]
 
 waves = 
 [  

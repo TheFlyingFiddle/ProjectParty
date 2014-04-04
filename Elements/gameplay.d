@@ -10,6 +10,7 @@ import util.bitmanip;
 import vent;
 import tower_controller;
 import ballistic;
+import gatling;
 
 
 class GamePlayState : IGameState
@@ -22,9 +23,10 @@ class GamePlayState : IGameState
 	int lifeTotal;
 	List!uint2 selections;
 
-	TowerCollection towerCollection;
-	VentController ventController;
-	BallisticController ballisticController;
+	TowerCollection 		towerCollection;
+	VentController 			ventController;
+	BallisticController		ballisticController;
+	GatlingController 		gatlingController;
 
 	Table!(ulong, int)balances;
 
@@ -51,9 +53,15 @@ class GamePlayState : IGameState
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 
+		gatlingController = new GatlingController(allocator);
+		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
+		GatlingProjectileInstance.prefabs = level.gatlingProjectilePrototypes;
+		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
+
 
 		towerCollection.add(ventController);
 		towerCollection.add(ballisticController);
+		towerCollection.add(gatlingController);
 	}
 
 	void enter()
@@ -419,6 +427,7 @@ class GamePlayState : IGameState
 
 		ventController.render(Game.renderer, float2(level.tileSize));
 		ballisticController.render(Game.renderer, float2(level.tileSize), enemies);
+		gatlingController.render(Game.renderer, float2(level.tileSize), enemies);
 	}
 
 	void killEnemies()
@@ -454,6 +463,17 @@ class GamePlayState : IGameState
 			else if(ballisticController.homingProjectiles[j].targetIndex > i)
 			{
 				ballisticController.homingProjectiles[j].targetIndex--;
+			}
+		}
+		for (int j = gatlingController.autoProjectiles.length - 1; j >= 0; j--)
+		{
+			if(gatlingController.autoProjectiles[j].targetIndex == i)
+			{
+				gatlingController.autoProjectiles.removeAt(j);
+			} 
+			else if(gatlingController.autoProjectiles[j].targetIndex > i)
+			{
+				gatlingController.autoProjectiles[j].targetIndex--;
 			}
 		}
 	}
