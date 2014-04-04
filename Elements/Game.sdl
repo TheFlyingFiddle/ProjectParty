@@ -97,5 +97,6 @@ phoneResources = [
 	|elements/textures/nature_icon.png|,
 	|elements/textures/cancel_icon.png|,
 	|elements/textures/buy_icon.png|,
-	|elements/textures/rocket_icon.png|
+	|elements/textures/rocket_icon.png|,
+	|elements/textures/gatling_icon.png|
 ]

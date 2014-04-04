@@ -124,7 +124,8 @@ enum TileType : ubyte
 	buildable = 0,
 	nonbuildable = 1,
 	vent = 2, 
-	rocket = 3
+	rocket = 3,
+	gatling = 4
 }
 
 struct MapConfig
@@ -154,6 +155,8 @@ struct Level
 	List!HomingProjectilePrefab		homingPrototypes;
 	List!BallisticProjectilePrefab	ballisticProjectilePrototypes;
 	List!BallisticTower				ballisticTowerPrototypes;
+	//List!GatlingTower				gatlingTowerPrototypes;
+
 
 	List!Tower			towers;
 }

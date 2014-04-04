@@ -103,15 +103,13 @@ struct GatlingInstance
 	static List!GatlingTower prefabs;
 
 	int prefab;
-	float2 position;
 	float angle;
 	float elapsed;
 	bool isControlled;
 
-	this(float2 position, int prefab)
+	this(int prefab)
 	{
 		this.prefab = prefab;
-		this.position = position;
 		this.angle = 0;
 		this.elapsed = 0;
 	}
@@ -145,12 +143,6 @@ struct GatlingInstance
 	{
 		return prefabs[prefab].frame;
 	}
-
-	uint2 cell(uint2 tileSize)
-	{
-		return uint2((position.x - tileSize.x/2)/tileSize.x, 
-					 (position.y - tileSize.y/2)/tileSize.y);
-	}
 }
 
 struct GatlingTower
@@ -175,6 +167,17 @@ final class GatlingController : TowerController!GatlingInstance
 		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
 	}
 
+	void towerEntered(uint towerIndex, ulong playerId)
+	{
+		//TODO: Actually do stuff
+	}
+
+	void towerExited(uint towerIndex, ulong playerId)
+	{
+		//TODO: Actually do stuff
+
+	}
+
 	void sendTowerInfo(uint towerIndex)
 	{
 
@@ -187,7 +190,7 @@ final class GatlingController : TowerController!GatlingInstance
 								  GatlingProjectileInstance.prefabs[instances[towerIndex].homingPrefabIndex].speed).toCartesian;
 		gatlingProjectiles ~= GatlingProjectileInstance(
 															instances[towerIndex].gatlingPrefabIndex,
-															instances[towerIndex].position,
+															common[towerIndex].position,
 															velocity);
 
 	}
@@ -236,10 +239,10 @@ final class GatlingController : TowerController!GatlingInstance
 				tower.elapsed += Time.delta;
 				if(tower.elapsed >= tower.reloadTime)
 				{
-					auto enemyIndex = findFarthestReachableEnemy(enemies, tower.position, tower.range);
+					auto enemyIndex = findFarthestReachableEnemy(enemies, common[i].position, tower.range);
 					if(enemyIndex != -1) 
 					{
-						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, tower.position);
+						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, common[i].position);
 						tower.elapsed = 0;
 					}
 				}
@@ -252,9 +255,9 @@ final class GatlingController : TowerController!GatlingInstance
 
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
-		foreach(tower; instances)
+		foreach(i, tower; instances)
 		{		
-			renderer.addFrame(tower.frame, tower.position, Color.white, tileSize, tileSize/2);
+			renderer.addFrame(tower.frame, common[i].position, Color.white, tileSize, tileSize/2);
 
 			if(tower.isControlled)
 			{
@@ -264,7 +267,7 @@ final class GatlingController : TowerController!GatlingInstance
 
 				// Calculate the position
 				auto vecToTarget = Polar!float(tower.angle, tower.maxDistance).toCartesian();
-				auto position = tower.position + vecToTarget;
+				auto position = common[i].position + vecToTarget;
 
 				renderer.addFrame(targetFrame, position, Color.white, size, origin);
 			}
