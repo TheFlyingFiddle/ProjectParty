@@ -273,7 +273,7 @@ struct SDLIterator
 			if(member.to!string == name)
 				return member;
 		}
-		assert(0, getSDLIterError() ~ 
+		assert(0, getSDLIterError() ~ "\n" ~ 
 			   name ~ " is not a valid value of enum type " ~ T.stringof);
 	}
 

@@ -59,6 +59,7 @@ resources = [
 { type = texture path = |elements\textures\rocket.png| },
 { type = texture path = |elements\textures\rocket_big.png| },
 { type = texture path = |elements\textures\crosshair.png| },
+{ type = texture path = |elements\textures\bullet.png| },
 { type = texture path = |elements\textures\map2.png| }
 ]
 
@@ -96,5 +97,6 @@ phoneResources = [
 	|elements/textures/nature_icon.png|,
 	|elements/textures/cancel_icon.png|,
 	|elements/textures/buy_icon.png|,
-	|elements/textures/rocket_icon.png|
+	|elements/textures/rocket_icon.png|,
+	|elements/textures/gatling_icon.png|
 ]

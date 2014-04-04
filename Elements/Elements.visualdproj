@@ -193,6 +193,7 @@
   <File path="Game.sdl" />
   <File path="gameplay.d" />
   <File path="GamePlay.sdl" />
+  <File path="gatling.d" />
   <File path="main.d" />
   <File path="tower_controller.d" />
   <File path="types.d" />

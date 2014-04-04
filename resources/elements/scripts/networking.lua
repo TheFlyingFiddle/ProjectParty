@@ -14,6 +14,7 @@ Network.incoming.transaction 	= 57
 Network.incoming.towerSold   	= 58
 Network.incoming.towerBroken	= 59
 Network.incoming.towerRepaired  = 60
+Network.incoming.entryAcknowledged = 61
 
 Network.outgoing = {}
 

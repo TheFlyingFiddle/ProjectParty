@@ -1,6 +1,7 @@
 local map
 local tilesize = 40
 local selections = {}
+local occupiedTowers = {}
 local towers = {}
 local towerInstances = {}
 local money = 0
@@ -48,19 +49,22 @@ local function Idle()
 	function t.onTap(pos)
 		local gridPos = toGridPos(pos)
 		local tileType = map.tiles[gridPos.y * map.width + gridPos.x]
-		if tileType == 0 then
-			for i = 1, #selections, 1 do
+		
+		for i = 1, #selections, 1 do
 				if gridPos.x == selections[i].x and gridPos.y == selections[i].y then
 					return
 				end
 			end
+
+		if tileType == 0 then
 			selectedCell = gridPos
 			sendSelectionMessage(gridPos)
 			state:enterState("BuildableSelected")
 		elseif tileType  == 1 then
 			return
-		else 
+		else
 			selectedCell = gridPos
+			sendSelectionMessage(gridPos)
 			state:enterState("TowerSelected", tileType)
 		end
 	end
@@ -377,6 +381,22 @@ function Elements()
 		tower.broken = false
 	end
 
+	local function handleTowerExited()
+		local rx = In.readInt()
+		local ry = In.readInt()
+
+		for i = 1, #occupiedTowers, 1 do
+			if occupiedTowers[i].x == rx and occupiedTowers[i].y == ry then
+				table.remove(occupiedTowers, i)
+				return
+			end
+		end
+	end
+
+	local function handleEntryAcknowledged()
+
+	end
+
 	Network.setMessageHandler(Network.incoming.map, handleMap)
 	Network.setMessageHandler(Network.incoming.towerBuilt, handleTowerBuilt)
 	Network.setMessageHandler(Network.incoming.selected, handleSelectRequest)
@@ -386,6 +406,8 @@ function Elements()
 	Network.setMessageHandler(Network.incoming.towerSold, handleTowerSold)
 	Network.setMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
 	Network.setMessageHandler(Network.incoming.towerRepaired, handleTowerRepaired)
+	Network.setMessageHandler(Network.incoming.towerExited, handleTowerExited)
+	Network.setMessageHandler(Network.incoming.entryAcknowledged, handleEntryAcknowledged)
 
 	function elements.onTap(x,y)
 		if state.active.onTap then

@@ -24,20 +24,64 @@ ventPrototypes = [ { damage = 10 range = 100 maxPressure = 100 regenRate = 10
 					{ damage = 42 range = 100 maxPressure = 500 regenRate = 2
 					 frame = teddy towerFrame = tower_cone } ]
 
-towers = [{ cost = 10 range = 100 phoneIcon = |textures/fire_icon.png| 
-			type = vent typeIndex = 0 color = 0xFF00FF00 upgradeIndex0 = 1
-			upgradeIndex1 = 2 basic = true },
-		  { cost = 100 range = 140 phoneIcon = |textures/water_icon.png|
-		    type = vent typeIndex = 1 color = 0xFFFF0000 },
-		  { cost = 100 range = 140 phoneIcon = |textures/nature_icon.png|
-		    type = vent typeIndex = 2 color = 0xFFFF0000 },
-		  { cost = 20 range = 300 phoneIcon = |textures/rocket_icon.png|
-		    type = rocket basic = true typeIndex = 0 color = 0xFF1772FF upgradeIndex0 = 4},
-		  { cost = 20 range = 300 phoneIcon = |textures/rocket_icon.png|
-		    type = rocket typeIndex = 1 color = 0xFF1222FF }
+towers = [
+{ 
+cost = 10 
+range = 100 
+phoneIcon = |textures/fire_icon.png| 
+type = vent 
+typeIndex = 0 
+color = 0xFF00FF00 
+upgradeIndex0 = 1
+upgradeIndex1 = 2 
+basic = true 
+},
+{ 
+cost = 100 
+range = 140 
+phoneIcon = |textures/water_icon.png|
+type = vent 
+typeIndex = 1 
+color = 0xFFFF0000 
+},
+{ 
+cost = 100 
+range = 140 
+phoneIcon = |textures/nature_icon.png|
+type = vent 
+typeIndex = 2 
+color = 0xFFFF0000 
+},
+{ 
+cost = 20 
+range = 300 
+phoneIcon = |textures/rocket_icon.png|
+type = rocket 
+basic = true 
+typeIndex = 0 
+color = 0xFF1772FF 
+upgradeIndex0 = 4
+},
+{ 
+cost = 20 
+range = 300 
+phoneIcon = |textures/rocket_icon.png|
+type = rocket 
+typeIndex = 1 
+color = 0xFF1222FF 
+},
+{ 
+cost = 40 
+range = 200 
+phoneIcon = |textures/gatling_icon.png|
+type = gatling	
+typeIndex = 0 
+color = 0xFF000000 
+upgradeIndex = -1
+basic = true
+}
 		 ]
-
-ballisticProjectilePrototypes = [ { damage = 50 speed = 150 radius = 60 frame = rocket_big } ]
+ballisticProjectilePrototypes = [ { damage = 100 speed = 150 radius = 200 frame = rocket_big } ]
 
 homingPrototypes = [ { damage = 20 speed = 200 radius = 60 frame = rocket } ]
 
@@ -45,6 +89,11 @@ ballisticTowerPrototypes = [ { homingPrefabIndex = 0 ballisticPrefabIndex = 0 ra
 						  maxDistance = 500 reloadTime = 2 frame = rocket },
 						  { homingPrefabIndex = 0 ballisticPrefabIndex = 0 range = 300
 						  maxDistance = 500 reloadTime = 0.4 frame = rocket }  ]
+
+//gatlingTowerPrototypes = [ { homingPrefabIndex = 0 ballisticPrefabIndex = 0 range = 300
+//						maxDistance = 500 reloadTime = 2 frame = tower0 } ]
+
+//gatlingProjectilePrototypes = [ { damage = 2 speed = 400 radius = 5 frame = bullet } ]
 
 waves = 
 [  
