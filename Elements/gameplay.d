@@ -166,6 +166,16 @@ class GamePlayState : IGameState
 			tiMsg.upgradeIndex = tower.upgradeIndex;
 			Game.server.sendMessage(id, tiMsg);
 		}
+
+		towerCollection.forEachTower((tower, type, typeIndex)
+		{
+			TowerBuiltMessage tbMsg;
+			tbMsg.x = tower.cell(level.tileSize).x;
+			tbMsg.y = tower.cell(level.tileSize).y;
+			tbMsg.towerType = type;
+			tbMsg.typeIndex = typeIndex;
+			Game.server.sendMessage(id, tbMsg);
+		});
 	}
 
 	void handleSelectRequest(ulong id, ubyte[] msg)

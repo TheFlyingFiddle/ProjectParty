@@ -7,6 +7,7 @@ import std.conv;
 interface ITowerController
 {
 	@property TileType type();
+	void forEachTower(void delegate(TowerCommon, ubyte, ubyte) callback);
 	void buildTower(float2 position, uint prototypeIndex);
 	uint towerIndex(uint2 cell, uint2 tileSize);
 	void removeTower(uint towerIndex);
@@ -67,6 +68,12 @@ struct TowerCollection
 		assert(0, text("Failed to find a tower for cell ",pos));
 	}
 
+	void forEachTower(void delegate(TowerCommon, ubyte, ubyte) callback)
+	{
+		foreach(tc; controllers)
+			tc.forEachTower(callback);
+	}
+
 	void update(List!Enemy enemies)
 	{
 		foreach(tc; controllers)
@@ -111,6 +118,12 @@ abstract class TowerController(T) : ITowerController
 		return common[towerIndex].isBroken;
 	}
 	
+	final void forEachTower(void delegate(TowerCommon, ubyte, ubyte) callback) 
+	{
+		foreach(i, c; common)
+			callback(c, type, cast(ubyte) (instances[i].prefab));
+	}
+
 	final void buildTower(float2 position, uint prototypeIndex)
 	{
 		common    ~= TowerCommon(position, false);
