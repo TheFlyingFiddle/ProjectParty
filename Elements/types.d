@@ -73,6 +73,18 @@ struct TransactionMessage
 	int amount;
 }
 
+struct TowerRepairedMessage
+{
+	enum ubyte id = OutgoingMessages.towerRepaired;
+	uint x, y;
+}	
+
+struct TowerBrokenMessage
+{
+	enum ubyte id = OutgoingMessages.towerBroken;
+	uint x, y;
+}
+
 enum IncomingMessages : ubyte
 {
 	towerRequest = 50,
@@ -87,7 +99,8 @@ enum IncomingMessages : ubyte
 	ballisticValue = 59,
 	ballisticDirection = 60,
 	ballisticLaunch = 61,
-	upgradeTower = 62
+	upgradeTower = 62,
+	towerRepaired = 63
 }
 
 enum OutgoingMessages : ubyte
@@ -100,7 +113,9 @@ enum OutgoingMessages : ubyte
 	towerExited = 55, 
 	towerInfo = 56,
 	transaction = 57,
-	towerSold = 58
+	towerSold = 58,
+	towerBroken = 59,
+	towerRepaired = 60
 }
 
 enum TileType : ubyte

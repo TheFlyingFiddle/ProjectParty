@@ -108,16 +108,14 @@ struct BallisticInstance
 	static List!BallisticTower prefabs;
 
 	int prefab;
-	float2 position;
 	float angle;
 	float distance;
 	float elapsed;
 	bool isControlled;
 
-	this(float2 position, int prefab)
+	this(int prefab)
 	{
 		this.prefab = prefab;
-		this.position = position;
 		this.angle = 0;
 		this.distance = 0;
 		this.elapsed = 0;
@@ -152,12 +150,6 @@ struct BallisticInstance
 	{
 		return prefabs[prefab].frame;
 	}
-
-	uint2 cell(uint2 tileSize)
-	{
-		return uint2((position.x - tileSize.x/2)/tileSize.x, 
-					 (position.y - tileSize.y/2)/tileSize.y);
-	}
 }
 
 struct BallisticTower
@@ -177,14 +169,9 @@ final class BallisticController : TowerController!BallisticInstance
 
 	this(A)(ref A allocator)
 	{
-		super(List!BallisticInstance(allocator, 100), TileType.rocket);
+		super(allocator, TileType.rocket);
 		this.ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
 		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
-	}
-
-	void sendTowerInfo(uint towerIndex)
-	{
-		
 	}
 
 	void launch(int towerIndex)
@@ -193,15 +180,14 @@ final class BallisticController : TowerController!BallisticInstance
 							instances[towerIndex].angle,
 							instances[towerIndex].distance).toCartesian;
 		ballisticProjectiles ~= BallisticProjectileInstance(
-									instances[towerIndex].ballisticPrefabIndex,
-									instances[towerIndex].position,
-									instances[towerIndex].position + target);
+												instances[towerIndex].ballisticPrefabIndex,
+												common[towerIndex].position,
+												common[towerIndex].position + target);
 
 	}
 
 	void update(List!Enemy enemies)
 	{
-
 		// Update all homing projectiles
 		for(int i = homingProjectiles.length - 1; i >= 0; --i)
 		{
@@ -253,10 +239,10 @@ final class BallisticController : TowerController!BallisticInstance
 				tower.elapsed += Time.delta;
 				if(tower.elapsed >= tower.reloadTime)
 				{
-					auto enemyIndex = findFarthestReachableEnemy(enemies, tower.position, tower.range);
+					auto enemyIndex = findFarthestReachableEnemy(enemies, common[i].position, tower.range);
 					if(enemyIndex != -1) 
 					{
-						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, tower.position);
+						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, common[i].position);
 						tower.elapsed = 0;
 					}
 				}
@@ -269,9 +255,9 @@ final class BallisticController : TowerController!BallisticInstance
 
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
-		foreach(tower; instances)
+		foreach(i, tower; instances)
 		{		
-			renderer.addFrame(tower.frame, tower.position, Color.white, tileSize, tileSize/2);
+			renderer.addFrame(tower.frame, common[i].position, Color.white, tileSize, tileSize/2);
 
 			if(tower.isControlled)
 			{
@@ -282,7 +268,7 @@ final class BallisticController : TowerController!BallisticInstance
 				// Calculate the position
 				auto distance = min(tower.distance, tower.maxDistance);
 				auto vecToTarget = Polar!float(tower.angle, distance).toCartesian();
-				auto position = tower.position + vecToTarget;
+				auto position = common[i].position + vecToTarget;
 
 				renderer.addFrame(targetFrame, position, Color.white, size, origin);
 			}
@@ -307,6 +293,16 @@ final class BallisticController : TowerController!BallisticInstance
 		}
 	}
 
+	void towerEntered(uint towerIndex, ulong playerID)
+	{
+		instances[towerIndex].isControlled = true;
+	}
+
+	void towerExited(uint towerIndex, ulong playerID)
+	{
+		instances[towerIndex].isControlled = false;
+	}
+
 	private void spawnHomingProjectile(int projectilePrefabIndex, int enemyIndex, float2 position)
 	{
 		auto projectile = HomingProjectileInstance(projectilePrefabIndex, enemyIndex, position);
@@ -318,4 +314,6 @@ final class BallisticController : TowerController!BallisticInstance
 		auto projectile = BallisticProjectileInstance(projectilePrefabIndex, position, target);
 		ballisticProjectiles ~= projectile;
 	}
+
+
 }

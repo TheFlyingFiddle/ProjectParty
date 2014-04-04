@@ -12,6 +12,8 @@ Network.incoming.towerExited 	= 55
 Network.incoming.towerInfo 		= 56
 Network.incoming.transaction 	= 57
 Network.incoming.towerSold   	= 58
+Network.incoming.towerBroken	= 59
+Network.incoming.towerRepaired  = 60
 
 Network.outgoing = {}
 
@@ -29,6 +31,7 @@ Network.outgoing.ballisticValue		= 59
 Network.outgoing.ballisticDirection	= 60
 Network.outgoing.ballisticLaunch	= 61
 Network.outgoing.upgradeTower		= 62
+Network.outgoing.repaired 			= 63
 
 Network.handlers = {}
 
@@ -131,8 +134,16 @@ function sendBallisticLaunch(cell)
 end
 
 function sendUpgradeTower(cell)
+	log("Sending upgrade message!")
 	Out.writeShort(9)
 	Out.writeByte(Network.outgoing.upgradeTower)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
+end
+
+function sendRepaired(cell)
+	Out.writeShort(9)
+	Out.writeByte(Network.outgoing.repaired)
 	Out.writeInt(cell.x)
 	Out.writeInt(cell.y)
 end

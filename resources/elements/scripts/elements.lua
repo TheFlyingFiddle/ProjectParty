@@ -2,8 +2,9 @@ local map
 local tilesize = 40
 local selections = {}
 local towers = {}
-local towerImages = {}
+local towerInstances = {}
 local money = 0
+local brokenIcon
 local camera
 
 local tileColors = 
@@ -28,6 +29,17 @@ local function toGridPos(pos)
 	local celly = math.floor( worldPos.y / tilesize)
 	log(string.format("gridPos %d,%d", cellx, celly))
 	return vec2(cellx, celly)
+end
+
+local function findInstance(cell)
+	for k, v in pairs(towerInstances) do
+		if v.pos.x == cell.x and 
+		   v.pos.y == cell.y then
+			return v
+		end
+	end
+
+	log(string.format("Did not find a tower for cell %d,%d", cell.x, cell.y))
 end
 
 local function Idle()
@@ -68,13 +80,21 @@ local function TowerSelected()
 
 	local function callback(item)
 		if item.id == 0 then
+
+			local tower = findInstance(selectedCell)
+			if tower.broken then
+				fsm:enterState("Repair", selectedCell)
+				return
+			end
+
 			if t.tileType == 2 then
 				fsm:enterState("Vent", selectedCell)
 			elseif t.tileType == 3 then
 				fsm:enterState("Ballistic", selectedCell)
 			end
-		elseif item.id == 1 then
-			--Do upgrade if possible
+		elseif item.id == 1 then			
+			sendUpgradeTower(selectedCell)
+			state:enterState("Idle")
 		elseif item.id == 3 then
 			sendSellTowerRequest(selectedCell)
 			state:enterState("Idle")
@@ -84,11 +104,23 @@ local function TowerSelected()
 	end
 
 	function t.enter(type)
+
+
 		local enter    = { id = 0, frame = fireIcon,	color = 0xFFFFFFFF }
 		local upgrade  = { id = 1, frame = buyIcon,		color = 0xFF00FF00 }
 		local cancel   = { id = 2, frame = cancelIcon,  color = 0xFF0000FF }
 		local sell     = { id = 3, frame = buyIcon,     color = 0xFF0000FF }
-		selector = Selector(Rect(0,0,0,0), callback, {enter, upgrade, cancel, sell})
+
+		local items
+
+		local tower = findInstance(selectedCell)
+		if towers[tower.type].upgradeIndex == 255 then
+			items = { enter, cancel, sell }
+		else 
+			items = { enter, upgrade, cancel, sell }
+		end
+
+		selector = Selector(Rect(0,0,0,0), callback, items)
 
 		t.tileType = type
 	end
@@ -100,12 +132,19 @@ local function BuildableSelected()
 	local t = { }
 	
 	local function callback(item)
-		log("Tower selected ")
-		state:enterState("Confirm",item)
+
+		if item.id and item.id == 0 then
+			state:enterState("Idle")
+		else
+			state:enterState("Confirm", item)
+		end
 	end	
 
 	function t.enter()
-		selector = Selector(Rect(0,0,0,0), callback, towers)
+		local items    = table.copy(towers)
+		local cancel   = { id = 0, frame = cancelIcon,  color = 0xFF0000FF }
+		table.insert(items,cancel)
+		selector = Selector(Rect(0,0,0,0), callback, items)
 	end
 
 	return t
@@ -135,6 +174,7 @@ end
 function Elements()
 	local elements = {}
 	camera = Camera( Rect2(0, 0, Screen.width, Screen.height), vec2(1000, 1000), 0.5, 3)
+	brokenIcon = windIcon
 
 	function elements.enter()
 		state:enterState("Idle")
@@ -166,15 +206,35 @@ function Elements()
 			pos.y = pos.y + dim.y
 		end
 
+		
+		pos = vec2(origin.x - 0.5, origin.y - 0.5)
+		local gridLineDim = camera:scale(vec2(map.width * tilesize, 1))
+		for i=0, map.height, 1 do
+			Renderer.addFrame(pixel, pos, gridLineDim, 0x44FFFFFF)
+			pos.y = pos.y + camera:scale(tilesize)
+		end
+
+		pos = vec2(origin.x - 0.5, origin.y - 0.5)
+		local gridLineDim = camera:scale(vec2(1, map.width * tilesize))
+		for i=0, map.width, 1 do
+			Renderer.addFrame(pixel, pos, gridLineDim, 0x44FFFFFF)
+			pos.x = pos.x + camera:scale(tilesize)
+		end
+
+
 		for i = 1, #selections, 1 do 
 			Renderer.addFrame(pixel, 
 				camera:transform(vec2(selections[i].x * dim.x,
 								      selections[i].y * dim.y)), dim, 
 				selections[i].color)
 		end
-		for k,v in pairs(towerImages) do
+
+		for k,v in pairs(towerInstances) do
+			local frame
+			if v.broken then frame = brokenIcon else frame = v.frame end
+
 			pos = camera:transform(v.pos * dim.x)
-			Renderer.addFrame(v.frame, pos, dim, v.color)
+			Renderer.addFrame(frame, pos, dim, v.color)
 		end
 
 		renderTime(font)
@@ -210,7 +270,10 @@ function Elements()
 
 		for k,v in pairs(towers) do
 			if v.type == type and v.typeIndex == typeIndex then
-				table.insert(towerImages, {frame = v.frame, color = v.color, pos = vec2(x, y)})
+				table.insert(towerInstances, 
+					{ frame = v.frame, color = v.color, 
+					  pos = vec2(x, y), broken = false ,
+					  type = k })
 			end
 		end
 	end
@@ -259,13 +322,29 @@ function Elements()
 
 		map.tiles[y*map.width + x] = 0
 
-		for k, v in pairs(towerImages) do
+		for k, v in pairs(towerInstances) do
 			if v.pos.x == x and v.pos.y == y then
-				table.remove(towerImages, k)
+				table.remove(towerInstances, k)
 				return
 			end
 		end
 
+	end
+
+	local function handleTowerBroken()
+		local x = In.readInt()
+		local y = In.readInt()
+
+		local tower = findInstance(vec2(x, y))
+		tower.broken = true
+	end
+
+	local function handleTowerRepaired()
+		local x = In.readInt()
+		local y = In.readInt()
+
+		local tower = findInstance(vec2(x, y))
+		tower.broken = false
 	end
 
 	Network.setMessageHandler(Network.incoming.map, handleMap)
@@ -275,6 +354,8 @@ function Elements()
 	Network.setMessageHandler(Network.incoming.towerInfo, handleTowerInfo)
 	Network.setMessageHandler(Network.incoming.transaction, handleTransaction)
 	Network.setMessageHandler(Network.incoming.towerSold, handleTowerSold)
+	Network.setMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
+	Network.setMessageHandler(Network.incoming.towerRepaired, handleTowerRepaired)
 
 	function elements.onTap(x,y)
 		if state.active.onTap then

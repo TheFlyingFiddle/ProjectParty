@@ -22,7 +22,7 @@ class GamePlayState : IGameState
 	int lifeTotal;
 	List!uint2 selections;
 
-	List!ITowerController towerControllers;
+	TowerCollection towerCollection;
 	VentController ventController;
 	BallisticController ballisticController;
 
@@ -34,28 +34,26 @@ class GamePlayState : IGameState
 		enemies = List!Enemy(allocator, 100);
 		selections = List!uint2(allocator, 10);
 		balances = Table!(ulong, int)(allocator, 10);
-		towerControllers = List!ITowerController(allocator, 10);
+		towerCollection = TowerCollection(allocator);
 
 		import std.algorithm;
 
-
 		lifeFont = Game.content.loadFont("Blocked72");
-
 		level = fromSDLFile!Level(allocator, configFile);
 		Enemy.paths = level.paths;
 
-		ventController = allocator.allocate!VentController(allocator);
+		ventController = new VentController(allocator);
 		VentInstance.prototypes = level.ventPrototypes;
 		
-		towerControllers ~= cast(ITowerController)ventController;
 
-		ballisticController = allocator.allocate!BallisticController(allocator);
+		ballisticController = new BallisticController(allocator);
 		HomingProjectileInstance.prefabs = level.homingPrototypes;
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 
-		towerControllers ~= cast(ITowerController)ballisticController;
 
+		towerCollection.add(ventController);
+		towerCollection.add(ballisticController);
 	}
 
 	void enter()
@@ -73,7 +71,7 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.ballisticDirection, &handleBallisticDirection);
 		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch, &handleBallisticLaunch);
 		Game.router.setMessageHandler(IncomingMessages.upgradeTower, &handleTowerUpgrade);
-
+		Game.router.setMessageHandler(IncomingMessages.towerRepaired, &handleTowerRepaired);
 
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
@@ -90,7 +88,6 @@ class GamePlayState : IGameState
 		tMsg.amount = amount;
 
 		Game.server.sendMessage(id, tMsg);
-
 		balances[id] += amount;
 	}
 
@@ -115,9 +112,10 @@ class GamePlayState : IGameState
 		auto meta = getMetaInfo(type, typeIndex);
 		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
 			balances[id] >= meta.cost) {
-			buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
-							  y * level.tileSize.y + level.tileSize.y / 2), 
-						type, typeIndex);
+
+			towerCollection.buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
+												       y * level.tileSize.y + level.tileSize.y / 2), 
+													    type, typeIndex);
 			level.tileMap[uint2(x,y)] = cast(TileType) type;
 			sendTransaction(id, -meta.cost);
 
@@ -126,28 +124,16 @@ class GamePlayState : IGameState
 		}
 	}
 
-	void buildTower(float2 position, ubyte towerType, ubyte towerTypeIndex)
-	{
-		foreach(tc; towerControllers) if(tc.type == towerType)
-		{
-			tc.buildTower(position, towerTypeIndex);
-		}
-	}
 
 	void handleTowerEntered(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
 
+		towerCollection.towerEntered(uint2(x,y), level.tileSize, id);
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
 
-		auto index = ballisticController.instances.countUntil!(b=>b.cell(level.tileSize) == uint2(x,y));
-		if(index != -1)
-		{
-			import std.stdio;
-			ballisticController.instances[index].isControlled = true;
-		}
 	}
 
 	void handleTowerExited(ulong id, ubyte[] msg)
@@ -155,15 +141,9 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
 
+		towerCollection.towerEntered(uint2(x,y), level.tileSize, id);
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
-
-		auto index = ballisticController.instances.countUntil!(b=>b.cell(level.tileSize) == uint2(x,y));
-		if(index != -1)
-		{
-			import std.stdio;
-			ballisticController.instances[index].isControlled = false;
-		}
 	}
 
 
@@ -193,7 +173,6 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
 		auto index = selections.countUntil!(s=> s == uint2(x, y));
-
 		if(index == -1) {
 			foreach(player ; Game.players) if (player.id != id) 
 				Game.server.sendMessage(player.id, SelectedMessage(x, y, 0x88AACCBB));
@@ -207,7 +186,6 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
 		selections.remove(uint2(x,y));
-
 		foreach(player ; Game.players) if (player.id != id) 
 			Game.server.sendMessage(player.id, DeselectedMessage(x, y));
 	}
@@ -218,11 +196,9 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto value = msg.read!float;
 
-		auto index = ventController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		auto index = ventController.towerIndex(uint2(x,y), level.tileSize);
 		if(index != -1)
-		{
 			ventController.instances[index].open = value;
-		}
 	}
 
 	void handleVentDirection(ulong id, ubyte[] msg)
@@ -231,11 +207,9 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto value = msg.read!float;
 
-		auto index = ventController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		auto index = ventController.towerIndex(uint2(x,y), level.tileSize);
 		if(index != -1)
-		{
 			ventController.instances[index].direction = value;
-		}
 	}
 
 	void handleBallisticValue(ulong id, ubyte[] msg)
@@ -244,7 +218,7 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto value = msg.read!float;
 
-		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		auto index = ballisticController.towerIndex(uint2(x,y), level.tileSize);
 		if(index != -1)
 		{
 			auto distance = ballisticController.instances[index].maxDistance * value;
@@ -258,11 +232,9 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto value = msg.read!float;
 
-		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		auto index = ballisticController.towerIndex(uint2(x,y), level.tileSize);
 		if(index != -1)
-		{
 			ballisticController.instances[index].angle = value;
-		}
 	}	
 	
 	void handleBallisticLaunch(ulong id, ubyte[] msg)
@@ -270,11 +242,9 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
 
-		auto index = ballisticController.instances.countUntil!(v=>v.cell(level.tileSize) == uint2(x,y));
+		auto index = ballisticController.towerIndex(uint2(x,y), level.tileSize);
 		if(index != -1)
-		{
 			ballisticController.launch(index);
-		}
 	}
 
 	void handleTowerSell(ulong id, ubyte[] msg)
@@ -282,17 +252,10 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint,
 			  y = msg.read!uint;
 
-
-		foreach(tc; towerControllers) 
-		{
-			auto index = tc.towerIndex(uint2(x,y), level.tileSize);
-			if(index != -1)
-			{
-				auto meta = tc.metaTower(index, level.towers);
-				tc.removeTower(index);
-				sendTransaction(id, cast(int)(0.9 * meta.cost));
-			}
-		}
+		auto meta = towerCollection.metaTower(uint2(x,y), level.tileSize, level.towers);
+		level.tileMap[uint2(x,y)] = TileType.buildable;
+		towerCollection.removeTower(uint2(x,y), level.tileSize);
+		sendTransaction(id, cast(int)(0.9 * meta.cost));
 		
 		foreach(player; Game.players)
 				Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
@@ -302,32 +265,41 @@ class GamePlayState : IGameState
 	{
 		auto x = msg.read!uint,
 			y = msg.read!uint;
+
+
+		auto meta = towerCollection.metaTower(uint2(x,y), level.tileSize, level.towers);
+		if(meta.upgradeIndex == ubyte.max)
+			return;
+
+		auto upgradeMeta = level.towers[meta.upgradeIndex];
+		auto cost = upgradeMeta.cost - meta.cost;
+		if(balances[id] < cost)
+			return;
+
+		sendTransaction(id, -cost);
+		towerCollection.upgradeTower(uint2(x,y), level.tileSize, upgradeMeta.typeIndex);
+
+		foreach(player; Game.players)
+			Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
+
+		foreach(player; Game.players)
+			Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex));
+	}
+
+	void handleTowerRepaired(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint, y = msg.read!uint;
 		
-		foreach(tc; towerControllers)
-		{
-			auto towerIndex = tc.towerIndex(uint2(x,y), level.tileSize);
+		towerCollection.repairTower(uint2(x,y), level.tileSize);
 
-			if(towerIndex != -1)
-			{
-				auto meta = tc.metaTower(towerIndex, level.towers);
-				if(meta.upgradeIndex == ubyte.max)
-					return;
-				auto upgradeMeta = level.towers[meta.upgradeIndex];
-				auto cost = upgradeMeta.cost - meta.cost;
-				if(balances[id] < cost)
-					return;
-				sendTransaction(id, -cost);
-	
-				tc.upgradeTower(towerIndex, upgradeMeta.typeIndex);
+		foreach(player; Game.players)
+			Game.server.sendMessage(player.id, TowerRepairedMessage(x, y));
+	}
 
-				foreach(player; Game.players)
-					Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
-
-				foreach(player; Game.players)
-					Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex));
-			}
-		}
-
+	void sendTowerBroke(uint2 towerCell)
+	{
+		foreach(player; Game.players)
+			Game.server.sendMessage(player.id, TowerBrokenMessage(towerCell.x, towerCell.y));
 	}
 
 	void exit()
@@ -339,8 +311,7 @@ class GamePlayState : IGameState
 	{
 		updateWave();
 		updateEnemies();
-		ventController.update(enemies);
-		ballisticController.update(enemies);
+		towerCollection.update(enemies);
 		killEnemies();
 	}
 
