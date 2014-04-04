@@ -20,16 +20,21 @@ enemyPrototypes = [ { maxHealth = 50	speed = 70	worth = 5	frame = baws },
 ventPrototypes = [ { damage = 10 range = 100 maxPressure = 100 regenRate = 10 
 					 frame = cone towerFrame = tower_cone },
 					{ damage = 9001 range = 100 maxPressure = 500 regenRate = 2
-					 frame = baws towerFrame = tower_cone } ]
+					 frame = baws towerFrame = tower_cone },
+					{ damage = 42 range = 100 maxPressure = 500 regenRate = 2
+					 frame = teddy towerFrame = tower_cone } ]
 
 towers = [{ cost = 10 range = 100 phoneIcon = |textures/fire_icon.png| 
-			type = vent typeIndex = 0 color = 0xFF00FF00 upgradeIndex = 1},
+			type = vent typeIndex = 0 color = 0xFF00FF00 upgradeIndex0 = 1
+			upgradeIndex1 = 2 basic = true },
 		  { cost = 100 range = 140 phoneIcon = |textures/water_icon.png|
-		    type = vent typeIndex = 1 color = 0xFFFF0000 upgradeIndex = -1},
+		    type = vent typeIndex = 1 color = 0xFFFF0000 },
+		  { cost = 100 range = 140 phoneIcon = |textures/nature_icon.png|
+		    type = vent typeIndex = 2 color = 0xFFFF0000 },
 		  { cost = 20 range = 300 phoneIcon = |textures/rocket_icon.png|
-		    type = rocket typeIndex = 0 color = 0xFF1772FF upgradeIndex = 3},
+		    type = rocket basic = true typeIndex = 0 color = 0xFF1772FF upgradeIndex0 = 4},
 		  { cost = 20 range = 300 phoneIcon = |textures/rocket_icon.png|
-		    type = rocket typeIndex = 1 color = 0xFF1222FF upgradeIndex = -1}
+		    type = rocket typeIndex = 1 color = 0xFF1222FF }
 		 ]
 
 ballisticProjectilePrototypes = [ { damage = 50 speed = 150 radius = 60 frame = rocket_big } ]

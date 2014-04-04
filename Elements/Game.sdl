@@ -26,7 +26,7 @@ windowConfig =
 
 	fullScreen = false
 	blocking   = false
-	decorated  = true
+	decorated  = false
 }
 
 serverConfig = 

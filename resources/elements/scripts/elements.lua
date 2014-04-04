@@ -93,7 +93,7 @@ local function TowerSelected()
 				fsm:enterState("Ballistic", selectedCell)
 			end
 		elseif item.id == 1 then			
-			sendUpgradeTower(selectedCell)
+			sendUpgradeTower(selectedCell, item.index)
 			state:enterState("Idle")
 		elseif item.id == 3 then
 			sendSellTowerRequest(selectedCell)
@@ -111,13 +111,29 @@ local function TowerSelected()
 
 		local items = { enter }
 		local tower = findInstance(selectedCell)
+		local towerMeta = towers[tower.type]
 	
 		if tower.ownedByMe then
 			table.insert(items, sell)
 			table.insert(items, cancel)
-			if towers[tower.type].upgradeIndex ~= 255 then
-				table.insert(items, upgrade)
-			end	
+			if towerMeta.upgradeIndex0 ~= 255 then
+				table.insert(items, 
+					{ id = 1, frame = towers[towerMeta.upgradeIndex0 + 1].frame, 
+					  color = 0xFFFFFFFF, 
+					  index = towerMeta.upgradeIndex0 } )
+			end
+			if towerMeta.upgradeIndex1 ~= 255 then
+				table.insert(items, 
+					{ id = 1, frame = towers[towerMeta.upgradeIndex1 + 1].frame, 
+					  color = 0xFFFFFFFF, 
+					  index = towerMeta.upgradeIndex1 } )
+			end
+			if towerMeta.upgradeIndex2 ~= 255 then
+				table.insert(items, 
+					{ id = 1, frame = towers[towerMeta.upgradeIndex2 + 1].frame, 
+					  color = 0xFFFFFFFF, 
+					  index = towerMeta.upgradeIndex2 } )	
+			end
 		else 
 			table.insert(items, cancel)
 		end
@@ -142,9 +158,15 @@ local function BuildableSelected()
 	end	
 
 	function t.enter()
-		local items    = table.copy(towers)
+		local items = { }
+		for k, v in pairs(towers) do
+			if v.basic then
+				table.insert(items, v)
+			end
+		end
+
 		local cancel   = { id = 0, frame = cancelIcon,  color = 0xFF0000FF }
-		table.insert(items,cancel)
+		table.insert(items, cancel)
 		selector = Selector(Rect(0,0,0,0), callback, items)
 	end
 
@@ -235,7 +257,8 @@ function Elements()
 			if v.broken then frame = brokenIcon else frame = v.frame end
 
 			pos = camera:transform(v.pos * dim.x)
-			Renderer.addFrame(frame, pos, dim, v.color)
+			Renderer.addFrame(pixel, pos, dim, v.color)
+			Renderer.addFrame(frame, pos, dim, 0xFFFFFFFF)
 		end
 
 		renderTime(font)
@@ -268,13 +291,14 @@ function Elements()
 		local type = In.readByte()
 		local typeIndex = In.readByte()
 		local isOwned   = In.readByte()
+		local playerColor = In.readInt()
 
 		map.tiles[y*map.width + x] = type
 
 		for k,v in pairs(towers) do
 			if v.type == type and v.typeIndex == typeIndex then
 				table.insert(towerInstances, 
-					{ frame = v.frame, color = v.color, 
+					{ frame = v.frame, color = playerColor, 
 					  pos = vec2(x, y), broken = false ,
 					  type = k, ownedByMe = isOwned == 1})
 			end
@@ -309,8 +333,11 @@ function Elements()
 		tower.color = In.readInt()
 		tower.type = In.readByte()
 		tower.typeIndex = In.readByte()
-		tower.upgradeIndex = In.readByte()
-
+		tower.basic 		= In.readByte() == 1
+		tower.upgradeIndex0 = In.readByte()
+		tower.upgradeIndex1 = In.readByte()
+		tower.upgradeIndex2 = In.readByte()
+		
 		table.insert(towers, tower)
 	end
 
