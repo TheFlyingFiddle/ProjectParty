@@ -29,6 +29,7 @@ class GamePlayState : IGameState
 	GatlingController 		gatlingController;
 
 	Table!(ulong, int)balances;
+	Table!(ulong, Color)playerColors;
 
 	this(A)(ref A allocator, string configFile)
 	{
@@ -58,6 +59,7 @@ class GamePlayState : IGameState
 		GatlingProjectileInstance.prefabs = level.gatlingProjectilePrototypes;
 		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
 
+		playerColors = Table!(ulong, Color)(allocator, 10);
 
 		towerCollection.add(ventController);
 		towerCollection.add(ballisticController);
@@ -101,6 +103,9 @@ class GamePlayState : IGameState
 
 	void connect(ulong id) 
 	{
+		import std.random;
+		playerColors[id] = Color(uniform(0xFF000000, 0xFFFFFFFF));
+
 		balances[id] = level.startBalance;
 		sendTransaction(id, level.startBalance);
 	}
@@ -129,7 +134,7 @@ class GamePlayState : IGameState
 			sendTransaction(id, -meta.cost);
 
 			foreach(player; Game.players)
-				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type, typeIndex, id == player.id));
+				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type, typeIndex, id == player.id, playerColors[id].packedValue));
 		}
 	}
 
@@ -169,7 +174,10 @@ class GamePlayState : IGameState
 			tiMsg.phoneIcon = tower.phoneIcon;
 			tiMsg.color = tower.color;
 			tiMsg.index = tower.typeIndex;
-			tiMsg.upgradeIndex = tower.upgradeIndex;
+			tiMsg.basic = tower.basic;
+			tiMsg.upgradeIndex0 = tower.upgradeIndex0;
+			tiMsg.upgradeIndex1 = tower.upgradeIndex1;
+			tiMsg.upgradeIndex2 = tower.upgradeIndex2;
 			Game.server.sendMessage(id, tiMsg);
 		}
 
@@ -181,6 +189,7 @@ class GamePlayState : IGameState
 			tbMsg.towerType	= type;
 			tbMsg.typeIndex	= typeIndex;
 			tbMsg.ownedByMe = tower.ownedPlayerID == id;
+			tbMsg.color = playerColors[tower.ownedPlayerID].packedValue;
 			Game.server.sendMessage(id, tbMsg);
 		});
 	}
@@ -281,13 +290,12 @@ class GamePlayState : IGameState
 	void handleTowerUpgrade(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint,
-			y = msg.read!uint;
+			 y = msg.read!uint,
+		     selectedUpgrade = msg.read!ubyte;
 
 		auto meta = towerCollection.metaTower(uint2(x,y), level.tileSize, level.towers);
-		if(meta.upgradeIndex == ubyte.max)
-			return;
+		Tower upgradeMeta = level.towers[selectedUpgrade];
 
-		auto upgradeMeta = level.towers[meta.upgradeIndex];
 		auto cost = upgradeMeta.cost - meta.cost;
 		if(balances[id] < cost)
 			return;
@@ -299,7 +307,7 @@ class GamePlayState : IGameState
 			Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
 
 		foreach(player; Game.players)
-			Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex, player.id == id));
+			Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex, player.id == id, playerColors[id].packedValue));
 	}
 
 	void handleTowerRepaired(ulong id, ubyte[] msg)

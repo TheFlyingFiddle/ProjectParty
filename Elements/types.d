@@ -36,6 +36,7 @@ struct TowerBuiltMessage
 	ubyte towerType;
 	ubyte typeIndex;
 	ubyte ownedByMe;
+	uint color;
 }
 
 struct TowerEnteredMessage
@@ -66,7 +67,10 @@ struct TowerInfoMessage
 	uint color;
 	ubyte type;
 	ubyte index;
-	ubyte upgradeIndex;
+	ubyte basic;
+	ubyte upgradeIndex0;
+	ubyte upgradeIndex1;
+	ubyte upgradeIndex2;
 }
 
 struct TransactionMessage
@@ -172,7 +176,10 @@ struct Tower
 	TileType type;
 	ubyte typeIndex;
 	float range;
-	ubyte upgradeIndex;
+	@Optional(false) bool basic;
+	@Optional(ubyte.max) ubyte upgradeIndex0;
+	@Optional(ubyte.max) ubyte upgradeIndex1;
+	@Optional(ubyte.max) ubyte upgradeIndex2;
 }
 
 struct EnemyPrototype

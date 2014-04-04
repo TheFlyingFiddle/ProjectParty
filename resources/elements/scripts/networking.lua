@@ -134,12 +134,13 @@ function sendBallisticLaunch(cell)
 	Out.writeInt(cell.y)
 end
 
-function sendUpgradeTower(cell)
+function sendUpgradeTower(cell, index)
 	log("Sending upgrade message!")
-	Out.writeShort(9)
+	Out.writeShort(10)
 	Out.writeByte(Network.outgoing.upgradeTower)
 	Out.writeInt(cell.x)
 	Out.writeInt(cell.y)
+	Out.writeByte(index)
 end
 
 function sendRepaired(cell)
