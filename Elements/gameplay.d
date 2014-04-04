@@ -130,19 +130,16 @@ class GamePlayState : IGameState
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
-
 		towerCollection.towerEntered(uint2(x,y), level.tileSize, id);
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
-
 	}
 
 	void handleTowerExited(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
-
-		towerCollection.towerEntered(uint2(x,y), level.tileSize, id);
+		towerCollection.towerExited(uint2(x,y), level.tileSize, id);
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
 	}
