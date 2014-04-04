@@ -34,6 +34,7 @@ struct TowerBuiltMessage
 	uint x, y;
 	ubyte towerType;
 	ubyte typeIndex;
+	ubyte ownedByMe;
 }
 
 struct TowerEnteredMessage

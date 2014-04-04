@@ -104,24 +104,25 @@ local function TowerSelected()
 	end
 
 	function t.enter(type)
-
-
 		local enter    = { id = 0, frame = fireIcon,	color = 0xFFFFFFFF }
 		local upgrade  = { id = 1, frame = buyIcon,		color = 0xFF00FF00 }
 		local cancel   = { id = 2, frame = cancelIcon,  color = 0xFF0000FF }
 		local sell     = { id = 3, frame = buyIcon,     color = 0xFF0000FF }
 
-		local items
-
+		local items = { enter }
 		local tower = findInstance(selectedCell)
-		if towers[tower.type].upgradeIndex == 255 then
-			items = { enter, cancel, sell }
+	
+		if tower.ownedByMe then
+			table.insert(items, sell)
+			table.insert(items, cancel)
+			if towers[tower.type].upgradeIndex ~= 255 then
+				table.insert(items, upgrade)
+			end	
 		else 
-			items = { enter, upgrade, cancel, sell }
+			table.insert(items, cancel)
 		end
 
 		selector = Selector(Rect(0,0,0,0), callback, items)
-
 		t.tileType = type
 	end
 
@@ -266,6 +267,8 @@ function Elements()
 		local y = In.readInt()
 		local type = In.readByte()
 		local typeIndex = In.readByte()
+		local isOwned   = In.readByte()
+
 		map.tiles[y*map.width + x] = type
 
 		for k,v in pairs(towers) do
@@ -273,7 +276,7 @@ function Elements()
 				table.insert(towerInstances, 
 					{ frame = v.frame, color = v.color, 
 					  pos = vec2(x, y), broken = false ,
-					  type = k })
+					  type = k, ownedByMe = isOwned == 1})
 			end
 		end
 	end
@@ -363,10 +366,13 @@ function Elements()
 		end
 
 		if selector then
-			selector:onTap(vec2(x,y))
+			if pointInRect(selector.rect, vec2(x,y)) then
+				selector:onTap(vec2(x,y))	
+			else
+				state:enterState("Idle")
+			end
 		end
 	end
-
 
 	function elements.onDragBegin(x, y)
 		camera:onDragBegin(vec2(x, y))

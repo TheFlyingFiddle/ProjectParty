@@ -8,7 +8,7 @@ interface ITowerController
 {
 	@property TileType type();
 	void forEachTower(void delegate(TowerCommon, ubyte, ubyte) callback);
-	void buildTower(float2 position, uint prototypeIndex);
+	void buildTower(float2 position, uint prototypeIndex, ulong ownedPlayerID);
 	uint towerIndex(uint2 cell, uint2 tileSize);
 	void removeTower(uint towerIndex);
 	void upgradeTower(uint towerIndex, uint upgradeIndex);
@@ -24,6 +24,7 @@ struct TowerCommon
 {
 	float2 position;
 	bool isBroken;
+	ulong ownedPlayerID;
 }
 
 uint2 cell(T)(T t, uint2 tileSize)
@@ -41,16 +42,15 @@ struct TowerCollection
 		this.controllers = List!ITowerController(allocator, 10);
 	}
 
-	final void buildTower(float2 position, ubyte type, uint prototype)
+	final void buildTower(float2 position, ubyte type, uint prototype, ulong ownedPlayerID)
 	{
 		foreach(tc; controllers)
 		{
 			if(tc.type == type)
 			{
-				tc.buildTower(position, prototype);
+				tc.buildTower(position, prototype, ownedPlayerID);
 			}
 		}
-
 	}
 
 	auto ref opDispatch(string method, Args...)(uint2 pos, uint2 tileSize, Args args)
@@ -124,9 +124,9 @@ abstract class TowerController(T) : ITowerController
 			callback(c, type, cast(ubyte) (instances[i].prefab));
 	}
 
-	final void buildTower(float2 position, uint prototypeIndex)
+	final void buildTower(float2 position, uint prototypeIndex, ulong ownedPlayerID)
 	{
-		common    ~= TowerCommon(position, false);
+		common    ~= TowerCommon(position, false, ownedPlayerID);
 		instances ~= T(prototypeIndex);
 	}
 
@@ -143,9 +143,9 @@ abstract class TowerController(T) : ITowerController
 
 	final void upgradeTower(uint towerIndex, uint upgradeIndex)
 	{
-		float2 position = common[towerIndex].position;
+		auto c = common[towerIndex];
 		removeTower(towerIndex);
-		buildTower(position, upgradeIndex);
+		buildTower(c.position, upgradeIndex, c.ownedPlayerID);
 	}
 
 	final void repairTower(uint towerIndex)

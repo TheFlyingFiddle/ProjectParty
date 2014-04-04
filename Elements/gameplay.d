@@ -115,12 +115,13 @@ class GamePlayState : IGameState
 
 			towerCollection.buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 												       y * level.tileSize.y + level.tileSize.y / 2), 
-													    type, typeIndex);
+													    type, typeIndex, id);
+
 			level.tileMap[uint2(x,y)] = cast(TileType) type;
 			sendTransaction(id, -meta.cost);
 
 			foreach(player; Game.players)
-				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type, typeIndex));
+				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type, typeIndex, id == player.id));
 		}
 	}
 
@@ -172,8 +173,9 @@ class GamePlayState : IGameState
 			TowerBuiltMessage tbMsg;
 			tbMsg.x = tower.cell(level.tileSize).x;
 			tbMsg.y = tower.cell(level.tileSize).y;
-			tbMsg.towerType = type;
-			tbMsg.typeIndex = typeIndex;
+			tbMsg.towerType	= type;
+			tbMsg.typeIndex	= typeIndex;
+			tbMsg.ownedByMe = tower.ownedPlayerID == id;
 			Game.server.sendMessage(id, tbMsg);
 		});
 	}
@@ -276,7 +278,6 @@ class GamePlayState : IGameState
 		auto x = msg.read!uint,
 			y = msg.read!uint;
 
-
 		auto meta = towerCollection.metaTower(uint2(x,y), level.tileSize, level.towers);
 		if(meta.upgradeIndex == ubyte.max)
 			return;
@@ -293,7 +294,7 @@ class GamePlayState : IGameState
 			Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
 
 		foreach(player; Game.players)
-			Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex));
+			Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex, player.id == id));
 	}
 
 	void handleTowerRepaired(ulong id, ubyte[] msg)
