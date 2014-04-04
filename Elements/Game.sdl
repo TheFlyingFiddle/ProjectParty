@@ -59,6 +59,7 @@ resources = [
 { type = texture path = |elements\textures\rocket.png| },
 { type = texture path = |elements\textures\rocket_big.png| },
 { type = texture path = |elements\textures\crosshair.png| },
+{ type = texture path = |elements\textures\bullet.png| },
 { type = texture path = |elements\textures\map2.png| }
 ]
 
