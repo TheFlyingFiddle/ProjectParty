@@ -45,7 +45,9 @@ resources =
 	{ type = texture path = |elements\textures\pixel.png| } ,
 	{ type = texture path = |elements\textures\boulder.png| },
 	{ type = texture path = |elements\textures\teddy.png| },
-	{ type = texture path = |elements\textures\tower_cone.png| }
+	{ type = texture path = |elements\textures\tower_cone.png| },
+	{ type = texture path = |elements\textures\rocket.png| },
+	{ type = texture path = |elements\textures\cone.png| }
 ]
 
 phoneResources = [ |elements/scripts/main.lua| ]

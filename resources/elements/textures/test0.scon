@@ -5,7 +5,6 @@
         {
           "id": 0,
           "length": 1000,
-          "looping": "false",
           "mainline": {
             "key": [
               {
@@ -17,12 +16,6 @@
                     "key": 0,
                     "timeline": 0,
                     "z_index": "0"
-                  },
-                  {
-                    "id": 1,
-                    "key": 1,
-                    "timeline": 1,
-                    "z_index": "1"
                   }
                 ]
               },
@@ -35,53 +28,9 @@
                     "key": 1,
                     "timeline": 0,
                     "z_index": "0"
-                  },
-                  {
-                    "id": 1,
-                    "key": 3,
-                    "timeline": 1,
-                    "z_index": "1"
                   }
                 ],
-                "time": 244
-              },
-              {
-                "bone_ref": [],
-                "id": 2,
-                "object_ref": [
-                  {
-                    "id": 0,
-                    "key": 2,
-                    "timeline": 0,
-                    "z_index": "0"
-                  },
-                  {
-                    "id": 1,
-                    "key": 4,
-                    "timeline": 1,
-                    "z_index": "1"
-                  }
-                ],
-                "time": 488
-              },
-              {
-                "bone_ref": [],
-                "id": 3,
-                "object_ref": [
-                  {
-                    "id": 0,
-                    "key": 3,
-                    "timeline": 0,
-                    "z_index": "0"
-                  },
-                  {
-                    "id": 1,
-                    "key": 5,
-                    "timeline": 1,
-                    "z_index": "1"
-                  }
-                ],
-                "time": 772
+                "time": 492
               }
             ]
           },
@@ -94,134 +43,31 @@
                 {
                   "id": 0,
                   "object": {
-                    "file": 2,
+                    "angle": 0.7900706592478741,
+                    "file": 12,
                     "folder": 0,
-                    "x": -29.54545454545456,
-                    "y": 139.7727272727273
-                  },
-                  "spin": 0
-                },
-                {
-                  "id": 1,
-                  "object": {
-                    "file": 2,
-                    "folder": 0,
-                    "x": -160.22727272727275,
-                    "y": 35.22727272727276
-                  },
-                  "spin": 0,
-                  "time": 244
-                },
-                {
-                  "id": 2,
-                  "object": {
-                    "file": 2,
-                    "folder": 0,
-                    "x": -30.371035389974793,
-                    "y": -101.10812307782005
-                  },
-                  "spin": 0,
-                  "time": 488
-                },
-                {
-                  "id": 3,
-                  "object": {
-                    "file": 2,
-                    "folder": 0,
-                    "x": 160.35954785954786,
-                    "y": 29.196729196729237
-                  },
-                  "spin": 0,
-                  "time": 772
-                }
-              ],
-              "name": "tower_cone"
-            },
-            {
-              "id": 1,
-              "key": [
-                {
-                  "id": 0,
-                  "object": {
-                    "file": 3,
-                    "folder": 0,
-                    "x": 6.001878651323771,
-                    "y": 0.0764126858799017
+                    "pivot_x": 0.008064516129032237,
+                    "pivot_y": 0.48611111111111116,
+                    "x": 0.49193548387096775,
+                    "y": -4.986111111111114
                   }
                 },
                 {
                   "id": 1,
                   "object": {
-                    "file": 3,
+                    "angle": 88.94621189073138,
+                    "file": 12,
                     "folder": 0,
-                    "x": -29.545454545454547,
-                    "y": 31.81818181818182
-                  }
-                },
-                {
-                  "id": 2,
-                  "object": {
-                    "angle": 46.6910084171642,
-                    "file": 3,
-                    "folder": 0,
-                    "pivot_x": 0,
-                    "pivot_y": 1,
-                    "scale_x": 1.0791574126354364,
-                    "scale_y": 0.9389332389156926,
-                    "x": -48.05992176050477,
-                    "y": -5.2013849644329335
-                  },
-                  "time": 244
-                },
-                {
-                  "id": 3,
-                  "object": {
-                    "angle": 46.6910084171642,
-                    "file": 3,
-                    "folder": 0,
-                    "pivot_x": 0.5554270811996612,
-                    "pivot_y": 0.5040348573077825,
-                    "scale_x": 1.0791574126354364,
-                    "scale_y": 0.9389332389156926,
-                    "x": -0.05985146162043087,
-                    "y": 2.2695753143930864
-                  },
-                  "time": 244
-                },
-                {
-                  "id": 4,
-                  "object": {
-                    "angle": 212.9555183071765,
-                    "file": 3,
-                    "folder": 0,
-                    "pivot_x": 0.5554270811996612,
-                    "pivot_y": 0.5040348573077825,
-                    "scale_x": 1.053609253001777,
-                    "scale_y": 0.9586426168317917,
-                    "x": 1.8965799504938354,
-                    "y": 1.5617291750316882
+                    "pivot_x": 0.008064516129032237,
+                    "pivot_y": 0.48611111111111116,
+                    "x": -0.5080645161290356,
+                    "y": -4.986111111111114
                   },
                   "spin": -1,
-                  "time": 488
-                },
-                {
-                  "id": 5,
-                  "object": {
-                    "angle": 178.85517968663663,
-                    "file": 3,
-                    "folder": 0,
-                    "pivot_x": 0.5554270811996612,
-                    "pivot_y": 0.5040348573077825,
-                    "scale_x": 1.0238728704773539,
-                    "scale_y": 0.9815830403079074,
-                    "x": 4.17373782361044,
-                    "y": 0.7378426849553066
-                  },
-                  "spin": -1,
-                  "time": 772
+                  "time": 492
                 }
               ],
-              "name": "teddy"
+              "name": "cone"
             }
           ]
         }
@@ -266,6 +112,78 @@
           "pivot_x": 0,
           "pivot_y": 1,
           "width": 64
+        },
+        {
+          "height": 33,
+          "id": 4,
+          "name": "map2_tiletypes.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 60
+        },
+        {
+          "height": 128,
+          "id": 5,
+          "name": "nature_icon.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 128
+        },
+        {
+          "height": 32,
+          "id": 6,
+          "name": "pixel.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 32
+        },
+        {
+          "height": 10,
+          "id": 7,
+          "name": "projectile.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 10
+        },
+        {
+          "height": 256,
+          "id": 8,
+          "name": "ring.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 256
+        },
+        {
+          "height": 64,
+          "id": 9,
+          "name": "road0.jpg",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 32,
+          "id": 10,
+          "name": "rocket.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 32
+        },
+        {
+          "height": 202,
+          "id": 11,
+          "name": "baws.jpg",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 234
+        },
+        {
+          "height": 35,
+          "id": 12,
+          "name": "cone.png",
+          "pivot_x": 0,
+          "pivot_y": 0,
+          "width": 61
         }
       ],
       "id": 0
