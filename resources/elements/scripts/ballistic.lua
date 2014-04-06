@@ -14,7 +14,7 @@ function Ballistic()
 		fsm:enterState("Elements")
 	end
 
-	
+
 	local dirSelector = 
 		  DirectionSelector(Rect2(400,200,400,400),
 		  				    sendDirection,

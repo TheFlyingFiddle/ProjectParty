@@ -12,7 +12,7 @@ local tileColors =
 {
 		0xFF559567,
 		0xFF456a90,
-		0xFF0000FF,
+		0xFFFFFFFF,
 		0xFFFF0000,
 		0xFFFFFF00,
 		0xFF00FFFF,
@@ -331,17 +331,17 @@ function Elements()
 	local function handleTowerInfo() 
 		local tower = {}
 
-		tower.cost = In.readInt()
-		tower.range = In.readFloat()
-		tower.frame = Loader.loadFrame(In.readUTF8())
-		tower.color = In.readInt()
-		tower.type = In.readByte()
-		tower.typeIndex = In.readByte()
+		tower.cost 			= In.readInt()
+		tower.range 		= In.readFloat()
+		tower.frame 		= Loader.loadFrame(In.readUTF8())
+		tower.type 			= In.readByte()
+		tower.typeIndex 	= In.readByte()
 		tower.basic 		= In.readByte() == 1
 		tower.upgradeIndex0 = In.readByte()
 		tower.upgradeIndex1 = In.readByte()
 		tower.upgradeIndex2 = In.readByte()
-		
+		tower.color         = 0xFFFFFFFF
+
 		table.insert(towers, tower)
 	end
 

@@ -11,32 +11,39 @@ import vent;
 import tower_controller;
 import ballistic;
 import gatling;
+import network_types;
 
+
+struct TowerPlayer
+{
+	int balance;
+	Color color;
+}
 
 class GamePlayState : IGameState
 {
 	Level level;
-
 	FontID lifeFont;
 	List!Enemy enemies;
 
 	int lifeTotal;
 	List!uint2 selections;
 
-	TowerCollection 		towerCollection;
+	TowerCollection 			towerCollection;
+	
 	VentController 			ventController;
 	BallisticController		ballisticController;
 	GatlingController 		gatlingController;
 
-	Table!(ulong, int)balances;
-	Table!(ulong, Color)playerColors;
+	Table!(ulong, TowerPlayer)	players;
 
 	this(A)(ref A allocator, string configFile)
 	{
 		lifeTotal = 1000;
 		enemies = List!Enemy(allocator, 100);
 		selections = List!uint2(allocator, 10);
-		balances = Table!(ulong, int)(allocator, 10);
+		players = Table!(ulong, TowerPlayer)(allocator, 20);	
+
 		towerCollection = TowerCollection(allocator);
 
 		import std.algorithm;
@@ -46,9 +53,8 @@ class GamePlayState : IGameState
 		Enemy.paths = level.paths;
 
 		ventController = new VentController(allocator);
-		VentInstance.prototypes = level.ventPrototypes;
+		VentInstance.prefabs = level.ventPrototypes;
 		
-
 		ballisticController = new BallisticController(allocator);
 		HomingProjectileInstance.prefabs = level.homingPrototypes;
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
@@ -58,9 +64,7 @@ class GamePlayState : IGameState
 		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
 		GatlingProjectileInstance.prefabs = level.gatlingProjectilePrototypes;
 		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
-
-		playerColors = Table!(ulong, Color)(allocator, 10);
-
+	
 		towerCollection.add(ventController);
 		towerCollection.add(ballisticController);
 		towerCollection.add(gatlingController);
@@ -68,20 +72,24 @@ class GamePlayState : IGameState
 
 	void enter()
 	{
-		Game.router.setMessageHandler(IncomingMessages.towerRequest, &handleTowerRequest);
-		Game.router.setMessageHandler(IncomingMessages.selectRequest, &handleSelectRequest);
-		Game.router.setMessageHandler(IncomingMessages.mapRequest, &handleMapRequest);
-		Game.router.setMessageHandler(IncomingMessages.towerEntered, &handleTowerEntered);
-		Game.router.setMessageHandler(IncomingMessages.towerExited, &handleTowerExited);
-		Game.router.setMessageHandler(IncomingMessages.deselect, &handleDeselect);
-		Game.router.setMessageHandler(IncomingMessages.ventValue, &handleVentValue);
-		Game.router.setMessageHandler(IncomingMessages.ventDirection, &handleVentDirection);
-		Game.router.setMessageHandler(IncomingMessages.towerSell, &handleTowerSell);
-		Game.router.setMessageHandler(IncomingMessages.ballisticValue, &handleBallisticValue);
-		Game.router.setMessageHandler(IncomingMessages.ballisticDirection, &handleBallisticDirection);
-		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch, &handleBallisticLaunch);
-		Game.router.setMessageHandler(IncomingMessages.upgradeTower, &handleTowerUpgrade);
-		Game.router.setMessageHandler(IncomingMessages.towerRepaired, &handleTowerRepaired);
+		Game.router.setMessageHandler(IncomingMessages.towerRequest,	&handleTowerRequest);
+		Game.router.setMessageHandler(IncomingMessages.selectRequest,	&handleSelectRequest);
+		Game.router.setMessageHandler(IncomingMessages.mapRequest,		&handleMapRequest);
+		Game.router.setMessageHandler(IncomingMessages.towerEntered,	&handleTowerEntered);
+		Game.router.setMessageHandler(IncomingMessages.towerExited,		&handleTowerExited);
+		Game.router.setMessageHandler(IncomingMessages.deselect,			&handleDeselect);
+		Game.router.setMessageHandler(IncomingMessages.towerSell,		&handleTowerSell);
+		Game.router.setMessageHandler(IncomingMessages.upgradeTower,	&handleTowerUpgrade);
+		Game.router.setMessageHandler(IncomingMessages.towerRepaired,	&handleTowerRepaired);
+
+		//Should be in vent
+		Game.router.setMessageHandler(IncomingMessages.ventValue,		&handleVentValue);
+		Game.router.setMessageHandler(IncomingMessages.ventDirection,	&handleVentDirection);
+
+		//Should be in ballistic
+		Game.router.setMessageHandler(IncomingMessages.ballisticValue,			&handleBallisticValue);
+		Game.router.setMessageHandler(IncomingMessages.ballisticDirection,	&handleBallisticDirection);
+		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch,		&handleBallisticLaunch);
 
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
@@ -92,27 +100,25 @@ class GamePlayState : IGameState
 		return level.towers.find!(x => x.type == type && x.typeIndex == typeIndex)[0];
 	}
 
+	void connect(ulong id) 
+	{
+		import std.random;
+		players[id] = TowerPlayer(level.startBalance, Color(uniform(0xFF000000, 0xFFFFFFFF)));
+		sendTransaction(id, level.startBalance);
+	}
+
+	void disconnect(ulong id)
+	{
+		players.remove(id);
+	}
+
 	void sendTransaction(ulong id, int amount)
 	{
 		TransactionMessage tMsg;
 		tMsg.amount = amount;
 
 		Game.server.sendMessage(id, tMsg);
-		balances[id] += amount;
-	}
-
-	void connect(ulong id) 
-	{
-		import std.random;
-		playerColors[id] = Color(uniform(0xFF000000, 0xFFFFFFFF));
-
-		balances[id] = level.startBalance;
-		sendTransaction(id, level.startBalance);
-	}
-
-	void disconnect(ulong id)
-	{
-		balances.remove(id);
+		players[id].balance += amount;
 	}
 
 	void handleTowerRequest(ulong id, ubyte[] msg)
@@ -124,7 +130,7 @@ class GamePlayState : IGameState
 
 		auto meta = getMetaInfo(type, typeIndex);
 		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-			balances[id] >= meta.cost) {
+			players[id].balance >= meta.cost) {
 
 			towerCollection.buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 												       y * level.tileSize.y + level.tileSize.y / 2), 
@@ -134,7 +140,9 @@ class GamePlayState : IGameState
 			sendTransaction(id, -meta.cost);
 
 			foreach(player; Game.players)
-				Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, type, typeIndex, id == player.id, playerColors[id].packedValue));
+				Game.server.sendMessage(player.id, 
+						TowerBuiltMessage(x, y, type, typeIndex, id == player.id, 
+												players[id].color.packedValue));
 		}
 	}
 
@@ -172,7 +180,6 @@ class GamePlayState : IGameState
 			tiMsg.range = tower.range;
 			tiMsg.type = tower.type;
 			tiMsg.phoneIcon = tower.phoneIcon;
-			tiMsg.color = tower.color;
 			tiMsg.index = tower.typeIndex;
 			tiMsg.basic = tower.basic;
 			tiMsg.upgradeIndex0 = tower.upgradeIndex0;
@@ -189,7 +196,7 @@ class GamePlayState : IGameState
 			tbMsg.towerType	= type;
 			tbMsg.typeIndex	= typeIndex;
 			tbMsg.ownedByMe = tower.ownedPlayerID == id;
-			tbMsg.color = playerColors[tower.ownedPlayerID].packedValue;
+			tbMsg.color = players[tower.ownedPlayerID].color.packedValue;
 			Game.server.sendMessage(id, tbMsg);
 		});
 	}
@@ -297,7 +304,7 @@ class GamePlayState : IGameState
 		Tower upgradeMeta = level.towers[selectedUpgrade];
 
 		auto cost = upgradeMeta.cost - meta.cost;
-		if(balances[id] < cost)
+		if(players[id].balance < cost)
 			return;
 
 		sendTransaction(id, -cost);
@@ -307,7 +314,9 @@ class GamePlayState : IGameState
 			Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
 
 		foreach(player; Game.players)
-			Game.server.sendMessage(player.id, TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex, player.id == id, playerColors[id].packedValue));
+			Game.server.sendMessage(player.id, 
+					TowerBuiltMessage(x, y, upgradeMeta.type, upgradeMeta.typeIndex, 
+											player.id == id, players[id].color.packedValue));
 	}
 
 	void handleTowerRepaired(ulong id, ubyte[] msg)
@@ -390,15 +399,12 @@ class GamePlayState : IGameState
 		}
 	}
 
-
 	void render()
 	{
 		auto imageTex = Game.content.loadTexture("map2.png");
 		auto imageFrame = Frame(imageTex);
 		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;
-
-		
 		foreach(ref enemy; enemies)
 		{
 			float2 position = enemy.position;
@@ -433,9 +439,9 @@ class GamePlayState : IGameState
 						float4(selection.x * level.tileSize.x, selection.y * level.tileSize.y, level.tileSize.x, level.tileSize.y), Color(0x55FF0000)); 
 		}
 
-		ventController.render(Game.renderer, float2(level.tileSize));
-		ballisticController.render(Game.renderer, float2(level.tileSize), enemies);
-		gatlingController.render(Game.renderer, float2(level.tileSize), enemies);
+		ventController.render		(Game.renderer, float2(level.tileSize));
+		ballisticController.render (Game.renderer, float2(level.tileSize), enemies);
+		gatlingController.render	(Game.renderer, float2(level.tileSize), enemies);
 	}
 
 	void killEnemies()
@@ -458,6 +464,7 @@ class GamePlayState : IGameState
 
 		enemies.removeAt(i);
 
+		//Should be moved into ballisticController
 		for (int j = ballisticController.homingProjectiles.length - 1; j >= 0; j--)
 		{
 			if(ballisticController.homingProjectiles[j].targetIndex == i)
@@ -473,6 +480,7 @@ class GamePlayState : IGameState
 				ballisticController.homingProjectiles[j].targetIndex--;
 			}
 		}
+
 		for (int j = gatlingController.autoProjectiles.length - 1; j >= 0; j--)
 		{
 			if(gatlingController.autoProjectiles[j].targetIndex == i)

@@ -17,6 +17,8 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Elements", "Elements\Elemen
 		{06AA8B71-5362-45F3-AE99-60E15D95960C} = {06AA8B71-5362-45F3-AE99-60E15D95960C}
 	EndProjectSection
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "SpriterTester", "SpriterTester\SpriterTester.visualdproj", "{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -57,6 +59,12 @@ Global
 		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Release|Win32.ActiveCfg = Release|Win32
 		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Release|Win32.Build.0 = Release|Win32
 		{27538216-E3A6-4426-B3E8-1AAF3DCC7619}.Release|x64.ActiveCfg = Release|Win32
+		{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}.Debug|Win32.Build.0 = Debug|Win32
+		{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}.Debug|x64.ActiveCfg = Debug|Win32
+		{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}.Release|Win32.ActiveCfg = Release|Win32
+		{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}.Release|Win32.Build.0 = Release|Win32
+		{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

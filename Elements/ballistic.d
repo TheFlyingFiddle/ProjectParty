@@ -25,31 +25,16 @@ struct BallisticProjectileInstance
 		this.prefabIndex = prefabIndex;
 
 		auto polar = (target - position).toPolar;
-		polar.magnitude = prefabs[prefabIndex].speed;
+		polar.magnitude = this.speed;
 		this.velocity = polar.toCartesian;
 
 		this.position = position;
 		this.target = target;
 	}
 	
-	@property float damage()
+	auto ref opDispatch(string property)()
 	{
-		return prefabs[prefabIndex].damage;
-	}
-
-	@property float radius()
-	{
-		return prefabs[prefabIndex].radius;
-	}
-
-	@property float speed()
-	{
-		return prefabs[prefabIndex].speed;
-	}
-
-	@property ref Frame frame()
-	{
-		return prefabs[prefabIndex].frame;
+		mixin("return prefabs[prefabIndex]." ~ property ~ ";");
 	}
 }
 
@@ -74,24 +59,9 @@ struct HomingProjectileInstance
 		this.position = position;
 	}
 
-	@property float damage()
+	auto ref opDispatch(string property)()
 	{
-		return prefabs[prefabIndex].damage;
-	}
-
-	@property float speed()
-	{
-		return prefabs[prefabIndex].speed;
-	}
-
-	@property float radius()
-	{
-		return prefabs[prefabIndex].radius;
-	}
-
-	@property ref Frame frame()
-	{
-		return prefabs[prefabIndex].frame;
+		mixin("return prefabs[prefabIndex]." ~ property ~ ";");
 	}
 }
 
@@ -121,34 +91,9 @@ struct BallisticInstance
 		this.elapsed = 0;
 	}
 
-	@property float range()
+	auto ref opDispatch(string property)()
 	{
-		return prefabs[prefab].range;
-	}
-
-	@property float maxDistance()
-	{
-		return prefabs[prefab].maxDistance;
-	}
-
-	@property float reloadTime()
-	{
-		return prefabs[prefab].reloadTime;
-	}
-
-	@property int homingPrefabIndex()
-	{
-		return prefabs[prefab].homingPrefabIndex;
-	}
-
-	@property int ballisticPrefabIndex()
-	{
-		return prefabs[prefab].ballisticPrefabIndex;
-	}
-
-	@property ref Frame frame()
-	{
-		return prefabs[prefab].frame;
+		mixin("return prefabs[prefab]." ~ property ~ ";");
 	}
 }
 
@@ -314,6 +259,4 @@ final class BallisticController : TowerController!BallisticInstance
 		auto projectile = BallisticProjectileInstance(projectilePrefabIndex, position, target);
 		ballisticProjectiles ~= projectile;
 	}
-
-
 }
