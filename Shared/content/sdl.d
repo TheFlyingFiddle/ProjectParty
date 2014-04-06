@@ -99,8 +99,15 @@ struct SDLIterator
 			return !over.root[currentIndex].nextIndex;
 		}
 
+	@property
+		bool hasChildren() {
+			return cast(bool) over.root[currentIndex].objectIndex;
+		}
+
     @property
 		size_t walkLength() {
+			if(!hasChildren)
+				return 0;
 			ushort savedIndex = currentIndex;
 			goToChild();
 			size_t size = 1;
@@ -166,7 +173,7 @@ struct SDLIterator
         SDLObject obj = over.root[currentIndex];
         auto next = cast(ushort)obj.nextIndex;
         if(!next)
-            enforce(0, getSDLIterError()~"Object had no next! Index out of bounds.");
+            enforce(0, getSDLIterError() ~ "\n" ~ "Object had no next! Index out of bounds.");
         currentIndex = next;
 	}
 
@@ -175,13 +182,13 @@ struct SDLIterator
 	{
         static if(isIntegral!T)
 			enforce(over.root[currentIndex].type == TypeID._int,
-					getSDLIterError() ~
+					getSDLIterError() ~ "\n" ~
 					"SDLObject wasn't an integer, which was requested.");
         else static if(isFloatingPoint!T)
 			enforce(over.root[currentIndex].type == TypeID._float ||
 					over.root[currentIndex].type == TypeID._int,
-					getSDLIterError() ~
-					"SDLObject wasn't a floating point value, "~
+					getSDLIterError() ~ "\n" ~
+					"SDLObject wasn't a floating point value, " ~
 					"which was requested.");
         auto range = mixin(curObjObjRange);
         if(over.root[currentIndex].type == TypeID._int)
@@ -193,7 +200,7 @@ struct SDLIterator
 	T as(T)() if(is(T==bool))
 	{
 		assertEquals(over.root[currentIndex].type, TypeID._string,
-				getSDLIterError() ~
+				getSDLIterError() ~ "\n" ~
 	 			"SDLObject wasn't a boolean, which was requested");
 		auto range = mixin(curObjObjRange);
 		return readBool(range);
@@ -238,7 +245,6 @@ struct SDLIterator
 	//TODO: Code duplication (see above) iteration might be refactored into an opApply?
 	T as(T, A)(ref A allocator) if(is(T t == List!U, U))
 	{
-		//If it doesn't work, use static if
         static if(is(T t == List!U, U)) {
 			auto listLength = walkLength;
 			auto list = T(allocator, listLength);
@@ -262,7 +268,7 @@ struct SDLIterator
 	T as(T)() if (is(T == enum))
 	{
 		assertEquals(over.root[currentIndex].type, TypeID._string,
-					 getSDLIterError() ~
+					 getSDLIterError() ~ "\n" ~
 					 "SDLObject wasn't an enum, which was requested");
 		auto range = mixin(curObjObjRange);
 
@@ -1076,7 +1082,7 @@ private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort 
     enforce(range.front == '=', getSDLError(range));
     range.popFront();
 
-    skipWhitespace(range);
+    range.skipWhitespace();
 
     auto c = range.front;
 
@@ -1789,6 +1795,36 @@ freeColor=0";
 		}
 		auto obj = fromSDL(app, "str = |asdf4| str2 = |asdf6|");
 		assertEquals(obj.as!TestStruct(GC.it), TestStruct(TestStruct2(1,2), TestStruct2(1,2)));
+	}
+
+	@Test void testEmptyList()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+
+		struct TestStruct
+		{
+			List!int ints;
+			List!string strings;
+		}
+		auto obj = fromSDL(app, "ints = [] strings = []");
+		assertEquals(TestStruct(), obj.as!TestStruct(GC.it));
+	}
+
+	@Test void testEmptyString()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+
+		struct TestStruct
+		{
+			string str;
+			string str2;
+		}
+		auto obj = fromSDL(app, "str = || str2 = ||");
+		assertEquals(obj.as!TestStruct(GC.it), TestStruct());
 	}
 }
 
