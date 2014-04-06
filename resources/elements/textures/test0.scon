@@ -1,0 +1,277 @@
+{
+  "entity": [
+    {
+      "animation": [
+        {
+          "id": 0,
+          "length": 1000,
+          "looping": "false",
+          "mainline": {
+            "key": [
+              {
+                "bone_ref": [],
+                "id": 0,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 0,
+                    "timeline": 0,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 1,
+                    "timeline": 1,
+                    "z_index": "1"
+                  }
+                ]
+              },
+              {
+                "bone_ref": [],
+                "id": 1,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 1,
+                    "timeline": 0,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 3,
+                    "timeline": 1,
+                    "z_index": "1"
+                  }
+                ],
+                "time": 244
+              },
+              {
+                "bone_ref": [],
+                "id": 2,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 2,
+                    "timeline": 0,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 4,
+                    "timeline": 1,
+                    "z_index": "1"
+                  }
+                ],
+                "time": 488
+              },
+              {
+                "bone_ref": [],
+                "id": 3,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 3,
+                    "timeline": 0,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 5,
+                    "timeline": 1,
+                    "z_index": "1"
+                  }
+                ],
+                "time": 772
+              }
+            ]
+          },
+          "name": "NewAnimation",
+          "soundline": [],
+          "timeline": [
+            {
+              "id": 0,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "file": 2,
+                    "folder": 0,
+                    "x": -29.54545454545456,
+                    "y": 139.7727272727273
+                  },
+                  "spin": 0
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "file": 2,
+                    "folder": 0,
+                    "x": -160.22727272727275,
+                    "y": 35.22727272727276
+                  },
+                  "spin": 0,
+                  "time": 244
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "file": 2,
+                    "folder": 0,
+                    "x": -30.371035389974793,
+                    "y": -101.10812307782005
+                  },
+                  "spin": 0,
+                  "time": 488
+                },
+                {
+                  "id": 3,
+                  "object": {
+                    "file": 2,
+                    "folder": 0,
+                    "x": 160.35954785954786,
+                    "y": 29.196729196729237
+                  },
+                  "spin": 0,
+                  "time": 772
+                }
+              ],
+              "name": "tower_cone"
+            },
+            {
+              "id": 1,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "file": 3,
+                    "folder": 0,
+                    "x": 6.001878651323771,
+                    "y": 0.0764126858799017
+                  }
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "file": 3,
+                    "folder": 0,
+                    "x": -29.545454545454547,
+                    "y": 31.81818181818182
+                  }
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "angle": 46.6910084171642,
+                    "file": 3,
+                    "folder": 0,
+                    "pivot_x": 0,
+                    "pivot_y": 1,
+                    "scale_x": 1.0791574126354364,
+                    "scale_y": 0.9389332389156926,
+                    "x": -48.05992176050477,
+                    "y": -5.2013849644329335
+                  },
+                  "time": 244
+                },
+                {
+                  "id": 3,
+                  "object": {
+                    "angle": 46.6910084171642,
+                    "file": 3,
+                    "folder": 0,
+                    "pivot_x": 0.5554270811996612,
+                    "pivot_y": 0.5040348573077825,
+                    "scale_x": 1.0791574126354364,
+                    "scale_y": 0.9389332389156926,
+                    "x": -0.05985146162043087,
+                    "y": 2.2695753143930864
+                  },
+                  "time": 244
+                },
+                {
+                  "id": 4,
+                  "object": {
+                    "angle": 212.9555183071765,
+                    "file": 3,
+                    "folder": 0,
+                    "pivot_x": 0.5554270811996612,
+                    "pivot_y": 0.5040348573077825,
+                    "scale_x": 1.053609253001777,
+                    "scale_y": 0.9586426168317917,
+                    "x": 1.8965799504938354,
+                    "y": 1.5617291750316882
+                  },
+                  "spin": -1,
+                  "time": 488
+                },
+                {
+                  "id": 5,
+                  "object": {
+                    "angle": 178.85517968663663,
+                    "file": 3,
+                    "folder": 0,
+                    "pivot_x": 0.5554270811996612,
+                    "pivot_y": 0.5040348573077825,
+                    "scale_x": 1.0238728704773539,
+                    "scale_y": 0.9815830403079074,
+                    "x": 4.17373782361044,
+                    "y": 0.7378426849553066
+                  },
+                  "spin": -1,
+                  "time": 772
+                }
+              ],
+              "name": "teddy"
+            }
+          ]
+        }
+      ],
+      "character_map": [],
+      "id": 0,
+      "name": "entity_000",
+      "obj_info": []
+    }
+  ],
+  "folder": [
+    {
+      "file": [
+        {
+          "height": 32,
+          "id": 0,
+          "name": "boulder.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 32
+        },
+        {
+          "height": 64,
+          "id": 1,
+          "name": "water0.jpg",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 64,
+          "id": 2,
+          "name": "tower_cone.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 64,
+          "id": 3,
+          "name": "teddy.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        }
+      ],
+      "id": 0
+    }
+  ],
+  "generator": "BrashMonkey Spriter",
+  "generator_version": "b6.1",
+  "scon_version": "1.0"
+}

@@ -1,4 +1,4 @@
-//Achtung master configuration file.
+//Elements master configuration file.
 
 //Buffers 
 maxStates  = 10
@@ -20,12 +20,13 @@ windowConfig =
 {
 	size = 
 	{
-		x=800 
-		y=600
+		x=1920 
+		y=1080
 	}
 
 	fullScreen = false
 	blocking   = false
+	decorated  = false
 }
 
 serverConfig = 

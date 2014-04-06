@@ -27,24 +27,9 @@ struct GatlingProjectileInstance
 		this.velocity = velocity;
 	}
 
-	@property float damage()
+	auto ref opDispatch(string property)()
 	{
-		return prefabs[prefabIndex].damage;
-	}
-
-	@property float radius()
-	{
-		return prefabs[prefabIndex].radius;
-	}
-
-	@property float speed()
-	{
-		return prefabs[prefabIndex].speed;
-	}
-
-	@property ref Frame frame()
-	{
-		return prefabs[prefabIndex].frame;
+		mixin("return prefabs[prefabIndex]." ~ property ~ ";");
 	}
 }
 
@@ -59,6 +44,7 @@ struct GatlingProjectilePrefab
 struct AutoProjectileInstance
 {
 	static List!AutoProjectilePrefab prefabs;
+
 	int		prefabIndex;
 	int		targetIndex;
 	float2	position;
@@ -69,24 +55,9 @@ struct AutoProjectileInstance
 		this.position = position;
 	}
 
-	@property float damage()
+	auto ref opDispatch(string property)()
 	{
-		return prefabs[prefabIndex].damage;
-	}
-
-	@property float speed()
-	{
-		return prefabs[prefabIndex].speed;
-	}
-
-	@property float radius()
-	{
-		return prefabs[prefabIndex].radius;
-	}
-
-	@property ref Frame frame()
-	{
-		return prefabs[prefabIndex].frame;
+		mixin("return prefabs[prefabIndex]." ~ property ~ ";");
 	}
 }
 
@@ -114,34 +85,9 @@ struct GatlingInstance
 		this.elapsed = 0;
 	}
 
-	@property float range()
+	auto ref opDispatch(string property)()
 	{
-		return prefabs[prefab].range;
-	}
-
-	@property float maxDistance()
-	{
-		return prefabs[prefab].maxDistance;
-	}
-
-	@property float reloadTime()
-	{
-		return prefabs[prefab].reloadTime;
-	}
-
-	@property int homingPrefabIndex()
-	{
-		return prefabs[prefab].homingPrefabIndex;
-	}
-
-	@property int gatlingPrefabIndex()
-	{
-		return prefabs[prefab].gatlingPrefabIndex;
-	}
-
-	@property ref Frame frame()
-	{
-		return prefabs[prefab].frame;
+		mixin("return prefabs[prefab]." ~ property ~ ";");
 	}
 }
 

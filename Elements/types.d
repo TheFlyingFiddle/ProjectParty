@@ -8,122 +8,6 @@ import vent;
 import ballistic;
 import gatling;
 
-struct MapMessage
-{
-	enum ubyte id = OutgoingMessages.map;
-	enum maxSize = 8192;
-	uint width;
-	uint height;
-	ubyte[] tiles;
-}
-
-struct SelectedMessage 
-{
-	enum ubyte id = OutgoingMessages.selected;
-	uint x, y, color;
-}
-
-struct DeselectedMessage 
-{
-	enum ubyte id = OutgoingMessages.deselected;
-	uint x, y;
-}
-
-struct TowerBuiltMessage
-{
-	enum ubyte id = OutgoingMessages.towerBuilt;
-	uint x, y;
-	ubyte towerType;
-	ubyte typeIndex;
-	ubyte ownedByMe;
-	uint color;
-}
-
-struct TowerEnteredMessage
-{
-	enum ubyte id = OutgoingMessages.towerEntered;
-	uint x, y;
-}
-
-struct TowerExitedMessage
-{
-	enum ubyte id = OutgoingMessages.towerExited;
-	uint x, y;
-}
-
-struct TowerSoldMessage
-{
-	enum ubyte id = OutgoingMessages.towerSold;
-	uint x, y;
-}
-
-struct TowerInfoMessage
-{
-	enum ubyte id = OutgoingMessages.towerInfo;
-	enum maxSize = 512;
-	uint cost;
-	float range;
-	string phoneIcon;
-	uint color;
-	ubyte type;
-	ubyte index;
-	ubyte basic;
-	ubyte upgradeIndex0;
-	ubyte upgradeIndex1;
-	ubyte upgradeIndex2;
-}
-
-struct TransactionMessage
-{
-	enum ubyte id = OutgoingMessages.transaction;
-	int amount;
-}
-
-struct TowerRepairedMessage
-{
-	enum ubyte id = OutgoingMessages.towerRepaired;
-	uint x, y;
-}	
-
-struct TowerBrokenMessage
-{
-	enum ubyte id = OutgoingMessages.towerBroken;
-	uint x, y;
-}
-
-enum IncomingMessages : ubyte
-{
-	towerRequest = 50,
-	selectRequest = 51,
-	deselect = 52,
-	mapRequest = 53,
-	towerEntered = 54,
-	towerExited = 55,
-	ventValue = 56,
-	ventDirection = 57,
-	towerSell = 58,
-	ballisticValue = 59,
-	ballisticDirection = 60,
-	ballisticLaunch = 61,
-	upgradeTower = 62,
-	towerRepaired = 63
-}
-
-enum OutgoingMessages : ubyte
-{
-	map = 50,
-	towerBuilt = 51,
-	selected = 52,
-	deselected = 53,
-	towerEntered = 54,
-	towerExited = 55, 
-	towerInfo = 56,
-	transaction = 57,
-	towerSold = 58,
-	towerBroken = 59,
-	towerRepaired = 60
-}
-
 enum TileType : ubyte
 {
 	buildable = 0,
@@ -131,15 +15,6 @@ enum TileType : ubyte
 	vent = 2, 
 	rocket = 3,
 	gatling = 4
-}
-
-struct MapConfig
-{
-	string map;
-	SpawnerConfig[][] waves;
-	EnemyConfig[] enemies;
-	uint2[] path;
-	uint2 tileSize;
 }
 
 struct PathConfig
@@ -155,16 +30,23 @@ struct Level
 	@Convert!pathConverter() List!Path paths;
 	uint2 tileSize;
 	uint startBalance;
+
+	//Should be in enemies.sdl
 	List!EnemyPrototype enemyPrototypes;
+	//Should be in vents.sdl
 	List!VentTower		ventPrototypes;
+	
+	//Should be in ballistic.sdl
 	List!HomingProjectilePrefab		homingPrototypes;
 	List!BallisticProjectilePrefab	ballisticProjectilePrototypes;
-	List!BallisticTower				ballisticTowerPrototypes;
+	List!BallisticTower					ballisticTowerPrototypes;
 
-	List!AutoProjectilePrefab		autoProjectilePrototypes;
-	List!GatlingProjectilePrefab	gatlingProjectilePrototypes;
-	List!GatlingTower				gatlingTowerPrototypes;
+	//Should be in gatling.sdl
+	List!AutoProjectilePrefab			autoProjectilePrototypes;
+	List!GatlingProjectilePrefab		gatlingProjectilePrototypes;
+	List!GatlingTower						gatlingTowerPrototypes;
 
+	//Should be in metatowers.sdl
 	List!Tower			towers;
 }
 
@@ -172,7 +54,6 @@ struct Tower
 {
 	uint cost;
 	string phoneIcon;
-	uint color;
 	TileType type;
 	ubyte typeIndex;
 	float range;
@@ -253,7 +134,6 @@ struct EnemyConfig
 	string textureResource;
 }
 
-
 struct Path
 {
 	float2[] wayPoints;
@@ -301,6 +181,7 @@ struct Path
 struct Enemy
 {
 	static List!Path paths;
+
 	float distance;
 	float speed;
 	float health;
@@ -308,6 +189,7 @@ struct Enemy
 	uint pathIndex;
 	int worth;
 	Frame frame;
+
 	this(EnemyPrototype prefab, uint pathIndex)
 	{
 		this.distance = 0;
@@ -338,21 +220,4 @@ struct Spawner
 struct Wave
 {
 	List!Spawner spawners;
-}
-
-
-struct ProjectileTower
-{
-	float attackSpeed;
-	@Optional(0f) float deltaAttackTime;
-	int projectileIndex;
-}
-
-struct ConeTower
-{
-	float width;
-	float dps;
-	float reactivationTime;
-	float activeTime;
-	@Optional(0f) float elapsed;
 }

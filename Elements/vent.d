@@ -11,50 +11,26 @@ import tower_controller;
 
 struct VentInstance
 {
-	static List!VentTower prototypes;
+	static List!VentTower prefabs;
+	
 	int prefab;
 	float direction;
 	float pressure;
 	float open;
 	
-
 	this(int prefab)
 	{
 		this.prefab = prefab;
 		this.direction = 0;
-		this.pressure = maxPressure;
+		this.pressure = this.maxPressure;
 		this.open = 1;
 	}
 
-	@property float damage()
+	auto ref opDispatch(string property)()
 	{
-		return prototypes[prefab].damage;
+		mixin("return prefabs[prefab]." ~ property ~ ";");
 	}
 
-	@property float range()
-	{
-		return prototypes[prefab].range;
-	}
-
-	@property float maxPressure()
-	{
-		return prototypes[prefab].maxPressure;
-	}
-	
-	@property float regenRate()
-	{
-		return prototypes[prefab].regenRate;
-	}
-
-	@property ref Frame frame()
-	{
-		return prototypes[prefab].frame;
-	}
-
-	@property ref Frame towerFrame()
-	{
-		return prototypes[prefab].towerFrame;
-	}
 }
 
 struct VentTower
