@@ -28,7 +28,7 @@ struct Frame
 	{
 		this.texture = texture;
 		this.coords = float4(0,0,1,1);
-		this._srcRect = float4(0, 0, texture.width, texture.height);
+		this._srcRect = float4(0, 0, 1, 1);
 	}
 
 	this(TextureID texture, float4 srcRect)

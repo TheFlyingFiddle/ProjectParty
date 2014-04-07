@@ -217,7 +217,7 @@ void addFrame(Renderer* renderer,
 	float2 dim = float2(frame.srcRect.z * scale.x, frame.srcRect.w * scale.y);
 	auto vertex = Vertex(float4(pos.x, pos.y, dim.x, dim.y),
 								coords,
-								origin * scale,
+								origin,
 								color,
 								rotation);
 
