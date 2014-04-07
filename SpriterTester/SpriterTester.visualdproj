@@ -13,7 +13,7 @@
   <verbose>0</verbose>
   <vtls>0</vtls>
   <symdebug>1</symdebug>
-  <optimize>0</optimize>
+  <optimize>1</optimize>
   <cpu>0</cpu>
   <isX86_64>0</isX86_64>
   <isLinux>0</isLinux>
@@ -31,8 +31,8 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>0</useUnitTests>
-  <useInline>0</useInline>
+  <useUnitTests>1</useUnitTests>
+  <useInline>1</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
   <warnings>0</warnings>
@@ -191,7 +191,6 @@
  <Folder name="SpriterTester">
   <File path="config.sdl" />
   <File path="main.d" />
-  <File path="spriter.d" />
   <File path="state.d" />
  </Folder>
 </DProject>

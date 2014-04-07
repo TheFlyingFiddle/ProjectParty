@@ -24,9 +24,8 @@ void addRect(Renderer* renderer,
 			 float rotation = 0)
 {
 	renderer.addFrame(pixel, 
-					  rect.xy,
+					  rect,
 					  color,
-					  rect.zw,
 					  origin,
 					  rotation);
 }
