@@ -94,6 +94,8 @@ towers =
 		info = |This tower scolds enemies in a lethal sauna.|
 		type = vent 
 		typeIndex = 0 
+		regenRate = 10
+		towerFrame = tower_cone
 		upgradeIndex0 = 1
 		upgradeIndex1 = 2 
 		upgradeIndex2 = 3
@@ -105,6 +107,8 @@ towers =
 		phoneIcon = |textures/water_icon.png|
 		name = |Fire vent|
 		info = |This tower burns enemies in a lethal oven.|
+		regenRate = 10
+		towerFrame = tower_cone
 		type = vent 
 		typeIndex = 1  
 	},
@@ -115,6 +119,8 @@ towers =
 		name = |Oil vent|
 		info = |This tower makes enemies slippery and sticky 
 in a lethal barrel of oil.|
+		regenRate = 10
+		towerFrame = tower_cone
 		type = vent 
 		typeIndex = 2  
 	},
@@ -125,6 +131,8 @@ in a lethal barrel of oil.|
 		name = |Liquid nitrogen vent|
 		info = |This tower makes enemies cold (or frozen) in 
 a lethal container of coldness.|
+		regenRate = 10
+		towerFrame = tower_cone
 		type = vent 
 		typeIndex = 3  
 	},
@@ -137,6 +145,8 @@ a lethal container of coldness.|
 			|This tower makes enemies explode in a lethal
 rocket explosion.|
 		type = rocket 
+		regenRate = 10
+		towerFrame = rocket 
 		basic = true 
 		typeIndex = 0  
 		upgradeIndex0 = 5
@@ -149,6 +159,8 @@ rocket explosion.|
 		info = |This tower makes enemies explode in a very 
 lethal rocket explosion.|
 		type = rocket 
+		regenRate = 10
+		towerFrame = rocket 
 		typeIndex = 1  
 	},
 	{ 
@@ -159,6 +171,8 @@ lethal rocket explosion.|
 		info = |This tower fills the enemies with bullets in a 
 lethal storm of... bullets.|
 		type = gatling	
+		regenRate = 10
+		towerFrame = tower0 
 		typeIndex = 0  
 		basic = true
 	}

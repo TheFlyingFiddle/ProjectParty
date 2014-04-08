@@ -44,7 +44,6 @@ class GamePlayState : IGameState
 		selections = List!uint2(allocator, 10);
 		players = Table!(ulong, TowerPlayer)(allocator, 20);	
 
-		towerCollection = TowerCollection(allocator);
 
 		import std.algorithm;
 
@@ -55,24 +54,21 @@ class GamePlayState : IGameState
 		enemyController.onDeath ~= &killEnemy;
 		enemyController.onAtEnd ~= &enemyAtEnd;
 	
+		towerCollection = allocator.allocate!TowerCollection(allocator, level.towers, level.tileSize);
 
 		BaseEnemy.paths = level.paths;
 
-		ventController = new VentController(allocator);
+		ventController = new VentController(allocator, towerCollection);
 		VentInstance.prefabs = level.ventPrototypes;
 		
-		ballisticController = new BallisticController(allocator);
+		ballisticController = new BallisticController(allocator, towerCollection);
 		HomingProjectileInstance.prefabs = level.homingPrototypes;
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 
-		gatlingController = new GatlingController(allocator);
+		gatlingController = new GatlingController(allocator, towerCollection);
 		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
 		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
-	
-		towerCollection.add(ventController);
-		towerCollection.add(ballisticController);
-		towerCollection.add(gatlingController);
 	}
 
 	void enter()
@@ -87,26 +83,13 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.upgradeTower,	&handleTowerUpgrade);
 		Game.router.setMessageHandler(IncomingMessages.towerRepaired,	&handleTowerRepaired);
 
-		//Should be in vent
-		Game.router.setMessageHandler(IncomingMessages.ventValue,		&handleVentValue);
-		Game.router.setMessageHandler(IncomingMessages.ventDirection,	&handleVentDirection);
-
-		//Should be in ballistic
-		Game.router.setMessageHandler(IncomingMessages.ballisticValue,			&handleBallisticValue);
-		Game.router.setMessageHandler(IncomingMessages.ballisticDirection,	&handleBallisticDirection);
-		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch,		&handleBallisticLaunch);
-
-		//Should be in gatling
-		Game.router.setMessageHandler(IncomingMessages.gatlingValue,	&handleGatlingValue);
-		
-
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
 	}
 
-	Tower getMetaInfo(ubyte type, ubyte typeIndex) 
+	ubyte getMetaInfo(ubyte type, ubyte typeIndex) 
 	{
-		return level.towers.find!(x => x.type == type && x.typeIndex == typeIndex)[0];
+		return cast(ubyte)level.towers.countUntil!(x => x.type == type && x.typeIndex == typeIndex);
 	}
 
 	void connect(ulong id) 
@@ -137,16 +120,16 @@ class GamePlayState : IGameState
 		auto type = msg.read!ubyte;
 		auto typeIndex = msg.read!ubyte;
 
-		auto meta = getMetaInfo(type, typeIndex);
+		auto metaIndex = getMetaInfo(type, typeIndex);
 		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-			players[id].balance >= meta.cost) {
+			players[id].balance >= level.towers[metaIndex].cost) {
 
 			towerCollection.buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 												       y * level.tileSize.y + level.tileSize.y / 2), 
-													    type, typeIndex, id);
+													    metaIndex, id);
 
 			level.tileMap[uint2(x,y)] = cast(TileType) type;
-			sendTransaction(id, -meta.cost);
+			sendTransaction(id, -level.towers[metaIndex].cost);
 
 			foreach(player; Game.players)
 				Game.server.sendMessage(player.id, 
@@ -160,7 +143,8 @@ class GamePlayState : IGameState
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
-		towerCollection.towerEntered(uint2(x,y), level.tileSize, id);
+		auto index = towerCollection.indexOf(uint2(x,y));
+		towerCollection.enterTower(index, id);
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerEnteredMessage(x, y));
 	}
@@ -169,7 +153,8 @@ class GamePlayState : IGameState
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
-		towerCollection.towerExited(uint2(x,y), level.tileSize, id);
+		auto index = towerCollection.indexOf(uint2(x,y));
+		towerCollection.exitTower(index, id);
 		foreach(player; Game.players) if (player.id != id)
 			Game.server.sendMessage(player.id, TowerExitedMessage(x, y));
 	}
@@ -199,20 +184,20 @@ class GamePlayState : IGameState
 			Game.server.sendMessage(id, tiMsg);
 		}
 
-		towerCollection.forEachTower((tower, type, typeIndex)
+		foreach(tower; towerCollection.baseTowers)
 		{
 			TowerBuiltMessage tbMsg;
 			tbMsg.x = tower.cell(level.tileSize).x;
 			tbMsg.y = tower.cell(level.tileSize).y;
-			tbMsg.towerType	= type;
-			tbMsg.typeIndex	= typeIndex;
+			tbMsg.towerType	= towerCollection.metas[tower.metaIndex].type;
+			tbMsg.typeIndex	= towerCollection.metas[tower.metaIndex].typeIndex;
 			tbMsg.ownedByMe = tower.ownedPlayerID == id;
 			if(players.indexOf(tower.ownedPlayerID) != -1)
 				tbMsg.color = players[tower.ownedPlayerID].color.packedValue;
 			else 
 				tbMsg.color = 0xFFFFFFFF;
 			Game.server.sendMessage(id, tbMsg);
-		});
+		}
 	}
 
 	void handleSelectRequest(ulong id, ubyte[] msg)
@@ -237,71 +222,16 @@ class GamePlayState : IGameState
 			Game.server.sendMessage(player.id, DeselectedMessage(x, y));
 	}
 
-	void handleVentValue(ulong id, ubyte[] msg)
-	{
-		auto x = msg.read!uint;
-		auto y = msg.read!uint;
-		auto value = msg.read!float;
-
-		auto index = ventController.towerIndex(uint2(x,y), level.tileSize);
-		if(index != -1)
-			ventController.instances[index].open = value;
-	}
-
-	void handleVentDirection(ulong id, ubyte[] msg)
-	{
-		auto x = msg.read!uint;
-		auto y = msg.read!uint;
-		auto value = msg.read!float;
-
-		auto index = ventController.towerIndex(uint2(x,y), level.tileSize);
-		if(index != -1)
-			ventController.instances[index].direction = value;
-	}
-
-	void handleBallisticValue(ulong id, ubyte[] msg)
-	{
-		auto x = msg.read!uint;
-		auto y = msg.read!uint;
-		auto value = msg.read!float;
-
-		auto index = ballisticController.towerIndex(uint2(x,y), level.tileSize);
-		if(index != -1)
-		{
-			auto distance = ballisticController.instances[index].maxDistance * value;
-			ballisticController.instances[index].distance = distance;
-		}
-	}
-
-	void handleBallisticDirection(ulong id, ubyte[] msg)
-	{
-		auto x = msg.read!uint;
-		auto y = msg.read!uint;
-		auto value = msg.read!float;
-
-		auto index = ballisticController.towerIndex(uint2(x,y), level.tileSize);
-		if(index != -1)
-			ballisticController.instances[index].angle = value;
-	}	
-	
-	void handleBallisticLaunch(ulong id, ubyte[] msg)
-	{
-		auto x = msg.read!uint;
-		auto y = msg.read!uint;
-
-		auto index = ballisticController.towerIndex(uint2(x,y), level.tileSize);
-		if(index != -1)
-			ballisticController.launch(index);
-	}
 
 	void handleTowerSell(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint,
 			  y = msg.read!uint;
 
-		auto meta = towerCollection.metaTower(uint2(x,y), level.tileSize, level.towers);
+		auto towerIndex = towerCollection.indexOf(uint2(x,y));
+		auto meta = towerCollection.metaTower(towerIndex);
 		level.tileMap[uint2(x,y)] = TileType.buildable;
-		towerCollection.removeTower(uint2(x,y), level.tileSize);
+		towerCollection.removeTower(towerIndex);
 		sendTransaction(id, cast(int)(0.9 * meta.cost));
 		
 		foreach(player; Game.players)
@@ -314,15 +244,16 @@ class GamePlayState : IGameState
 			 y = msg.read!uint,
 		     selectedUpgrade = msg.read!ubyte;
 
-		auto meta = towerCollection.metaTower(uint2(x,y), level.tileSize, level.towers);
-		Tower upgradeMeta = level.towers[selectedUpgrade];
+		auto towerIndex = towerCollection.indexOf(uint2(x,y));
+		auto meta = towerCollection.metaTower(towerIndex);
+		Tower upgradeMeta = towerCollection.metas[selectedUpgrade];
 
 		auto cost = upgradeMeta.cost - meta.cost;
 		if(players[id].balance < cost)
 			return;
 
 		sendTransaction(id, -cost);
-		towerCollection.upgradeTower(uint2(x,y), level.tileSize, upgradeMeta.typeIndex);
+		towerCollection.upgradeTower(towerIndex, selectedUpgrade);
 
 		foreach(player; Game.players)
 			Game.server.sendMessage(player.id, TowerSoldMessage(x,y));
@@ -337,24 +268,13 @@ class GamePlayState : IGameState
 	{
 		auto x = msg.read!uint, y = msg.read!uint;
 		
-		towerCollection.repairTower(uint2(x,y), level.tileSize);
+		towerCollection.repairTower(towerCollection.indexOf(uint2(x,y)));
 
 		foreach(player; Game.players)
 			Game.server.sendMessage(player.id, TowerRepairedMessage(x, y));
 	}
 
-	void handleGatlingValue(ulong id, ubyte[] msg)
-	{
-		auto x = msg.read!uint;
-		auto y = msg.read!uint;
-		auto value = msg.read!float;
 
-		auto index = gatlingController.towerIndex(uint2(x,y), level.tileSize);
-		if(index != -1)
-		{
-			gatlingController.instances[index].elapsed += value;
-		}
-	}
 
 	void sendTowerBroke(uint2 towerCell)
 	{
@@ -420,6 +340,8 @@ class GamePlayState : IGameState
 
 		enemyController.render();
 
+		towerCollection.render(enemyController.enemies);
+
 		import util.strings;
 		char[128] buffer;
 		Game.renderer.addText(lifeFont, text(buffer, lifeTotal), float2(0,Game.window.size.y), Color(0x88FFFFFF));
@@ -431,10 +353,6 @@ class GamePlayState : IGameState
 			Game.renderer.addFrame(selectionFrame, 
 						float4(selection.x * level.tileSize.x, selection.y * level.tileSize.y, level.tileSize.x, level.tileSize.y), Color(0x55FF0000)); 
 		}
-
-		ventController.render		(Game.renderer, float2(level.tileSize));
-		ballisticController.render (Game.renderer, float2(level.tileSize), enemyController.enemies);
-		gatlingController.render	(Game.renderer, float2(level.tileSize), enemyController.enemies);
 
 		int timeLeft = cast(int)(level.waves[0].pauseTime - level.waves[0].elapsed + 1);
 

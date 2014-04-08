@@ -45,12 +45,21 @@ Network.outgoing.gatlingValue		= 64
 
 Network.handlers = {}
 
-function Network.setMessageHandler(id, callback)
+function Network.setMessageHandler(id, callback)		
+	if id == 62 then
+			log(string.format("received id: %d", id))
+		end
 	Network.handlers[id] = callback
 end
 
 function handleMessage(id, length)
+		if id == 62 then
+			log(string.format("received id: %d", id))
+		end
 	if Network.handlers[id] then
+		if id == 62 then
+			log(string.format("received id: %d", id))
+		end
 		Network.handlers[id]()
 	end
 end

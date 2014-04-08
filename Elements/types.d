@@ -59,6 +59,8 @@ struct Tower
 	TileType type;
 	ubyte typeIndex;
 	float range;
+	float regenRate;
+	@Convert!stringToFrame() Frame towerFrame;
 	@Optional(false) bool basic;
 	@Optional(ubyte.max) ubyte upgradeIndex0;
 	@Optional(ubyte.max) ubyte upgradeIndex1;

@@ -41,29 +41,8 @@ function Ballistic()
 		end
 	end
 
-	function t.enter(cell) 
-	
-		gui:add(Button(0xFF0000FF, pixel, 
-				   Rect2(10,10, 400, 100), 
-				   exit,   font, "Exit", 0xFF000000))
-		gui:add(Button(0xFF00FF00, pixel, 
-				   Rect2(Screen.width - 410, 10, 400, 100), 
-				   launch, font,"BOOM!", 0xFF000000))
-		gui:add(dirSelector)
-		gui:add(amountSelector)
-		gui:add(pressureDisplay)
-
-		t.cell = cell
-		t.amount = 0
-		dirSelector.dir = 0
-		sendTowerEntered(t.cell)
-	end
-
-	function t.exit()
-		gui:clear()
-	end
-
 	local function handleBallisticInfo()
+		log("handleBallistic")
 		local pressure = In.readFloat()
 		local maxPressure = In.readFloat()
 		local direction = In.readFloat()
@@ -83,8 +62,37 @@ function Ballistic()
 		pressureDisplay.amount = pressure
 	end
 
+
 	Network.setMessageHandler(Network.incoming.ballisticInfo, handleBallisticInfo)
-	Network.setMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
+
+	function t.enter(cell) 
 	
+		gui:add(Button(0xFF0000FF, pixel, 
+				   Rect2(10,10, 400, 100), 
+				   exit,   font, "Exit", 0xFF000000))
+		gui:add(Button(0xFF00FF00, pixel, 
+				   Rect2(Screen.width - 410, 10, 400, 100), 
+				   launch, font,"BOOM!", 0xFF000000))
+		gui:add(dirSelector)
+		gui:add(amountSelector)
+		gui:add(pressureDisplay)
+
+
+		t.cell = cell
+		t.amount = 0
+		dirSelector.dir = 0
+		t.pressureCost = 10000
+		pressureDisplay.amount = 1
+
+		Network.setMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
+
+		sendTowerEntered(t.cell)
+	end
+
+	function t.exit()
+		gui:clear()
+	end
+
+
 	return t
 end

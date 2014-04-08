@@ -4,29 +4,33 @@ import collections;
 import types;
 import std.conv;
 import enemy_controller;
+import std.algorithm : countUntil, min, max;
+import graphics;
+import game;
 
-interface ITowerController
+enum maxPressure = 1000;
+
+abstract class ITowerController
 {
-	@property TileType type();
-	void forEachTower(void delegate(TowerCommon, ubyte, ubyte) callback);
-	void buildTower(float2 position, uint prototypeIndex, ulong ownedPlayerID);
-	uint towerIndex(uint2 cell, uint2 tileSize);
-	void removeTower(uint towerIndex);
-	void upgradeTower(uint towerIndex, uint upgradeIndex);
-	Tower metaTower(uint towerIndex, List!Tower metas);
-	void breakTower(uint towerIndex);
-	void repairTower(uint towerIndex);
-	void towerEntered(uint towerIndex, ulong playerID);
-	void towerExited(uint towerIndex, ulong playerID);
-	void update(List!BaseEnemy enemies);
+	@property TileType type() { return TileType.buildable; }
+	void buildTower(uint towerIndex, uint prototypeIndex) { }
+	void removeTower(uint towerIndex) { }
+	void enterTower(uint towerIndex, ulong playerID) { }
+	void exitTower(uint towerIndex, ulong playerID) { }
+	void update(List!BaseEnemy enemies) { }
+	void render(List!BaseEnemy enemies) { }
 }
 
-struct TowerCommon
+struct BaseTower
 {
 	float2 position;
 	bool isBroken;
 	ulong ownedPlayerID;
 	float pressure;
+	float regenRate;
+	uint metaIndex;
+	float range;
+	Frame frame;
 }
 
 uint2 cell(T)(T t, uint2 tileSize)
@@ -35,132 +39,267 @@ uint2 cell(T)(T t, uint2 tileSize)
 					 (t.position.y - tileSize.y/2) / tileSize.y);
 }
 
-struct TowerCollection
+final class TowerCollection
 {
+	uint2 tileSize;
 	List!ITowerController controllers;
 
-	this(A)(ref A allocator)
+	List!BaseTower baseTowers;
+
+	List!Tower metas;
+
+	this(A)(ref A allocator, List!Tower metas, uint2 tileSize)
 	{
 		this.controllers = List!ITowerController(allocator, 10);
+		this.baseTowers = List!BaseTower(allocator, 200);
+		this.metas = metas;
+		this.tileSize = tileSize;
 	}
 
-	final void buildTower(float2 position, ubyte type, uint prototype, ulong ownedPlayerID)
+	final void buildTower(float2 position, ubyte metaIndex, ulong ownedPlayerID)
 	{
 		foreach(tc; controllers)
 		{
-			if(tc.type == type)
+			if(tc.type == metas[metaIndex].type)
 			{
-				tc.buildTower(position, prototype, ownedPlayerID);
+				baseTowers ~= BaseTower(position, false, ownedPlayerID, 0, metas[metaIndex].regenRate, 
+										metaIndex, metas[metaIndex].range, metas[metaIndex].towerFrame);
+				tc.buildTower(metas[metaIndex].typeIndex, baseTowers.length - 1);
+				return;
 			}
 		}
 	}
 
-	auto ref opDispatch(string method, Args...)(uint2 pos, uint2 tileSize, Args args)
-	{	
-		
-		foreach(tc; controllers)
-		{
-			auto index = tc.towerIndex(pos, tileSize);
-			if(index != -1)
-			{
-				mixin("return tc." ~ method ~ "(index, args);");
-			}
-		}
-
-		assert(0, text("Failed to find a tower for cell ",pos));
-	}
-
-	void forEachTower(void delegate(TowerCommon, ubyte, ubyte) callback)
-	{
-		foreach(tc; controllers)
-			tc.forEachTower(callback);
-	}
-
-	void update(List!BaseEnemy enemies)
-	{
-		foreach(tc; controllers)
-			tc.update(enemies);
-	}
-
-	void add(T)(T t)
+	void addController(T)(T t)
 	{
 		this.controllers ~= cast(ITowerController)t;
 	}
+
+
+	uint towerIndex(uint2 cell, uint2 tileSize)
+	{
+		return baseTowers.countUntil!(x => x.cell(tileSize) == cell);
+	}
+
+	void removeTower(uint towerIndex)
+	{
+		baseTowers.removeAt(towerIndex);
+		foreach(tc;controllers)
+		{
+			tc.removeTower(towerIndex);
+		}
+	}
+
+	void upgradeTower(uint towerIndex, ubyte upgradeIndex)
+	{
+		auto pos = baseTowers[towerIndex].position;
+		auto player = baseTowers[towerIndex].ownedPlayerID;
+		removeTower(towerIndex);
+		buildTower(pos, upgradeIndex, player);
+	}
+
+	final Tower metaTower(uint towerIndex)
+	{
+		import std.algorithm;
+		return metas[baseTowers[towerIndex].metaIndex];
+	}
+
+	final int indexOf(uint2 position)
+	{
+		return baseTowers.countUntil!(x => x.cell(tileSize) == position);
+	}
+
+	void breakTower(uint towerIndex)
+	{
+		baseTowers[towerIndex].isBroken = true;
+	}
+
+	void repairTower(uint towerIndex)
+	{
+		baseTowers[towerIndex].isBroken = false;
+	}
+
+	void enterTower(uint towerIndex, ulong playerID)
+	{
+		foreach(tc; controllers)
+		{
+			if(tc.type == metas[baseTowers[towerIndex].metaIndex].type)
+			{
+				tc.enterTower(towerIndex, playerID);
+			}
+		}
+	}
+
+	void exitTower(uint towerIndex, ulong playerID)
+	{
+		foreach(tc; controllers)
+		{
+			if(tc.type == metas[baseTowers[towerIndex].metaIndex].type)
+			{
+				tc.exitTower(towerIndex, playerID);
+			}
+		}
+	}
+
+	void update(ref List!BaseEnemy enemies)
+	{
+		foreach(ref tower; baseTowers)
+		{
+			tower.pressure = min(tower.pressure + tower.regenRate * Time.delta, maxPressure);
+		}
+
+		foreach(tc;controllers)
+		{
+			tc.update(enemies);
+		}
+	}
+
+	void render(List!BaseEnemy enemies)
+	{
+		foreach(tower;baseTowers)
+		{
+			Game.renderer.addFrame(tower.frame, float4(	tower.position.x, 
+														tower.position.y, 
+														tileSize.x, 
+														tileSize.y), 
+								Color.white, float2(tileSize)/2);
+		}
+
+		foreach(tc;controllers)
+		{
+			tc.render(enemies);
+		}
+	
+		foreach(ref tower; baseTowers)
+		{
+
+			float amount = tower.pressure/maxPressure;
+			float sBWidth = min(50, maxPressure);
+			import game.debuging;
+			Game.renderer.addRect(float4(tower.position.x - sBWidth/2, tower.position.y + tileSize.y/2, 
+										 sBWidth, 5), Color.blue);
+			Game.renderer.addRect(float4(tower.position.x - sBWidth/2, tower.position.y + tileSize.y/2, 
+										 sBWidth*amount, 5), Color.white);
+		}
+	}
+}
+
+template isValidTowerType(T)
+{
+	enum isValidTowerType = __traits(compiles,
+						 { 
+							T t;
+							 t.baseIndex = 1;
+							 t.prefab = 1;
+							 t = T(1,1);
+						 });
 }
 
 abstract class TowerController(T) : ITowerController
 {
 	List!T instances;
-	List!TowerCommon common;
+	TowerCollection owner;
 
 	struct Controlled { int towerIndex; ulong playerID; }
 	List!Controlled controlled;
 
 	TileType _type;
 
-	@property TileType type() { return _type; }
+	override @property TileType type() { return _type; }
 
-	this(A)(ref A allocator, TileType type)
+	this(A)(ref A allocator, TileType type, TowerCollection owner)
 	{	
 		this.instances				= List!T(allocator, 100);
-		this.common					= List!TowerCommon(allocator, 100);
 		this.controlled				= List!Controlled(allocator, 10);
 		this._type = type;
+		this.owner = owner;
+		this.owner.addController(this);
 	}
 
-	final Tower metaTower(uint towerIndex, List!Tower metas)
+	final int indexOf(uint2 pos)
 	{
-		import std.algorithm;
-		return metas.find!(x => x.type == type && x.typeIndex == instances[towerIndex].prefab)[0];
+		foreach(i, tower; instances)
+		{
+			if(owner.baseTowers[tower.baseIndex].cell(owner.tileSize) == pos)
+				return i;
+		}
+		return -1;
 	}
 
-	final float2 position(uint towerIndex)
+	final float2 position(ref T instance)
 	{
-		return common[towerIndex].position;
+		return owner.baseTowers[instance.baseIndex].position;
 	}
 
-	final bool isBroken(uint towerIndex)
+	final float2 position(int instanceIndex)
 	{
-		return common[towerIndex].isBroken;
-	}
-	
-	final void forEachTower(void delegate(TowerCommon, ubyte, ubyte) callback) 
-	{
-		foreach(i, c; common)
-			callback(c, type, cast(ubyte) (instances[i].prefab));
+		return position(instances[instanceIndex]);
 	}
 
-	final void buildTower(float2 position, uint prototypeIndex, ulong ownedPlayerID)
+	final bool isBroken(ref T instance)
 	{
-		common    ~= TowerCommon(position, false, ownedPlayerID, 0);
-		instances ~= T(prototypeIndex);
+		return owner.baseTowers[instance.baseIndex].isBroken;
 	}
 
-	final uint towerIndex(uint2 cell, uint2 tileSize)
+	final bool isControlled(int instanceIndex)
 	{
-		return common.countUntil!(x => x.cell(tileSize) == cell);
+		return controlled.countUntil!(x => x.towerIndex == instanceIndex) != -1;
 	}
 
-	final void removeTower(uint towerIndex)
+	final float pressure(ref T instance)
 	{
-		instances.removeAt(towerIndex);
-		common.removeAt(towerIndex);
+		return owner.baseTowers[instance.baseIndex].pressure;
 	}
 
-	final void upgradeTower(uint towerIndex, uint upgradeIndex)
+	final float pressure(int instanceIndex)
 	{
-		auto c = common[towerIndex];
-		removeTower(towerIndex);
-		buildTower(c.position, upgradeIndex, c.ownedPlayerID);
+		return pressure(instances[instanceIndex]);
 	}
 
-	final void repairTower(uint towerIndex)
+	final float range(ref T instance)
 	{
-		common[towerIndex].isBroken = false;
+		return owner.baseTowers[instance.baseIndex].range;
 	}
 
-	final void breakTower(uint towerIndex)
+	final void buildTower(uint prototypeIndex, uint towerIndex)
 	{
-		common[towerIndex].isBroken = true;
+		instances ~= T(prototypeIndex, towerIndex);
 	}
+
+	override final void removeTower(uint towerIndex)
+	{
+		for(int i = instances.length - 1; i >= 0; i--)
+		{
+			if(instances[i].baseIndex > towerIndex)
+			{
+				instances[i].baseIndex--;
+			}
+			else if(instances[i].baseIndex == towerIndex)
+			{
+				instances.removeAt(i);
+			}
+		}
+	}
+
+	final void enterTower(int towerIndex, ulong playerID)
+	{
+		auto index = instances.countUntil!( x => x.baseIndex == towerIndex);
+		controlled ~= Controlled(towerIndex, playerID);
+		towerEntered(index, playerID);
+	}
+
+	final void exitTower(int towerIndex, ulong playerID)
+	{
+		auto index = controlled.countUntil!( x => x.playerID == playerID);
+		controlled.removeAt(index);
+		towerEntered(index, playerID);
+	}
+
+	final void pressure(int towerIndex, float newPressure)
+	{
+		owner.baseTowers[instances[towerIndex].baseIndex].pressure = newPressure;
+	}
+
+	abstract void towerEntered(int instanceIndex, ulong playerID);
+	abstract void towerExited(int instanceIndex, ulong playerID);
 }
