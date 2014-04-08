@@ -33,6 +33,8 @@ Network.outgoing.ballisticDirection	= 60
 Network.outgoing.ballisticLaunch	= 61
 Network.outgoing.upgradeTower		= 62
 Network.outgoing.repaired 			= 63
+Network.outgoing.gatlingValue		= 64
+
 
 Network.handlers = {}
 
@@ -149,3 +151,12 @@ function sendRepaired(cell)
 	Out.writeInt(cell.x)
 	Out.writeInt(cell.y)
 end
+
+function sendGatlingValue(cell, gatlingValue)
+	Out.writeShort(13)
+	Out.writeByte(Network.outgoing.gatlingValue)
+	Out.writeInt(cell.x)
+	Out.writeInt(cell.y)
+	Out.writeFloat(gatlingValue)
+end
+

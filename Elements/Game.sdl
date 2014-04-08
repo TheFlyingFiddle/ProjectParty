@@ -60,6 +60,7 @@ resources = [
 { type = texture path = |elements\textures\rocket_big.png| },
 { type = texture path = |elements\textures\crosshair.png| },
 { type = texture path = |elements\textures\bullet.png| },
+{ type = texture path = |elements\textures\bullet_power.png| },
 { type = texture path = |elements\textures\map2.png| }
 ]
 
@@ -81,6 +82,8 @@ phoneResources = [
 	|elements/scripts/amount_selector.lua|,
 	|elements/scripts/repair.lua|,
 	|elements/scripts/camera.lua|,
+	|elements/scripts/gatling.lua|,
+	|elements/scripts/crank.lua|,
 	|elements/scripts/table.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,

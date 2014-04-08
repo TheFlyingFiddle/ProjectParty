@@ -91,10 +91,12 @@ local function TowerSelected()
 				return
 			end
 
-			if t.tileType == 2 then
+			if 		t.tileType == 2 then
 				fsm:enterState("Vent", selectedCell)
-			elseif t.tileType == 3 then
+			elseif 	t.tileType == 3 then
 				fsm:enterState("Ballistic", selectedCell)
+			elseif 	t.tileType == 4 then
+				fsm:enterState("Gatling", selectedCell)
 			end
 		elseif item.id == 1 then			
 			sendUpgradeTower(selectedCell, item.index)

@@ -97,7 +97,8 @@ enum IncomingMessages : ubyte
 	ballisticDirection = 60,
 	ballisticLaunch = 61,
 	upgradeTower = 62,
-	towerRepaired = 63
+	towerRepaired = 63,
+	gatlingValue = 64
 }
 
 enum OutgoingMessages : ubyte

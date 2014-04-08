@@ -62,7 +62,6 @@ class GamePlayState : IGameState
 
 		gatlingController = new GatlingController(allocator);
 		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
-		GatlingProjectileInstance.prefabs = level.gatlingProjectilePrototypes;
 		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
 	
 		towerCollection.add(ventController);
@@ -90,6 +89,10 @@ class GamePlayState : IGameState
 		Game.router.setMessageHandler(IncomingMessages.ballisticValue,			&handleBallisticValue);
 		Game.router.setMessageHandler(IncomingMessages.ballisticDirection,	&handleBallisticDirection);
 		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch,		&handleBallisticLaunch);
+
+		//Should be in gatling
+		Game.router.setMessageHandler(IncomingMessages.gatlingValue,	&handleGatlingValue);
+		
 
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
@@ -327,6 +330,19 @@ class GamePlayState : IGameState
 
 		foreach(player; Game.players)
 			Game.server.sendMessage(player.id, TowerRepairedMessage(x, y));
+	}
+
+	void handleGatlingValue(ulong id, ubyte[] msg)
+	{
+		auto x = msg.read!uint;
+		auto y = msg.read!uint;
+		auto value = msg.read!float;
+
+		auto index = gatlingController.towerIndex(uint2(x,y), level.tileSize);
+		if(index != -1)
+		{
+			gatlingController.instances[index].elapsed += value;
+		}
 	}
 
 	void sendTowerBroke(uint2 towerCell)
