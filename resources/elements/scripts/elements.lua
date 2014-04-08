@@ -99,8 +99,7 @@ local function TowerSelected()
 				fsm:enterState("Gatling", selectedCell)
 			end
 		elseif item.id == 1 then			
-			sendUpgradeTower(selectedCell, item.index)
-			state:enterState("Idle")
+			state:enterState("Confirm", towers[item.index + 1], item.index)
 		elseif item.id == 3 then
 			sendSellTowerRequest(selectedCell)
 			state:enterState("Idle")
@@ -186,16 +185,30 @@ local function Confirm()
 		if item.id == 0 then
 			sendAddTower(selectedCell, t.tower.type, t.tower.typeIndex)
 			state:enterState("Idle")
-		else 
+		elseif item.id == 1 then
+			state:enterState("Idle")
+		elseif item.id == 2 then
+			fsm:enterState("Info", t.tower)
+		elseif item.id == 3 then
+			sendUpgradeTower(selectedCell, t.upgradeIndex)
 			state:enterState("Idle")
 		end
 	end
 
-	function t.enter(tower)
-		local buy = {id = 0, frame = buyIcon, color = 0xFFFFFFFF}
+	function t.enter(tower, upgradeIndex)
+		local buyId = 0
+
+		if upgradeIndex then
+			buyId = 3
+		end
+
+		local buy = {id = buyId, frame = buyIcon, color = 0xFFFFFFFF}
 		local cancel = {id = 1, frame = cancelIcon, color = 0xFF000000}
-		selector = Selector(Rect(0,0,0,0), callback, {buy, cancel})
+		local info = {id = 2, frame = infoIcon, color = 0xFFFFFFFF}
+
+		selector = Selector(Rect(0,0,0,0), callback, {buy, cancel, info})
 		t.tower = tower
+		t.upgradeIndex = upgradeIndex
 	end
 	return t	
 end
@@ -336,6 +349,8 @@ function Elements()
 		tower.cost 			= In.readInt()
 		tower.range 		= In.readFloat()
 		tower.frame 		= Loader.loadFrame(In.readUTF8())
+		tower.name 	        = In.readUTF8()
+		tower.info 	        = In.readUTF8()
 		tower.type 			= In.readByte()
 		tower.typeIndex 	= In.readByte()
 		tower.basic 		= In.readByte() == 1

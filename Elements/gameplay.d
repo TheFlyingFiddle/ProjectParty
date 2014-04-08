@@ -189,6 +189,8 @@ class GamePlayState : IGameState
 			tiMsg.range = tower.range;
 			tiMsg.type = tower.type;
 			tiMsg.phoneIcon = tower.phoneIcon;
+			tiMsg.name = tower.name;
+			tiMsg.info = tower.info;
 			tiMsg.index = tower.typeIndex;
 			tiMsg.basic = tower.basic;
 			tiMsg.upgradeIndex0 = tower.upgradeIndex0;

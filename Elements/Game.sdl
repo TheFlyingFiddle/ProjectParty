@@ -86,6 +86,7 @@ phoneResources = [
 	|elements/scripts/gatling.lua|,
 	|elements/scripts/crank.lua|,
 	|elements/scripts/table.lua|,
+	|elements/scripts/infoscreen.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/fonts/SegoeUILight72.fnt|,

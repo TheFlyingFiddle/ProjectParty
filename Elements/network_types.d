@@ -56,6 +56,8 @@ struct TowerInfoMessage
 	uint cost;
 	float range;
 	string phoneIcon;
+	string name;
+	string info;
 	ubyte type;
 	ubyte index;
 	ubyte basic;
