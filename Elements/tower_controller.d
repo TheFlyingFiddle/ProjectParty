@@ -93,6 +93,9 @@ abstract class TowerController(T) : ITowerController
 	List!T instances;
 	List!TowerCommon common;
 
+	struct Controlled { int towerIndex; ulong playerID; }
+	List!Controlled controlled;
+
 	TileType _type;
 
 	@property TileType type() { return _type; }
@@ -101,6 +104,7 @@ abstract class TowerController(T) : ITowerController
 	{	
 		this.instances				= List!T(allocator, 100);
 		this.common					= List!TowerCommon(allocator, 100);
+		this.controlled				= List!Controlled(allocator, 10);
 		this._type = type;
 	}
 

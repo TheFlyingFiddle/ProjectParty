@@ -116,15 +116,12 @@ final class BallisticController : TowerController!BallisticInstance
 {
 	List!BallisticProjectileInstance ballisticProjectiles;
 	List!HomingProjectileInstance homingProjectiles;
-	struct Controlled { int towerIndex; ulong playerID; }
-	List!Controlled controlled;
 
 	this(A)(ref A allocator)
 	{
 		super(allocator, TileType.rocket);
 		this.ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
 		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
-		this.controlled = List!Controlled(allocator, 16);
 	}
 
 	void launch(int towerIndex)
@@ -180,12 +177,7 @@ final class BallisticController : TowerController!BallisticInstance
 				ballisticProjectiles.removeAt(i);
 			}
 		}
-		
-		foreach(tower; controlled)
-		{
-			Game.server.sendMessage(tower.playerID, PressureInfoMessage(common[tower.towerIndex].pressure));
-		}
-		
+
 		// Update all towers
 		foreach(i, ref tower; instances)
 		{
@@ -207,6 +199,11 @@ final class BallisticController : TowerController!BallisticInstance
 					}
 				}
 			}
+		}
+
+		foreach(tower; controlled)
+		{
+			Game.server.sendMessage(tower.playerID, PressureInfoMessage(common[tower.towerIndex].pressure));
 		}
 	}
 

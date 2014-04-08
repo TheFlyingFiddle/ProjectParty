@@ -16,12 +16,19 @@ function Gatling()
 							0xFF00FF00,
 							0xFF00FFFF)
 
+  	local pressureDisplay = 
+		PressureDisplay(Rect2(100,200,100,400), 
+					0xFFFF8800,
+					0xFF770000,
+					1)
+
 	function t.enter(cell) 
 	
 		gui:add(Button(0xFF0000FF, pixel, 
 				   Rect2(10,10, 400, 100), 
 				   exit,   font, "Exit", 0xFF000000))
 		gui:add(crank)
+		gui:add(pressureDisplay)
 
 		t.cell = cell
 		sendTowerEntered(t.cell)
@@ -30,6 +37,23 @@ function Gatling()
 	function t.exit()
 		gui:clear()
 	end
+
+	local function handleGatlingInfo()
+		local pressure = In.readFloat()
+		local maxPressure = In.readFloat()
+
+		pressureDisplay.maxAmount = maxPressure
+		pressureDisplay.amount = pressure
+	end
+
+	local function handlePressureInfo()
+		local pressure = In.readFloat()
+		pressureDisplay.amount = pressure
+	end
+
+	Network.setMessageHandler(Network.incoming.ballisticInfo, handleBallisticInfo)
+	Network.setMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
+	
 	
 	return t
 end

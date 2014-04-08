@@ -11,6 +11,8 @@ import std.algorithm : max, min;
 import std.math : atan2;
 import gameplay : findFarthestReachableEnemy;
 import tower_controller, enemy_controller;
+import network.message;
+import network_types;
 
 struct AutoProjectileInstance
 {
@@ -70,6 +72,8 @@ struct GatlingTower
 	float maxDistance;
 	float reloadTime;
 	float anglePerShot;
+	float maxPressure;
+	float pressureCost;
 	@Convert!stringToFrame() Frame frame;
 }
 
@@ -85,12 +89,16 @@ final class GatlingController : TowerController!GatlingInstance
 
 	void towerEntered(uint towerIndex, ulong playerId)
 	{
+		controlled ~= Controlled(towerIndex, playerId);
 		instances[towerIndex].isControlled = true;
 	}
 
 	void towerExited(uint towerIndex, ulong playerId)
 	{
 		instances[towerIndex].isControlled = false;
+		auto t = cast(int)towerIndex;
+		auto index = controlled.countUntil!(c => c.towerIndex == t);
+		controlled.removeAt(index);
 	}
 
 	void crankTurned(uint towerIndex, float amount)
@@ -130,10 +138,13 @@ final class GatlingController : TowerController!GatlingInstance
 				if(tower.elapsed >= tower.anglePerShot)
 				{
 					tower.elapsed -= tower.anglePerShot;
-					auto enemyIndex = findFarthestReachableEnemy(enemies, common[i].position, tower.range);
-					if(enemyIndex != -1) 
+					if(common[i].pressure >= tower.pressureCost)
 					{
-						spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, common[i].position);
+						auto enemyIndex = findFarthestReachableEnemy(enemies, common[i].position, tower.range);
+						if(enemyIndex != -1) 
+						{
+							spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, common[i].position);
+						}
 					}
 				}
 	
@@ -151,6 +162,11 @@ final class GatlingController : TowerController!GatlingInstance
 					}
 				}
 			}
+		}
+
+		foreach(tower; controlled)
+		{
+			Game.server.sendMessage(tower.playerID, PressureInfoMessage(common[tower.towerIndex].pressure));
 		}
 	}
 
@@ -174,6 +190,15 @@ final class GatlingController : TowerController!GatlingInstance
 					renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, size, origin);
 				}
 			}
+
+			auto position = common[i].position;
+
+			float amount = common[i].pressure/tower.maxPressure;
+			float sBWidth = min(50, tower.maxPressure);
+			Game.renderer.addRect(float4(position.x - sBWidth/2, position.y + tileSize.y/2, 
+										 sBWidth, 5), Color.blue);
+			Game.renderer.addRect(float4(position.x - sBWidth/2, position.y + tileSize.y/2, 
+										 sBWidth*amount, 5), Color.white);
 		}
 
 		foreach(projectile; autoProjectiles)
