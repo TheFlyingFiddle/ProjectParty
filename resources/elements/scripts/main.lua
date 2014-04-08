@@ -13,6 +13,7 @@ function init()
 	natureIcon 		= Loader.loadFrame("textures/nature_icon.png")
 	cancelIcon 		= Loader.loadFrame("textures/cancel_icon.png")
 	buyIcon 		= Loader.loadFrame("textures/buy_icon.png")
+	infoIcon        = Loader.loadFrame("textures/ice_icon.png")
 
 	assets.fire  		= { id = 2, frame = fireIcon, 		color = 0xFF0066FF }
 	assets.water 		= { id = 3, frame = waterIcon, 		color = 0xFFFFaa22 }
@@ -30,6 +31,7 @@ function init()
     fsm:addState(Ballistic(), "Ballistic")
     fsm:addState(Repair(), "Repair")
 	fsm:addState(Gatling(), "Gatling")
+	fsm:addState(Info(), "Info")
     fsm:enterState("Elements")
 end
 

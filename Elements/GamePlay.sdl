@@ -113,7 +113,8 @@ towers =
 		range = 140 
 		phoneIcon = |textures/nature_icon.png|
 		name = |Oil vent|
-		info = |This tower makes enemies slippery and sticky in a lethal barrel of oil.|
+		info = |This tower makes enemies slippery and sticky 
+in a lethal barrel of oil.|
 		type = vent 
 		typeIndex = 2  
 	},
@@ -122,7 +123,8 @@ towers =
 		range = 300 
 		phoneIcon = |textures/wind_icon.png|
 		name = |Liquid nitrogen vent|
-		info = |This tower makes enemies cold (or frozen) in a lethal container of coldness.|
+		info = |This tower makes enemies cold (or frozen) in 
+a lethal container of coldness.|
 		type = vent 
 		typeIndex = 3  
 	},
@@ -131,7 +133,9 @@ towers =
 		range = 300 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
-		info = |This tower makes enemies explode in a lethal rocket explosion.|
+		info = 
+			|This tower makes enemies explode in a lethal
+rocket explosion.|
 		type = rocket 
 		basic = true 
 		typeIndex = 0  
@@ -142,7 +146,8 @@ towers =
 		range = 300 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
-		info = |This tower makes enemies explode in a very lethal rocket explosion.|
+		info = |This tower makes enemies explode in a very 
+lethal rocket explosion.|
 		type = rocket 
 		typeIndex = 1  
 	},
@@ -151,7 +156,8 @@ towers =
 		range = 200 
 		phoneIcon = |textures/gatling_icon.png|
 		name = |Gatling tower|
-		info = |This tower fills the enemies with bullets in a lethal storm of... bullets.|
+		info = |This tower fills the enemies with bullets in a 
+lethal storm of... bullets.|
 		type = gatling	
 		typeIndex = 0  
 		basic = true
