@@ -115,17 +115,17 @@ final class MainMenu : IGameState
 		gl.viewport(0,0, s.x, s.y);
 		gl.clear(ClearFlags.color);
 
-		auto size = font.messure(title);
+		auto size = font.measure(title);
 		auto pos = float2(s.x / 2, s.y * 0.95);
 
 		auto sb = Game.renderer;
 
 		import std.stdio;
 		auto playerReadyText = text(buffer, "Players: ", playerCount, "\t", "Ready");
-		auto playerReadySize = font.messure(playerReadyText);
+		auto playerReadySize = font.measure(playerReadyText);
 		sb.addText(font, title, pos, Color(0xFFFFCC00),float2(0.95,0.95),-size/2);	
 		sb.addText(font, playerReadyText, float2(s.x/2,s.y * 0.75), 
-				   Color(0xFFFFCC00), float2(0.4, 0.4), -font.messure(playerReadyText)/2);
+				   Color(0xFFFFCC00), float2(0.4, 0.4), -font.measure(playerReadyText)/2);
 
 		if(countdown && allReady)
 		{
@@ -146,7 +146,7 @@ final class MainMenu : IGameState
 		}
 		foreach(i, player; Game.players)
 		{
-			float2 textPos = float2(s.x/2 - font.messure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing);
+			float2 textPos = float2(s.x/2 - font.measure(playerReadyText).x/2 * 0.4 + 5, s.y * 0.73 - (i + 1) * layout.playerSpacing);
 
 			sb.addText(font, text(buffer, player.name), 
 					   textPos, agd.data[i].color,float2(0.33, 0.33));

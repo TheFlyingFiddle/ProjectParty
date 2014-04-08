@@ -3,6 +3,7 @@ import math;
 import collections;
 import types;
 import std.conv;
+import enemy_controller;
 
 interface ITowerController
 {
@@ -17,7 +18,7 @@ interface ITowerController
 	void repairTower(uint towerIndex);
 	void towerEntered(uint towerIndex, ulong playerID);
 	void towerExited(uint towerIndex, ulong playerID);
-	void update(List!Enemy enemies);
+	void update(List!BaseEnemy enemies);
 }
 
 struct TowerCommon
@@ -75,7 +76,7 @@ struct TowerCollection
 			tc.forEachTower(callback);
 	}
 
-	void update(List!Enemy enemies)
+	void update(List!BaseEnemy enemies)
 	{
 		foreach(tc; controllers)
 			tc.update(enemies);

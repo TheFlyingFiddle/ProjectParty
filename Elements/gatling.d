@@ -10,7 +10,7 @@ import game.debuging;
 import std.algorithm : max, min;
 import std.math : atan2;
 import gameplay : findFarthestReachableEnemy;
-import tower_controller;
+import tower_controller, enemy_controller;
 
 struct AutoProjectileInstance
 {
@@ -98,7 +98,7 @@ final class GatlingController : TowerController!GatlingInstance
 		instances[towerIndex].elapsed += amount;
 	}
 
-	void update(List!Enemy enemies)
+	void update(List!BaseEnemy enemies)
 	{
 
 		// Update all homing projectiles
@@ -154,7 +154,7 @@ final class GatlingController : TowerController!GatlingInstance
 		}
 	}
 
-	void render(Renderer* renderer, float2 tileSize, List!Enemy enemies /*Quick hack*/)
+	void render(Renderer* renderer, float2 tileSize, List!BaseEnemy enemies /*Quick hack*/)
 	{
 
 		auto targetTex = Game.content.loadTexture("crosshair");

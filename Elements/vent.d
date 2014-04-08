@@ -1,6 +1,7 @@
 module vent;
 import math;
 import collections;
+import math.polar;
 import types;
 import content;
 import graphics;
@@ -8,6 +9,7 @@ import game;
 import game.debuging;
 import std.algorithm : max, min;
 import tower_controller;
+import enemy_controller;
 
 struct VentInstance
 {
@@ -39,8 +41,15 @@ struct VentTower
 	float range;
 	float maxPressure;
 	float regenRate;
+	@Convert!unitToRadiance() float spread;
+	StatusConfig status;
 	@Convert!stringToFrame() Frame frame;
 	@Convert!stringToFrame() Frame towerFrame;
+}
+
+float unitToRadiance(float value)
+{
+	return value * TAU;
 }
 
 final class VentController : TowerController!VentInstance
@@ -50,7 +59,7 @@ final class VentController : TowerController!VentInstance
 		super(allocator, TileType.vent);
 	}
 
-	void update(List!Enemy enemies)
+	void update(List!BaseEnemy enemies)
 	{
 		foreach(i, ref instance; instances) if(!isBroken(i))
 		{
@@ -61,13 +70,24 @@ final class VentController : TowerController!VentInstance
 				foreach(ref enemy; enemies) 
 				{
 
-					if(distance(enemy.position, position(i)) <= instance.range)
-						enemy.health -= instance.damage * Time.delta * instance.open;
+					if(distance(enemy.position, position(i)) <= instance.range) {
+						auto angle = (enemy.position - position(i)).toPolar.angle;
+						if(instance.direction - instance.spread / 2 < angle && 
+							   instance.direction + instance.spread / 2 > angle) {
+								hitEnemy(instance, enemy);
+						}
+					}
 				}
 			}
 			if(instance.open == 0)
 				instance.pressure = min(instance.pressure + instance.regenRate * Time.delta, instance.maxPressure);
 		}
+	}
+
+	void hitEnemy(ref VentInstance vent, ref BaseEnemy enemy) 
+	{
+		enemy.health -= vent.damage * Time.delta * vent.open;
+		enemy.applyStatus(vent.status);
 	}
 
 	void render(Renderer* renderer, float2 tileSize)
@@ -89,6 +109,8 @@ final class VentController : TowerController!VentInstance
 										 sBWidth, 5), Color.blue);
 			Game.renderer.addRect(float4(position.x - sBWidth/2, position.y + tileSize.y/2, 
 										 sBWidth*amount, 5), Color.white);
+
+			Game.renderer.addCircleOutline(position, tower.range, Color(0x66FFFFAA));
 		}
 	}
 

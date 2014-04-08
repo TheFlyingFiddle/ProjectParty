@@ -54,6 +54,8 @@ struct Tower
 {
 	uint cost;
 	string phoneIcon;
+	string name;
+	string info;
 	TileType type;
 	ubyte typeIndex;
 	float range;
@@ -178,33 +180,35 @@ struct Path
 	}
 }
 
-struct Enemy
+enum StatusType
 {
-	static List!Path paths;
+	none,
+	watered,
+	burning,
+	oiled,
+	cold
+}
 
-	float distance;
-	float speed;
-	float health;
-	float maxHealth;
-	uint pathIndex;
-	int worth;
-	Frame frame;
+enum StatusEffect
+{
+	water,
+	fire, 
+	oil,
+	liqNit
+}
 
-	this(EnemyPrototype prefab, uint pathIndex)
-	{
-		this.distance = 0;
-		this.speed = prefab.speed;
-		this.health = prefab.maxHealth;
-		this.maxHealth = prefab.maxHealth;
-		this.worth = prefab.worth;
-		this.frame = prefab.frame;
-		this.pathIndex = pathIndex;
-	}
+struct StatusConfig
+{
+	float duration;
+	StatusEffect type;
+	float value;
+}	
 
-	@property float2 position()
-	{
-		return paths[pathIndex].position(distance);
-	}
+struct Status
+{
+	float duration;
+	StatusType type;
+	float value;
 }
 
 struct Spawner
@@ -220,4 +224,6 @@ struct Spawner
 struct Wave
 {
 	List!Spawner spawners;
+	float pauseTime;
+	@Optional(0.0f)float elapsed;
 }

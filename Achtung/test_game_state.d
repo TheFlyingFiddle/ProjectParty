@@ -46,7 +46,7 @@ final class TestGameState : IGameState
 
 		import game.debuging;
 
-		float2 size = font.messure("This \nis a long sentence!");
+		float2 size = font.measure("This \nis a long sentence!");
 		//foreach(i; 0 .. 6)
 		//{
 		//    renderer.addText(font, "This \nis a long sentence!", float2(x,y),

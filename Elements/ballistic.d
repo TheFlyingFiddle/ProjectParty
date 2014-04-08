@@ -10,9 +10,9 @@ import game.debuging;
 import std.algorithm : max, min;
 import std.math : atan2;
 import gameplay : findFarthestReachableEnemy;
-import tower_controller;
 import network_types;
 import network.message;
+import tower_controller, enemy_controller;
 
 struct BallisticProjectileInstance
 {
@@ -140,7 +140,7 @@ final class BallisticController : TowerController!BallisticInstance
 												common[towerIndex].position + target);
 	}
 
-	void update(List!Enemy enemies)
+	void update(List!BaseEnemy enemies)
 	{
 		// Update all homing projectiles
 		for(int i = homingProjectiles.length - 1; i >= 0; --i)
@@ -210,7 +210,7 @@ final class BallisticController : TowerController!BallisticInstance
 		}
 	}
 
-	void render(Renderer* renderer, float2 tileSize, List!Enemy enemies /*Quick hack*/)
+	void render(Renderer* renderer, float2 tileSize, List!BaseEnemy enemies /*Quick hack*/)
 	{
 
 		auto targetTex = Game.content.loadTexture("crosshair");
