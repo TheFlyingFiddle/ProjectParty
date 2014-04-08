@@ -29,6 +29,7 @@ function init()
     fsm:addState(Vent(), "Vent")
     fsm:addState(Ballistic(), "Ballistic")
     fsm:addState(Repair(), "Repair")
+	fsm:addState(Gatling(), "Gatling")
     fsm:enterState("Elements")
 end
 

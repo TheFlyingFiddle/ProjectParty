@@ -43,7 +43,7 @@ struct Level
 
 	//Should be in gatling.sdl
 	List!AutoProjectilePrefab			autoProjectilePrototypes;
-	List!GatlingProjectilePrefab		gatlingProjectilePrototypes;
+//	List!GatlingProjectilePrefab		gatlingProjectilePrototypes;
 	List!GatlingTower						gatlingTowerPrototypes;
 
 	//Should be in metatowers.sdl

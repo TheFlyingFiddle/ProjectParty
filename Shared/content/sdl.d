@@ -1200,7 +1200,8 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
         readArray(sink, range, nextVacantIndex);
 		if (sink[objIndex].nextIndex == nextVacantIndex) {
 			// Nothing was allocated, arraycloser found when expecting object
-            enforce(0, "Empty slot in array (arraycloser following arrayseparator).");
+            enforce(0, "Empty slot in array (arraycloser following arrayseparator)."
+					~ getSDLError(range));
 		}	
 	} else if(range.front == arrayCloser) {
 		range.popFront();

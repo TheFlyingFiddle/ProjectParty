@@ -165,21 +165,12 @@ gatlingTowerPrototypes =
 [ 
 	{
 		homingPrefabIndex = 0 
-		gatlingPrefabIndex = 0 
+		gatlingPrefabIndex = 1 
 		range = 300
 		maxDistance = 500 
 		reloadTime = 0.02 
+		anglePerShot = 1
 		frame = tower0 
-	} 
-]
-
-gatlingProjectilePrototypes = 
-[ 
-	{ 
-		damage = 2 
-		speed = 400 
-		radius = 10 
-		frame = bullet 
 	} 
 ]
 
@@ -190,7 +181,13 @@ autoProjectilePrototypes =
 		speed = 1200 
 		radius = 40 
 		frame = bullet 
-	} 
+	},
+	{ 
+		damage = 20 
+		speed = 1200 
+		radius = 40 
+		frame = bullet_power 
+	}
 ]
 
 waves = 
