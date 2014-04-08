@@ -12,6 +12,7 @@ import tower_controller;
 import ballistic;
 import gatling;
 import network_types;
+import enemy_controller;
 
 
 struct TowerPlayer
@@ -24,8 +25,7 @@ class GamePlayState : IGameState
 {
 	Level level;
 	FontID lifeFont;
-	List!Enemy enemies;
-
+	
 	int lifeTotal;
 	List!uint2 selections;
 
@@ -34,13 +34,13 @@ class GamePlayState : IGameState
 	VentController 			ventController;
 	BallisticController		ballisticController;
 	GatlingController 		gatlingController;
+	BaseEnemyController			enemyController;
 
 	Table!(ulong, TowerPlayer)	players;
 
 	this(A)(ref A allocator, string configFile)
 	{
 		lifeTotal = 1000;
-		enemies = List!Enemy(allocator, 100);
 		selections = List!uint2(allocator, 10);
 		players = Table!(ulong, TowerPlayer)(allocator, 20);	
 
@@ -50,7 +50,13 @@ class GamePlayState : IGameState
 
 		lifeFont = Game.content.loadFont("Blocked72");
 		level = fromSDLFile!Level(allocator, configFile);
-		Enemy.paths = level.paths;
+		enemyController = allocator.allocate!BaseEnemyController(allocator, level);
+
+		enemyController.onDeath ~= &killEnemy;
+		enemyController.onAtEnd ~= &enemyAtEnd;
+	
+
+		BaseEnemy.paths = level.paths;
 
 		ventController = new VentController(allocator);
 		VentInstance.prefabs = level.ventPrototypes;
@@ -199,7 +205,10 @@ class GamePlayState : IGameState
 			tbMsg.towerType	= type;
 			tbMsg.typeIndex	= typeIndex;
 			tbMsg.ownedByMe = tower.ownedPlayerID == id;
-			tbMsg.color = players[tower.ownedPlayerID].color.packedValue;
+			if(players.indexOf(tower.ownedPlayerID) != -1)
+				tbMsg.color = players[tower.ownedPlayerID].color.packedValue;
+			else 
+				tbMsg.color = 0xFFFFFFFF;
 			Game.server.sendMessage(id, tbMsg);
 		});
 	}
@@ -359,27 +368,31 @@ class GamePlayState : IGameState
 	void update()
 	{
 		updateWave();
-		updateEnemies();
-		towerCollection.update(enemies);
-		killEnemies();
+		enemyController.update();
+		towerCollection.update(enemyController.enemies);
+		enemyController.killEnemies();
 	}
 
 	void updateWave()
 	{
-		for(int i = level.waves[0].spawners.length - 1; i >= 0; --i)
-		{
-			updateSpawner(level.waves[0].spawners[i]);
-			if (level.waves[0].spawners[i].numEnemies == 0)
-				level.waves[0].spawners.removeAt(i);
-		}
-		if (level.waves[0].spawners.length == 0 &&
-			enemies.length == 0) {
-			if (level.waves.length > 1)
-				level.waves.removeAt(0);
-			else
-				gameOver();
-		}
-			
+		auto enemies = enemyController.enemies;
+		level.waves[0].elapsed += Time.delta;
+
+		if(level.waves[0].pauseTime < level.waves[0].elapsed) {
+			for(int i = level.waves[0].spawners.length - 1; i >= 0; --i)
+			{
+				updateSpawner(level.waves[0].spawners[i]);
+				if (level.waves[0].spawners[i].numEnemies == 0)
+					level.waves[0].spawners.removeAt(i);
+			}
+			if (level.waves[0].spawners.length == 0 &&
+				enemies.length == 0) {
+				if (level.waves.length > 1)
+					level.waves.removeAt(0);
+				else
+					gameOver();
+			}
+		}			
 	}
 
 	private void updateSpawner(ref Spawner spawner)
@@ -388,29 +401,10 @@ class GamePlayState : IGameState
 		if (spawner.startTime <= 0) {
 			spawner.elapsed += Time.delta;
 			if (spawner.elapsed >= spawner.spawnInterval) {
-				auto enemy = Enemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
-				enemies ~= enemy;
+				auto enemy = BaseEnemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
+				enemyController.enemies ~= enemy;
 				spawner.numEnemies--;
 				spawner.elapsed = 0;
-			}
-		}
-	}
-
-	void updateEnemies()
-	{
-		for (int i = enemies.length -1; i >=0; i--)
-		{
-			enemies[i].distance += enemies[i].speed * Time.delta;
-			if (enemies[i].distance < 0)
-				enemies[i].distance = 0;
-			if (enemies[i].distance > level.paths[enemies[i].pathIndex].endDistance)
-			{
-				lifeTotal--;
-				killEnemy(i);
-				if(lifeTotal == 0)
-				{
-					gameOver();
-				}
 			}
 		}
 	}
@@ -421,27 +415,8 @@ class GamePlayState : IGameState
 		auto imageFrame = Frame(imageTex);
 		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;
-		foreach(ref enemy; enemies)
-		{
-			float2 position = enemy.position;
-			float2 origin = float2(enemy.frame.width/2, enemy.frame.height/2);
-			Game.renderer.addFrame(enemy.frame, float4(position.x, 
-												 position.y,
-												 enemy.frame.width, enemy.frame.height),
-												 Color.white, origin);
-		}
 
-		foreach(ref enemy; enemies)
-		{
-			float2 position = enemy.position;
-			float2 origin = float2(enemy.frame.width/2, enemy.frame.height/2);
-			float amount = enemy.health/enemy.maxHealth;
-			float hBWidth = min(50, enemy.maxHealth);
-			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + enemy.frame.height/2, 
-										 hBWidth, 5), Color.red);
-			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + enemy.frame.height/2, 
-										 hBWidth*amount, 5), Color.green);
-		}
+		enemyController.render();
 
 		import util.strings;
 		char[128] buffer;
@@ -456,36 +431,40 @@ class GamePlayState : IGameState
 		}
 
 		ventController.render		(Game.renderer, float2(level.tileSize));
-		ballisticController.render (Game.renderer, float2(level.tileSize), enemies);
-		gatlingController.render	(Game.renderer, float2(level.tileSize), enemies);
-	}
+		ballisticController.render (Game.renderer, float2(level.tileSize), enemyController.enemies);
+		gatlingController.render	(Game.renderer, float2(level.tileSize), enemyController.enemies);
 
-	void killEnemies()
-	{
-		for(int i = enemies.length -1; i >= 0; i--)
-		{
-			if(enemies[i].health <= 0)
-			{
-				killEnemy(i);
-			}
+		int timeLeft = cast(int)(level.waves[0].pauseTime - level.waves[0].elapsed + 1);
+
+		if(timeLeft > 0) {
+			auto str = text(buffer, "Time until next wave: ", 
+							timeLeft);
+			float2 size = lifeFont.measure(str);
+
+			Game.renderer.addText(lifeFont, str, 
+								  float2(Game.window.size.x - size.x, Game.window.size.y), Color(0x88FFFFFF));
 		}
 	}
 
-	void killEnemy(uint i)
+	void enemyAtEnd(BaseEnemy enemy, uint i)
+	{
+		if(--lifeTotal == 0) 
+			gameOver();
+	}
+
+	void killEnemy(BaseEnemy enemy, uint i)
 	{
 		foreach(player; Game.players)
 		{
-			sendTransaction(player.id, enemies[i].worth / Game.players.length);
+			sendTransaction(player.id, enemy.worth / Game.players.length);
 		}	
-
-		enemies.removeAt(i);
 
 		//Should be moved into ballisticController
 		for (int j = ballisticController.homingProjectiles.length - 1; j >= 0; j--)
 		{
 			if(ballisticController.homingProjectiles[j].targetIndex == i)
 			{
-				auto nearest = findNearestEnemy(enemies, ballisticController.homingProjectiles[j].position);
+				auto nearest = findNearestEnemy(enemyController.enemies, ballisticController.homingProjectiles[j].position);
 				if(nearest == -1)
 					ballisticController.homingProjectiles.removeAt(j);
 				else
@@ -516,7 +495,7 @@ class GamePlayState : IGameState
 	}
 }
 
-int findNearestEnemy(ref List!Enemy enemies, float2 position)
+int findNearestEnemy(ref List!BaseEnemy enemies, float2 position)
 {
 	int index = -1;
 	auto lowestDistance = float.max;
@@ -535,7 +514,7 @@ int findNearestEnemy(ref List!Enemy enemies, float2 position)
 	return index;
 }
 
-int findFarthestReachableEnemy(List!Enemy enemies, float2 towerPos, float range)
+int findFarthestReachableEnemy(List!BaseEnemy enemies, float2 towerPos, float range)
 {
 	auto index = -1;
 	
@@ -553,7 +532,7 @@ int findFarthestReachableEnemy(List!Enemy enemies, float2 towerPos, float range)
 	return index;
 }
 
-int findNearestReachableEnemy(List!Enemy enemies, float2 towerPos, float range)
+int findNearestReachableEnemy(List!BaseEnemy enemies, float2 towerPos, float range)
 {
 	int index = -1;
 	float lowestDistance = float.infinity;

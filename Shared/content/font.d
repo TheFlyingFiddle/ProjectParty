@@ -22,9 +22,9 @@ struct FontID
 		return font.size;
 	}
 
-	float2 messure(const(char)[] text)
+	float2 measure(const(char)[] text)
 	{
-		return font.messure(text);
+		return font.measure(text);
 	}
 
 	@property Font font()

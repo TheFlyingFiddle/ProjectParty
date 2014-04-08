@@ -190,6 +190,7 @@
  </Config>
  <Folder name="Elements">
   <File path="ballistic.d" />
+  <File path="enemy_controller.d" />
   <File path="Game.sdl" />
   <File path="gameplay.d" />
   <File path="GamePlay.sdl" />

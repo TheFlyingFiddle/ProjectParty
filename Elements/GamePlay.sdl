@@ -45,26 +45,42 @@ ventPrototypes =
 	{ 
 		damage = 10 
 		range = 100 
+		spread = 0.10
 		maxPressure = 100 
 		regenRate = 10 
 		frame = cone //Will be replaced by steam supplier
 		towerFrame = tower_cone 
+		status = {duration = 5 value = 0.2 type = water}
 	},
 	{ 
-		damage = 9001 
+		damage = 0
 		range = 100 
+		spread = 0.10
 		maxPressure = 500 
 		regenRate = 2
 		frame = baws 
 		towerFrame = tower_cone 
+		status = {duration = 15 value = 5 type = fire}
 	},
 	{ 
-		damage = 42 
+		damage = 1
 		range = 100 
+		spread = 0.1
 		maxPressure = 500 
 		regenRate = 2
 		frame = teddy 
 		towerFrame = tower_cone 
+		status = {duration = 5 value = 1 type = oil}
+	 },
+	 { 
+		damage = 50 
+		range = 100 
+		spread = 0.1
+		maxPressure = 500 
+		regenRate = 2
+		frame = rocket_big 
+		towerFrame = tower_cone 
+		status = {duration = 5 value = 0.2 type = liqNit}
 	 }
 ]
 
@@ -74,16 +90,21 @@ towers =
 		cost = 10 
 		range = 100 
 		phoneIcon = |textures/fire_icon.png| 
+		name = |Steam vent|
+		info = |This tower scolds enemies in a lethal sauna.|
 		type = vent 
 		typeIndex = 0 
 		upgradeIndex0 = 1
 		upgradeIndex1 = 2 
+		upgradeIndex2 = 3
 		basic = true 
 	},
 	{ 
 		cost = 100 
 		range = 140 
 		phoneIcon = |textures/water_icon.png|
+		name = |Fire vent|
+		info = |This tower burns enemies in a lethal oven.|
 		type = vent 
 		typeIndex = 1  
 	},
@@ -91,22 +112,37 @@ towers =
 		cost = 100 
 		range = 140 
 		phoneIcon = |textures/nature_icon.png|
+		name = |Oil vent|
+		info = |This tower makes enemies slippery and sticky in a lethal barrel of oil.|
 		type = vent 
 		typeIndex = 2  
 	},
 	{ 
 		cost = 20 
 		range = 300 
-		phoneIcon = |textures/rocket_icon.png|
-		type = rocket 
-		basic = true 
-		typeIndex = 0  
-		upgradeIndex0 = 4
+		phoneIcon = |textures/wind_icon.png|
+		name = |Liquid nitrogen vent|
+		info = |This tower makes enemies cold (or frozen) in a lethal container of coldness.|
+		type = vent 
+		typeIndex = 3  
 	},
 	{ 
 		cost = 20 
 		range = 300 
 		phoneIcon = |textures/rocket_icon.png|
+		name = |Rocket launcher|
+		info = |This tower makes enemies explode in a lethal rocket explosion.|
+		type = rocket 
+		basic = true 
+		typeIndex = 0  
+		upgradeIndex0 = 5
+	},
+	{ 
+		cost = 20 
+		range = 300 
+		phoneIcon = |textures/rocket_icon.png|
+		name = |Rocket launcher|
+		info = |This tower makes enemies explode in a very lethal rocket explosion.|
 		type = rocket 
 		typeIndex = 1  
 	},
@@ -114,9 +150,10 @@ towers =
 		cost = 40 
 		range = 200 
 		phoneIcon = |textures/gatling_icon.png|
+		name = |Gatling tower|
+		info = |This tower fills the enemies with bullets in a lethal storm of... bullets.|
 		type = gatling	
 		typeIndex = 0  
-		upgradeIndex = -1
 		basic = true
 	}
 ]
@@ -194,38 +231,44 @@ waves =
 [  
 	{	spawners = 
 		[
-			{ startTime = 1		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
-			{ startTime = 1.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
 		] 
+		pauseTime = 10
 	},
 	{	spawners =
 		[ 
-			{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
-			{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
 		]
+		pauseTime = 10
 	},
 	{	spawners = 
 		[
-			{ startTime = 1		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
-			{ startTime = 1.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
 		] 
+		pauseTime = 10
 	},
 	{	spawners =
 		[ 
-			{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
-			{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
 		]
+		pauseTime = 10
 	},
 		{spawners = 
 		[
-			{ startTime = 1		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
-			{ startTime = 1.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
 		] 
+		pauseTime = 10
 	},
 	{	spawners =
 		[ 
-			{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
-			{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
 		]
+		pauseTime = 10
 	}
 ] 

@@ -8,7 +8,7 @@ function Vector2.fromPolar(magnitude, angle)
 end
 
 function Vector2.angleBetween(v0, v1)
-	return math.atan2(v1.y - v0.y, v1.x - v0.x)
+	return math.atan2(v1.y - v0.y, v1.x - v0.x) 
 end
 
 function Vector2.distance(v0, v1)

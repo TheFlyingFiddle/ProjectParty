@@ -49,7 +49,7 @@ struct Font
 		return chars[unkownCharValue];
 	}
 	
-	float2 messure(const(char)[] text)
+	float2 measure(const(char)[] text)
 	{
 		import std.math;
 		float width = 0, height = 0, cursor = 0;
