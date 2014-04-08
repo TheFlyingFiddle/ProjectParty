@@ -11,6 +11,8 @@ import std.algorithm : max, min;
 import std.math : atan2;
 import gameplay : findFarthestReachableEnemy;
 import tower_controller;
+import network_types;
+import network.message;
 
 struct BallisticProjectileInstance
 {
@@ -104,6 +106,9 @@ struct BallisticTower
 	float range;
 	float maxDistance; //Separate range for manual projectiles.
 	float reloadTime;
+	float maxPressure;
+	float pressureRegen;
+	float pressureCost;
 	@Convert!stringToFrame() Frame frame;
 }
 
@@ -111,16 +116,21 @@ final class BallisticController : TowerController!BallisticInstance
 {
 	List!BallisticProjectileInstance ballisticProjectiles;
 	List!HomingProjectileInstance homingProjectiles;
+	struct Controlled { int towerIndex; ulong playerID; }
+	List!Controlled controlled;
 
 	this(A)(ref A allocator)
 	{
 		super(allocator, TileType.rocket);
 		this.ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
 		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
+		this.controlled = List!Controlled(allocator, 16);
 	}
 
 	void launch(int towerIndex)
 	{
+		common[towerIndex].pressure = max(0,	common[towerIndex].pressure 
+											-	instances[towerIndex].pressureCost);
 		auto target = Polar!float(
 							instances[towerIndex].angle,
 							instances[towerIndex].distance).toCartesian;
@@ -128,7 +138,6 @@ final class BallisticController : TowerController!BallisticInstance
 												instances[towerIndex].ballisticPrefabIndex,
 												common[towerIndex].position,
 												common[towerIndex].position + target);
-
 	}
 
 	void update(List!Enemy enemies)
@@ -172,12 +181,18 @@ final class BallisticController : TowerController!BallisticInstance
 			}
 		}
 		
+		foreach(tower; controlled)
+		{
+			Game.server.sendMessage(tower.playerID, PressureInfoMessage(common[tower.towerIndex].pressure));
+		}
+		
 		// Update all towers
 		foreach(i, ref tower; instances)
 		{
+			common[i].pressure = min(tower.maxPressure, 
+									 common[i].pressure + tower.pressureRegen * Time.delta);
 			if(tower.isControlled)
 			{
-				//Nothing to do?
 			}
 			else // Tower is on autopilot. Just shoot projectiles steadily.
 			{
@@ -217,6 +232,14 @@ final class BallisticController : TowerController!BallisticInstance
 
 				renderer.addFrame(targetFrame, position, Color.white, size, origin);
 			}
+			auto position = common[i].position;
+
+			float amount = common[i].pressure/tower.maxPressure;
+			float sBWidth = min(50, tower.maxPressure);
+			Game.renderer.addRect(float4(position.x - sBWidth/2, position.y + tileSize.y/2, 
+										 sBWidth, 5), Color.blue);
+			Game.renderer.addRect(float4(position.x - sBWidth/2, position.y + tileSize.y/2, 
+										 sBWidth*amount, 5), Color.white);
 		}
 
 		foreach(projectile; homingProjectiles)
@@ -240,12 +263,26 @@ final class BallisticController : TowerController!BallisticInstance
 
 	void towerEntered(uint towerIndex, ulong playerID)
 	{
+		BallisticInfoMessage msg;
+		msg.pressure = common[towerIndex].pressure;
+		msg.maxPressure = instances[towerIndex].maxPressure;
+		msg.direction = instances[towerIndex].angle;
+		msg.distance = instances[towerIndex].distance;
+		msg.maxDistance = instances[towerIndex].maxDistance;
+		msg.pressureCost = instances[towerIndex].pressureCost;
+
+		Game.server.sendMessage(playerID, msg);
+		
 		instances[towerIndex].isControlled = true;
+		controlled ~= Controlled(towerIndex, playerID);
 	}
 
 	void towerExited(uint towerIndex, ulong playerID)
 	{
 		instances[towerIndex].isControlled = false;
+		auto t = cast(int)towerIndex;
+		auto index = controlled.countUntil!(c => c.towerIndex == t);
+		controlled.removeAt(index);
 	}
 
 	private void spawnHomingProjectile(int projectilePrefabIndex, int enemyIndex, float2 position)

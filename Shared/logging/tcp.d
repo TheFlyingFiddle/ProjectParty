@@ -46,7 +46,7 @@ void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, stri
 
 //	if(channel == "PROFILE") return;
 
-	writeln(channel, "   ", msg, "    ", file, "(", line, ")");
+//	writeln(channel, "   ", msg, "    ", file, "(", line, ")");
 }
 
 

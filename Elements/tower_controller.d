@@ -25,6 +25,7 @@ struct TowerCommon
 	float2 position;
 	bool isBroken;
 	ulong ownedPlayerID;
+	float pressure;
 }
 
 uint2 cell(T)(T t, uint2 tileSize)
@@ -126,7 +127,7 @@ abstract class TowerController(T) : ITowerController
 
 	final void buildTower(float2 position, uint prototypeIndex, ulong ownedPlayerID)
 	{
-		common    ~= TowerCommon(position, false, ownedPlayerID);
+		common    ~= TowerCommon(position, false, ownedPlayerID, 0);
 		instances ~= T(prototypeIndex);
 	}
 

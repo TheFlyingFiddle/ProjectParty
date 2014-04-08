@@ -80,6 +80,7 @@ phoneResources = [
 	|elements/scripts/selector.lua|,
 	|elements/scripts/ballistic.lua|,
 	|elements/scripts/amount_selector.lua|,
+	|elements/scripts/pressure_display.lua|,
 	|elements/scripts/repair.lua|,
 	|elements/scripts/camera.lua|,
 	|elements/scripts/gatling.lua|,

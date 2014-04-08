@@ -395,10 +395,6 @@ function Elements()
 		end
 	end
 
-	local function handleEntryAcknowledged()
-
-	end
-
 	Network.setMessageHandler(Network.incoming.map, handleMap)
 	Network.setMessageHandler(Network.incoming.towerBuilt, handleTowerBuilt)
 	Network.setMessageHandler(Network.incoming.selected, handleSelectRequest)
@@ -409,7 +405,6 @@ function Elements()
 	Network.setMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
 	Network.setMessageHandler(Network.incoming.towerRepaired, handleTowerRepaired)
 	Network.setMessageHandler(Network.incoming.towerExited, handleTowerExited)
-	Network.setMessageHandler(Network.incoming.entryAcknowledged, handleEntryAcknowledged)
 
 	function elements.onTap(x,y)
 		if state.active.onTap then

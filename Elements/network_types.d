@@ -82,6 +82,39 @@ struct TowerBrokenMessage
 	uint x, y;
 }
 
+struct VentInfoMessage
+{
+	enum ubyte id = OutgoingMessages.ventInfo;
+	float pressure;
+	float maxPressure;
+	float direction;
+	float open;
+}
+
+struct BallisticInfoMessage
+{
+	enum ubyte id = OutgoingMessages.ballisticInfo;
+	float pressure;
+	float maxPressure;
+	float direction;
+	float distance;
+	float maxDistance;
+	float pressureCost;
+}
+
+struct GatlingInfoMessage
+{
+	enum ubyte id = OutgoingMessages.gatlingInfo;
+	float pressure;
+	float maxPressure;
+}
+
+struct PressureInfoMessage
+{
+	enum ubyte id = OutgoingMessages.pressureInfo;
+	float pressure;
+}
+
 enum IncomingMessages : ubyte
 {
 	towerRequest = 50,
@@ -113,5 +146,9 @@ enum OutgoingMessages : ubyte
 	transaction = 57,
 	towerSold = 58,
 	towerBroken = 59,
-	towerRepaired = 60
+	towerRepaired = 60,
+	ventInfo = 61,
+	ballisticInfo = 62,
+	gatlingInfo = 63,
+	pressureInfo = 64
 }

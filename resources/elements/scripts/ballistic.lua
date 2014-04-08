@@ -27,10 +27,18 @@ function Ballistic()
 							0xFF00FF00,
 							0xFF0000FF)
 
+	local pressureDisplay = 
+				PressureDisplay(Rect2(200,200,100,400), 
+							0xFFFF8800,
+							0xFF770000,
+							1)
+
 	local function launch()
-		sendBallisticLaunch(t.cell)
-		sendTowerExited(t.cell)
-		fsm:enterState("Elements")
+		if pressureDisplay.amount >= t.pressureCost then
+			sendBallisticLaunch(t.cell)
+			sendTowerExited(t.cell)
+			fsm:enterState("Elements")
+		end
 	end
 
 	function t.enter(cell) 
@@ -43,15 +51,40 @@ function Ballistic()
 				   launch, font,"BOOM!", 0xFF000000))
 		gui:add(dirSelector)
 		gui:add(amountSelector)
+		gui:add(pressureDisplay)
 
 		t.cell = cell
-		t.amount = 1
+		t.amount = 0
+		dirSelector.dir = 0
 		sendTowerEntered(t.cell)
 	end
 
 	function t.exit()
 		gui:clear()
 	end
+
+	local function handleBallisticInfo()
+		local pressure = In.readFloat()
+		local maxPressure = In.readFloat()
+		local direction = In.readFloat()
+		local distance = In.readFloat()
+		local maxDistance = In.readFloat()
+		local pressureCost = In.readFloat() 
+
+		dirSelector.dir = direction
+		pressureDisplay.maxAmount = maxPressure
+		pressureDisplay.amount = pressure
+		amountSelector.amount = distance / maxDistance
+		t.pressureCost = pressureCost
+	end
+
+	local function handlePressureInfo()
+		local pressure = In.readFloat()
+		pressureDisplay.amount = pressure
+	end
+
+	Network.setMessageHandler(Network.incoming.ballisticInfo, handleBallisticInfo)
+	Network.setMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
 	
 	return t
 end
