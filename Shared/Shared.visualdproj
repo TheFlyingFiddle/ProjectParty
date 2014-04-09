@@ -83,7 +83,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib dunit.lib</libfiles>
+  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib DerelictSDL2.lib DerelictOGG.lib dunit.lib</libfiles>
   <libpaths>..\lib\win32</libpaths>
   <deffile />
   <resfile />
@@ -401,6 +401,7 @@
    <File path="content\phoneReloading.d" />
    <File path="content\reloading.d" />
    <File path="content\sdl.d" />
+   <File path="content\sound.d" />
    <File path="content\texture.d" />
   </Folder>
   <Folder name="event">
@@ -454,6 +455,10 @@
    <File path="network\message.d" />
    <File path="network\router.d" />
    <File path="network\server.d" />
+  </Folder>
+  <Folder name="sound">
+   <File path="sound\package.d" />
+   <File path="sound\sound.d" />
   </Folder>
   <Folder name="spriter">
    <File path="spriter\loader.d" />

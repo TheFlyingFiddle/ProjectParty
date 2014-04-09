@@ -5,6 +5,7 @@ public import content.texture;
 public import content.reloading;
 public import content.font;
 public import content.common;
+public import content.sound;
 
 struct ContentConfig
 {
@@ -12,6 +13,7 @@ struct ContentConfig
 	uint maxReloaders;
 	uint maxTextures;
 	uint maxFonts;
+	uint maxSounds;
 }
 
 struct Content
@@ -20,6 +22,7 @@ struct Content
 	{
 		ContentReloader.init(allocator, c.maxTrackingResources, c.maxReloaders, c.maxTrackingResources);
 		TextureManager.init(allocator, c.maxTextures);
+		SoundManager.init(allocator, c.maxSounds);
 
 		import allocation;
 		FontManager.init(allocator, GC.cit, c.maxFonts);
@@ -30,6 +33,7 @@ struct Content
 		ContentReloader.shutdown();
 		TextureManager.shutdown();
 		FontManager.shutdown();
+		SoundManager.shutdown();
 	}
 
 	void loadAsset(Asset asset)

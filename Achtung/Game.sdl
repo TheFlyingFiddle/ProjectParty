@@ -13,6 +13,7 @@ contentConfig =
 
 	maxTextures    = 100
 	maxFonts       = 10
+	maxSounds      = 50
 }
 
 //Windows and whatnot.
@@ -36,6 +37,19 @@ serverConfig =
 	maxMessageSize = 0xffff
 	broadcastInterval = 1.0
 	connectionTimeout = 15
+}
+
+soundConfig =
+{
+	freq = 22050
+	numChannels = 32
+	bufferSize = 4096
+	
+	musicVolume  = 1.0
+	soundVolume  = 1.0 
+	masterVolume = 0.5
+
+	musicFoulderPath = ||
 }
 
 gameName = achtung 
