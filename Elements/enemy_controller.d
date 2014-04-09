@@ -191,6 +191,10 @@ class BaseEnemyController
 			{
 				foreach(method; onAtEnd)
 					method(enemies[i], i);
+				
+				//Super temp fix for crashing bugs 
+				//(need to use location of enemy to handle death, needs to be valid)
+				enemies[i].distance = paths[enemies[i].pathIndex].endDistance - 10f;
 
 				killEnemy(i);
 			}

@@ -138,7 +138,7 @@ a lethal container of coldness.|
 	},
 	{ 
 		cost = 20 
-		range = 300 
+		range = 230 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
 		info = 
@@ -153,7 +153,7 @@ rocket explosion.|
 	},
 	{ 
 		cost = 100 
-		range = 400 
+		range = 300 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
 		info = |This tower makes enemies explode in a very 
