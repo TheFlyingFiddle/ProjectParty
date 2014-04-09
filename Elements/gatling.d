@@ -111,7 +111,7 @@ final class GatlingController : TowerController!GatlingInstance
 		instances[towerIndex].elapsed += amount;
 	}
 
-	override void update(List!BaseEnemy enemies)
+	void update(List!BaseEnemy enemies)
 	{
 
 		// Update all homing projectiles
@@ -177,7 +177,7 @@ final class GatlingController : TowerController!GatlingInstance
 		}
 	}
 
-	override void render(List!BaseEnemy enemies)
+	void render(List!BaseEnemy enemies)
 	{
 
 		auto targetTex = Game.content.loadTexture("crosshair");
@@ -193,7 +193,7 @@ final class GatlingController : TowerController!GatlingInstance
 				{
 					auto size = float2(targetFrame.width, targetFrame.height);
 					auto origin = size/2;
-					Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, size, origin);
+					Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, float2.one, origin);
 				}
 			}
 		}
@@ -202,7 +202,7 @@ final class GatlingController : TowerController!GatlingInstance
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(	projectile.frame, projectile.position, Color(0xFF99FFFF), size, origin, 
+			Game.renderer.addFrame(	projectile.frame, projectile.position, Color(0xFF99FFFF), float2.one, origin, 
 								atan2(	enemies[projectile.targetIndex].position.y - projectile.position.y, 
 										enemies[projectile.targetIndex].position.x - projectile.position.x));
 		}

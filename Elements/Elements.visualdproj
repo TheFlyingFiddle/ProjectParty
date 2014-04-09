@@ -196,6 +196,7 @@
   <File path="GamePlay.sdl" />
   <File path="gatling.d" />
   <File path="main.d" />
+  <File path="network.d" />
   <File path="network_types.d" />
   <File path="tower_controller.d" />
   <File path="types.d" />

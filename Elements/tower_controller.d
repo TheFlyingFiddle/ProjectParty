@@ -10,15 +10,15 @@ import game;
 
 enum maxPressure = 1000;
 
-abstract class ITowerController
+interface ITowerController
 {
-	@property TileType type() { return TileType.buildable; }
-	void buildTower(uint towerIndex, uint prototypeIndex) { }
-	void removeTower(uint towerIndex) { }
-	void enterTower(int towerIndex, ulong playerID) { }
-	void exitTower(int towerIndex, ulong playerID) { }
-	void update(List!BaseEnemy enemies) { }
-	void render(List!BaseEnemy enemies) { }
+	@property TileType type();
+	void buildTower(uint towerIndex, uint prototypeIndex);
+	void removeTower(uint towerIndex);
+	void enterTower(int towerIndex, ulong playerID);
+	void exitTower(int towerIndex, ulong playerID);
+	void update(List!BaseEnemy enemies);
+	void render(List!BaseEnemy enemies);
 }
 
 struct BaseTower

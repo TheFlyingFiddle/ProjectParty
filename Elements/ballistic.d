@@ -141,7 +141,7 @@ final class BallisticController : TowerController!BallisticInstance
 												position(towerIndex) + target);
 	}
 
-	override void update(List!BaseEnemy enemies)
+	void update(List!BaseEnemy enemies)
 	{
 		// Update all homing projectiles
 		for(int i = homingProjectiles.length - 1; i >= 0; --i)
@@ -212,7 +212,7 @@ final class BallisticController : TowerController!BallisticInstance
 		}
 	}
 
-	override void render(List!BaseEnemy enemies)
+	void render(List!BaseEnemy enemies)
 	{
 
 		auto targetTex = Game.content.loadTexture("crosshair");
@@ -231,7 +231,7 @@ final class BallisticController : TowerController!BallisticInstance
 				auto position = position(tower) + vecToTarget;
 
 
-				Game.renderer.addFrame(targetFrame, position, Color.white, size, origin);
+				Game.renderer.addFrame(targetFrame, position, Color.white, float2.one, origin);
 			}
 			auto position = position(tower);
 		}
@@ -240,7 +240,7 @@ final class BallisticController : TowerController!BallisticInstance
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(projectile.frame, projectile.position, Color.white, size, origin, 
+			Game.renderer.addFrame(projectile.frame, projectile.position, Color.white, float2.one, origin, 
 							  atan2(enemies[projectile.targetIndex].position.y - projectile.position.y, 
 									enemies[projectile.targetIndex].position.x - projectile.position.x));
 		}
@@ -249,7 +249,7 @@ final class BallisticController : TowerController!BallisticInstance
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(	projectile.frame, projectile.position, Color.white, size, origin, 
+			Game.renderer.addFrame(	projectile.frame, projectile.position, Color.white, float2.one, origin, 
 								atan2(	projectile.target.y - projectile.position.y, 
 										projectile.target.x - projectile.position.x));
 		}

@@ -154,12 +154,15 @@ struct Vector(size_t size, T)
 		return table;
 	}
 
-
 	static Vector!(size, T) zero()
 	{
 		return Vector!(size,T)(cast(T)0);
 	}
 
+	static Vector!(size, T) one()
+	{
+		return Vector!(size,T)(cast(T)1);
+	}
 }
 
 auto magnitude(size_t N, T)(auto ref Vector!(N,T) vec)

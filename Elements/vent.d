@@ -61,7 +61,7 @@ final class VentController : TowerController!VentInstance
 		Game.router.setMessageHandler(IncomingMessages.ventDirection,	&handleVentDirection);
 	}
 
-	override void update(List!BaseEnemy enemies)
+	void update(List!BaseEnemy enemies)
 	{
 		foreach(i, ref instance; instances) if(!isBroken(instance))
 		{
@@ -88,16 +88,20 @@ final class VentController : TowerController!VentInstance
 		enemy.applyStatus(vent.status);
 	}
 
-	override void render(List!BaseEnemy enemies)
+	void render(List!BaseEnemy enemies)
 	{
 		foreach(i, tower; instances) if(!isBroken(tower))
 		{
 			auto position = position(i);
 
+
+
 			if ( tower.open > 0 && pressure(i) > 0) {
 				Color color = Color.white;
 				auto origin = float2(0, tower.frame.height/2);
-				Game.renderer.addFrame(tower.frame, position, color, float2(range(tower), tower.frame.height), origin, tower.direction);
+				float2 scale = float2(range(tower) / tower.frame.width, 1);
+
+				Game.renderer.addFrame(tower.frame, position, color, scale, origin, tower.direction);
 			}
 		}
 	}
