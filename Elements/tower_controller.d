@@ -200,7 +200,7 @@ abstract class TowerController(T) : ITowerController
 	List!T instances;
 	TowerCollection owner;
 
-	struct Controlled { int towerIndex; ulong playerID; }
+	struct Controlled { int instanceIndex; ulong playerID; }
 	List!Controlled controlled;
 
 	TileType _type;
@@ -243,7 +243,7 @@ abstract class TowerController(T) : ITowerController
 
 	final bool isControlled(int instanceIndex)
 	{
-		return controlled.countUntil!(x => x.towerIndex == instanceIndex) != -1;
+		return controlled.countUntil!(x => x.instanceIndex == instanceIndex) != -1;
 	}
 
 	final float pressure(ref T instance)
@@ -284,7 +284,7 @@ abstract class TowerController(T) : ITowerController
 	final void enterTower(int towerIndex, ulong playerID)
 	{
 		auto index = instances.countUntil!( x => x.baseIndex == towerIndex);
-		controlled ~= Controlled(towerIndex, playerID);
+		controlled ~= Controlled(index, playerID);
 		towerEntered(index, playerID);
 	}
 

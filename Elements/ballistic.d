@@ -205,7 +205,10 @@ final class BallisticController : TowerController!BallisticInstance
 
 		foreach(tower; controlled)
 		{
-			Game.server.sendMessage(tower.playerID, PressureInfoMessage(pressure(tower.towerIndex)));
+			Game.server.sendMessage(
+									tower.playerID, 
+									PressureInfoMessage(pressure(tower.instanceIndex))
+									);
 		}
 	}
 

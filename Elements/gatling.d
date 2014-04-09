@@ -102,7 +102,7 @@ final class GatlingController : TowerController!GatlingInstance
 	{
 		instances[towerIndex].isControlled = false;
 		auto t = cast(int)towerIndex;
-		auto index = controlled.countUntil!(c => c.towerIndex == t);
+		auto index = controlled.countUntil!(c => c.instanceIndex == t);
 		controlled.removeAt(index);
 	}
 
@@ -170,7 +170,10 @@ final class GatlingController : TowerController!GatlingInstance
 
 		foreach(tower; controlled)
 		{
-			Game.server.sendMessage(tower.playerID, PressureInfoMessage(pressure(tower.towerIndex)));
+			Game.server.sendMessage(
+									tower.playerID, 
+									PressureInfoMessage(pressure(tower.instanceIndex))
+									);
 		}
 	}
 
