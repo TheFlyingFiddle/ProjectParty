@@ -384,7 +384,7 @@ class GamePlayState : IGameState
 		{
 			if(ballisticController.homingProjectiles[j].targetIndex == i)
 			{
-				auto nearest = findNearestEnemy(enemyController.enemies, ballisticController.homingProjectiles[j].position);
+				auto nearest = findNearestEnemy(enemyController.enemies, enemy.position);
 				if(nearest == -1)
 					ballisticController.homingProjectiles.removeAt(j);
 				else
