@@ -15,8 +15,8 @@ abstract class ITowerController
 	@property TileType type() { return TileType.buildable; }
 	void buildTower(uint towerIndex, uint prototypeIndex) { }
 	void removeTower(uint towerIndex) { }
-	void enterTower(uint towerIndex, ulong playerID) { }
-	void exitTower(uint towerIndex, ulong playerID) { }
+	void enterTower(int towerIndex, ulong playerID) { }
+	void exitTower(int towerIndex, ulong playerID) { }
 	void update(List!BaseEnemy enemies) { }
 	void render(List!BaseEnemy enemies) { }
 }

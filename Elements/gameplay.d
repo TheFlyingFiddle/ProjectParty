@@ -143,6 +143,8 @@ class GamePlayState : IGameState
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
+		import std.stdio;
+		writeln("HandleTowerEntered");
 		auto index = towerCollection.indexOf(uint2(x,y));
 		towerCollection.enterTower(index, id);
 		foreach(player; Game.players) if (player.id != id)

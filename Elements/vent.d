@@ -91,9 +91,7 @@ final class VentController : TowerController!VentInstance
 	override void render(List!BaseEnemy enemies)
 	{
 		foreach(i, tower; instances) if(!isBroken(tower))
-		{		
-			import std.stdio;
-			writeln(tower.baseIndex);
+		{
 			auto position = position(i);
 
 			if ( tower.open > 0 && pressure(i) > 0) {
