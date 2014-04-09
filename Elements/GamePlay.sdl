@@ -47,7 +47,7 @@ ventPrototypes =
 		range = 100 
 		spread = 0.10
 		maxPressure = 100 
-		regenRate = 10 
+		regenRate = 30 
 		frame = cone //Will be replaced by steam supplier
 		towerFrame = tower_cone 
 		status = {duration = 5 value = 0.2 type = water}
@@ -145,21 +145,21 @@ a lethal container of coldness.|
 			|This tower makes enemies explode in a lethal
 rocket explosion.|
 		type = rocket 
-		regenRate = 10
+		regenRate = 30
 		towerFrame = rocket 
 		basic = true 
 		typeIndex = 0  
 		upgradeIndex0 = 5
 	},
 	{ 
-		cost = 20 
-		range = 300 
+		cost = 100 
+		range = 400 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
 		info = |This tower makes enemies explode in a very 
 lethal rocket explosion.|
 		type = rocket 
-		regenRate = 10
+		regenRate = 30
 		towerFrame = rocket 
 		typeIndex = 1  
 	},
@@ -171,7 +171,7 @@ lethal rocket explosion.|
 		info = |This tower fills the enemies with bullets in a 
 lethal storm of... bullets.|
 		type = gatling	
-		regenRate = 10
+		regenRate = 30
 		towerFrame = tower0 
 		typeIndex = 0  
 		basic = true
@@ -206,8 +206,7 @@ ballisticTowerPrototypes =
 		range = 300
 	    maxDistance = 500 
 		maxPressure = 100
-		pressureRegen = 3
-		pressureCost = 80
+		pressureCost = 300
 		reloadTime = 2 
 		frame = rocket 
 	},
@@ -217,8 +216,7 @@ ballisticTowerPrototypes =
 		range = 300
 		maxDistance = 500 
 		maxPressure = 100
-		pressureRegen = 3
-		pressureCost = 80
+		pressureCost = 300
 		reloadTime = 0.4 
 		frame = rocket 
 	}  
