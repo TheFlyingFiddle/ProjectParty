@@ -67,16 +67,19 @@ final class VentController : TowerController!VentInstance
 	{
 		foreach(i, ref instance; instances) if(!isBroken(instance))
 		{
-			if(instance.open > 0 && pressure(i) > 0)
+			if(instance.open > 0)
 			{
 				pressure(i) = min(maxPressure, pressure(i) - instance.fullyOpen * instance.open * Time.delta);
-				foreach(ref enemy; enemies) 
+				if(pressure(i) > 0)
 				{
-					if(distance(enemy.position, position(i)) <= range(instance)) {
-						auto angle = (enemy.position - position(i)).toPolar.angle;
-						if(instance.direction - instance.spread / 2 < angle && 
-							   instance.direction + instance.spread / 2 > angle) {
-								hitEnemy(instance, enemy);
+					foreach(ref enemy; enemies) 
+					{
+						if(distance(enemy.position, position(i)) <= range(instance)) {
+							auto angle = (enemy.position - position(i)).toPolar.angle;
+							if(instance.direction - instance.spread / 2 < angle && 
+								   instance.direction + instance.spread / 2 > angle) {
+									hitEnemy(instance, enemy);
+							}
 						}
 					}
 				}
