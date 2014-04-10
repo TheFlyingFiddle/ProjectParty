@@ -21,11 +21,11 @@ windowConfig =
 {
 	size = 
 	{
-		x=1900
-		y=1000
+		x=1366
+		y=768
 	}
 
-	fullScreen = false
+	fullScreen = true
 	blocking   = false
 	decorated  = false
 }

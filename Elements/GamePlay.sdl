@@ -1,5 +1,6 @@
 tileMap = |..\resources\elements\textures\map3_beta_tiletype.png|
-tileSize = { x = 100 y = 100 }
+
+tileSize = { x = 72 y = 77 }
 paths =  
 [ 
 	{
@@ -19,7 +20,8 @@ paths =
 			{ x = 9 y = 0  }, 
 			{ x = 9 y = 2 }
 		]
-		tileSize = { x = 100 y = 100 }
+
+		tileSize = { x = 72 y = 77 }
 	}
 ]
 
