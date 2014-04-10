@@ -51,7 +51,6 @@ struct GatlingInstance
 	int baseIndex;
 	float angle;
 	float elapsed;
-	bool isControlled;
 
 	this(int prefab, int baseIndex)
 	{
@@ -92,23 +91,17 @@ final class GatlingController : TowerController!GatlingInstance
 		Game.router.setMessageHandler(IncomingMessages.gatlingValue,	&handleGatlingValue);
 	}
 
-	override void towerEntered(int towerIndex, ulong playerId)
+	override void towerEntered(int towerIndex, ulong playerID)
 	{
-		controlled ~= Controlled(towerIndex, playerId);
-		instances[towerIndex].isControlled = true;
+		GatlingInfoMessage msg;
+		msg.pressure = pressure(towerIndex);
+		msg.maxPressure = maxPressure;
+
+		Game.server.sendMessage(playerID, msg);
 	}
 
-	override void towerExited(int towerIndex, ulong playerId)
+	override void towerExited(int towerIndex, ulong playerID)
 	{
-		instances[towerIndex].isControlled = false;
-		auto t = cast(int)towerIndex;
-		auto index = controlled.countUntil!(c => c.instanceIndex == t);
-		controlled.removeAt(index);
-	}
-
-	void crankTurned(uint towerIndex, float amount)
-	{
-		instances[towerIndex].elapsed += amount;
 	}
 
 	override void update(List!BaseEnemy enemies)
@@ -138,13 +131,14 @@ final class GatlingController : TowerController!GatlingInstance
 		// Update all towers
 		foreach(i, ref tower; instances)
 		{
-			if(tower.isControlled)
+			if(isControlled(i))
 			{	
 				if(tower.elapsed >= tower.anglePerShot)
 				{
 					tower.elapsed -= tower.anglePerShot;
 					if(pressure(i) >= tower.pressureCost)
 					{
+						pressure(i, pressure(i) - tower.pressureCost);
 						auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
 						if(enemyIndex != -1) 
 						{
@@ -185,7 +179,7 @@ final class GatlingController : TowerController!GatlingInstance
 		foreach(i, tower; instances)
 		{		
 
-			if(tower.isControlled)
+			if(isControlled(i))
 			{
 				// Calculate origin
 				auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);

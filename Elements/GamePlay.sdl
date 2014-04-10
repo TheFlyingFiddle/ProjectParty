@@ -232,7 +232,7 @@ gatlingTowerPrototypes =
 		reloadTime = 0.02 
 		anglePerShot = 1
 		maxPressure = 100
-		pressureCost = 1
+		pressureCost = 20
 		frame = tower0 
 	} 
 ]
