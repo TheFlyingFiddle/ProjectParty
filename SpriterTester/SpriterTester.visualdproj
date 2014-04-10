@@ -191,6 +191,8 @@
  <Folder name="SpriterTester">
   <File path="config.sdl" />
   <File path="main.d" />
+  <File path="particle.d" />
+  <File path="ParticleSettings.sdl" />
   <File path="state.d" />
  </Folder>
 </DProject>
