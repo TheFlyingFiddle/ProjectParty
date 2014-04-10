@@ -79,6 +79,7 @@ resources = [
 { type = texture path = |elements\textures\map2.png| },
 { type = texture path = |elements\textures\skeleton.png| },
 { type = texture path = |elements\textures\orange.png| },
+{ type = texture path = |elements\textures\banana.png| },
 { type = sound   path = |elements\sounds\machine_gun.ogg| } 
 ]
 

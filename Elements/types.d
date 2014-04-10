@@ -82,7 +82,8 @@ enum ComponentType
 {
 	speedup,
 	heal,
-	towerBreaker
+	towerBreaker,
+	statusRemover
 }
 
 struct EnemyComponentPrefab
@@ -93,6 +94,7 @@ struct EnemyComponentPrefab
 	@Optional(0.0f) float duration;
 	@Optional(0.0f) float amount;
 	@Optional(0.0f) float range;
+	@Optional(StatusType.none) StatusType statusType;
 }
 
 

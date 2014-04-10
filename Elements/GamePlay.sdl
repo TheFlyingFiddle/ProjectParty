@@ -88,6 +88,20 @@ enemyPrototypes =
 				range    = 100
 			}
 		]
+	},
+	{ 
+		maxHealth = 200	
+		speed = 42	
+		worth = 15	
+		frame = banana 
+		components = 
+		[
+			{		
+				type  = statusRemover
+				statusType = watered
+				interval = 1
+			}
+		]
 	} 
 ]
 
@@ -95,40 +109,32 @@ ventPrototypes =
 [ 
 	{ 
 		damage = 10 
-		range = 100 
 		spread = 0.10
-		maxPressure = 100 
-		regenRate = 30 
+		fullyOpen = 30
 		frame = cone //Will be replaced by steam supplier
 		towerFrame = tower_cone 
 		status = {duration = 5 value = 0.2 type = water}
 	},
 	{ 
 		damage = 0
-		range = 100 
 		spread = 0.10
-		maxPressure = 500 
-		regenRate = 2
+		fullyOpen = 30
 		frame = baws 
 		towerFrame = tower_cone 
 		status = {duration = 15 value = 5 type = fire}
 	},
 	{ 
 		damage = 1
-		range = 100 
 		spread = 0.1
-		maxPressure = 500 
-		regenRate = 2
+		fullyOpen = 30
 		frame = teddy 
 		towerFrame = tower_cone 
 		status = {duration = 5 value = 1 type = oil}
 	 },
 	 { 
 		damage = 50 
-		range = 100 
 		spread = 0.1
-		maxPressure = 500 
-		regenRate = 2
+		fullyOpen = 30
 		frame = rocket_big 
 		towerFrame = tower_cone 
 		status = {duration = 5 value = 0.2 type = liqNit}
@@ -305,10 +311,11 @@ waves =
 [  
 	{	spawners = 
 		[
-			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
-			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0},
-			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3  pathIndex = 0},
-			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1  pathIndex = 0}
+			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20  pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5   pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3   pathIndex = 0},
+			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1   pathIndex = 0},
+			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 10  pathIndex = 0}
 		] 
 		pauseTime = 10
 	},

@@ -284,7 +284,7 @@ abstract class TowerController(T) : ITowerController
 		instances ~= T(prototypeIndex, towerIndex);
 	}
 
-	override final void removeTower(uint towerIndex)
+	final void removeTower(uint towerIndex)
 	{
 		for(int i = instances.length - 1; i >= 0; i--)
 		{
@@ -296,6 +296,19 @@ abstract class TowerController(T) : ITowerController
 			{
 				instances.removeAt(i);
 			}
+		}
+	}
+
+
+	void update(List!BaseEnemy enemies)
+	{
+		import network.message, network_types;
+		foreach(tower; controlled)
+		{
+			Game.server.sendMessage(
+									tower.playerID, 
+									PressureInfoMessage(pressure(tower.instanceIndex))
+									);
 		}
 	}
 

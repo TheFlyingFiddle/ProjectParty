@@ -11,6 +11,7 @@ import std.algorithm : max, min;
 import tower_controller;
 import enemy_collection;
 import util.bitmanip;
+import network_types;
 
 struct VentInstance
 {
@@ -39,6 +40,7 @@ struct VentInstance
 struct VentTower
 {
 	float damage;
+	float fullyOpen;
 	@Convert!unitToRadiance() float spread;
 	StatusConfig status;
 	@Convert!stringToFrame() Frame frame;
@@ -61,13 +63,13 @@ final class VentController : TowerController!VentInstance
 		Game.router.setMessageHandler(IncomingMessages.ventDirection,	&handleVentDirection);
 	}
 
-	void update(List!BaseEnemy enemies)
+	override void update(List!BaseEnemy enemies)
 	{
 		foreach(i, ref instance; instances) if(!isBroken(instance))
 		{
 			if(instance.open>0 && pressure(i) > 0)
 			{
-				pressure(i, max(0, instance.open * Time.delta));
+				pressure(i) = min(maxPressure, pressure(i) - instance.fullyOpen * instance.open * Time.delta);
 				foreach(ref enemy; enemies) 
 				{
 					if(distance(enemy.position, position(i)) <= range(instance)) {
@@ -80,6 +82,8 @@ final class VentController : TowerController!VentInstance
 				}
 			}
 		}
+
+		super.update(enemies);
 	}
 
 	void hitEnemy(ref VentInstance vent, ref BaseEnemy enemy) 
@@ -108,7 +112,14 @@ final class VentController : TowerController!VentInstance
 
 	override void towerEntered(int towerIndex, ulong playerID)
 	{
+		VentInfoMessage msg;
+		msg.pressure	= pressure(towerIndex);
+		msg.maxPressure = maxPressure;
+		msg.direction   = instances[towerIndex].direction;
+		msg.open        = instances[towerIndex].open;
 
+		import network.message;
+		Game.server.sendMessage(playerID, msg);
 	}
 
 	override void towerExited(int towerIndex, ulong playerID)

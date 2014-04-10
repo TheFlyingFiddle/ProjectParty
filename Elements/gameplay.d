@@ -55,6 +55,7 @@ class GamePlayState : IGameState
 		allocator.allocate!SpeedupEnemyController(allocator, enemyCollection);
 		allocator.allocate!HealerEnemyController(allocator, enemyCollection);
 		allocator.allocate!TowerBreakerEnemyController(allocator, enemyCollection);
+		allocator.allocate!StatusRemoverEnemyController(allocator, enemyCollection);
 
 		enemyCollection.onDeath ~= &killEnemy;
 		enemyCollection.onAtEnd ~= &enemyAtEnd;

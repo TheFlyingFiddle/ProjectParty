@@ -141,7 +141,7 @@ final class BallisticController : TowerController!BallisticInstance
 												position(towerIndex) + target);
 	}
 
-	void update(List!BaseEnemy enemies)
+	override void update(List!BaseEnemy enemies)
 	{
 		// Update all homing projectiles
 		for(int i = homingProjectiles.length - 1; i >= 0; --i)
@@ -197,13 +197,7 @@ final class BallisticController : TowerController!BallisticInstance
 			}
 		}
 
-		foreach(tower; controlled)
-		{
-			Game.server.sendMessage(
-									tower.playerID, 
-									PressureInfoMessage(pressure(tower.instanceIndex))
-									);
-		}
+		super.update(enemies);
 	}
 
 	void render(List!BaseEnemy enemies)

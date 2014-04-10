@@ -110,7 +110,7 @@ final class GatlingController : TowerController!GatlingInstance
 		instances[towerIndex].elapsed += amount;
 	}
 
-	void update(List!BaseEnemy enemies)
+	override void update(List!BaseEnemy enemies)
 	{
 		// Update all homing projectiles
 		for(int i = autoProjectiles.length - 1; i >= 0; --i)
@@ -165,13 +165,7 @@ final class GatlingController : TowerController!GatlingInstance
 			}
 		}
 
-		foreach(tower; controlled)
-		{
-			Game.server.sendMessage(
-									tower.playerID, 
-									PressureInfoMessage(pressure(tower.instanceIndex))
-									);
-		}
+		super.update(enemies);
 	}
 
 	void render(List!BaseEnemy enemies)

@@ -163,3 +163,51 @@ class TowerBreakerEnemyController : EnemyController!(TowerBreakerEnemy, Componen
 		}
 	}
 }
+
+
+struct StatusRemoverEnemy
+{
+	float interval;
+	float elapsed;
+	StatusType type;
+	uint baseIndex;
+
+	this(ref EnemyComponentPrefab prefab)
+	{
+		this.interval	= prefab.interval;
+		this.type       = prefab.statusType;
+		this.elapsed = 0;
+	}
+}
+
+class StatusRemoverEnemyController : EnemyController!(StatusRemoverEnemy, ComponentType.statusRemover)
+{
+	this(A)(ref A allocator, EnemyCollection collection)
+	{
+		super(allocator, collection);
+	}
+
+	void update(TowerCollection towers)
+	{
+		foreach(ref instance; instances)
+		{		
+			instance.elapsed += Time.delta;
+			if(instance.elapsed >= instance.interval)
+			{
+				instance.elapsed -= instance.interval;
+				removeStatus(instance);
+			}
+		}
+	}
+
+	void render() 
+	{
+
+	}
+
+	void removeStatus(ref StatusRemoverEnemy enemy)
+	{
+		if(base(enemy).status.type == enemy.type)
+			base(enemy).status.type = StatusType.none;
+	}
+}
