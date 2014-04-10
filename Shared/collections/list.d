@@ -238,7 +238,12 @@ bool remove(alias pred, SwapStrategy s = SwapStrategy.stable, T)(ref List!T list
 	return true;
 }
 
-
+void move(SwapStrategy s = SwapStrategy.stable, T)(ref List!T from, ref List!T to, uint index)
+{
+	auto item = from[index];
+	removeAt!(s, T)(from, index);
+	to ~= item;
+}
 
 
 unittest
