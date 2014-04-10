@@ -48,8 +48,9 @@ soundConfig =
 	musicVolume  = 1.0
 	soundVolume  = 1.0 
 	masterVolume = 0.5
+	muted        = false
 
-	musicFoulderPath = ||
+	musicFoulderPath = |..\\resources\\elements\\music|
 }
 
 gameName = elements
@@ -75,7 +76,8 @@ resources = [
 { type = texture path = |elements\textures\crosshair.png| },
 { type = texture path = |elements\textures\bullet.png| },
 { type = texture path = |elements\textures\bullet_power.png| },
-{ type = texture path = |elements\textures\map2.png| }
+{ type = texture path = |elements\textures\map2.png| },
+{ type = sound   path = |elements\sounds\machine_gun.ogg| } 
 ]
 
 phoneResources = [

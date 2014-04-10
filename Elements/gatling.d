@@ -7,9 +7,10 @@ import content;
 import graphics;
 import game;
 import game.debuging;
+import sound;
 import std.algorithm : max, min;
 import std.math : atan2;
-import gameplay : findFarthestReachableEnemy;
+import algorithm : findFarthestReachableEnemy;
 import tower_controller, enemy_controller;
 import network.message;
 import network_types;
@@ -84,11 +85,13 @@ final class GatlingController : TowerController!GatlingInstance
 {
 	List!AutoProjectileInstance autoProjectiles;
 
+	//This is a quick and dirty way of doing this i don't know what 
+	//way is best if any but this works.
+
 	this(A)(ref A allocator, TowerCollection owner)
 	{
 		super(allocator, TileType.gatling, owner);
 		this.autoProjectiles = List!AutoProjectileInstance(allocator, 1000);
-
 		Game.router.setMessageHandler(IncomingMessages.gatlingValue,	&handleGatlingValue);
 	}
 
@@ -113,11 +116,9 @@ final class GatlingController : TowerController!GatlingInstance
 
 	void update(List!BaseEnemy enemies)
 	{
-
 		// Update all homing projectiles
 		for(int i = autoProjectiles.length - 1; i >= 0; --i)
 		{
-
 			// Move the projectile towards the target.
 			auto velocity = (enemies[autoProjectiles[i].targetIndex].position 
 							 - autoProjectiles[i].position).normalized 
@@ -184,7 +185,6 @@ final class GatlingController : TowerController!GatlingInstance
 		auto targetFrame = Frame(targetTex);
 		foreach(i, tower; instances)
 		{		
-
 			if(tower.isControlled)
 			{
 				// Calculate origin
@@ -225,6 +225,21 @@ final class GatlingController : TowerController!GatlingInstance
 		if(index != -1)
 		{
 			instances[index].elapsed += value;
+		}
+	}
+
+	void onEnemyDeath(EnemyCollection enemies, BaseEnemy enemy, uint index)
+	{
+		for (int j = autoProjectiles.length - 1; j >= 0; j--)
+		{
+			if(autoProjectiles[j].targetIndex == index)
+			{
+				autoProjectiles.removeAt(j);
+			} 
+			else if(autoProjectiles[j].targetIndex > index)
+			{
+				autoProjectiles[j].targetIndex--;
+			}
 		}
 	}
 }

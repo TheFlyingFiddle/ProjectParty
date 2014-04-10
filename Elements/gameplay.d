@@ -29,12 +29,8 @@ class GamePlayState : IGameState
 	int lifeTotal;
 	List!uint2 selections;
 
-	TowerCollection 			towerCollection;
-	
-	VentController 			ventController;
-	BallisticController		ballisticController;
-	GatlingController 		gatlingController;
-	BaseEnemyController			enemyController;
+	TowerCollection		towerCollection;
+	EnemyCollection		enemyController;
 
 	Table!(ulong, TowerPlayer)	players;
 
@@ -49,26 +45,36 @@ class GamePlayState : IGameState
 
 		lifeFont = Game.content.loadFont("Blocked72");
 		level = fromSDLFile!Level(allocator, configFile);
-		enemyController = allocator.allocate!BaseEnemyController(allocator, level);
+		enemyController = allocator.allocate!EnemyCollection(allocator, level);
 
 		enemyController.onDeath ~= &killEnemy;
 		enemyController.onAtEnd ~= &enemyAtEnd;
 	
+
 		towerCollection = allocator.allocate!TowerCollection(allocator, level.towers, level.tileSize);
 
 		BaseEnemy.paths = level.paths;
 
-		ventController = new VentController(allocator, towerCollection);
+		auto ventController = new VentController(allocator, towerCollection);
 		VentInstance.prefabs = level.ventPrototypes;
 		
-		ballisticController = new BallisticController(allocator, towerCollection);
+		auto ballisticController = new BallisticController(allocator, towerCollection);
+		enemyController.onDeath ~= &ballisticController.onEnemyDeath;
+		enemyController.onAtEnd ~= &ballisticController.onEnemyDeath;
+		
 		HomingProjectileInstance.prefabs = level.homingPrototypes;
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 
-		gatlingController = new GatlingController(allocator, towerCollection);
+		auto gatlingController = new GatlingController(allocator, towerCollection);
+		enemyController.onDeath ~= &gatlingController.onEnemyDeath;
+		enemyController.onAtEnd ~= &gatlingController.onEnemyDeath;
+
 		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
 		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
+
+		//Temp music
+		Game.sound.playMusic("test.ogg");
 	}
 
 	void enter()
@@ -368,112 +374,22 @@ class GamePlayState : IGameState
 		}
 	}
 
-	void enemyAtEnd(BaseEnemy enemy, uint i)
+	void enemyAtEnd(EnemyCollection enemies, BaseEnemy enemy, uint i)
 	{
 		if(--lifeTotal == 0) 
 			gameOver();
 	}
 
-	void killEnemy(BaseEnemy enemy, uint i)
+	void killEnemy(EnemyCollection enemies,  BaseEnemy enemy, uint i)
 	{
 		foreach(player; Game.players)
 		{
 			sendTransaction(player.id, enemy.worth / Game.players.length);
 		}	
-
-		//Should be moved into ballisticController
-		for (int j = ballisticController.homingProjectiles.length - 1; j >= 0; j--)
-		{
-			if(ballisticController.homingProjectiles[j].targetIndex == i)
-			{
-				auto nearest = findNearestEnemy(enemyController.enemies, enemy.position);
-				if(nearest == -1)
-					ballisticController.homingProjectiles.removeAt(j);
-				else
-					ballisticController.homingProjectiles[j].targetIndex = nearest;
-			} 
-			else if(ballisticController.homingProjectiles[j].targetIndex > i)
-			{
-				ballisticController.homingProjectiles[j].targetIndex--;
-			}
-		}
-
-		for (int j = gatlingController.autoProjectiles.length - 1; j >= 0; j--)
-		{
-			if(gatlingController.autoProjectiles[j].targetIndex == i)
-			{
-				gatlingController.autoProjectiles.removeAt(j);
-			} 
-			else if(gatlingController.autoProjectiles[j].targetIndex > i)
-			{
-				gatlingController.autoProjectiles[j].targetIndex--;
-			}
-		}
 	}
 
 	void gameOver()
 	{
 		std.c.stdlib.exit(0);
 	}
-}
-
-int findNearestEnemy(ref List!BaseEnemy enemies, float2 position)
-{
-	int index = -1;
-	auto lowestDistance = float.max;
-
-	foreach(i, ref enemy; enemies)
-	{
-		float distance = distance(enemy.position, position);
-
-		if(index == -1 || distance < lowestDistance)
-		{
-			index = i;
-			lowestDistance = distance;
-		}
-
-	}
-	return index;
-}
-
-int findFarthestReachableEnemy(List!BaseEnemy enemies, float2 towerPos, float range)
-{
-	auto index = -1;
-	
-	foreach(i, ref enemy; enemies)
-	{
-		float distance = distance(enemy.position, towerPos);
-		if (distance <= range)
-		{
-			if(index == -1)
-				index = i;
-			else if (enemy.distance > enemies[index].distance)
-				index = i;
-		}
-	}
-	return index;
-}
-
-int findNearestReachableEnemy(List!BaseEnemy enemies, float2 towerPos, float range)
-{
-	int index = -1;
-	float lowestDistance = float.infinity;
-	foreach(i, ref enemy; enemies)
-	{
-		float distance = distance(enemy.position, towerPos);
-		if (distance <= range)
-		{
-			if(index == -1)
-			{
-				index = i;
-				lowestDistance = distance;
-			}
-			else if (distance < lowestDistance)
-			{
-				index = i;
-				lowestDistance = distance;
-			}
-		}
-	}
-	return index;
 }

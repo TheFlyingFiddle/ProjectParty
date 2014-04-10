@@ -161,10 +161,10 @@ struct BaseEnemy {
 	}
 }
 
-alias EnemyDeathHandler = void delegate(BaseEnemy, uint);
-alias EnemyAtEndHandler = void delegate(BaseEnemy, uint);
+alias EnemyDeathHandler = void delegate(EnemyCollection, BaseEnemy, uint);
+alias EnemyAtEndHandler = void delegate(EnemyCollection, BaseEnemy, uint);
 
-class BaseEnemyController
+class EnemyCollection
 {
 	List!BaseEnemy enemies;
 	List!EnemyDeathHandler onDeath;
@@ -190,7 +190,7 @@ class BaseEnemyController
 			if (enemies[i].distance > paths[enemies[i].pathIndex].endDistance)
 			{
 				foreach(method; onAtEnd)
-					method(enemies[i], i);
+					method(this, enemies[i], i);
 				
 				//Super temp fix for crashing bugs 
 				//(need to use location of enemy to handle death, needs to be valid)
@@ -217,9 +217,9 @@ class BaseEnemyController
 	{
 		auto enemy = enemies[enemyIndex];
 		enemies.removeAt(enemyIndex);
-
 		foreach(handler; onDeath)
-			handler(enemy, enemyIndex);
+			handler(this, enemy, enemyIndex);
+
 	}
 
 	void render() 

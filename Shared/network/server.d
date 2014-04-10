@@ -400,6 +400,7 @@ struct Server
 				return;
 			 }
 
+			 s.setOption(SocketOptionLevel.TCP, SocketOption.TCP_NODELAY, 1);
 
 
 			 logChnl.info("Connection was received: ", activeConnections.length + pendingConnections.length);

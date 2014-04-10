@@ -72,7 +72,6 @@ struct Game_Impl
 
 	this(A)(ref A allocator, GameConfig config)
 	{
-		content = allocator.allocate!Content(allocator, config.contentConfig);
 		server  = allocator.allocate!Server(allocator, config.serverConfig);
 		router  = allocator.allocate!Router(allocator, *server);
 		
@@ -98,6 +97,7 @@ struct Game_Impl
 
 		ContentReloader.onTrackedChanged = &onAssetReload;
 
+		content = allocator.allocate!Content(allocator, config.contentConfig);
 		foreach(asset ; config.resources)
 			content.loadAsset(asset);
 

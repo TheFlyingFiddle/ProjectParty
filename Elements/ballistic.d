@@ -9,7 +9,7 @@ import game;
 import game.debuging;
 import std.algorithm : max, min;
 import std.math : atan2;
-import gameplay : findFarthestReachableEnemy;
+import algorithm;
 import network_types;
 import network.message;
 import tower_controller, enemy_controller;
@@ -214,7 +214,6 @@ final class BallisticController : TowerController!BallisticInstance
 
 	void render(List!BaseEnemy enemies)
 	{
-
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
 		foreach(i, tower; instances)
@@ -319,5 +318,24 @@ final class BallisticController : TowerController!BallisticInstance
 		auto index = indexOf(uint2(x,y));
 		if(index != -1)
 			launch(index);
+	}
+
+	void onEnemyDeath(EnemyCollection enemies, BaseEnemy enemy, uint index)
+	{
+		for (int j = homingProjectiles.length - 1; j >= 0; j--)
+		{
+			if(homingProjectiles[j].targetIndex == index)
+			{
+				auto nearest = findNearestEnemy(enemies.enemies, homingProjectiles[j].position);
+				if(nearest == -1)
+					homingProjectiles.removeAt(j);
+				else
+					homingProjectiles[j].targetIndex = nearest;
+			} 
+			else if(homingProjectiles[j].targetIndex > index)
+			{
+				homingProjectiles[j].targetIndex--;
+			}
+		}
 	}
 }

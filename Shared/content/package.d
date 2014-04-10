@@ -48,9 +48,17 @@ struct Content
 			case font:
 				loadFont(asset.path);
 				break;
+			case sound:
+				loadSound(asset.path);
+				break;
 			default:
 				assert(0, format("Loading of assettype %s is not supported", asset.type));
 		}
+	}
+
+	SoundID loadSound(const(char[]) path)
+	{
+		return SoundManager.load(path);
 	}
 
 	FontID loadFont(const(char[]) path) 

@@ -61,6 +61,7 @@ struct SoundConfig
 	float musicVolume;
 	float soundVolume;
 	float masterVolume;
+	bool  muted;
 
 	string musicFoulderPath;
 }
@@ -70,6 +71,7 @@ struct SoundPlayer
 	private Mix_Music* music = null;
 	private string musicFoulderPath;
 	private float _masterVolume, _musicVolume, _soundVolume;
+	private bool  _muted;
 	
 	this(A)(ref A allocator, SoundConfig config)
 	{
@@ -79,7 +81,12 @@ struct SoundPlayer
 								 config.bufferSize);
 		Mix_AllocateChannels(config.numChannels);
 		musicFoulderPath = config.musicFoulderPath;
+
 		_masterVolume = config.masterVolume;
+	
+		muted       = config.muted;
+		soundVolume = config.soundVolume;
+		musicVolume = config.musicVolume;
 
 	}
 
@@ -96,6 +103,26 @@ struct SoundPlayer
 		auto channel = Mix_PlayChannel(-1, sound.mixChunk, loopCount);
 
 		return SoundInstance(&this, toPlay, channel);
+	}
+
+	@property bool muted()
+	{
+		return _muted;
+	}
+
+	@property void muted(bool value)
+	{
+		_muted = value;
+		if(value)
+		{
+			Mix_Volume(-1, 0);
+			Mix_VolumeMusic(0);
+		} 
+		else 
+		{
+			musicVolume = _musicVolume;
+			soundVolume = _soundVolume;
+		}
 	}
 
 	void pauseSound(int channel)
@@ -138,7 +165,8 @@ struct SoundPlayer
 		volume = min(1, max(0, volume)) * masterVolume;
 		_soundVolume = volume;
 
-		 Mix_Volume(-1, cast(int)(_soundVolume * _masterVolume * MIX_MAX_VOLUME));
+		if(!muted)
+			Mix_Volume(-1, cast(int)(_soundVolume * _masterVolume * MIX_MAX_VOLUME));
 	}
 
 	//Music stuff.
@@ -147,7 +175,8 @@ struct SoundPlayer
 		import std.algorithm;
 		volume = min(1, max(0, volume)) * masterVolume;
 		_musicVolume = volume;
-		Mix_VolumeMusic(cast(int)(_musicVolume * _masterVolume * MIX_MAX_VOLUME));
+		if(!muted)
+			Mix_VolumeMusic(cast(int)(_musicVolume * _masterVolume * MIX_MAX_VOLUME));
 	}
 
 	@property float musicVolume()
