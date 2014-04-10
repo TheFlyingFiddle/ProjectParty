@@ -373,7 +373,7 @@ class GamePlayState : IGameState
 
 	void render()
 	{
-		auto imageTex = Game.content.loadTexture("map2.png");
+		auto imageTex = Game.content.loadTexture("map3_beta.png");
 		auto imageFrame = Frame(imageTex);
 		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;

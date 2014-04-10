@@ -21,8 +21,8 @@ windowConfig =
 {
 	size = 
 	{
-		x=1366 
-		y=768
+		x=1920
+		y=1080
 	}
 
 	fullScreen = false
@@ -77,6 +77,7 @@ resources = [
 { type = texture path = |elements\textures\bullet.png| },
 { type = texture path = |elements\textures\bullet_power.png| },
 { type = texture path = |elements\textures\map2.png| },
+{ type = texture path = |elements\textures\map3_beta.png| },
 { type = texture path = |elements\textures\skeleton.png| },
 { type = texture path = |elements\textures\orange.png| },
 { type = texture path = |elements\textures\banana.png| },

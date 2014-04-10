@@ -21,8 +21,8 @@ windowConfig =
 {
 	size = 
 	{
-		x=1366 
-		y=768
+		x=1920 
+		y=1080
 	}
 
 	fullScreen = false
