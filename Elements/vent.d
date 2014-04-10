@@ -27,7 +27,7 @@ struct VentInstance
 		this.prefab = prefab;
 		this.baseIndex = baseIndex;
 		this.direction = 0;
-		this.open = 1;
+		this.open = 0;
 	}
 
 	auto ref opDispatch(string property)()
@@ -67,7 +67,7 @@ final class VentController : TowerController!VentInstance
 	{
 		foreach(i, ref instance; instances) if(!isBroken(instance))
 		{
-			if(instance.open>0 && pressure(i) > 0)
+			if(instance.open > 0 && pressure(i) > 0)
 			{
 				pressure(i) = min(maxPressure, pressure(i) - instance.fullyOpen * instance.open * Time.delta);
 				foreach(ref enemy; enemies) 
