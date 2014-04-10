@@ -75,7 +75,6 @@ struct GatlingTower
 	float maxDistance;
 	float reloadTime;
 	float anglePerShot;
-	float maxPressure;
 	float pressureCost;
 	@Convert!stringToFrame() Frame frame;
 }
@@ -136,28 +135,31 @@ final class GatlingController : TowerController!GatlingInstance
 		// Update all towers
 		foreach(i, ref tower; instances) if(!isControlled(i))
 		{	
+			tower.elapsed += Time.delta;
+			if(tower.elapsed >= tower.reloadTime)
+			{
+				auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
+				if(enemyIndex != -1) 
+				{
+					spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(i));
+					tower.elapsed = 0;
+				}
+			}
+		}
+
+		foreach(i, c; controlled) 
+		{
+			auto tower = &instances[c.instanceIndex];
 			if(tower.elapsed >= tower.anglePerShot)
 			{
 				tower.elapsed -= tower.anglePerShot;
 				if(pressure(i) >= tower.pressureCost)
 				{
+					pressure(i) -= tower.pressureCost;
 					auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
 					if(enemyIndex != -1) 
 					{
 						spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(i));
-					}
-				}
-			}
-			else // Tower is on autopilot. Just shoot projectiles steadily.
-			{
-				tower.elapsed += Time.delta;
-				if(tower.elapsed >= tower.reloadTime)
-				{
-					auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
-					if(enemyIndex != -1) 
-					{
-						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(i));
-						tower.elapsed = 0;
 					}
 				}
 			}

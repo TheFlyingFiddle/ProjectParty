@@ -205,7 +205,6 @@ ballisticTowerPrototypes =
 		ballisticPrefabIndex = 0 
 		range = 300
 	    maxDistance = 500 
-		maxPressure = 100
 		pressureCost = 300
 		reloadTime = 2 
 		frame = rocket 
@@ -215,7 +214,6 @@ ballisticTowerPrototypes =
 		ballisticPrefabIndex = 0 
 		range = 300
 		maxDistance = 500 
-		maxPressure = 100
 		pressureCost = 300
 		reloadTime = 0.4 
 		frame = rocket 
@@ -231,8 +229,7 @@ gatlingTowerPrototypes =
 		maxDistance = 500 
 		reloadTime = 0.02 
 		anglePerShot = 1
-		maxPressure = 100
-		pressureCost = 1
+		pressureCost = 10
 		frame = tower0 
 	} 
 ]

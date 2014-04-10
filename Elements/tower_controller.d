@@ -224,7 +224,7 @@ abstract class TowerController(T) : ITowerController
 		return -1;
 	}
 
-	final float2 position(ref T instance)
+	final ref float2 position(ref T instance)
 	{
 		return owner.baseTowers[instance.baseIndex].position;
 	}
@@ -234,7 +234,7 @@ abstract class TowerController(T) : ITowerController
 		return position(instances[instanceIndex]);
 	}
 
-	final bool isBroken(ref T instance)
+	final ref bool isBroken(ref T instance)
 	{
 		return owner.baseTowers[instance.baseIndex].isBroken;
 	}
@@ -244,12 +244,12 @@ abstract class TowerController(T) : ITowerController
 		return controlled.countUntil!(x => x.instanceIndex == instanceIndex) != -1;
 	}
 
-	final float pressure(ref T instance)
+	final ref float pressure(ref T instance)
 	{
 		return owner.baseTowers[instance.baseIndex].pressure;
 	}
 
-	final float pressure(int instanceIndex)
+	final ref float pressure(int instanceIndex)
 	{
 		return pressure(instances[instanceIndex]);
 	}
