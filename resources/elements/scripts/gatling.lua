@@ -11,13 +11,13 @@ function Gatling()
 	end
 
 	local crank = 
-		  Crank(Rect2(400,200,400,400),
+		  Crank(Rect2(400,120, 300, 300),
 		  				    sendAmount,
 							0xFF00FF00,
 							0xFF00FFFF)
 
   	local pressureDisplay = 
-		PressureDisplay(Rect2(100,200,100,400), 
+		PressureDisplay(Rect2(100, 130,100, 250), 
 					0xFFFF8800,
 					0xFF770000,
 					1)
@@ -53,8 +53,6 @@ function Gatling()
 	function t.exit()
 		gui:clear()
 	end
-
-
 	
 	return t
 end

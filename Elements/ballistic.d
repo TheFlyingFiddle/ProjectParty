@@ -9,10 +9,10 @@ import game;
 import game.debuging;
 import std.algorithm : max, min;
 import std.math : atan2;
-import gameplay : findFarthestReachableEnemy;
+import algorithm;
 import network_types;
 import network.message;
-import tower_controller, enemy_controller;
+import tower_controller, enemy_collection;
 import util.bitmanip;
 
 struct BallisticProjectileInstance
@@ -183,38 +183,25 @@ final class BallisticController : TowerController!BallisticInstance
 		}
 
 		// Update all towers
-		foreach(i, ref tower; instances)
+		foreach(i, ref tower; instances) if(!isBroken(i) && !isControlled(i))
 		{
-			if(isControlled(i))
+			tower.elapsed += Time.delta;
+			if(tower.elapsed >= tower.reloadTime)
 			{
-			}
-			else // Tower is on autopilot. Just shoot projectiles steadily.
-			{
-				tower.elapsed += Time.delta;
-				if(tower.elapsed >= tower.reloadTime)
+				auto enemyIndex = findFarthestReachableEnemy(enemies, position(tower), range(tower));
+				if(enemyIndex != -1) 
 				{
-					auto enemyIndex = findFarthestReachableEnemy(enemies, position(tower), range(tower));
-					if(enemyIndex != -1) 
-					{
-						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(tower));
-						tower.elapsed = 0;
-					}
+					spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(tower));
+					tower.elapsed = 0;
 				}
 			}
 		}
 
-		foreach(tower; controlled)
-		{
-			Game.server.sendMessage(
-									tower.playerID, 
-									PressureInfoMessage(pressure(tower.instanceIndex))
-									);
-		}
+		super.update(enemies);
 	}
 
-	override void render(List!BaseEnemy enemies)
+	void render(List!BaseEnemy enemies)
 	{
-
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
 		foreach(i, tower; instances)
@@ -231,7 +218,7 @@ final class BallisticController : TowerController!BallisticInstance
 				auto position = position(tower) + vecToTarget;
 
 
-				Game.renderer.addFrame(targetFrame, position, Color.white, size, origin);
+				Game.renderer.addFrame(targetFrame, position, Color.white, float2.one, origin);
 			}
 			auto position = position(tower);
 		}
@@ -240,7 +227,7 @@ final class BallisticController : TowerController!BallisticInstance
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(projectile.frame, projectile.position, Color.white, size, origin, 
+			Game.renderer.addFrame(projectile.frame, projectile.position, Color.white, float2.one, origin, 
 							  atan2(enemies[projectile.targetIndex].position.y - projectile.position.y, 
 									enemies[projectile.targetIndex].position.x - projectile.position.x));
 		}
@@ -249,7 +236,7 @@ final class BallisticController : TowerController!BallisticInstance
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(	projectile.frame, projectile.position, Color.white, size, origin, 
+			Game.renderer.addFrame(	projectile.frame, projectile.position, Color.white, float2.one, origin, 
 								atan2(	projectile.target.y - projectile.position.y, 
 										projectile.target.x - projectile.position.x));
 		}
@@ -281,10 +268,6 @@ final class BallisticController : TowerController!BallisticInstance
 		auto projectile = BallisticProjectileInstance(projectilePrefabIndex, position, target);
 		ballisticProjectiles ~= projectile;
 	}
-
-
-
-
 
 	void handleBallisticValue(ulong id, ubyte[] msg)
 	{
@@ -319,5 +302,24 @@ final class BallisticController : TowerController!BallisticInstance
 		auto index = indexOf(uint2(x,y));
 		if(index != -1)
 			launch(index);
+	}
+
+	void onEnemyDeath(EnemyCollection enemies, BaseEnemy enemy, uint index)
+	{
+		for (int j = homingProjectiles.length - 1; j >= 0; j--)
+		{
+			if(homingProjectiles[j].targetIndex == index)
+			{
+				auto nearest = findNearestEnemy(enemies.enemies, homingProjectiles[j].position);
+				if(nearest == -1)
+					homingProjectiles.removeAt(j);
+				else
+					homingProjectiles[j].targetIndex = nearest;
+			} 
+			else if(homingProjectiles[j].targetIndex > index)
+			{
+				homingProjectiles[j].targetIndex--;
+			}
+		}
 	}
 }

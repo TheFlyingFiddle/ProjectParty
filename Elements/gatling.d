@@ -7,10 +7,11 @@ import content;
 import graphics;
 import game;
 import game.debuging;
+import sound;
 import std.algorithm : max, min;
 import std.math : atan2;
-import gameplay : findFarthestReachableEnemy;
-import tower_controller, enemy_controller;
+import algorithm : findFarthestReachableEnemy;
+import tower_controller, enemy_collection;
 import network.message;
 import network_types;
 import util.bitmanip;
@@ -74,7 +75,6 @@ struct GatlingTower
 	float maxDistance;
 	float reloadTime;
 	float anglePerShot;
-	float maxPressure;
 	float pressureCost;
 	@Convert!stringToFrame() Frame frame;
 }
@@ -83,17 +83,20 @@ final class GatlingController : TowerController!GatlingInstance
 {
 	List!AutoProjectileInstance autoProjectiles;
 
+	//This is a quick and dirty way of doing this i don't know what 
+	//way is best if any but this works.
+
 	this(A)(ref A allocator, TowerCollection owner)
 	{
 		super(allocator, TileType.gatling, owner);
 		this.autoProjectiles = List!AutoProjectileInstance(allocator, 1000);
-
-		Game.router.setMessageHandler(IncomingMessages.gatlingValue,	&handleGatlingValue);
+		Game.router.setMessageHandler(IncomingMessages.gatlingValue,  &handleGatlingValue);
 	}
 
 	override void towerEntered(int towerIndex, ulong playerID)
 	{
 		GatlingInfoMessage msg;
+
 		msg.pressure = pressure(towerIndex);
 		msg.maxPressure = maxPressure;
 
@@ -106,11 +109,9 @@ final class GatlingController : TowerController!GatlingInstance
 
 	override void update(List!BaseEnemy enemies)
 	{
-
 		// Update all homing projectiles
 		for(int i = autoProjectiles.length - 1; i >= 0; --i)
 		{
-
 			// Move the projectile towards the target.
 			auto velocity = (enemies[autoProjectiles[i].targetIndex].position 
 							 - autoProjectiles[i].position).normalized 
@@ -129,66 +130,55 @@ final class GatlingController : TowerController!GatlingInstance
 		}
 
 		// Update all towers
-		foreach(i, ref tower; instances)
-		{
-			if(isControlled(i))
-			{	
-				if(tower.elapsed >= tower.anglePerShot)
+		foreach(i, ref tower; instances) if(!isBroken(i) && !isControlled(i))
+		{	
+			tower.elapsed += Time.delta;
+			if(tower.elapsed >= tower.reloadTime)
+			{
+				auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
+				if(enemyIndex != -1) 
 				{
-					tower.elapsed -= tower.anglePerShot;
-					if(pressure(i) >= tower.pressureCost)
-					{
-						pressure(i, pressure(i) - tower.pressureCost);
-						auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
-						if(enemyIndex != -1) 
-						{
-							spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(i));
-						}
-					}
+					spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(i));
+					tower.elapsed = 0;
 				}
 			}
-			else // Tower is on autopilot. Just shoot projectiles steadily.
+		}
+
+		foreach(i, c; controlled) 
+		{
+			auto tower = &instances[c.instanceIndex];
+			if(tower.elapsed >= tower.anglePerShot)
 			{
-				tower.elapsed += Time.delta;
-				if(tower.elapsed >= tower.reloadTime)
+				tower.elapsed -= tower.anglePerShot;
+				if(pressure(i) >= tower.pressureCost)
 				{
+					pressure(i) -= tower.pressureCost;
 					auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
 					if(enemyIndex != -1) 
 					{
-						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(i));
-						tower.elapsed = 0;
+						spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(i));
 					}
 				}
 			}
 		}
 
-		foreach(tower; controlled)
-		{
-			Game.server.sendMessage(
-									tower.playerID, 
-									PressureInfoMessage(pressure(tower.instanceIndex))
-									);
-		}
+		super.update(enemies);
 	}
 
-	override void render(List!BaseEnemy enemies)
+	void render(List!BaseEnemy enemies)
 	{
 
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
-		foreach(i, tower; instances)
-		{		
-
-			if(isControlled(i))
+		foreach(c; controlled)
+		{
+			auto tower = instances[c.instanceIndex];
+			auto enemyIndex = findFarthestReachableEnemy(enemies, position(c.instanceIndex), tower.range);
+			if(enemyIndex != -1) 
 			{
-				// Calculate origin
-				auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
-				if(enemyIndex != -1) 
-				{
-					auto size = float2(targetFrame.width, targetFrame.height);
-					auto origin = size/2;
-					Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, size, origin);
-				}
+				auto size = float2(targetFrame.width, targetFrame.height);
+				auto origin = size/2;
+				Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, float2.one, origin);
 			}
 		}
 
@@ -196,7 +186,7 @@ final class GatlingController : TowerController!GatlingInstance
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(	projectile.frame, projectile.position, Color(0xFF99FFFF), size, origin, 
+			Game.renderer.addFrame(	projectile.frame, projectile.position, Color(0xFF99FFFF), float2.one, origin, 
 								atan2(	enemies[projectile.targetIndex].position.y - projectile.position.y, 
 										enemies[projectile.targetIndex].position.x - projectile.position.x));
 		}
@@ -219,6 +209,21 @@ final class GatlingController : TowerController!GatlingInstance
 		if(index != -1)
 		{
 			instances[index].elapsed += value;
+		}
+	}
+
+	void onEnemyDeath(EnemyCollection enemies, BaseEnemy enemy, uint index)
+	{
+		for (int j = autoProjectiles.length - 1; j >= 0; j--)
+		{
+			if(autoProjectiles[j].targetIndex == index)
+			{
+				autoProjectiles.removeAt(j);
+			} 
+			else if(autoProjectiles[j].targetIndex > index)
+			{
+				autoProjectiles[j].targetIndex--;
+			}
 		}
 	}
 }

@@ -12,7 +12,8 @@ import tower_controller;
 import ballistic;
 import gatling;
 import network_types;
-import enemy_controller;
+import enemy_collection;
+import enemy;
 
 
 struct TowerPlayer
@@ -29,12 +30,13 @@ class GamePlayState : IGameState
 	int lifeTotal;
 	List!uint2 selections;
 
-	TowerCollection 			towerCollection;
+	TowerCollection		towerCollection;
+	EnemyCollection		enemyCollection;
+
 	
-	VentController 			ventController;
-	BallisticController		ballisticController;
-	GatlingController 		gatlingController;
-	BaseEnemyController			enemyController;
+	float towerBreakTimer = 0;
+	float towerBreakInterval = 30;
+
 
 	Table!(ulong, TowerPlayer)	players;
 
@@ -49,26 +51,39 @@ class GamePlayState : IGameState
 
 		lifeFont = Game.content.loadFont("Blocked72");
 		level = fromSDLFile!Level(allocator, configFile);
-		enemyController = allocator.allocate!BaseEnemyController(allocator, level);
+		enemyCollection = allocator.allocate!EnemyCollection(allocator, level);
+		allocator.allocate!SpeedupEnemyController(allocator, enemyCollection);
+		allocator.allocate!HealerEnemyController(allocator, enemyCollection);
+		allocator.allocate!TowerBreakerEnemyController(allocator, enemyCollection);
+		allocator.allocate!StatusRemoverEnemyController(allocator, enemyCollection);
 
-		enemyController.onDeath ~= &killEnemy;
-		enemyController.onAtEnd ~= &enemyAtEnd;
+		enemyCollection.onDeath ~= &killEnemy;
+		enemyCollection.onAtEnd ~= &enemyAtEnd;
 	
+
 		towerCollection = allocator.allocate!TowerCollection(allocator, level.towers, level.tileSize);
+		towerCollection.onTowerBroken ~= &sendTowerBrokenMessage;
 
 		BaseEnemy.paths = level.paths;
 
-		ventController = new VentController(allocator, towerCollection);
+		auto ventController = new VentController(allocator, towerCollection);
 		VentInstance.prefabs = level.ventPrototypes;
 		
-		ballisticController = new BallisticController(allocator, towerCollection);
+		auto ballisticController = new BallisticController(allocator, towerCollection);
+		enemyCollection.onDeath ~= &ballisticController.onEnemyDeath;
+		
 		HomingProjectileInstance.prefabs = level.homingPrototypes;
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 
-		gatlingController = new GatlingController(allocator, towerCollection);
+		auto gatlingController = new GatlingController(allocator, towerCollection);
+		enemyCollection.onDeath ~= &gatlingController.onEnemyDeath;
+
 		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
 		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
+
+		//Temp music
+		Game.sound.playMusic("test.ogg");
 	}
 
 	void enter()
@@ -95,7 +110,7 @@ class GamePlayState : IGameState
 	void connect(ulong id) 
 	{
 		import std.random;
-		players[id] = TowerPlayer(level.startBalance, Color(uniform(0xFF000000, 0xFFFFFFFF)));
+		players[id] = TowerPlayer(0, Color(uniform(0xFF000000, 0xFFFFFFFF)));
 		sendTransaction(id, level.startBalance);
 	}
 
@@ -111,6 +126,9 @@ class GamePlayState : IGameState
 
 		Game.server.sendMessage(id, tMsg);
 		players[id].balance += amount;
+
+		import std.stdio;
+		writeln("Balance: ", players[id].balance);
 	}
 
 	void handleTowerRequest(ulong id, ubyte[] msg)
@@ -119,10 +137,12 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto type = msg.read!ubyte;
 		auto typeIndex = msg.read!ubyte;
-
+	
+		auto balance = players[id].balance;
+			
 		auto metaIndex = getMetaInfo(type, typeIndex);
 		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-			players[id].balance >= level.towers[metaIndex].cost) {
+			balance >= level.towers[metaIndex].cost) {
 
 			towerCollection.buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 												       y * level.tileSize.y + level.tileSize.y / 2), 
@@ -278,10 +298,11 @@ class GamePlayState : IGameState
 
 
 
-	void sendTowerBroke(uint2 towerCell)
+	void sendTowerBrokenMessage(TowerCollection collection, uint towerIndex)
 	{
+		auto c = collection.baseTowers[towerIndex].cell(level.tileSize);
 		foreach(player; Game.players)
-			Game.server.sendMessage(player.id, TowerBrokenMessage(towerCell.x, towerCell.y));
+			Game.server.sendMessage(player.id, TowerBrokenMessage(c.x, c.y));
 	}
 
 	void exit()
@@ -291,15 +312,33 @@ class GamePlayState : IGameState
 
 	void update()
 	{
+		updateTowerBreaker();
+
+
 		updateWave();
-		enemyController.update();
-		towerCollection.update(enemyController.enemies);
-		enemyController.killEnemies();
+		enemyCollection.update(towerCollection);
+		towerCollection.update(enemyCollection.enemies);
+		enemyCollection.killEnemies();
+	}
+
+	void updateTowerBreaker()
+	{
+		towerBreakTimer += Time.delta;
+		if(towerBreakTimer >= towerBreakInterval)
+		{
+			towerBreakTimer -= towerBreakInterval;
+			import std.random;
+			if(towerCollection.baseTowers.length > 0)
+			{
+				auto index = uniform(0,  towerCollection.baseTowers.length);
+				towerCollection.breakTower(index);
+			}
+		}
 	}
 
 	void updateWave()
 	{
-		auto enemies = enemyController.enemies;
+		auto enemies = enemyCollection.enemies;
 		level.waves[0].elapsed += Time.delta;
 
 		if(level.waves[0].pauseTime < level.waves[0].elapsed) {
@@ -325,8 +364,7 @@ class GamePlayState : IGameState
 		if (spawner.startTime <= 0) {
 			spawner.elapsed += Time.delta;
 			if (spawner.elapsed >= spawner.spawnInterval) {
-				auto enemy = BaseEnemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
-				enemyController.enemies ~= enemy;
+				enemyCollection.addEnemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
 				spawner.numEnemies--;
 				spawner.elapsed = 0;
 			}
@@ -340,9 +378,9 @@ class GamePlayState : IGameState
 		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;
 
-		enemyController.render();
+		enemyCollection.render();
 
-		towerCollection.render(enemyController.enemies);
+		towerCollection.render(enemyCollection.enemies);
 
 		import util.strings;
 		char[128] buffer;
@@ -368,112 +406,22 @@ class GamePlayState : IGameState
 		}
 	}
 
-	void enemyAtEnd(BaseEnemy enemy, uint i)
+	void enemyAtEnd(EnemyCollection enemies, BaseEnemy enemy, uint i)
 	{
 		if(--lifeTotal == 0) 
 			gameOver();
 	}
 
-	void killEnemy(BaseEnemy enemy, uint i)
+	void killEnemy(EnemyCollection enemies,  BaseEnemy enemy, uint i)
 	{
 		foreach(player; Game.players)
 		{
 			sendTransaction(player.id, enemy.worth / Game.players.length);
 		}	
-
-		//Should be moved into ballisticController
-		for (int j = ballisticController.homingProjectiles.length - 1; j >= 0; j--)
-		{
-			if(ballisticController.homingProjectiles[j].targetIndex == i)
-			{
-				auto nearest = findNearestEnemy(enemyController.enemies, enemy.position);
-				if(nearest == -1)
-					ballisticController.homingProjectiles.removeAt(j);
-				else
-					ballisticController.homingProjectiles[j].targetIndex = nearest;
-			} 
-			else if(ballisticController.homingProjectiles[j].targetIndex > i)
-			{
-				ballisticController.homingProjectiles[j].targetIndex--;
-			}
-		}
-
-		for (int j = gatlingController.autoProjectiles.length - 1; j >= 0; j--)
-		{
-			if(gatlingController.autoProjectiles[j].targetIndex == i)
-			{
-				gatlingController.autoProjectiles.removeAt(j);
-			} 
-			else if(gatlingController.autoProjectiles[j].targetIndex > i)
-			{
-				gatlingController.autoProjectiles[j].targetIndex--;
-			}
-		}
 	}
 
 	void gameOver()
 	{
 		std.c.stdlib.exit(0);
 	}
-}
-
-int findNearestEnemy(ref List!BaseEnemy enemies, float2 position)
-{
-	int index = -1;
-	auto lowestDistance = float.max;
-
-	foreach(i, ref enemy; enemies)
-	{
-		float distance = distance(enemy.position, position);
-
-		if(index == -1 || distance < lowestDistance)
-		{
-			index = i;
-			lowestDistance = distance;
-		}
-
-	}
-	return index;
-}
-
-int findFarthestReachableEnemy(List!BaseEnemy enemies, float2 towerPos, float range)
-{
-	auto index = -1;
-	
-	foreach(i, ref enemy; enemies)
-	{
-		float distance = distance(enemy.position, towerPos);
-		if (distance <= range)
-		{
-			if(index == -1)
-				index = i;
-			else if (enemy.distance > enemies[index].distance)
-				index = i;
-		}
-	}
-	return index;
-}
-
-int findNearestReachableEnemy(List!BaseEnemy enemies, float2 towerPos, float range)
-{
-	int index = -1;
-	float lowestDistance = float.infinity;
-	foreach(i, ref enemy; enemies)
-	{
-		float distance = distance(enemy.position, towerPos);
-		if (distance <= range)
-		{
-			if(index == -1)
-			{
-				index = i;
-				lowestDistance = distance;
-			}
-			else if (distance < lowestDistance)
-			{
-				index = i;
-				lowestDistance = distance;
-			}
-		}
-	}
-	return index;
 }

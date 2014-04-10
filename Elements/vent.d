@@ -9,8 +9,9 @@ import game;
 import game.debuging;
 import std.algorithm : max, min;
 import tower_controller;
-import enemy_controller;
+import enemy_collection;
 import util.bitmanip;
+import network_types;
 
 struct VentInstance
 {
@@ -26,7 +27,7 @@ struct VentInstance
 		this.prefab = prefab;
 		this.baseIndex = baseIndex;
 		this.direction = 0;
-		this.open = 1;
+		this.open = 0;
 	}
 
 	auto ref opDispatch(string property)()
@@ -39,6 +40,7 @@ struct VentInstance
 struct VentTower
 {
 	float damage;
+	float fullyOpen;
 	@Convert!unitToRadiance() float spread;
 	StatusConfig status;
 	@Convert!stringToFrame() Frame frame;
@@ -65,9 +67,9 @@ final class VentController : TowerController!VentInstance
 	{
 		foreach(i, ref instance; instances) if(!isBroken(instance))
 		{
-			if(instance.open>0 && pressure(i) > 0)
+			if(instance.open > 0 && pressure(i) > 0)
 			{
-				pressure(i, max(0, instance.open * Time.delta));
+				pressure(i) = min(maxPressure, pressure(i) - instance.fullyOpen * instance.open * Time.delta);
 				foreach(ref enemy; enemies) 
 				{
 					if(distance(enemy.position, position(i)) <= range(instance)) {
@@ -80,6 +82,8 @@ final class VentController : TowerController!VentInstance
 				}
 			}
 		}
+
+		super.update(enemies);
 	}
 
 	void hitEnemy(ref VentInstance vent, ref BaseEnemy enemy) 
@@ -88,23 +92,34 @@ final class VentController : TowerController!VentInstance
 		enemy.applyStatus(vent.status);
 	}
 
-	override void render(List!BaseEnemy enemies)
+	void render(List!BaseEnemy enemies)
 	{
 		foreach(i, tower; instances) if(!isBroken(tower))
 		{
 			auto position = position(i);
 
+
+
 			if ( tower.open > 0 && pressure(i) > 0) {
 				Color color = Color.white;
 				auto origin = float2(0, tower.frame.height/2);
-				Game.renderer.addFrame(tower.frame, position, color, float2(range(tower), tower.frame.height), origin, tower.direction);
+				float2 scale = float2(range(tower) / tower.frame.width, 1);
+
+				Game.renderer.addFrame(tower.frame, position, color, scale, origin, tower.direction);
 			}
 		}
 	}
 
 	override void towerEntered(int towerIndex, ulong playerID)
 	{
+		VentInfoMessage msg;
+		msg.pressure	= pressure(towerIndex);
+		msg.maxPressure = maxPressure;
+		msg.direction   = instances[towerIndex].direction;
+		msg.open        = instances[towerIndex].open;
 
+		import network.message;
+		Game.server.sendMessage(playerID, msg);
 	}
 
 	override void towerExited(int towerIndex, ulong playerID)

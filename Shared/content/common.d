@@ -10,7 +10,8 @@ enum AssetType
 	font = 1,
 	script = 2,
 	textureAtlas = 3,
-	spriter = 4
+	spriter = 4,
+	sound = 5
 }
 
 struct Asset

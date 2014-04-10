@@ -103,3 +103,7 @@ function onPinch(x0, y0, x1, y1)
 		fsm.active.onPinch(x0, y0, x1, y1)
 	end
 end
+
+function logf(fmt, ...)
+	log(string.format(fmt, ...))
+end

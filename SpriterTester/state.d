@@ -32,6 +32,8 @@ class TestState : IGameState
 		foreach(ref mover ; movers)
 			mover = Mover(float2(uniform(0,1000f), uniform(0f,1000f)), 
 							  float2(uniform(-1f,1f), uniform(-1f,1f)));
+
+		Game.sound.playMusic("test.ogg");
 	}
 
 	void enter()  { }

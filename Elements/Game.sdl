@@ -13,6 +13,7 @@ contentConfig =
 
 	maxTextures    = 100
 	maxFonts       = 10
+	maxSounds      = 50
 }
 
 //Windows and whatnot.
@@ -38,6 +39,20 @@ serverConfig =
 	connectionTimeout = 15
 }
 
+soundConfig =
+{
+	freq = 22050
+	numChannels = 32
+	bufferSize = 4096
+	
+	musicVolume  = 1.0
+	soundVolume  = 1.0 
+	masterVolume = 0.5
+	muted        = true
+
+	musicFoulderPath = |..\\resources\\elements\\music|
+}
+
 gameName = elements
 
 resources = [ 
@@ -61,7 +76,11 @@ resources = [
 { type = texture path = |elements\textures\crosshair.png| },
 { type = texture path = |elements\textures\bullet.png| },
 { type = texture path = |elements\textures\bullet_power.png| },
-{ type = texture path = |elements\textures\map2.png| }
+{ type = texture path = |elements\textures\map2.png| },
+{ type = texture path = |elements\textures\skeleton.png| },
+{ type = texture path = |elements\textures\orange.png| },
+{ type = texture path = |elements\textures\banana.png| },
+{ type = sound   path = |elements\sounds\machine_gun.ogg| } 
 ]
 
 phoneResources = [
