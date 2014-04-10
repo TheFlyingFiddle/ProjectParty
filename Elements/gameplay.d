@@ -110,7 +110,7 @@ class GamePlayState : IGameState
 	void connect(ulong id) 
 	{
 		import std.random;
-		players[id] = TowerPlayer(level.startBalance, Color(uniform(0xFF000000, 0xFFFFFFFF)));
+		players[id] = TowerPlayer(0, Color(uniform(0xFF000000, 0xFFFFFFFF)));
 		sendTransaction(id, level.startBalance);
 	}
 
@@ -126,6 +126,9 @@ class GamePlayState : IGameState
 
 		Game.server.sendMessage(id, tMsg);
 		players[id].balance += amount;
+
+		import std.stdio;
+		writeln("Balance: ", players[id].balance);
 	}
 
 	void handleTowerRequest(ulong id, ubyte[] msg)
@@ -134,10 +137,12 @@ class GamePlayState : IGameState
 		auto y = msg.read!uint;
 		auto type = msg.read!ubyte;
 		auto typeIndex = msg.read!ubyte;
-
+	
+		auto balance = players[id].balance;
+			
 		auto metaIndex = getMetaInfo(type, typeIndex);
 		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-			players[id].balance >= level.towers[metaIndex].cost) {
+			balance >= level.towers[metaIndex].cost) {
 
 			towerCollection.buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 												       y * level.tileSize.y + level.tileSize.y / 2), 
