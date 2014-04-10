@@ -93,21 +93,18 @@ final class GatlingController : TowerController!GatlingInstance
 		Game.router.setMessageHandler(IncomingMessages.gatlingValue,  &handleGatlingValue);
 	}
 
-	override void towerEntered(int towerIndex, ulong playerId)
+	override void towerEntered(int towerIndex, ulong playerID)
 	{
 		GatlingInfoMessage msg;
-		msg.pressure    = pressure(towerIndex);
+
+		msg.pressure = pressure(towerIndex);
 		msg.maxPressure = maxPressure;
-		Game.server.sendMessage(playerId, msg);
+
+		Game.server.sendMessage(playerID, msg);
 	}
 
-	override void towerExited(int towerIndex, ulong playerId)
+	override void towerExited(int towerIndex, ulong playerID)
 	{
-	}
-
-	void crankTurned(uint towerIndex, float amount)
-	{
-		instances[towerIndex].elapsed += amount;
 	}
 
 	override void update(List!BaseEnemy enemies)
@@ -174,7 +171,7 @@ final class GatlingController : TowerController!GatlingInstance
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
 		foreach(c; controlled)
-		{		
+		{
 			auto tower = instances[c.instanceIndex];
 			auto enemyIndex = findFarthestReachableEnemy(enemies, position(c.instanceIndex), tower.range);
 			if(enemyIndex != -1) 

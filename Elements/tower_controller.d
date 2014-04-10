@@ -327,7 +327,7 @@ abstract class TowerController(T) : ITowerController
 		auto index = controlled.countUntil!( x => x.playerID == playerID);
 		if(index != -1)
 			controlled.removeAt(index);
-		
+
 		towerExited(index, playerID);
 	}
 
