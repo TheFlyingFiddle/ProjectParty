@@ -155,6 +155,7 @@ towers =
 		typeIndex = 0 
 		regenRate = 10
 		towerFrame = tower_cone
+		startPressure = 1
 		upgradeIndex0 = 1
 		upgradeIndex1 = 2 
 		upgradeIndex2 = 3
@@ -170,6 +171,7 @@ towers =
 		towerFrame = tower_cone
 		type = vent 
 		typeIndex = 1  
+		startPressure = 1
 	},
 	{ 
 		cost = 100 
@@ -182,6 +184,7 @@ in a lethal barrel of oil.|
 		towerFrame = tower_cone
 		type = vent 
 		typeIndex = 2  
+		startPressure = 1
 	},
 	{ 
 		cost = 20 
@@ -194,6 +197,7 @@ a lethal container of coldness.|
 		towerFrame = tower_cone
 		type = vent 
 		typeIndex = 3  
+		startPressure = 1
 	},
 	{ 
 		cost = 20 

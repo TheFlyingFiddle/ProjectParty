@@ -61,6 +61,7 @@ struct Tower
 	float range;
 	ubyte typeIndex;
 	@Convert!stringToFrame() Frame towerFrame;
+	@Optional(0f) float startPressure;
 	@Optional(false) bool basic;
 	@Optional(ubyte.max) ubyte upgradeIndex0;
 	@Optional(ubyte.max) ubyte upgradeIndex1;
