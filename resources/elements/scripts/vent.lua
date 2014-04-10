@@ -1,8 +1,3 @@
-local function exit()
-	fsm:enterState("Elements")
-end
-
-
 function Vent()
 	local t = {}
 
@@ -22,6 +17,10 @@ function Vent()
 					0xFF770000,
 					1)
 
+	local function exit()
+		sendTowerExited(t.cell)
+		fsm:enterState("Elements")
+	end
 
 	local function south()
 		selector.dir = math.pi * 3 / 2

@@ -150,13 +150,13 @@ final class GatlingController : TowerController!GatlingInstance
 			if(tower.elapsed >= tower.anglePerShot)
 			{
 				tower.elapsed -= tower.anglePerShot;
-				if(pressure(i) >= tower.pressureCost)
+				if(pressure(instances[c.instanceIndex]) >= tower.pressureCost)
 				{
-					pressure(i) -= tower.pressureCost;
-					auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
+					pressure(instances[c.instanceIndex]) -= tower.pressureCost;
+					auto enemyIndex = findFarthestReachableEnemy(enemies, position(instances[c.instanceIndex]), tower.range);
 					if(enemyIndex != -1) 
 					{
-						spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(i));
+						spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(instances[c.instanceIndex]));
 					}
 				}
 			}

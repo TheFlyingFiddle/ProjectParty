@@ -3,10 +3,12 @@ function Repair()
 
 	local function repair()
 		sendRepaired(rep.cell)
+		sendTowerExited(rep.cell)
 		fsm:enterState("Elements")
 	end	
 
 	local function exit()
+		sendTowerExited(rep.cell)
 		fsm:enterState("Elements")
 	end
 

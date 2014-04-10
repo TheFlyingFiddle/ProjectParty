@@ -21,13 +21,13 @@ windowConfig =
 {
 	size = 
 	{
-		x=1920
-		y=1080
+		x=1900
+		y=1000
 	}
 
 	fullScreen = false
 	blocking   = false
-	decorated  = true
+	decorated  = false
 }
 
 serverConfig = 

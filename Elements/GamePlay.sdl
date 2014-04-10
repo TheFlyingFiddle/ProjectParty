@@ -1,5 +1,5 @@
 tileMap = |..\resources\elements\textures\map3_beta_tiletype.png|
-tileSize = { x = 101 y = 108 }
+tileSize = { x = 100 y = 100 }
 paths =  
 [ 
 	{
@@ -19,7 +19,7 @@ paths =
 			{ x = 9 y = 0  }, 
 			{ x = 9 y = 2 }
 		]
-		tileSize = { x = 101 y = 108 }
+		tileSize = { x = 100 y = 100 }
 	}
 ]
 
@@ -145,7 +145,7 @@ towers =
 [
 	{ 
 		cost = 10 
-		range = 100 
+		range = 300 
 		phoneIcon = |textures/fire_icon.png| 
 		name = |Steam vent|
 		info = |This tower scolds enemies in a lethal sauna.|
@@ -160,7 +160,7 @@ towers =
 	},
 	{ 
 		cost = 100 
-		range = 140 
+		range = 340 
 		phoneIcon = |textures/water_icon.png|
 		name = |Fire vent|
 		info = |This tower burns enemies in a lethal oven.|
@@ -171,7 +171,7 @@ towers =
 	},
 	{ 
 		cost = 100 
-		range = 140 
+		range = 340 
 		phoneIcon = |textures/nature_icon.png|
 		name = |Oil vent|
 		info = |This tower makes enemies slippery and sticky 
@@ -183,7 +183,7 @@ in a lethal barrel of oil.|
 	},
 	{ 
 		cost = 20 
-		range = 300 
+		range = 400 
 		phoneIcon = |textures/wind_icon.png|
 		name = |Liquid nitrogen vent|
 		info = |This tower makes enemies cold (or frozen) in 
@@ -195,7 +195,7 @@ a lethal container of coldness.|
 	},
 	{ 
 		cost = 20 
-		range = 230 
+		range = 930 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
 		info = 
@@ -210,7 +210,7 @@ rocket explosion.|
 	},
 	{ 
 		cost = 100 
-		range = 300 
+		range = 900 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
 		info = |This tower makes enemies explode in a very 
@@ -222,7 +222,7 @@ lethal rocket explosion.|
 	},
 	{ 
 		cost = 40 
-		range = 200 
+		range = 600 
 		phoneIcon = |textures/gatling_icon.png|
 		name = |Gatling tower|
 		info = |This tower fills the enemies with bullets in a 
