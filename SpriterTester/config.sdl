@@ -13,6 +13,7 @@ contentConfig =
 
 	maxTextures    = 100
 	maxFonts       = 10
+	maxSounds      = 50
 }
 
 //Windows and whatnot.
@@ -38,6 +39,20 @@ serverConfig =
 	connectionTimeout = 15
 }
 
+soundConfig =
+{
+	freq = 22050
+	numChannels = 32
+	bufferSize = 4096
+	
+	musicVolume  = 1.0
+	soundVolume  = 1.0 
+	masterVolume = 0.5
+	muted        = true
+
+	musicFoulderPath = ||
+}
+
 gameName = elements
 
 resources = 
@@ -47,7 +62,9 @@ resources =
 	{ type = texture path = |elements\textures\teddy.png| },
 	{ type = texture path = |elements\textures\tower_cone.png| },
 	{ type = texture path = |elements\textures\rocket.png| },
-	{ type = texture path = |elements\textures\cone.png| }
+	{ type = texture path = |elements\textures\cone.png| },
+	{ type = texture path = |elements\textures\particle.png| }
+
 ]
 
 phoneResources = [ |elements/scripts/main.lua| ]

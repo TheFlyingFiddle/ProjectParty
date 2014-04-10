@@ -2,7 +2,7 @@ import std.stdio;
 
 import logging, external_libraries,
 	allocation, game, state,
-	game.debuging;
+	game.debuging, particle;
 
 version(X86) 
 enum libPath = "..\\lib\\win32\\";
@@ -13,6 +13,8 @@ pragma(lib, libPath ~ "DerelictGLFW3.lib");
 pragma(lib, libPath ~ "DerelictGL3.lib");
 pragma(lib, libPath ~ "DerelictUtil.lib");
 pragma(lib, libPath ~ "DerelictFI.lib");
+pragma(lib, libPath ~ "DerelictOGG.lib");
+pragma(lib, libPath ~ "DerelictSDL2.lib");
 pragma(lib, libPath ~ "dunit.lib");
 pragma(lib, "Shared.lib");
 
@@ -53,7 +55,7 @@ void init(A)(ref A allocator)
 	initDebugging("textures\\pixel.png");
 
 	auto fsm = Game.gameStateMachine;
-	fsm.addState(new TestState(), "State");
+	fsm.addState(new ParticleState(allocator), "State");
 	Game.transitionTo("State");
 
 	import graphics; 

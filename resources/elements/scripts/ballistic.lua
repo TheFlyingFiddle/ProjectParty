@@ -36,8 +36,6 @@ function Ballistic()
 	local function launch()
 		if pressureDisplay.amount >= t.pressureCost then
 			sendBallisticLaunch(t.cell)
-			sendTowerExited(t.cell)
-			fsm:enterState("Elements")
 		end
 	end
 

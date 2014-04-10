@@ -100,10 +100,8 @@ local function TowerSelected()
 			end
 		elseif item.id == 1 then			
 			state:enterState("Confirm", towers[item.index + 1], item.index)
-		elseif item.id == 3 then
+		elseif item.id == 2 then
 			sendSellTowerRequest(selectedCell)
-			state:enterState("Idle")
-		else
 			state:enterState("Idle")
 		end
 	end
@@ -111,8 +109,7 @@ local function TowerSelected()
 	function t.enter(type)
 		local enter    = { id = 0, frame = fireIcon,	color = 0xFFFFFFFF }
 		local upgrade  = { id = 1, frame = buyIcon,		color = 0xFF00FF00 }
-		local cancel   = { id = 2, frame = cancelIcon,  color = 0xFF0000FF }
-		local sell     = { id = 3, frame = buyIcon,     color = 0xFF0000FF }
+		local sell     = { id = 2, frame = buyIcon,     color = 0xFF0000FF }
 
 		local items = { enter }
 		local tower = findInstance(selectedCell)
@@ -120,7 +117,6 @@ local function TowerSelected()
 	
 		if tower.ownedByMe then
 			table.insert(items, sell)
-			table.insert(items, cancel)
 			if towerMeta.upgradeIndex0 ~= 255 then
 				table.insert(items, 
 					{ id = 1, frame = towers[towerMeta.upgradeIndex0 + 1].frame, 
@@ -139,8 +135,6 @@ local function TowerSelected()
 					  color = 0xFFFFFFFF, 
 					  index = towerMeta.upgradeIndex2 } )	
 			end
-		else 
-			table.insert(items, cancel)
 		end
 
 		selector = Selector(Rect(0,0,0,0), callback, items)
@@ -154,12 +148,7 @@ local function BuildableSelected()
 	local t = { }
 	
 	local function callback(item)
-
-		if item.id and item.id == 0 then
-			state:enterState("Idle")
-		else
-			state:enterState("Confirm", item)
-		end
+		state:enterState("Confirm", item)
 	end	
 
 	function t.enter()
@@ -170,8 +159,6 @@ local function BuildableSelected()
 			end
 		end
 
-		local cancel   = { id = 0, frame = cancelIcon,  color = 0xFF0000FF }
-		table.insert(items, cancel)
 		selector = Selector(Rect(0,0,0,0), callback, items)
 	end
 
@@ -186,10 +173,8 @@ local function Confirm()
 			sendAddTower(selectedCell, t.tower.type, t.tower.typeIndex)
 			state:enterState("Idle")
 		elseif item.id == 1 then
-			state:enterState("Idle")
-		elseif item.id == 2 then
 			fsm:enterState("Info", t.tower)
-		elseif item.id == 3 then
+		elseif item.id == 2 then
 			sendUpgradeTower(selectedCell, t.upgradeIndex)
 			state:enterState("Idle")
 		end
@@ -199,14 +184,13 @@ local function Confirm()
 		local buyId = 0
 
 		if upgradeIndex then
-			buyId = 3
+			buyId = 2
 		end
 
 		local buy = {id = buyId, frame = buyIcon, color = 0xFFFFFFFF}
-		local cancel = {id = 1, frame = cancelIcon, color = 0xFF000000}
-		local info = {id = 2, frame = infoIcon, color = 0xFFFFFFFF}
+		local info = {id = 1, frame = infoIcon, color = 0xFFFFFFFF}
 
-		selector = Selector(Rect(0,0,0,0), callback, {buy, cancel, info})
+		selector = Selector(Rect(0,0,0,0), callback, {buy, info})
 		t.tower = tower
 		t.upgradeIndex = upgradeIndex
 	end

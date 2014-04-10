@@ -1,0 +1,12 @@
+startColor = 0xFF00ffff
+endColor   = 0xFF0000FF
+colorVariance = 0xFF2200FF
+
+startSize = 5
+endSize   = 15
+
+startAngularVelocity = 0
+endAngularVelocity	 = 20
+
+lifeTime = 5
+sizeVariance = 10

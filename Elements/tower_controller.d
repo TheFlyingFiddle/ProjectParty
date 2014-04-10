@@ -3,22 +3,22 @@ import math;
 import collections;
 import types;
 import std.conv;
-import enemy_controller;
+import enemy_collection;
 import std.algorithm : countUntil, min, max;
 import graphics;
 import game;
 
 enum maxPressure = 1000;
 
-abstract class ITowerController
+interface ITowerController
 {
-	@property TileType type() { return TileType.buildable; }
-	void buildTower(uint towerIndex, uint prototypeIndex) { }
-	void removeTower(uint towerIndex) { }
-	void enterTower(uint towerIndex, ulong playerID) { }
-	void exitTower(uint towerIndex, ulong playerID) { }
-	void update(List!BaseEnemy enemies) { }
-	void render(List!BaseEnemy enemies) { }
+	@property TileType type();
+	void buildTower(uint towerIndex, uint prototypeIndex);
+	void removeTower(uint towerIndex);
+	void enterTower(int towerIndex, ulong playerID);
+	void exitTower(int towerIndex, ulong playerID);
+	void update(List!BaseEnemy enemies);
+	void render(List!BaseEnemy enemies);
 }
 
 struct BaseTower
@@ -39,19 +39,23 @@ uint2 cell(T)(T t, uint2 tileSize)
 					 (t.position.y - tileSize.y/2) / tileSize.y);
 }
 
+alias TowerBrokeHandler = void delegate(TowerCollection, uint);
+
 final class TowerCollection
 {
 	uint2 tileSize;
 	List!ITowerController controllers;
-
 	List!BaseTower baseTowers;
+	List!TowerBrokeHandler onTowerBroken;
+
 
 	List!Tower metas;
 
 	this(A)(ref A allocator, List!Tower metas, uint2 tileSize)
 	{
-		this.controllers = List!ITowerController(allocator, 10);
-		this.baseTowers = List!BaseTower(allocator, 200);
+		this.controllers	= List!ITowerController(allocator, 10);
+		this.baseTowers		= List!BaseTower(allocator, 200);
+		this.onTowerBroken	= List!TowerBrokeHandler(allocator, 10); 
 		this.metas = metas;
 		this.tileSize = tileSize;
 	}
@@ -111,7 +115,12 @@ final class TowerCollection
 
 	void breakTower(uint towerIndex)
 	{
-		baseTowers[towerIndex].isBroken = true;
+		if(baseTowers[towerIndex].isBroken == false)
+		{
+			baseTowers[towerIndex].isBroken = true;
+			foreach(handler; onTowerBroken)
+				handler(this, towerIndex);
+		}
 	}
 
 	void repairTower(uint towerIndex)
@@ -158,19 +167,22 @@ final class TowerCollection
 	{
 		foreach(tower;baseTowers)
 		{
+			Color color = tower.isBroken ? Color(0xFF777777) : Color.white;
 			Game.renderer.addFrame(tower.frame, float4(	tower.position.x, 
 														tower.position.y, 
 														tileSize.x, 
 														tileSize.y), 
-								Color.white, float2(tileSize)/2);
+								color, float2(tileSize)/2);
 		}
+
+
 
 		foreach(tc;controllers)
 		{
 			tc.render(enemies);
 		}
 	
-		foreach(ref tower; baseTowers)
+		foreach(ref tower; baseTowers) if(!tower.isBroken)
 		{
 
 			float amount = tower.pressure/maxPressure;
@@ -198,9 +210,10 @@ template isValidTowerType(T)
 abstract class TowerController(T) : ITowerController
 {
 	List!T instances;
+
 	TowerCollection owner;
 
-	struct Controlled { int towerIndex; ulong playerID; }
+	struct Controlled { int instanceIndex; ulong playerID; }
 	List!Controlled controlled;
 
 	TileType _type;
@@ -226,7 +239,7 @@ abstract class TowerController(T) : ITowerController
 		return -1;
 	}
 
-	final float2 position(ref T instance)
+	final ref float2 position(ref T instance)
 	{
 		return owner.baseTowers[instance.baseIndex].position;
 	}
@@ -236,22 +249,27 @@ abstract class TowerController(T) : ITowerController
 		return position(instances[instanceIndex]);
 	}
 
-	final bool isBroken(ref T instance)
+	final ref bool isBroken(ref T instance)
 	{
 		return owner.baseTowers[instance.baseIndex].isBroken;
 	}
 
-	final bool isControlled(int instanceIndex)
+	final ref bool isBroken(int instanceIndex)
 	{
-		return controlled.countUntil!(x => x.towerIndex == instanceIndex) != -1;
+		return isBroken(instances[instanceIndex]);
 	}
 
-	final float pressure(ref T instance)
+	final bool isControlled(int instanceIndex)
+	{
+		return controlled.countUntil!(x => x.instanceIndex == instanceIndex) != -1;
+	}
+
+	final ref float pressure(ref T instance)
 	{
 		return owner.baseTowers[instance.baseIndex].pressure;
 	}
 
-	final float pressure(int instanceIndex)
+	final ref float pressure(int instanceIndex)
 	{
 		return pressure(instances[instanceIndex]);
 	}
@@ -266,7 +284,7 @@ abstract class TowerController(T) : ITowerController
 		instances ~= T(prototypeIndex, towerIndex);
 	}
 
-	override final void removeTower(uint towerIndex)
+	final void removeTower(uint towerIndex)
 	{
 		for(int i = instances.length - 1; i >= 0; i--)
 		{
@@ -281,18 +299,36 @@ abstract class TowerController(T) : ITowerController
 		}
 	}
 
+
+	void update(List!BaseEnemy enemies)
+	{
+		import network.message, network_types;
+		foreach(tower; controlled)
+		{
+			Game.server.sendMessage(
+									tower.playerID, 
+									PressureInfoMessage(pressure(tower.instanceIndex))
+									);
+		}
+	}
+
 	final void enterTower(int towerIndex, ulong playerID)
 	{
 		auto index = instances.countUntil!( x => x.baseIndex == towerIndex);
-		controlled ~= Controlled(towerIndex, playerID);
+		if(isBroken(index))
+			return;
+
+		controlled ~= Controlled(index, playerID);
 		towerEntered(index, playerID);
 	}
 
 	final void exitTower(int towerIndex, ulong playerID)
 	{
 		auto index = controlled.countUntil!( x => x.playerID == playerID);
-		controlled.removeAt(index);
-		towerEntered(index, playerID);
+		if(index != -1)
+			controlled.removeAt(index);
+
+		towerExited(index, playerID);
 	}
 
 	final void pressure(int towerIndex, float newPressure)

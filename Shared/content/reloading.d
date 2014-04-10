@@ -117,6 +117,11 @@ enum FileExtention
 	fnt,
 	lua,
 	scon,
+	ogg,
+	wav,
+	aiff,
+	riff,
+	voc,
 	unknown
 }
 

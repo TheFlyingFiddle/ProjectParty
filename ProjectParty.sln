@@ -18,6 +18,9 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Elements", "Elements\Elemen
 	EndProjectSection
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "SpriterTester", "SpriterTester\SpriterTester.visualdproj", "{A0C7C9C6-740C-4D7F-B2E3-3F96ACD89F79}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06AA8B71-5362-45F3-AE99-60E15D95960C} = {06AA8B71-5362-45F3-AE99-60E15D95960C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
