@@ -281,10 +281,6 @@ final class BallisticController : TowerController!BallisticInstance
 		ballisticProjectiles ~= projectile;
 	}
 
-
-
-
-
 	void handleBallisticValue(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint;

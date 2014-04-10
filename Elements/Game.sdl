@@ -48,7 +48,7 @@ soundConfig =
 	musicVolume  = 1.0
 	soundVolume  = 1.0 
 	masterVolume = 0.5
-	muted        = false
+	muted        = true
 
 	musicFoulderPath = |..\\resources\\elements\\music|
 }

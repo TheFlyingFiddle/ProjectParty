@@ -52,7 +52,6 @@ struct GatlingInstance
 	int baseIndex;
 	float angle;
 	float elapsed;
-	bool isControlled;
 
 	this(int prefab, int baseIndex)
 	{
@@ -92,21 +91,19 @@ final class GatlingController : TowerController!GatlingInstance
 	{
 		super(allocator, TileType.gatling, owner);
 		this.autoProjectiles = List!AutoProjectileInstance(allocator, 1000);
-		Game.router.setMessageHandler(IncomingMessages.gatlingValue,	&handleGatlingValue);
+		Game.router.setMessageHandler(IncomingMessages.gatlingValue,  &handleGatlingValue);
 	}
 
 	override void towerEntered(int towerIndex, ulong playerId)
 	{
-		controlled ~= Controlled(towerIndex, playerId);
-		instances[towerIndex].isControlled = true;
+		GatlingInfoMessage msg;
+		msg.pressure    = pressure(towerIndex);
+		msg.maxPressure = maxPressure;
+		Game.server.sendMessage(playerId, msg);
 	}
 
 	override void towerExited(int towerIndex, ulong playerId)
 	{
-		instances[towerIndex].isControlled = false;
-		auto t = cast(int)towerIndex;
-		auto index = controlled.countUntil!(c => c.instanceIndex == t);
-		controlled.removeAt(index);
 	}
 
 	void crankTurned(uint towerIndex, float amount)
@@ -137,20 +134,17 @@ final class GatlingController : TowerController!GatlingInstance
 		}
 
 		// Update all towers
-		foreach(i, ref tower; instances)
-		{
-			if(tower.isControlled)
-			{	
-				if(tower.elapsed >= tower.anglePerShot)
+		foreach(i, ref tower; instances) if(!isControlled(i))
+		{	
+			if(tower.elapsed >= tower.anglePerShot)
+			{
+				tower.elapsed -= tower.anglePerShot;
+				if(pressure(i) >= tower.pressureCost)
 				{
-					tower.elapsed -= tower.anglePerShot;
-					if(pressure(i) >= tower.pressureCost)
+					auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
+					if(enemyIndex != -1) 
 					{
-						auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
-						if(enemyIndex != -1) 
-						{
-							spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(i));
-						}
+						spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(i));
 					}
 				}
 			}
@@ -183,18 +177,15 @@ final class GatlingController : TowerController!GatlingInstance
 
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
-		foreach(i, tower; instances)
+		foreach(i, c; controlled)
 		{		
-			if(tower.isControlled)
+			auto tower = instances[c.instanceIndex];
+			auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
+			if(enemyIndex != -1) 
 			{
-				// Calculate origin
-				auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
-				if(enemyIndex != -1) 
-				{
-					auto size = float2(targetFrame.width, targetFrame.height);
-					auto origin = size/2;
-					Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, float2.one, origin);
-				}
+				auto size = float2(targetFrame.width, targetFrame.height);
+				auto origin = size/2;
+				Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, float2.one, origin);
 			}
 		}
 

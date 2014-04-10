@@ -43,9 +43,7 @@ final class TowerCollection
 {
 	uint2 tileSize;
 	List!ITowerController controllers;
-
 	List!BaseTower baseTowers;
-
 	List!Tower metas;
 
 	this(A)(ref A allocator, List!Tower metas, uint2 tileSize)
@@ -292,7 +290,7 @@ abstract class TowerController(T) : ITowerController
 	{
 		auto index = controlled.countUntil!( x => x.playerID == playerID);
 		controlled.removeAt(index);
-		towerEntered(index, playerID);
+		towerExited(index, playerID);
 	}
 
 	final void pressure(int towerIndex, float newPressure)

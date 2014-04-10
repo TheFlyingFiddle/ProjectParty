@@ -51,18 +51,6 @@ function Vent()
 		gui:add(Button(0xFF00FF00, pixel, 
 				   Rect2(Screen.width - 410, 10, 400, 100), 
 				   toggle, font,"On/Off", 0xFF000000))
-		gui:add(Button(0xFF00FF00, pixel, 
-				   Rect2(0, 150, 120, 60), south,
-				   font, "South", 0xFF000000))
-		gui:add(Button(0xFF00FF00, pixel, 
-				   Rect2(0, 220, 120, 60), west,
-				   font, "West", 0xFF000000))
-		gui:add(Button(0xFF00FF00, pixel, 
-				   Rect2(0, 290, 120, 60), east,
-				   font, "East", 0xFF000000))
-		gui:add(Button(0xFF00FF00, pixel, 
-				   Rect2(0, 360, 120, 60), north,
-				   font, "North", 0xFF000000))
 		gui:add(selector)
 
 
