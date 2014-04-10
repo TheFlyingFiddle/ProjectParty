@@ -1,6 +1,6 @@
 module algorithm;
 
-import math, enemy_controller, collections;
+import math, enemy_collection, collections;
 
 int findNearestEnemy(List!BaseEnemy enemies, float2 position)
 {

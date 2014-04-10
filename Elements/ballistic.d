@@ -12,7 +12,7 @@ import std.math : atan2;
 import algorithm;
 import network_types;
 import network.message;
-import tower_controller, enemy_controller;
+import tower_controller, enemy_collection;
 import util.bitmanip;
 
 struct BallisticProjectileInstance

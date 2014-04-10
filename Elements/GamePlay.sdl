@@ -28,15 +28,66 @@ enemyPrototypes =
 [ 
 	{ 
 		maxHealth = 50	
-		speed = 70	
-		worth = 5	
-		frame = baws 
+		speed	  = 70	
+		worth	  = 5	
+		frame	  = baws 
+		components = 
+		[
+			{		
+				type	  = speedup
+				interval  = 5
+				duration  = 2
+				amount    = 3
+			}
+		]
 	},
 	{ 
 		maxHealth = 200	
 		speed = 42	
 		worth = 15	
 		frame = teddy 
+		components = 
+		[
+			{		
+				type  = heal
+				interval = 5
+				amount   = 50
+			}
+		]
+	},
+	{ 
+		maxHealth = 200	
+		speed = 42	
+		worth = 15	
+		frame = skeleton 
+		components = 
+		[
+			{		
+				type  = heal
+				interval = 1
+				amount   = 10
+			},
+			{		
+				type  = speedup
+				interval = 3
+				duration = 0.5
+				amount   = 5
+			}
+		]
+	},
+	{ 
+		maxHealth = 200	
+		speed = 42	
+		worth = 15	
+		frame = orange 
+		components = 
+		[
+			{		
+				type  = towerBreaker
+				interval = 1
+				range    = 100
+			}
+		]
 	} 
 ]
 
@@ -255,7 +306,9 @@ waves =
 	{	spawners = 
 		[
 			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
-			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3  pathIndex = 0},
+			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1  pathIndex = 0}
 		] 
 		pauseTime = 10
 	},

@@ -9,7 +9,7 @@ import game;
 import game.debuging;
 import std.algorithm : max, min;
 import tower_controller;
-import enemy_controller;
+import enemy_collection;
 import util.bitmanip;
 
 struct VentInstance

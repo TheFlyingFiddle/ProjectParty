@@ -32,7 +32,7 @@ struct Level
 	uint startBalance;
 
 	//Should be in enemies.sdl
-	List!EnemyPrototype enemyPrototypes;
+	List!EnemyPrefab enemyPrototypes;
 	//Should be in vents.sdl
 	List!VentTower		ventPrototypes;
 	
@@ -57,9 +57,9 @@ struct Tower
 	string name;
 	string info;
 	TileType type;
-	ubyte typeIndex;
-	float range;
 	float regenRate;
+	float range;
+	ubyte typeIndex;
 	@Convert!stringToFrame() Frame towerFrame;
 	@Optional(false) bool basic;
 	@Optional(ubyte.max) ubyte upgradeIndex0;
@@ -67,13 +67,34 @@ struct Tower
 	@Optional(ubyte.max) ubyte upgradeIndex2;
 }
 
-struct EnemyPrototype
+
+struct EnemyPrefab
 {
 	int worth;
 	float maxHealth;
 	float speed;
 	@Convert!stringToFrame() Frame frame;
+
+	@Optional(List!EnemyComponentPrefab.init) List!EnemyComponentPrefab components;
 }
+
+enum ComponentType
+{
+	speedup,
+	heal,
+	towerBreaker
+}
+
+struct EnemyComponentPrefab
+{
+	ComponentType type;
+
+	@Optional(0.0f) float interval;
+	@Optional(0.0f) float duration;
+	@Optional(0.0f) float amount;
+	@Optional(0.0f) float range;
+}
+
 
 auto stringToFrame(string ID)
 {
@@ -97,9 +118,7 @@ Grid!TileType mapConverter(string path)
 	char* c_path = path.toCString();
 	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_path);
 	if(format == FIF_UNKNOWN)
-	{
 		format = FreeImage_GetFIFFromFilename(c_path);
-	}
 
 	FIBITMAP* bitmap = FreeImage_Load(format, c_path, 0);
 	scope(exit) FreeImage_Unload(bitmap);
@@ -120,22 +139,6 @@ Grid!TileType mapConverter(string path)
 		}
 	}
 	return tileMap;
-}
-
-struct SpawnerConfig
-{
-	float startTime;
-	int prototypeIndex;
-	float spawnInterval;
-	int numEnemies;
-}
-
-struct EnemyConfig
-{
-	int health;
-	float speed;
-	int worth;
-	string textureResource;
 }
 
 struct Path
@@ -227,5 +230,5 @@ struct Wave
 {
 	List!Spawner spawners;
 	float pauseTime;
-	@Optional(0.0f)float elapsed;
+	@Optional(0.0f) float elapsed;
 }

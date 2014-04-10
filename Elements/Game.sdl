@@ -77,6 +77,8 @@ resources = [
 { type = texture path = |elements\textures\bullet.png| },
 { type = texture path = |elements\textures\bullet_power.png| },
 { type = texture path = |elements\textures\map2.png| },
+{ type = texture path = |elements\textures\skeleton.png| },
+{ type = texture path = |elements\textures\orange.png| },
 { type = sound   path = |elements\sounds\machine_gun.ogg| } 
 ]
 

@@ -22,14 +22,11 @@ function Gatling()
 					0xFF770000,
 					1)
 	local function handleGatlingInfo()
-		log("Entering gattling gun!")
 		local pressure = In.readFloat()
 		local maxPressure = In.readFloat()
 
 		pressureDisplay.maxAmount = maxPressure
 		pressureDisplay.amount = pressure
-
-		logi("Max: %d, Current:%d ", maxPressure, pressure)
 	end
 
 	local function handlePressureInfo()
@@ -56,8 +53,6 @@ function Gatling()
 	function t.exit()
 		gui:clear()
 	end
-
-
 	
 	return t
 end

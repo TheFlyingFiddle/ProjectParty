@@ -1,5 +1,6 @@
-module enemy_controller;
-import game, math, graphics, collections, types;
+module enemy_collection;
+import game, math, graphics, collections, types, tower_controller;
+
 
 struct BaseEnemy {
 	static List!Path paths;
@@ -11,10 +12,9 @@ struct BaseEnemy {
 	uint pathIndex;
 	int worth;
 	Frame frame;
-
 	Status status;
 
-	this(EnemyPrototype prefab, uint pathIndex)
+	this(EnemyPrefab prefab, uint pathIndex)
 	{
 		this.distance = 0;
 		this.speed = prefab.speed;
@@ -164,22 +164,38 @@ struct BaseEnemy {
 alias EnemyDeathHandler = void delegate(EnemyCollection, BaseEnemy, uint);
 alias EnemyAtEndHandler = void delegate(EnemyCollection, BaseEnemy, uint);
 
+
 class EnemyCollection
 {
 	List!BaseEnemy enemies;
 	List!EnemyDeathHandler onDeath;
 	List!EnemyAtEndHandler onAtEnd;
+	List!IEnemyController controllers;
 	List!Path paths;
 
 	this(A)(ref A allocator, Level level)
 	{
-		enemies = List!BaseEnemy(allocator, 1024);
-		onDeath = List!EnemyDeathHandler(allocator, 16);
-		onAtEnd = List!EnemyDeathHandler(allocator, 16);
-		paths    = level.paths;
+		enemies		= List!BaseEnemy(allocator, 512);
+		onDeath		= List!EnemyDeathHandler(allocator, 16);
+		onAtEnd		= List!EnemyDeathHandler(allocator, 16);
+		controllers = List!IEnemyController(allocator,  16);
+		paths	    = level.paths;
 	}
 
-	void update()
+	void addEnemy(ref EnemyPrefab prefab, int pathIndex)
+	{
+		enemies ~= BaseEnemy(prefab, pathIndex);
+		foreach(ref component; prefab.components)
+		{
+			foreach(controller; controllers)
+			{
+				if(controller.type == component.type)
+					controller.addEnemy(component, enemies.length - 1);
+			}
+		}
+	}	
+
+	void update(TowerCollection towers)
 	{
 		for (int i = enemies.length -1; i >=0; i--)
 		{
@@ -199,6 +215,9 @@ class EnemyCollection
 				killEnemy(i);
 			}
 		}
+
+		foreach(controller; controllers)
+			controller.update(towers);
 	}
 
 	void killEnemies()
@@ -267,6 +286,79 @@ class EnemyCollection
 										 hBWidth, 5), Color.red);
 			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + enemy.frame.height/2, 
 										 hBWidth*amount, 5), Color.green);
+		}
+
+		foreach(controller; controllers)
+			controller.render();
+	}
+
+	void addController(T)(T t)
+	{
+		this.controllers ~= cast(IEnemyController)t;
+	}
+}
+
+interface IEnemyController
+{
+	@property ComponentType type();
+	void addEnemy(ref EnemyComponentPrefab prefab, uint baseIndex);
+	void update(TowerCollection towers);
+	void render();
+}
+
+template isValidEnemyType(T)
+{
+	enum isValidEnemyType = 
+	__traits(compiles,
+	{
+		EnemyComponentPrefab prefab;
+		T t = T(prefab);
+		t.baseIndex = 0;
+	});
+}
+
+abstract class EnemyController(T, ComponentType _type) : IEnemyController
+	if(isValidEnemyType!T)
+{
+	EnemyCollection owner;
+	List!T instances;
+
+	@property ComponentType type() { return _type; }
+
+	this(A)(ref A allocator, EnemyCollection collection)
+	{
+		this.instances  = List!T(allocator, 100);
+
+		this.owner = collection;
+		this.owner.addController(this);
+		this.owner.onDeath ~= &onEnemyRemoval;
+	}
+
+	auto ref opDispatch(string method)(int instanceIndex)
+	{
+		mixin("return owner.enemies[instances[instanceIndex]]." ~ method ~ "();");
+	}
+
+	void addEnemy(ref EnemyComponentPrefab prefab, uint baseIndex)
+	{
+		T instance = T(prefab);
+		instance.baseIndex = baseIndex;
+		instances ~= instance;
+	}
+
+	auto ref BaseEnemy base(ref T instance)
+	{
+		return owner.enemies[instance.baseIndex];
+	}
+
+	void onEnemyRemoval(EnemyCollection collection, BaseEnemy enemy, uint index)
+	{
+		for(int i = instances.length - 1; i >= 0; i--)
+		{
+			if(instances[i].baseIndex > index)
+				instances[i].baseIndex--;
+			else if(instances[i].baseIndex == index)
+				instances.removeAt(i);
 		}
 	}
 }

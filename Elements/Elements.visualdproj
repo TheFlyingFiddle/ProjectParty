@@ -191,7 +191,7 @@
  <Folder name="Elements">
   <File path="algorithm.d" />
   <File path="ballistic.d" />
-  <File path="enemy_controller.d" />
+  <File path="enemy_collection.d" />
   <File path="Game.sdl" />
   <File path="gameplay.d" />
   <File path="GamePlay.sdl" />
@@ -199,6 +199,7 @@
   <File path="main.d" />
   <File path="network.d" />
   <File path="network_types.d" />
+  <File path="enemy.d" />
   <File path="tower_controller.d" />
   <File path="types.d" />
   <File path="vent.d" />

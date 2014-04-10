@@ -11,7 +11,7 @@ import sound;
 import std.algorithm : max, min;
 import std.math : atan2;
 import algorithm : findFarthestReachableEnemy;
-import tower_controller, enemy_controller;
+import tower_controller, enemy_collection;
 import network.message;
 import network_types;
 import util.bitmanip;

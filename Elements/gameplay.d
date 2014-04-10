@@ -12,7 +12,8 @@ import tower_controller;
 import ballistic;
 import gatling;
 import network_types;
-import enemy_controller;
+import enemy_collection;
+import enemy;
 
 
 struct TowerPlayer
@@ -30,11 +31,11 @@ class GamePlayState : IGameState
 	List!uint2 selections;
 
 	TowerCollection		towerCollection;
-	EnemyCollection		enemyController;
+	EnemyCollection		enemyCollection;
 
 	
 	float towerBreakTimer = 0;
-	float towerBreakInterval = 5;
+	float towerBreakInterval = 30;
 
 
 	Table!(ulong, TowerPlayer)	players;
@@ -50,13 +51,17 @@ class GamePlayState : IGameState
 
 		lifeFont = Game.content.loadFont("Blocked72");
 		level = fromSDLFile!Level(allocator, configFile);
-		enemyController = allocator.allocate!EnemyCollection(allocator, level);
+		enemyCollection = allocator.allocate!EnemyCollection(allocator, level);
+		allocator.allocate!SpeedupEnemyController(allocator, enemyCollection);
+		allocator.allocate!HealerEnemyController(allocator, enemyCollection);
+		allocator.allocate!TowerBreakerEnemyController(allocator, enemyCollection);
 
-		enemyController.onDeath ~= &killEnemy;
-		enemyController.onAtEnd ~= &enemyAtEnd;
+		enemyCollection.onDeath ~= &killEnemy;
+		enemyCollection.onAtEnd ~= &enemyAtEnd;
 	
 
 		towerCollection = allocator.allocate!TowerCollection(allocator, level.towers, level.tileSize);
+		towerCollection.onTowerBroken ~= &sendTowerBrokenMessage;
 
 		BaseEnemy.paths = level.paths;
 
@@ -64,16 +69,14 @@ class GamePlayState : IGameState
 		VentInstance.prefabs = level.ventPrototypes;
 		
 		auto ballisticController = new BallisticController(allocator, towerCollection);
-		enemyController.onDeath ~= &ballisticController.onEnemyDeath;
-		enemyController.onAtEnd ~= &ballisticController.onEnemyDeath;
+		enemyCollection.onDeath ~= &ballisticController.onEnemyDeath;
 		
 		HomingProjectileInstance.prefabs = level.homingPrototypes;
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 
 		auto gatlingController = new GatlingController(allocator, towerCollection);
-		enemyController.onDeath ~= &gatlingController.onEnemyDeath;
-		enemyController.onAtEnd ~= &gatlingController.onEnemyDeath;
+		enemyCollection.onDeath ~= &gatlingController.onEnemyDeath;
 
 		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
 		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
@@ -289,10 +292,11 @@ class GamePlayState : IGameState
 
 
 
-	void sendTowerBroke(uint2 towerCell)
+	void sendTowerBrokenMessage(TowerCollection collection, uint towerIndex)
 	{
+		auto c = collection.baseTowers[towerIndex].cell(level.tileSize);
 		foreach(player; Game.players)
-			Game.server.sendMessage(player.id, TowerBrokenMessage(towerCell.x, towerCell.y));
+			Game.server.sendMessage(player.id, TowerBrokenMessage(c.x, c.y));
 	}
 
 	void exit()
@@ -306,9 +310,9 @@ class GamePlayState : IGameState
 
 
 		updateWave();
-		enemyController.update();
-		towerCollection.update(enemyController.enemies);
-		enemyController.killEnemies();
+		enemyCollection.update(towerCollection);
+		towerCollection.update(enemyCollection.enemies);
+		enemyCollection.killEnemies();
 	}
 
 	void updateTowerBreaker()
@@ -322,15 +326,13 @@ class GamePlayState : IGameState
 			{
 				auto index = uniform(0,  towerCollection.baseTowers.length);
 				towerCollection.breakTower(index);
-
-				sendTowerBroke(towerCollection.baseTowers[index].cell(level.tileSize));
 			}
 		}
 	}
 
 	void updateWave()
 	{
-		auto enemies = enemyController.enemies;
+		auto enemies = enemyCollection.enemies;
 		level.waves[0].elapsed += Time.delta;
 
 		if(level.waves[0].pauseTime < level.waves[0].elapsed) {
@@ -356,8 +358,7 @@ class GamePlayState : IGameState
 		if (spawner.startTime <= 0) {
 			spawner.elapsed += Time.delta;
 			if (spawner.elapsed >= spawner.spawnInterval) {
-				auto enemy = BaseEnemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
-				enemyController.enemies ~= enemy;
+				enemyCollection.addEnemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
 				spawner.numEnemies--;
 				spawner.elapsed = 0;
 			}
@@ -371,9 +372,9 @@ class GamePlayState : IGameState
 		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;
 
-		enemyController.render();
+		enemyCollection.render();
 
-		towerCollection.render(enemyController.enemies);
+		towerCollection.render(enemyCollection.enemies);
 
 		import util.strings;
 		char[128] buffer;

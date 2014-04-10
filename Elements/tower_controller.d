@@ -3,7 +3,7 @@ import math;
 import collections;
 import types;
 import std.conv;
-import enemy_controller;
+import enemy_collection;
 import std.algorithm : countUntil, min, max;
 import graphics;
 import game;
@@ -39,18 +39,23 @@ uint2 cell(T)(T t, uint2 tileSize)
 					 (t.position.y - tileSize.y/2) / tileSize.y);
 }
 
+alias TowerBrokeHandler = void delegate(TowerCollection, uint);
+
 final class TowerCollection
 {
 	uint2 tileSize;
 	List!ITowerController controllers;
 	List!BaseTower baseTowers;
+	List!TowerBrokeHandler onTowerBroken;
+
 
 	List!Tower metas;
 
 	this(A)(ref A allocator, List!Tower metas, uint2 tileSize)
 	{
-		this.controllers = List!ITowerController(allocator, 10);
-		this.baseTowers = List!BaseTower(allocator, 200);
+		this.controllers	= List!ITowerController(allocator, 10);
+		this.baseTowers		= List!BaseTower(allocator, 200);
+		this.onTowerBroken	= List!TowerBrokeHandler(allocator, 10); 
 		this.metas = metas;
 		this.tileSize = tileSize;
 	}
@@ -110,7 +115,12 @@ final class TowerCollection
 
 	void breakTower(uint towerIndex)
 	{
-		baseTowers[towerIndex].isBroken = true;
+		if(baseTowers[towerIndex].isBroken == false)
+		{
+			baseTowers[towerIndex].isBroken = true;
+			foreach(handler; onTowerBroken)
+				handler(this, towerIndex);
+		}
 	}
 
 	void repairTower(uint towerIndex)
@@ -157,19 +167,22 @@ final class TowerCollection
 	{
 		foreach(tower;baseTowers)
 		{
+			Color color = tower.isBroken ? Color(0xFF777777) : Color.white;
 			Game.renderer.addFrame(tower.frame, float4(	tower.position.x, 
 														tower.position.y, 
 														tileSize.x, 
 														tileSize.y), 
-								Color.white, float2(tileSize)/2);
+								color, float2(tileSize)/2);
 		}
+
+
 
 		foreach(tc;controllers)
 		{
 			tc.render(enemies);
 		}
 	
-		foreach(ref tower; baseTowers)
+		foreach(ref tower; baseTowers) if(!tower.isBroken)
 		{
 
 			float amount = tower.pressure/maxPressure;
