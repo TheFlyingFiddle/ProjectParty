@@ -179,10 +179,11 @@ struct Renderer
 	{
 		import logging;
 
+		gl.bindBuffer(vbo.target, vbo.glName);
 		vbo.unmapBuffer();
+
 		if(elements == offset) return;
 
-		gl.bindBuffer(vbo.target, vbo.glName);
 		gl.useProgram(usedProgram.glName);
 		usedProgram.uniform["transform"] = transform;
 

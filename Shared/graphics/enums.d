@@ -617,6 +617,12 @@ enum ColorFormat
 	bgraInt = GL_BGRA_INTEGER,
 }
 
+enum IndexBufferType
+{
+	ushort_ = GL_UNSIGNED_SHORT,
+	uint_	= GL_UNSIGNED_INT
+}
+
 enum ColorType
 {
 	byte_ = GL_BYTE,

@@ -2,7 +2,7 @@ import std.stdio;
 
 import logging, external_libraries,
 	allocation, game, state,
-	game.debuging;
+	game.debuging, particle;
 
 version(X86) 
 enum libPath = "..\\lib\\win32\\";
@@ -55,7 +55,7 @@ void init(A)(ref A allocator)
 	initDebugging("textures\\pixel.png");
 
 	auto fsm = Game.gameStateMachine;
-	fsm.addState(new TestState(), "State");
+	fsm.addState(new ParticleState(allocator), "State");
 	Game.transitionTo("State");
 
 	import graphics; 
