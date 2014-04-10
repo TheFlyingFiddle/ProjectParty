@@ -21,16 +21,13 @@ function Gatling()
 					0xFFFF8800,
 					0xFF770000,
 					1)
-	local function handleGatlingInfo()
-		local pressure = In.readFloat()
-		local maxPressure = In.readFloat()
-
-		pressureDisplay.maxAmount = maxPressure
-		pressureDisplay.amount = pressure
+	
+	local function handleGatlingInfo(gInfo)
+		pressureDisplay.maxAmount = gInfo.maxPressure
+		pressureDisplay.amount = gInfo.pressure
 	end
 
-	local function handlePressureInfo()
-		local pressure = In.readFloat()
+	local function handlePressureInfo(pressure)
 		pressureDisplay.amount = pressure
 	end
 

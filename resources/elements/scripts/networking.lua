@@ -19,10 +19,6 @@ Network.incoming.ballisticInfo 	= 62
 Network.incoming.gatlingInfo 	= 63
 Network.incoming.pressureInfo 	= 64
 	
-	
-	
-	
-
 Network.outgoing = {}
 
 Network.outgoing.sensor 			= 1
@@ -44,24 +40,151 @@ Network.outgoing.gatlingValue		= 64
 
 
 Network.handlers = {}
+Network.decoders = {}
 
 function Network.setMessageHandler(id, callback)	
-	logf("Network reg for id %d", id)	
 	Network.handlers[id] = callback
 end
 
+function Network.setMessageDecoder(id, callback)
+	Network.decoders[id] = callback
+end
+
 function handleMessage(id, length)
-	if id == 63 then
-		log(string.format("received id: %d", id))
-	end
-	if Network.handlers[id] then
-		
-		if id == 63 then
-			log(string.format("received id: %d", id))
+	if Network.decoders[id] then
+		local message = Network.decoders[id]()
+		if Network.handlers[id] then
+			Network.handlers[id](message)
 		end
-		Network.handlers[id]()
 	end
 end
+
+local function readCell()
+	local cell = {}
+	cell.x = In.readInt()
+	cell.y = In.readInt()
+	return cell
+end
+
+local function readMap()
+	local map  = {}
+	map.width  = In.readInt()
+	map.height = In.readInt()
+	map.tiles  = In.readByteArray() 
+	return map
+end
+
+local function readTowerBuilt()
+	local tower 		= { }
+	tower.x 			= In.readInt()
+	tower.y 			= In.readInt()
+	tower.type 			= In.readByte()
+	tower.typeIndex 	= In.readByte()
+	tower.isOwned   	= In.readByte()
+	tower.playerColor 	= In.readInt()
+	return tower
+end
+
+local function readSelected()
+	local cell = readCell()
+	cell.color = In.readInt()
+	return cell
+end
+
+local function readDeselected()
+	return readCell()
+end
+
+local function readTowerEntered() 
+	return readCell()
+end
+
+local function readTowerExited() 
+	return readCell()
+end
+
+local function readTowerInfo()
+	local tower = {}
+
+	tower.cost 			= In.readInt()
+	tower.range 		= In.readFloat()
+	tower.frame 		= Loader.loadFrame(In.readUTF8())
+	tower.name 	        = In.readUTF8()
+	tower.info 	        = In.readUTF8()
+	tower.type 			= In.readByte()
+	tower.typeIndex 	= In.readByte()
+	tower.basic 		= In.readByte() == 1
+	tower.upgradeIndex0 = In.readByte()
+	tower.upgradeIndex1 = In.readByte()
+	tower.upgradeIndex2 = In.readByte()
+	tower.color         = 0xFFFFFFFF
+
+	return tower
+end
+
+local function readTransaction()
+	return In.readInt()
+end
+
+local function readTowerSold()
+	return readCell()
+end
+
+local function readTowerBroken()
+	return readCell()
+end
+
+local function readTowerRepaired()
+	return readCell()
+end
+
+local function readVentInfo()
+	local ventInfo = {}
+	ventInfo.pressure 		= In.readFloat()
+	ventInfo.maxPressure 	= In.readFloat()
+	ventInfo.direction     = In.readFloat()
+	ventInfo.open          = In.readFloat()
+	return ventInfo
+end
+
+local function readBallisticInfo()
+	 bInfo = {}
+	 bInfo.pressure = In.readFloat()
+	 bInfo.maxPressure = In.readFloat()
+	 bInfo.direction = In.readFloat()
+	 bInfo.distance = In.readFloat()
+	 bInfo.maxDistance = In.readFloat()
+	 bInfo.pressureCost = In.readFloat()
+	return bInfo
+end
+
+local function readGatlingInfo()
+	local gInfo = {}
+	gInfo.pressure = In.readFloat()
+	gInfo.maxPressure = In.readFloat()
+	return gInfo
+end
+
+local function readPressureInfo()
+	return In.readFloat()
+end
+
+Network.decoders[Network.incoming.map] = readMap
+Network.decoders[Network.incoming.towerBuilt] = readTowerBuilt
+Network.decoders[Network.incoming.selected] = readSelected
+Network.decoders[Network.incoming.deselected] = readDeselected
+Network.decoders[Network.incoming.towerEntered] = readTowerEntered
+Network.decoders[Network.incoming.towerExited] = readTowerExited
+Network.decoders[Network.incoming.towerInfo] = readTowerInfo
+Network.decoders[Network.incoming.transaction] = readTransaction
+Network.decoders[Network.incoming.towerSold] = readTowerSold
+Network.decoders[Network.incoming.towerBroken] = readTowerBroken
+Network.decoders[Network.incoming.towerRepaired] = readTowerRepaired
+Network.decoders[Network.incoming.selected] = readSelected
+Network.decoders[Network.incoming.ventInfo] = readVentInfo
+Network.decoders[Network.incoming.ballisticInfo] = readBallisticInfo
+Network.decoders[Network.incoming.gatlingInfo] = readGatlingInfo
+Network.decoders[Network.incoming.pressureInfo] = readPressureInfo
 
 function sendAddTower(cell, type, index)
 	Out.writeShort(11)

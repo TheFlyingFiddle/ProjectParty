@@ -39,27 +39,17 @@ function Ballistic()
 		end
 	end
 
-	local function handleBallisticInfo()
-		log("handleBallistic")
-		local pressure = In.readFloat()
-		local maxPressure = In.readFloat()
-		local direction = In.readFloat()
-		local distance = In.readFloat()
-		local maxDistance = In.readFloat()
-		local pressureCost = In.readFloat() 
-
-		dirSelector.dir = direction
-		pressureDisplay.maxAmount = maxPressure
-		pressureDisplay.amount = pressure
-		amountSelector.amount = distance / maxDistance
-		t.pressureCost = pressureCost
+	local function handleBallisticInfo(bInfo)
+		dirSelector.dir = bInfo.direction
+		pressureDisplay.maxAmount = bInfo.maxPressure
+		pressureDisplay.amount = bInfo.pressure
+		amountSelector.amount = bInfo.distance / bInfo.maxDistance
+		t.pressureCost = bInfo.pressureCost
 	end
 
-	local function handlePressureInfo()
-		local pressure = In.readFloat()
+	local function handlePressureInfo(pressure)
 		pressureDisplay.amount = pressure
 	end
-
 
 	Network.setMessageHandler(Network.incoming.ballisticInfo, handleBallisticInfo)
 

@@ -54,7 +54,13 @@ local function Idle()
 				if gridPos.x == selections[i].x and gridPos.y == selections[i].y then
 					return
 				end
+		end
+
+		for i = 1, #occupiedTowers, 1 do
+			if gridPos.x == occupiedTowers[i].x and gridPos.y == occupiedTowers[i].y then
+				return
 			end
+		end
 
 		if tileType == 0 then
 			selectedCell = gridPos
@@ -84,6 +90,8 @@ local function TowerSelected()
 
 	local function callback(item)
 		if item.id == 0 then
+
+			log(string.format("Tile type is %d", t.tileType))
 
 			local tower = findInstance(selectedCell)
 			if tower.broken then
@@ -278,116 +286,78 @@ function Elements()
 
 	end
 
-	local function handleMap()
-		map = {}
-		map.width = In.readInt()
-		map.height = In.readInt()
-		map.tiles = In.readByteArray() 
-
+	local function handleMap(table)
+		map = table 
 		camera.worldDim = vec2(map.width * tilesize, map.height * tilesize)
-
 	end
 
-	local function handleTowerBuilt() 
-		local x = In.readInt()
-		local y = In.readInt()
-		local type = In.readByte()
-		local typeIndex = In.readByte()
-		local isOwned   = In.readByte()
-		local playerColor = In.readInt()
-
-		map.tiles[y*map.width + x] = type
-
+	local function handleTowerBuilt(tower) 
+		map.tiles[tower.y*map.width + tower.x] = tower.type
 		for k,v in pairs(towers) do
-			if v.type == type and v.typeIndex == typeIndex then
+			if v.type == tower.type and v.typeIndex == tower.typeIndex then
 				table.insert(towerInstances, 
-					{ frame = v.frame, color = playerColor, 
-					  pos = vec2(x, y), broken = false ,
-					  type = k, ownedByMe = isOwned == 1})
+					{ 
+						frame = v.frame, 
+						color = tower.playerColor, 
+					  	pos = vec2(tower.x, tower.y), 
+					  	broken = false,
+					  	type = k, 
+					  	ownedByMe = tower.isOwned == 1
+					})
 			end
 		end
 	end
 
-	local function handleSelectRequest()
-		local rx = In.readInt()
-		local ry = In.readInt()
-		local rcolor = In.readInt()
-		selections[#selections + 1] = {x = rx, y = ry, color = rcolor} 
+	local function handleSelectRequest(cell)
+		selections[#selections + 1] = {x = cell.x, y = cell.y, color = cell.color} 
 	end
 
-	local function handleDeselectRequest()
-		local rx = In.readInt()
-		local ry = In.readInt()
-
+	local function handleDeselectRequest(cell)
 		for i = 1, #selections, 1 do
-			if selections[i].x == rx and selections[i].y == ry then
+			if selections[i].x == cell.x and selections[i].y == cell.y then
 				table.remove(selections, i)
 				return
 			end
 		end 
 	end	
 
-	local function handleTowerInfo() 
-		local tower = {}
-
-		tower.cost 			= In.readInt()
-		tower.range 		= In.readFloat()
-		tower.frame 		= Loader.loadFrame(In.readUTF8())
-		tower.name 	        = In.readUTF8()
-		tower.info 	        = In.readUTF8()
-		tower.type 			= In.readByte()
-		tower.typeIndex 	= In.readByte()
-		tower.basic 		= In.readByte() == 1
-		tower.upgradeIndex0 = In.readByte()
-		tower.upgradeIndex1 = In.readByte()
-		tower.upgradeIndex2 = In.readByte()
-		tower.color         = 0xFFFFFFFF
-
+	local function handleTowerInfo(tower) 
 		table.insert(towers, tower)
 	end
 
-	local function handleTransaction()
-		local amount = In.readInt()
+	local function handleTransaction(amount)
 		money = money + amount
 	end
 
-	local function handleTowerSold()
-		local x = In.readInt()
-		local y = In.readInt()
-
-		map.tiles[y*map.width + x] = 0
+	local function handleTowerSold(cell)
+		map.tiles[cell.y*map.width + cell.x] = 0
 
 		for k, v in pairs(towerInstances) do
-			if v.pos.x == x and v.pos.y == y then
+			if v.pos.x == cell.x and v.pos.y == cell.y then
 				table.remove(towerInstances, k)
 				return
 			end
 		end
-
 	end
 
-	local function handleTowerBroken()
-		local x = In.readInt()
-		local y = In.readInt()
-
-		local tower = findInstance(vec2(x, y))
+	local function handleTowerBroken(cell)
+		local tower = findInstance(vec2(cell.x, cell.y))
 		tower.broken = true
 	end
 
-	local function handleTowerRepaired()
-		local x = In.readInt()
-		local y = In.readInt()
-
-		local tower = findInstance(vec2(x, y))
+	local function handleTowerRepaired(cell)
+		log("Tower repaired!")
+		local tower = findInstance(vec2(cell.x, cell.y))
 		tower.broken = false
 	end
 
-	local function handleTowerExited()
-		local rx = In.readInt()
-		local ry = In.readInt()
+	local function handleTowerEntered(cell)
+		table.insert(occupiedTowers, cell)
+	end
 
+	local function handleTowerExited(cell)
 		for i = 1, #occupiedTowers, 1 do
-			if occupiedTowers[i].x == rx and occupiedTowers[i].y == ry then
+			if occupiedTowers[i].x == cell.x and occupiedTowers[i].y == cell.y then
 				table.remove(occupiedTowers, i)
 				return
 			end

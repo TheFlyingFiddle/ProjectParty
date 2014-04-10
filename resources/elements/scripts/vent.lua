@@ -49,24 +49,14 @@ function Vent()
 	end
 
 
-	local function handleVentInfo()
-		local pressure 		= In.readFloat()
-		local maxPressure 	= In.readFloat()
-		local direction     = In.readFloat()
-		local open          = In.readFloat()
-
-		pressureDisplay.amount = pressure;
-		pressureDisplay.maxAmount  = maxPressure;
-		selector.dir = direction
-
-		logf("Recived Vent Info!: Pressure %f MaxPressure %f, Direction %f Open %f",
-			pressure, maxPressure, direction, open)
-
+	local function handleVentInfo(ventInfo)
+		pressureDisplay.amount = ventInfo.pressure
+		pressureDisplay.maxAmount  = ventInfo.maxPressure
+		selector.dir = ventInfo.direction
 	end
 
 	
-	local function handlePressureInfo()
-		local pressure = In.readFloat()
+	local function handlePressureInfo(pressure)
 		pressureDisplay.amount = pressure	
 	end
 
