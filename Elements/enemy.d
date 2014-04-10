@@ -124,7 +124,6 @@ struct TowerBreakerEnemy
 		this.elapsed  = 0;
 	}
 }
-
 class TowerBreakerEnemyController : EnemyController!(TowerBreakerEnemy, ComponentType.towerBreaker)
 {
 	this(A)(ref A allocator, EnemyCollection collection)
