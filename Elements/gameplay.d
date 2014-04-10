@@ -32,6 +32,11 @@ class GamePlayState : IGameState
 	TowerCollection		towerCollection;
 	EnemyCollection		enemyController;
 
+	
+	float towerBreakTimer = 0;
+	float towerBreakInterval = 5;
+
+
 	Table!(ulong, TowerPlayer)	players;
 
 	this(A)(ref A allocator, string configFile)
@@ -297,10 +302,30 @@ class GamePlayState : IGameState
 
 	void update()
 	{
+		updateTowerBreaker();
+
+
 		updateWave();
 		enemyController.update();
 		towerCollection.update(enemyController.enemies);
 		enemyController.killEnemies();
+	}
+
+	void updateTowerBreaker()
+	{
+		towerBreakTimer += Time.delta;
+		if(towerBreakTimer >= towerBreakInterval)
+		{
+			towerBreakTimer -= towerBreakInterval;
+			import std.random;
+			if(towerCollection.baseTowers.length > 0)
+			{
+				auto index = uniform(0,  towerCollection.baseTowers.length);
+				towerCollection.breakTower(index);
+
+				sendTowerBroke(towerCollection.baseTowers[index].cell(level.tileSize));
+			}
+		}
 	}
 
 	void updateWave()

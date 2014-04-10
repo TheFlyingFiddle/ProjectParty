@@ -183,22 +183,16 @@ final class BallisticController : TowerController!BallisticInstance
 		}
 
 		// Update all towers
-		foreach(i, ref tower; instances)
+		foreach(i, ref tower; instances) if(!isBroken(i) && !isControlled(i))
 		{
-			if(isControlled(i))
+			tower.elapsed += Time.delta;
+			if(tower.elapsed >= tower.reloadTime)
 			{
-			}
-			else // Tower is on autopilot. Just shoot projectiles steadily.
-			{
-				tower.elapsed += Time.delta;
-				if(tower.elapsed >= tower.reloadTime)
+				auto enemyIndex = findFarthestReachableEnemy(enemies, position(tower), range(tower));
+				if(enemyIndex != -1) 
 				{
-					auto enemyIndex = findFarthestReachableEnemy(enemies, position(tower), range(tower));
-					if(enemyIndex != -1) 
-					{
-						spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(tower));
-						tower.elapsed = 0;
-					}
+					spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(tower));
+					tower.elapsed = 0;
 				}
 			}
 		}

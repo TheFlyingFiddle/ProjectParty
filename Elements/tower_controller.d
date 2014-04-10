@@ -44,6 +44,7 @@ final class TowerCollection
 	uint2 tileSize;
 	List!ITowerController controllers;
 	List!BaseTower baseTowers;
+
 	List!Tower metas;
 
 	this(A)(ref A allocator, List!Tower metas, uint2 tileSize)
@@ -196,6 +197,7 @@ template isValidTowerType(T)
 abstract class TowerController(T) : ITowerController
 {
 	List!T instances;
+
 	TowerCollection owner;
 
 	struct Controlled { int instanceIndex; ulong playerID; }
@@ -237,6 +239,11 @@ abstract class TowerController(T) : ITowerController
 	final ref bool isBroken(ref T instance)
 	{
 		return owner.baseTowers[instance.baseIndex].isBroken;
+	}
+
+	final ref bool isBroken(int instanceIndex)
+	{
+		return isBroken(instances[instanceIndex]);
 	}
 
 	final bool isControlled(int instanceIndex)
@@ -282,6 +289,9 @@ abstract class TowerController(T) : ITowerController
 	final void enterTower(int towerIndex, ulong playerID)
 	{
 		auto index = instances.countUntil!( x => x.baseIndex == towerIndex);
+		if(isBroken(index))
+			return;
+
 		controlled ~= Controlled(index, playerID);
 		towerEntered(index, playerID);
 	}
@@ -289,7 +299,9 @@ abstract class TowerController(T) : ITowerController
 	final void exitTower(int towerIndex, ulong playerID)
 	{
 		auto index = controlled.countUntil!( x => x.playerID == playerID);
-		controlled.removeAt(index);
+		if(index != -1)
+			controlled.removeAt(index);
+		
 		towerExited(index, playerID);
 	}
 

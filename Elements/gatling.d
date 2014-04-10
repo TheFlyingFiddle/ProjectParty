@@ -133,7 +133,7 @@ final class GatlingController : TowerController!GatlingInstance
 		}
 
 		// Update all towers
-		foreach(i, ref tower; instances) if(!isControlled(i))
+		foreach(i, ref tower; instances) if(!isBroken(i) && !isControlled(i))
 		{	
 			tower.elapsed += Time.delta;
 			if(tower.elapsed >= tower.reloadTime)
@@ -179,10 +179,10 @@ final class GatlingController : TowerController!GatlingInstance
 
 		auto targetTex = Game.content.loadTexture("crosshair");
 		auto targetFrame = Frame(targetTex);
-		foreach(i, c; controlled)
+		foreach(c; controlled)
 		{		
 			auto tower = instances[c.instanceIndex];
-			auto enemyIndex = findFarthestReachableEnemy(enemies, position(i), tower.range);
+			auto enemyIndex = findFarthestReachableEnemy(enemies, position(c.instanceIndex), tower.range);
 			if(enemyIndex != -1) 
 			{
 				auto size = float2(targetFrame.width, targetFrame.height);
