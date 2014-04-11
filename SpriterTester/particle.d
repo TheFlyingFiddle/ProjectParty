@@ -17,7 +17,7 @@ class ParticleState : IGameState
 	this(A)(ref A allocator)
 	{
 		auto settings = fromSDLFile!ParticleSettings(GC.it, "ParticleSettings.sdl");
-		system = ParticleSystem(allocator, settings, 0xFFFF * 4);
+		system = ParticleSystem(allocator, settings, 0xFFFF * 16);
 		font = Game.content.loadFont("Blocked72");
 	}
 
@@ -71,14 +71,14 @@ class ParticleState : IGameState
 			particle.lifeTime	= 3;
 
 			system.AddParticle(particle);
-			foreach(i; 0 .. 500)
+			foreach(i; 0 .. 5800)
 			{
 				auto pos2 = pos + Polar!float(Time.total + 0.5f * i, 200f).toCartesian;
 				auto velo = (pos2 - pos).toPolar;
 				velo.angle += uniform(-0.5f, 0.5f);
 
-				particle.startSize = float2(5,5);
-				particle.endSize   = float2(15,15);
+				particle.startSize = float2(1,1);
+				particle.endSize   = float2(1,1);
 				particle.center = pos2;
 				particle.velocity = velo.toCartesian;
 				particle.endColor = Color.red;
