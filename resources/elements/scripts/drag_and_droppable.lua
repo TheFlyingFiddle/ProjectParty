@@ -34,7 +34,7 @@ local DragAndDroppableMT =
 
 function DragAndDroppable(area, frame, onDragBeginCB, onDragCB, onDragEndCB)
 	local t  	= {}
-	t.rect 	    = area.on
+	t.rect 	    = area
 	t.onDragBeginCB = onDragBeginCB
 	t.onDragCB = onDragCB
 	t.onDragEndCB = onDragEndCB

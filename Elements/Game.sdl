@@ -126,9 +126,9 @@ phoneResources = [
 	|elements/textures/buy_icon.png|,
 	|elements/textures/rocket_icon.png|,
 	|elements/textures/gatling_icon.png|,
-	|elements/textures/rusty_iron_cog.png|
-	|elements/textures/iron_cog.png|
-	|elements/textures/copper_cog.png|
-	|elements/textures/corroded_cog.png|
+	|elements/textures/rusty_iron_cog.png|,
+	|elements/textures/iron_cog.png|,
+	|elements/textures/copper_cog.png|,
+	|elements/textures/corroded_cog.png|,
 	|elements/textures/corroded_bolt.png|
 ]
