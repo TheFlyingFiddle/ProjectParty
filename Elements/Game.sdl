@@ -107,6 +107,8 @@ phoneResources = [
 	|elements/scripts/crank.lua|,
 	|elements/scripts/table.lua|,
 	|elements/scripts/infoscreen.lua|,
+	|elements/scripts/image_box.lua|,
+	|elements/scripts/drag_and_droppable.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/fonts/SegoeUILight72.fnt|,
@@ -123,5 +125,10 @@ phoneResources = [
 	|elements/textures/cancel_icon.png|,
 	|elements/textures/buy_icon.png|,
 	|elements/textures/rocket_icon.png|,
-	|elements/textures/gatling_icon.png|
+	|elements/textures/gatling_icon.png|,
+	|elements/textures/rusty_iron_cog.png|
+	|elements/textures/iron_cog.png|
+	|elements/textures/copper_cog.png|
+	|elements/textures/corroded_cog.png|
+	|elements/textures/corroded_bolt.png|
 ]

@@ -14,6 +14,11 @@ function init()
 	cancelIcon 		= Loader.loadFrame("textures/cancel_icon.png")
 	buyIcon 		= Loader.loadFrame("textures/buy_icon.png")
 	infoIcon        = Loader.loadFrame("textures/ice_icon.png")
+	ironCog			= Loader.loadFrame("textures/iron_cog.png")
+	rustyCog		= Loader.loadFrame("textures/rusty_iron_cog.png")
+	copperCog		= Loader.loadFrame("textures/copper_cog.png")
+	corrodedCog		= Loader.loadFrame("textures/corroded_cog.png")
+	corrodedBolt	= Loader.loadFrame("textures/corroded_bolt.png")
 
 	assets.fire  		= { id = 2, frame = fireIcon, 		color = 0xFF0066FF }
 	assets.water 		= { id = 3, frame = waterIcon, 		color = 0xFFFFaa22 }
