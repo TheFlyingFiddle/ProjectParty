@@ -49,33 +49,6 @@ struct BallisticProjectilePrefab
 	@Convert!stringToFrame() Frame frame;
 }
 
-struct HomingProjectileInstance
-{
-	static List!HomingProjectilePrefab prefabs;
-	int		prefabIndex;
-	int		targetIndex;
-	float2	position;
-	this(int prefabIndex, int target, float2 position)
-	{
-		this.prefabIndex = prefabIndex;
-		this.targetIndex = target;
-		this.position = position;
-	}
-
-	auto ref opDispatch(string property)()
-	{
-		mixin("return prefabs[prefabIndex]." ~ property ~ ";");
-	}
-}
-
-struct HomingProjectilePrefab
-{
-	float damage;
-	float speed;
-	float radius;
-	@Convert!stringToFrame() Frame frame;
-}
-
 struct BallisticInstance
 {
 	static List!BallisticTower prefabs;
@@ -115,13 +88,11 @@ struct BallisticTower
 final class BallisticController : TowerController!BallisticInstance
 {
 	List!BallisticProjectileInstance ballisticProjectiles;
-	List!HomingProjectileInstance homingProjectiles;
 
 	this(A)(ref A allocator, TowerCollection owner)
 	{
 		super(allocator, TileType.rocket, owner);
 		this.ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
-		this.homingProjectiles = List!HomingProjectileInstance(allocator, 1000);
 
 		Game.router.setMessageHandler(IncomingMessages.ballisticValue,			&handleBallisticValue);
 		Game.router.setMessageHandler(IncomingMessages.ballisticDirection,	&handleBallisticDirection);
@@ -143,27 +114,6 @@ final class BallisticController : TowerController!BallisticInstance
 
 	override void update(List!BaseEnemy enemies)
 	{
-		// Update all homing projectiles
-		for(int i = homingProjectiles.length - 1; i >= 0; --i)
-		{
-			
-			// Move the projectile towards the target.
-			auto velocity = (enemies[homingProjectiles[i].targetIndex].position 
-							 - homingProjectiles[i].position).normalized 
-							* homingProjectiles[i].speed 
-							* Time.delta;
-			homingProjectiles[i].position += velocity;
-
-			// Check for collision between the target and the projectile
-			if(distance(enemies[homingProjectiles[i].targetIndex].position, 
-										homingProjectiles[i].position) 
-							< homingProjectiles[i].radius)
-			{
-				enemies[homingProjectiles[i].targetIndex].health -= homingProjectiles[i].damage;
-				homingProjectiles.removeAt(i);
-			}
-		}
-
 		// Update all non-homing projectiles
 		for(int i = ballisticProjectiles.length - 1; i >= 0; --i)
 		{
@@ -179,21 +129,6 @@ final class BallisticController : TowerController!BallisticInstance
 						enemy.health -= ballisticProjectiles[i].damage;
 				}
 				ballisticProjectiles.removeAt(i);
-			}
-		}
-
-		// Update all towers
-		foreach(i, ref tower; instances) if(!isBroken(i) && !isControlled(i))
-		{
-			tower.elapsed += Time.delta;
-			if(tower.elapsed >= tower.reloadTime)
-			{
-				auto enemyIndex = findFarthestReachableEnemy(enemies, position(tower), range(tower));
-				if(enemyIndex != -1) 
-				{
-					spawnHomingProjectile(tower.homingPrefabIndex, enemyIndex, position(tower));
-					tower.elapsed = 0;
-				}
 			}
 		}
 
@@ -223,15 +158,6 @@ final class BallisticController : TowerController!BallisticInstance
 			auto position = position(tower);
 		}
 
-		foreach(projectile; homingProjectiles)
-		{
-			auto size = float2(projectile.frame.width, projectile.frame.height);
-			auto origin = size/2;
-			Game.renderer.addFrame(projectile.frame, projectile.position, Color.white, float2.one, origin, 
-							  atan2(enemies[projectile.targetIndex].position.y - projectile.position.y, 
-									enemies[projectile.targetIndex].position.x - projectile.position.x));
-		}
-
 		foreach(projectile; ballisticProjectiles)
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
@@ -256,12 +182,6 @@ final class BallisticController : TowerController!BallisticInstance
 	}
 
 	override void towerExited(int towerIndex, ulong playerID) { }
-
-	private void spawnHomingProjectile(int projectilePrefabIndex, int enemyIndex, float2 position)
-	{
-		auto projectile = HomingProjectileInstance(projectilePrefabIndex, enemyIndex, position);
-		homingProjectiles ~= projectile;
-	}
  
 	private void spawnBallisticProjectile(int projectilePrefabIndex, float2 position, float2 target)
 	{
@@ -302,24 +222,5 @@ final class BallisticController : TowerController!BallisticInstance
 		auto index = indexOf(uint2(x,y));
 		if(index != -1)
 			launch(index);
-	}
-
-	void onEnemyDeath(EnemyCollection enemies, BaseEnemy enemy, uint index)
-	{
-		for (int j = homingProjectiles.length - 1; j >= 0; j--)
-		{
-			if(homingProjectiles[j].targetIndex == index)
-			{
-				auto nearest = findNearestEnemy(enemies.enemies, homingProjectiles[j].position);
-				if(nearest == -1)
-					homingProjectiles.removeAt(j);
-				else
-					homingProjectiles[j].targetIndex = nearest;
-			} 
-			else if(homingProjectiles[j].targetIndex > index)
-			{
-				homingProjectiles[j].targetIndex--;
-			}
-		}
 	}
 }

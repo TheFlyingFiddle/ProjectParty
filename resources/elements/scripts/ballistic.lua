@@ -51,6 +51,13 @@ function Ballistic()
 		pressureDisplay.amount = pressure
 	end
 
+	local function handleTowerBroken(cell)
+		if cell.x == t.cell.x and cell.y == t.cell.y then
+			exit()			
+		end
+	end
+
+
 	Network.setMessageHandler(Network.incoming.ballisticInfo, handleBallisticInfo)
 
 	function t.enter(cell) 
@@ -72,6 +79,7 @@ function Ballistic()
 		t.pressureCost = 10000
 		pressureDisplay.amount = 1
 
+		Network.setMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
 		Network.setMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
 
 		sendTowerEntered(t.cell)
@@ -79,6 +87,9 @@ function Ballistic()
 
 	function t.exit()
 		gui:clear()
+
+		Network.removeMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
+		Network.removeMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
 	end
 
 

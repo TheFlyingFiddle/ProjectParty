@@ -70,9 +70,7 @@ class GamePlayState : IGameState
 		VentInstance.prefabs = level.ventPrototypes;
 		
 		auto ballisticController = new BallisticController(allocator, towerCollection);
-		enemyCollection.onDeath ~= &ballisticController.onEnemyDeath;
-		
-		HomingProjectileInstance.prefabs = level.homingPrototypes;
+
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 

@@ -312,6 +312,15 @@ abstract class TowerController(T) : ITowerController
 		}
 	}
 
+	final void breakTower(int towerIndex)
+	{
+		auto index = controlled.countUntil!(x => instances[x.instanceIndex].baseIndex == towerIndex);
+		if(index != -1)
+		{
+			exitTower(towerIndex, controlled[index].playerID);
+		}
+	}
+
 	final void enterTower(int towerIndex, ulong playerID)
 	{
 		auto index = instances.countUntil!( x => x.baseIndex == towerIndex);

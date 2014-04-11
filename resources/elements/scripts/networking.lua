@@ -43,7 +43,23 @@ Network.handlers = {}
 Network.decoders = {}
 
 function Network.setMessageHandler(id, callback)	
-	Network.handlers[id] = callback
+	if Network.handlers[id] then
+		table.insert(Network.handlers[id], callback)
+	else 
+		Network.handlers[id] = { callback }
+	end
+end
+
+function Network.removeMessageHandler(id, callback)
+	if Network.handlers[id] then
+		for i=1, #Network.handlers[id], 1 do
+			local t = Network.handlers[id]
+			if t[i] == callback then
+				table.remove(t, i)
+				return
+			end
+		end
+	end
 end
 
 function Network.setMessageDecoder(id, callback)
@@ -54,7 +70,9 @@ function handleMessage(id, length)
 	if Network.decoders[id] then
 		local message = Network.decoders[id]()
 		if Network.handlers[id] then
-			Network.handlers[id](message)
+			for k, v in pairs(Network.handlers[id]) do
+				v(message)
+			end
 		end
 	end
 end
