@@ -6,11 +6,17 @@ import std.stdio;
 class ParticleState : IGameState
 {
 	ParticleSystem system;
+
+	int fpsCounter;
+	int fps = 60;
+	float fpsElapsed = 0;
+	FontID font;
 	
 	this(A)(ref A allocator)
 	{
 		auto settings = fromSDLFile!ParticleSettings(GC.it, "ParticleSettings.sdl");
-		system = ParticleSystem(allocator, settings, 1000);
+		system = ParticleSystem(allocator, settings, 0xFFFF * 4);
+		font = Game.content.loadFont("Blocked72");
 	}
 
 	void enter() 
@@ -23,6 +29,15 @@ class ParticleState : IGameState
 
 	void update()
 	{
+		fpsCounter++;
+		fpsElapsed += Time.delta;
+		if(fpsElapsed >= 1.0f)
+		{
+			fpsElapsed -= 1.0f;
+			fps = fpsCounter;
+			fpsCounter = 0;
+		}
+
 		if(Keyboard.isDown(Key.enter)){
 			system.settings = fromSDLFile!ParticleSettings(GC.it, "ParticleSettings.sdl");
 		}
@@ -36,13 +51,33 @@ class ParticleState : IGameState
 
 		float2 size		= float2(2, 2);
 
-		system.AddParticle(pos, polar.toCartesian, size, rect);
+		Particle particle;
+		particle.coords		= rect;
+		particle.center		= pos;
+		particle.velocity	= polar.toCartesian;
+		particle.startSize	= float2(10,10);
+		particle.endSize	= float2(100,100);
+		particle.startColor = Color.white;
+		particle.endColor	= Color.green;
+		particle.time		= system.currentTime;
+		particle.rotationSpeed = TAU * 3;
+		particle.lifeTime	= 3;
 
-		foreach(i; 0 .. 4)
+		system.AddParticle(particle);
+		foreach(i; 0 .. 1000)
 		{
-			auto pos2 = pos + Polar!float(Time.total + 0.5f * i, 200f).toCartesian;
-			auto velo = pos2 - pos;
-			system.AddParticle(pos2, velo, size, rect);
+		    auto pos2 = pos + Polar!float(Time.total + 0.5f * i, 200f).toCartesian;
+		    auto velo = (pos2 - pos).toPolar;
+			velo.angle += uniform(-0.5f, 0.5f);
+
+			particle.startSize = float2(5,5);
+			particle.endSize   = float2(15,15);
+		    particle.center = pos2;
+		    particle.velocity = velo.toCartesian;
+			particle.endColor = Color.red;
+
+
+		    system.AddParticle(particle);
 		}
 
 		system.Update(Time.delta);
@@ -54,6 +89,11 @@ class ParticleState : IGameState
 
 		mat4 proj = mat4.CreateOrthographic(0, Game.window.fboSize.x, Game.window.fboSize.y, 0, 1, -1);
 		system.Render(proj, Game.content.loadTexture("particle.png"));
+
+		import util.strings;
+		char[128] buffer;
+		Game.renderer.addText(font, text(buffer, "FPS: ", fps), float2(0, Game.window.fboSize.y), Color.red);
+		Game.renderer.addText(font, text(buffer, "Active Particles: ", system.numActiveParticles), float2(0, Game.window.fboSize.y - 100), Color.red);
 	}
 }
 
@@ -71,6 +111,23 @@ struct ParticleSettings
 }
 
 Color toColor(uint i) { return Color(i); }
+
+struct Particle
+{
+	//64-bytes
+	float4 coords;
+	float2 center;
+	float2 velocity;
+
+	Color startColor;
+	Color endColor;
+	float2 startSize;
+	float2 endSize;
+
+	float rotationSpeed;
+	float time;
+	float lifeTime;
+}
 
 struct ParticleSystem
 {
@@ -99,14 +156,13 @@ struct ParticleSystem
 
 	private VBO vbo;
 	private VAO vao;
-	private IBO ibo;
 
 	private Program program;
 
 	private float currentTime = 0;
 	private float lifeTime    = 3;
 	private int drawCounter = 0;
-	private Vertex[] queue;
+	private Particle[] queue;
 
 	ParticleSettings settings;
 
@@ -116,65 +172,43 @@ struct ParticleSystem
 	int firstFreeParticle;
 	int firstRetiredParticle;
 
-	private int MaxParticles()
+	@property int numActiveParticles()
 	{
-		return this.queue.length / 4;
+		if(firstFreeParticle > firstActiveParticle)
+			return firstFreeParticle - firstActiveParticle;
+		else
+			return firstFreeParticle + MaxParticles - firstActiveParticle;
 	}
 
-	private struct Vertex
-    {
-        float2 position;
-		float2 velocity;
-		float2 random;
-		float2 offset;
-		float2 coords;
-		float time;
-    }
+	private int MaxParticles()
+	{
+		return this.queue.length;
+	}
 
 	import allocation;
 	this(ref ScopeStack allocator, ParticleSettings settings, size_t bufferSize)
 	{
 		this.settings   = settings;
-		this.queue	    = allocator.allocate!(Vertex[])(bufferSize * 4);
+		this.queue	    = allocator.allocate!(Particle[])(bufferSize);
 
 		this.vbo = VBO.create(BufferHint.streamDraw);
 		this.vao = VAO.create();
-		this.ibo = IBO.create(BufferHint.staticDraw);
-			
-
-		gl.bindBuffer(ibo.target, ibo.glName);
-		ibo.initialize(cast(uint)(6 * bufferSize * ushort.sizeof));
-		bufferIndices(cast(ushort)(6 * bufferSize));
-
+		
 		gl.bindBuffer(vbo.target, vbo.glName);
-		vbo.initialize(cast(uint)(4 * bufferSize * Vertex.sizeof));
+		vbo.initialize(cast(uint)(bufferSize * Particle.sizeof));
 
-		auto vShader = Shader(ShaderType.vertex,   vs),
+		auto gShader = Shader(ShaderType.geometry, gs),
+			 vShader = Shader(ShaderType.vertex,   vs),
 			 fShader = Shader(ShaderType.fragment, fs);
 
-		this.program = Program(allocator, vShader, fShader);
+		this.program = Program(allocator, gShader, vShader, fShader);
 
+		gShader.destroy();
 		vShader.destroy();
 		fShader.destroy();
 
 		gl.bindVertexArray(vao.glName);
-		vao.bindAttributesOfType!Vertex(program);
-	}
-
-	private void bufferIndices(ushort bufferSize)
-	{
-		auto ptr = ibo.mapRange!ushort(0, bufferSize, BufferRangeAccess.write);
-		foreach(ushort i; 0 .. bufferSize / 6)
-		{
-			(*ptr++)  = cast(ushort)(i * 4);
-			(*ptr++)  = cast(ushort)(i * 4 + 1);
-			(*ptr++)  = cast(ushort)(i * 4 + 2);
-			(*ptr++)  = cast(ushort)(i * 4);
-			(*ptr++)  = cast(ushort)(i * 4 + 2);
-			(*ptr++)  = cast(ushort)(i * 4 + 3);
-		}
-
-		ibo.unmapBuffer();
+		vao.bindAttributesOfType!Particle(program);
 	}
 
 
@@ -182,21 +216,12 @@ struct ParticleSystem
 	{
 		gl.useProgram(program.glName);
 		
-		program.uniform[PROJ_MAT]	 = projection;
-		program.uniform[START_COLOR] = settings.startColor;
-		program.uniform[END_COLOR]   = settings.endColor;
-		program.uniform[START_SIZE]  = settings.startSize;
-		program.uniform[END_SIZE]    = settings.endSize;
-
-		program.uniform[START_ANGULAR_VELOCITY] = settings.startAngularVelocity;
-		program.uniform[END_ANGULAR_VELOCITY]   = settings.endAngularVelocity;
-		program.uniform[COLOR_VARIANCE]			= settings.colorVariance;
-		program.uniform[SIZE_VARIANCE]			= settings.sizeVariance;
-		program.uniform[LIFE_TIME]				= settings.lifeTime;
-		program.uniform[CURRENT_TIME]			= this.currentTime;
-		program.uniform[START_ALPHA]			= 1.0f;
-		program.uniform[END_ALPHA]				= 0.0f;
-		program.uniform[TEXTURE]				= 0;
+		program.uniform[PROJ_MAT]		= projection;
+		program.uniform[LIFE_TIME]		= settings.lifeTime;
+		program.uniform[CURRENT_TIME]	= this.currentTime;
+		program.uniform[START_ALPHA]	= 1.0f;
+		program.uniform[END_ALPHA]		= 0.0f;
+		program.uniform[TEXTURE]		= 0;
 	}
 
 
@@ -221,13 +246,13 @@ struct ParticleSystem
 			// Is this particle old enough to retire?
 			// We multiply the active particle index by four, because each
 			// particle consists of a quad that is made up of four vertices.
-			float particleAge = currentTime - queue[firstActiveParticle * 4].time;
+			float particleAge = currentTime - queue[firstActiveParticle].time;
 
 			if (particleAge < lifeTime)
 				break;
 
 			// Remember the time at which we retired this particle.
-			queue[firstActiveParticle * 4].time = drawCounter;
+			queue[firstActiveParticle].time = drawCounter;
 
 			// Move the particle from the active to the retired queue.
 			firstActiveParticle = (firstActiveParticle + 1) % this.MaxParticles;
@@ -237,22 +262,7 @@ struct ParticleSystem
 	private void FreeRetiredParticles()
 	{
 		while (firstRetiredParticle != firstActiveParticle)
-		{
-			// Has this particle been unused long enough that
-			// the GPU is sure to be finished with it?
-			// We multiply the retired particle index by four, because each
-			// particle consists of a quad that is made up of four vertices.
-			int age = drawCounter - cast(int)queue[firstRetiredParticle * 4].time;
-
-			// The GPU is never supposed to get more than 2 frames behind the CPU.
-			// We add 1 to that, just to be safe in case of buggy drivers that
-			// might bend the rules and let the GPU get further behind.
-			if (age < 3)
-				break;
-
-			// Move the particle from the retired to the free queue.
 			firstRetiredParticle = (firstRetiredParticle + 1) % this.MaxParticles;
-		}
 	}
 
 
@@ -261,7 +271,6 @@ struct ParticleSystem
 		import std.stdio;
 
 		gl.bindBuffer(vbo.target, vbo.glName);
-		gl.bindBuffer(ibo.target, ibo.glName);
 		gl.useProgram(program.glName);
 
 		this.AddNewParticlesToVertexBuffer();
@@ -274,25 +283,18 @@ struct ParticleSystem
 
 		if (firstActiveParticle < firstFreeParticle)
 		{
-			gl.drawElements(PrimitiveType.triangles, 
-						   (firstFreeParticle - firstActiveParticle) * ELEMENTS_PER_SQUARE, 
-							IndexBufferType.ushort_,
-							cast(size_t*)(firstActiveParticle * ELEMENTS_PER_SQUARE * ushort.sizeof));
-
+			gl.drawArrays(PrimitiveType.points, 
+						  firstActiveParticle, 
+						 (firstFreeParticle - firstActiveParticle));
 		}
 		else
 		{
-			gl.drawElements(PrimitiveType.triangles, 
-								 (MaxParticles - firstActiveParticle) * ELEMENTS_PER_SQUARE, 
-								 IndexBufferType.ushort_,
-								 cast(size_t*)(firstActiveParticle * ELEMENTS_PER_SQUARE * ushort.sizeof));
-
-
+			gl.drawArrays(PrimitiveType.points, 
+						  firstActiveParticle,  
+						 (MaxParticles - firstActiveParticle));
 			if (firstFreeParticle > 0)
-			{
-				gl.drawElements(PrimitiveType.triangles, 
-								firstFreeParticle * 6, 
-								IndexBufferType.ushort_, cast(size_t*)(0));
+			{	
+				gl.drawArrays(PrimitiveType.points, 0, firstFreeParticle);
 			}
 		}
 
@@ -302,137 +304,189 @@ struct ParticleSystem
 
 	void AddNewParticlesToVertexBuffer()
 	{
+		if(firstNewParticle == firstFreeParticle) return;
 
 		if (firstNewParticle < firstFreeParticle)
 		{
-			auto range0 = firstNewParticle * 4, range1 = (firstFreeParticle - firstNewParticle) * 4;
+			auto range0 = firstNewParticle, 
+				 range1 = (firstFreeParticle - firstNewParticle);
 			vbo.bufferSubData(queue[range0 .. range0 + range1], range0);
+
+			//auto ptr = vbo.mapRange!Particle(range0, range1, BufferRangeAccess.unsynchronizedWrite);
+			//foreach(i; 0 .. range1)
+			//{
+			//    (*ptr++) = queue[range0 + i];
+			//}
+			//vbo.unmapBuffer();
 		}
 		else
 		{
-			auto range0 = firstNewParticle * 4, range1 = (this.MaxParticles - firstNewParticle) * 4;
-			vbo.bufferSubData(queue[range0 ..  range0 + range1],range0);
+			auto range0 = firstNewParticle, 
+				 range1 = (this.MaxParticles - firstNewParticle);
+			vbo.bufferSubData(queue[range0 ..  range0 + range1], range0);
 
 			if (firstFreeParticle > 0)
 			{
-				vbo.bufferSubData(queue[0 ..  firstFreeParticle * 4], 0);
+				vbo.bufferSubData(queue[0 ..  firstFreeParticle], 0);
 			}
 		}
 
 		firstNewParticle = firstFreeParticle;
 	}
 
-	public void AddParticle(float2 position, float2 velocity, float2 size, float4 coords)
+	public void AddParticle(ref Particle particle)
 	{
 		int nextFreeParticle = (firstFreeParticle + 1) % this.MaxParticles;
 
 		if (nextFreeParticle == firstRetiredParticle)
 			return;
 
-
-		queue[firstFreeParticle * 4 + 0].coords	= float2(coords.x, coords.y);
-		queue[firstFreeParticle * 4 + 1].coords = float2(coords.z, coords.y);
-		queue[firstFreeParticle * 4 + 2].coords = float2(coords.z, coords.w);
-		queue[firstFreeParticle * 4 + 3].coords = float2(coords.x, coords.w);
-
-		queue[firstFreeParticle * 4 + 0].offset = -size / 2;
-		queue[firstFreeParticle * 4 + 1].offset = float2(size.x / 2, -size.y / 2);
-		queue[firstFreeParticle * 4 + 2].offset = size / 2;
-		queue[firstFreeParticle * 4 + 3].offset = float2(-size.x / 2, size.y / 2); ;
-
-		import std.random;
-
-		auto rand = float2(uniform(-1, 1.0001), uniform(-1, 1.0001));
-		for (int i = 0; i < 4; i++)
-		{
-			queue[firstFreeParticle * 4 + i].position = float2(position.x, position.y);
-			queue[firstFreeParticle * 4 + i].velocity = velocity;
-			queue[firstFreeParticle * 4 + i].time = currentTime;
-			queue[firstFreeParticle * 4 + i].random = rand;
-
-		}
-
+		queue[firstFreeParticle] = particle;
 		firstFreeParticle = nextFreeParticle;
 	}
 
-	enum vs = 
+
+	enum gs = 
 "
-#version 130
-precision highp float;
+#version 330
+layout(points) in;
+layout(triangle_strip, max_vertices = 4) out;
 
 uniform mat4 projection_matrix;
 
-uniform vec4 start_color;
-uniform vec4 end_color;
-
 uniform float start_alpha;
 uniform float end_alpha;
-
-uniform vec4 color_variance;
-
-uniform float start_size;
-uniform float end_size;
-
-uniform float size_variance;
-
-uniform float start_angular_velocity;
-uniform float end_angular_velocity;
-
-uniform float life_time;
 uniform float current;
 
-in vec2  position;
-in vec2  velocity;
-in vec2  random;
-in vec2  offset;
-in vec2  coords;
-in float time;
+in vertexAttrib
+{
+	vec4 coords;
+	vec2 center;
+	vec2 velocity;
 
-out vec2 out_coords;
-out vec4 out_tint;
+	vec4 startColor;
+	vec4 endColor;
+	vec2 startSize;
+	vec2 endSize;
+
+	float rotationSpeed;
+	float time;
+	float lifeTime;
+} vertex[];
+
+out vertData
+{
+	vec4 color;
+	vec2 coord;
+} vertOut;
+
+vec4 calcPos(in vec2 pos, in vec2 origin, in float sinus, in float cosinus)
+{
+	pos.x += origin.x * cosinus - origin.y * sinus;
+	pos.y += origin.x * sinus   + origin.y * cosinus;
+	return vec4(pos, 0 , 1);
+}
+
+void emitCorner(in vec2 pos, in vec2 origin, 
+				in vec2 coord, in float sinus, 
+				in float cosinus, in vec4 color)
+{
+	gl_Position      = projection_matrix * calcPos(pos, origin, sinus, cosinus);
+	vertOut.color	 = color;
+	vertOut.coord	 = coord;
+	EmitVertex();
+}
 
 void main(void)
 {
-	float age = clamp(0.0,1.0,(current - time) / (life_time));
+	float age = clamp(0.0, 1.0, (current - vertex[0].time) / (vertex[0].lifeTime));
 
-	vec2 pos = position;
-	pos += velocity * age;
-	float angle = mix(start_angular_velocity, end_angular_velocity, age) * random.y * random.x;
+	vec2 pos	 = vertex[0].center;
+	pos			+= vertex[0].velocity * age;
+	float angle  = vertex[0].rotationSpeed * age;
 
 	float s = sin(angle);
 	float c = cos(angle);
 
-	float varianceSize = random.x * size_variance;
-
-	vec2 offset = (mix(start_size, end_size, age) + varianceSize) * offset;
-
-	pos.x += offset.x * c - offset.y * s ;
-	pos.y += offset.x * s + offset.y * c;
-
-	vec4 varianceColor = color_variance * random.x;
+	vec2 size	= mix(vertex[0].startSize, vertex[0].endSize, age);
+	vec2 origin = -size / 2.0; 
 
 	//OUT STUFF
 	float alpha = mix(start_alpha, end_alpha, age);
+	vec4 out_tint = mix(vertex[0].startColor, vertex[0].endColor, age) * alpha;
 
-	out_tint = (mix(start_color, end_color, age) + varianceColor) * alpha;
-	out_coords = coords;
-	gl_Position = projection_matrix * vec4(pos, 0.0, 1.0);
+
+	emitCorner(pos, origin					, vertex[0].coords.xy, s, c, out_tint);
+	emitCorner(pos, origin + vec2(0, size.y), vertex[0].coords.xw, s, c, out_tint);
+	emitCorner(pos, origin + vec2(size.x, 0), vertex[0].coords.zy, s, c, out_tint);
+	emitCorner(pos, origin + size			, vertex[0].coords.zw, s, c, out_tint);
+}
+";
+
+enum vs =
+"#version 330
+in vec4 coords;
+in vec2 center;
+in vec2 velocity;
+
+in vec4 startColor;
+in vec4 endColor;
+in vec2 startSize;
+in vec2 endSize;
+
+in float rotationSpeed;
+in float time;
+in float lifeTime;
+
+out vertexAttrib
+{
+	vec4 coords;
+	vec2 center;
+	vec2 velocity;
+
+	vec4 startColor;
+	vec4 endColor;
+	vec2 startSize;
+	vec2 endSize;
+
+	float rotationSpeed;
+	float time;
+	float lifeTime;
+} vertex;
+
+void main() 
+{
+	vertex.coords		= coords;
+    vertex.center		= center;
+    vertex.velocity		= velocity;
+    vertex.startColor	= startColor;
+    vertex.endColor		= endColor;
+	vertex.startSize	= startSize;
+	vertex.endSize		= endSize;
+	vertex.rotationSpeed= rotationSpeed;
+	vertex.time			= time;
+	vertex.lifeTime		= lifeTime;
 }
 ";
 
 enum fs =
 "
-#version 130
+#version 330
 precision highp float;
 
-in vec2 out_coords;
-in vec4 out_tint;
+in vertData
+{
+	vec4 color;
+	vec2 coord;
+} vertIn;
+
+
 out vec4 out_frag_color;
 uniform sampler2D tex;
 
 void main(void)
 {
-	out_frag_color = texture(tex, out_coords) * out_tint;
+	out_frag_color = texture(tex, vertIn.coord) * vertIn.color;
 }
 ";
 }

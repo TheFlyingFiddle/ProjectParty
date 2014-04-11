@@ -12,13 +12,13 @@ struct gl
 		enum glName = "gl" ~ name[0].toUpper.to!string ~ name[1 .. $];
 
 		//logChnl.info(glName,"(", args, ")");
-		debug scope(exit) checkGLError(name);
+		debug scope(exit) checkGLError(name, args);
 
 		mixin("return " ~ glName ~ "(args);");
 	}
 }
 
-void checkGLError(string name)
+void checkGLError(Args...)(string name, Args args)
 {
 	auto err = glGetError();
 	if(err)
@@ -44,6 +44,14 @@ void checkGLError(string name)
 				logChnl.error("IDK");
 				break;
 		}	
+
+		logChnl.info("Called with arguments");
+		foreach(i, arg; args)
+		{
+			logChnl.info("Arg ", i, "=", arg);
+		}
+
+
 
 		assert(0, "GL ERROR");
 	}

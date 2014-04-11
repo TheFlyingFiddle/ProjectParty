@@ -8,5 +8,5 @@ endSize   = 15
 startAngularVelocity = 0
 endAngularVelocity	 = 20
 
-lifeTime = 5
+lifeTime = 3
 sizeVariance = 10
