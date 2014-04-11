@@ -25,7 +25,7 @@ windowConfig =
 		y=768
 	}
 
-	fullScreen = true
+	fullScreen = false
 	blocking   = false
 	decorated  = false
 }

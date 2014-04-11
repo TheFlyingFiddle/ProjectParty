@@ -66,8 +66,12 @@ final class TowerCollection
 		{
 			if(tc.type == metas[metaIndex].type)
 			{
-				baseTowers ~= BaseTower(position, false, ownedPlayerID, 0, metas[metaIndex].regenRate, 
-										metaIndex, metas[metaIndex].range, metas[metaIndex].towerFrame);
+				baseTowers ~= BaseTower(position, false, ownedPlayerID, 
+							maxPressure*metas[metaIndex].startPressure, 
+										metas[metaIndex].regenRate, 
+										metaIndex, 
+										metas[metaIndex].range, 
+										metas[metaIndex].towerFrame);
 				tc.buildTower(metas[metaIndex].typeIndex, baseTowers.length - 1);
 				return;
 			}
