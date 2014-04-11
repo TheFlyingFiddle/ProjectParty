@@ -10,6 +10,8 @@ class ParticleState : IGameState
 	int fpsCounter;
 	int fps = 60;
 	float fpsElapsed = 0;
+
+	float counter = 0;
 	FontID font;
 	
 	this(A)(ref A allocator)
@@ -44,40 +46,46 @@ class ParticleState : IGameState
 
 		import std.random;
 
-		float4 rect		= float4(0,0,1,1);
-		float2 pos		= float2(Game.window.size / 2);
-		auto polar	    = float2(0,300).toPolar();
-		polar.angle		+= uniform(-1.0f,1.0f);
-
-		float2 size		= float2(2, 2);
-
-		Particle particle;
-		particle.coords		= rect;
-		particle.center		= pos;
-		particle.velocity	= polar.toCartesian;
-		particle.startSize	= float2(10,10);
-		particle.endSize	= float2(100,100);
-		particle.startColor = Color.white;
-		particle.endColor	= Color.green;
-		particle.time		= system.currentTime;
-		particle.rotationSpeed = TAU * 3;
-		particle.lifeTime	= 3;
-
-		system.AddParticle(particle);
-		foreach(i; 0 .. 1000)
+		counter += Time.delta;
+		while(counter > 1.0f / 60)
 		{
-		    auto pos2 = pos + Polar!float(Time.total + 0.5f * i, 200f).toCartesian;
-		    auto velo = (pos2 - pos).toPolar;
-			velo.angle += uniform(-0.5f, 0.5f);
+			counter -= 1.0f / 60;
 
-			particle.startSize = float2(5,5);
-			particle.endSize   = float2(15,15);
-		    particle.center = pos2;
-		    particle.velocity = velo.toCartesian;
-			particle.endColor = Color.red;
+			float4 rect		= float4(0,0,1,1);
+			float2 pos		= float2(Game.window.size / 2);
+			auto polar	    = float2(0,300).toPolar();
+			polar.angle		+= uniform(-1.0f,1.0f);
+
+			float2 size		= float2(2, 2);
+
+			Particle particle;
+			particle.coords		= rect;
+			particle.center		= pos;
+			particle.velocity	= polar.toCartesian;
+			particle.startSize	= float2(10,10);
+			particle.endSize	= float2(100,100);
+			particle.startColor = Color.white;
+			particle.endColor	= Color.green;
+			particle.time		= system.currentTime;
+			particle.rotationSpeed = TAU * 3;
+			particle.lifeTime	= 3;
+
+			system.AddParticle(particle);
+			foreach(i; 0 .. 500)
+			{
+				auto pos2 = pos + Polar!float(Time.total + 0.5f * i, 200f).toCartesian;
+				auto velo = (pos2 - pos).toPolar;
+				velo.angle += uniform(-0.5f, 0.5f);
+
+				particle.startSize = float2(5,5);
+				particle.endSize   = float2(15,15);
+				particle.center = pos2;
+				particle.velocity = velo.toCartesian;
+				particle.endColor = Color.red;
 
 
-		    system.AddParticle(particle);
+				system.AddParticle(particle);
+			}
 		}
 
 		system.Update(Time.delta);
