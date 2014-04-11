@@ -25,7 +25,7 @@ windowConfig =
 		y=768
 	}
 
-	fullScreen = false
+	fullScreen = true
 	blocking   = false
 	decorated  = false
 }
@@ -107,6 +107,7 @@ phoneResources = [
 	|elements/scripts/crank.lua|,
 	|elements/scripts/table.lua|,
 	|elements/scripts/infoscreen.lua|,
+	|elements/scripts/aim_circle.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/fonts/SegoeUILight72.fnt|,
