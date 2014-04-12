@@ -29,6 +29,7 @@ struct TowerBuiltMessage
 	ubyte typeIndex;
 	ubyte ownedByMe;
 	uint color;
+	ubyte isBroken;
 }
 
 struct TowerEnteredMessage

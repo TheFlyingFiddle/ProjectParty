@@ -70,9 +70,7 @@ class GamePlayState : IGameState
 		VentInstance.prefabs = level.ventPrototypes;
 		
 		auto ballisticController = new BallisticController(allocator, towerCollection);
-		enemyCollection.onDeath ~= &ballisticController.onEnemyDeath;
-		
-		HomingProjectileInstance.prefabs = level.homingPrototypes;
+
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
 
@@ -214,10 +212,11 @@ class GamePlayState : IGameState
 			tbMsg.towerType	= towerCollection.metas[tower.metaIndex].type;
 			tbMsg.typeIndex	= towerCollection.metas[tower.metaIndex].typeIndex;
 			tbMsg.ownedByMe = tower.ownedPlayerID == id;
+			tbMsg.isBroken = cast(ubyte)tower.isBroken;
 			if(players.indexOf(tower.ownedPlayerID) != -1)
 				tbMsg.color = players[tower.ownedPlayerID].color.packedValue;
 			else 
-				tbMsg.color = 0xFFFFFFFF;
+				tbMsg.color = 0xFF555555;
 			Game.server.sendMessage(id, tbMsg);
 		}
 	}

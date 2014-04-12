@@ -300,7 +300,7 @@ function Elements()
 						frame = v.frame, 
 						color = tower.playerColor, 
 					  	pos = vec2(tower.x, tower.y), 
-					  	broken = false,
+					  	broken = tower.broken,
 					  	type = k, 
 					  	ownedByMe = tower.isOwned == 1
 					})

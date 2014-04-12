@@ -82,6 +82,7 @@ local function readTowerBuilt()
 	tower.typeIndex 	= In.readByte()
 	tower.isOwned   	= In.readByte()
 	tower.playerColor 	= In.readInt()
+	tower.broken 		= In.readByte() == 1
 	return tower
 end
 
