@@ -45,6 +45,7 @@ end
 
 function update()
 	if fsm.active.update then fsm.active.update() end
+	gui:update()
 
 	Network.sendElapsed = Network.sendElapsed + Time.elapsed
 	if true then

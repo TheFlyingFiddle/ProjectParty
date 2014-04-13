@@ -1,9 +1,8 @@
 function Repair()
 	local rep = { }
-	rep.lifted = false
 	rep.speed = 0
 
-	local gravity = 0.1
+	local gravity = 2 
 
 
 	local function repair()
@@ -18,27 +17,33 @@ function Repair()
 	end
 
 	local function checkIfCorrectPosition()
+		log("Checking")
+		if pointInRect(	rep.bolt.rect,
+						rep.cog.rect.pos +
+						rep.cog.rect.dim/2) then
+			log("YAY")
+			repair()
+		end
 	end
 
 	local function onDragBeginCB()
-		rep.lifted = true
 	end
 
 	local function onDragCB() 
 	end
 
 	local function onDragEndCB()
-		rep.lifted = false
+		log("deCB")
 		checkIfCorrectPosition()
 	end
 
-	local bolt = ImageBox(0xFFFFFFFF, corrodedBolt,
+	rep.bolt = ImageBox(0xFFFFFFFF, corrodedBolt,
 			Rect2(	Screen.width * 0.62, 
 					Screen.height * 0.64,
 					Screen.height * 0.05,
 					Screen.height * 0.05))
 
-	local cog = DragAndDroppable(Rect2(Screen.width*0.67, 0,
+	rep.cog = DragAndDroppable(Rect2(Screen.width*0.67, 0,
 								Screen.height * 0.2, 
 								Screen.height * 0.2 ),
 								corrodedCog,
@@ -51,11 +56,11 @@ function Repair()
 	end
 
 	function rep.update()
-		if not rep.lifted then
-			cog.rect.pos.y = math.min(0, cog.rect.pos.y - rep.speed * gravity)
-			speed = speed + gravity
-			if cog.rect.pos.y < 0 then
-				cog.rect.pos.y = 0
+		if not rep.cog.beingDragged then
+			rep.cog.rect.pos.y = math.max(0, rep.cog.rect.pos.y - rep.speed)
+			rep.speed = rep.speed + gravity
+			if rep.cog.rect.pos.y < 0 then
+				rep.cog.rect.pos.y = 0
 			end
 		else 
 			rep.speed = 0
@@ -66,8 +71,8 @@ function Repair()
 		gui:add(Button(0xFF0000FF, pixel, 
 				   Rect2(10,10, 400, 100), 
 				   exit,   font, "Exit" ,0xFF000000))		
-		gui:add(bolt)
-		gui:add(cog)
+		gui:add(rep.bolt)
+		gui:add(rep.cog)
 		sendTowerEntered(cell)
 		rep.cell = cell
 	end
