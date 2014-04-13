@@ -1,12 +1,8 @@
-startColor = 0xFF00ffff
-endColor   = 0xFF0000FF
-colorVariance = 0xFF2200FF
+//Cone Emmiter
 
-startSize = 5
-endSize   = 15
-
-startAngularVelocity = 0
-endAngularVelocity	 = 20
-
-lifeTime = 3
-sizeVariance = 10
+angle
+width
+length
+spawnrate
+speed
+particle = |steam0|

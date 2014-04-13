@@ -31,6 +31,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 		keys   = List!K(allocator, capacity);
 	}
 
+
 	V* opBinaryRight(string s : "in")(in K key)
 	{
 		auto index = indexOf(key);

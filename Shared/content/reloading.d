@@ -122,6 +122,8 @@ enum FileExtention
 	aiff,
 	riff,
 	voc,
+	atlas,
+	txt,
 	unknown
 }
 
