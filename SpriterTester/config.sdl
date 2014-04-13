@@ -14,6 +14,7 @@ contentConfig =
 	maxTextures    = 100
 	maxFonts       = 10
 	maxSounds      = 50
+	maxAtlases	   = 10
 }
 
 //Windows and whatnot.
@@ -21,8 +22,8 @@ windowConfig =
 {
 	size = 
 	{
-		x=1920 
-		y=1080
+		x=1280 
+		y=720
 	}
 
 	fullScreen = false
@@ -63,8 +64,10 @@ resources =
 	{ type = texture path = |elements\textures\tower_cone.png| },
 	{ type = texture path = |elements\textures\rocket.png| },
 	{ type = texture path = |elements\textures\cone.png| },
-	{ type = texture path = |elements\textures\particle.png| }
-
+	{ type = texture path = |elements\textures\particle.png| },
+	{ type = texture path = |elements\textures\atlas0.png| },
+	{ type = font	 path = |elements\fonts\Blocked72.fnt| },
+	{ type = atlas   path = |elements\textures\atlases\particles.txt| }
 ]
 
 phoneResources = [ |elements/scripts/main.lua| ]

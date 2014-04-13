@@ -37,7 +37,6 @@ struct Level
 	List!VentTower		ventPrototypes;
 	
 	//Should be in ballistic.sdl
-	List!HomingProjectilePrefab		homingPrototypes;
 	List!BallisticProjectilePrefab	ballisticProjectilePrototypes;
 	List!BallisticTower					ballisticTowerPrototypes;
 

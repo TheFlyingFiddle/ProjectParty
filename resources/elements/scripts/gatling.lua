@@ -31,6 +31,13 @@ function Gatling()
 		pressureDisplay.amount = pressure
 	end
 
+	local function handleTowerBroken(cell)
+		if cell.x == t.cell.x and cell.y == t.cell.y then
+			exit()			
+		end
+	end
+
+
 	Network.setMessageHandler(Network.incoming.gatlingInfo, handleGatlingInfo)
 
 	function t.enter(cell) 
@@ -41,6 +48,7 @@ function Gatling()
 		gui:add(crank)
 		gui:add(pressureDisplay)
 
+		Network.setMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
 		Network.setMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
 
 		t.cell = cell
@@ -49,6 +57,9 @@ function Gatling()
 
 	function t.exit()
 		gui:clear()
+
+		Network.removeMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
+		Network.removeMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
 	end
 	
 	return t

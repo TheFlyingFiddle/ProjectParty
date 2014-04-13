@@ -59,6 +59,12 @@ function Vent()
 		pressureDisplay.amount = pressure	
 	end
 
+	local function handleTowerBroken(cell)
+		if cell.x == t.cell.x and cell.y == t.cell.y then
+			exit()			
+		end
+	end
+
 	Network.setMessageHandler(Network.incoming.ventInfo, handleVentInfo)
 
 	function t.enter(cell) 
@@ -73,6 +79,7 @@ function Vent()
 		gui:add(selector)
 
 
+		Network.setMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
 		Network.setMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
 
 		sendTowerEntered(cell)
@@ -82,6 +89,9 @@ function Vent()
 
 
 	function t.exit()
+		Network.removeMessageHandler(Network.incoming.towerBroken, handleTowerBroken)
+		Network.removeMessageHandler(Network.incoming.pressureInfo, handlePressureInfo)
+
 		gui:clear()
 	end
 	

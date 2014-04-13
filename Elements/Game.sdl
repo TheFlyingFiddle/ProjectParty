@@ -14,6 +14,7 @@ contentConfig =
 	maxTextures    = 100
 	maxFonts       = 10
 	maxSounds      = 50
+	maxAtlases	   = 5
 }
 
 //Windows and whatnot.
@@ -109,6 +110,7 @@ phoneResources = [
 	|elements/scripts/infoscreen.lua|,
 	|elements/scripts/image_box.lua|,
 	|elements/scripts/drag_and_droppable.lua|,
+	|elements/scripts/aim_circle.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/fonts/SegoeUILight72.fnt|,
