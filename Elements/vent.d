@@ -69,7 +69,7 @@ final class VentController : TowerController!VentInstance
 		{
 			if(instance.open > 0)
 			{
-				pressure(i) = min(maxPressure, pressure(i) - instance.fullyOpen * instance.open * Time.delta);
+				pressure(i) = max(0, pressure(i) - instance.fullyOpen * instance.open * Time.delta);
 				if(pressure(i) > 0)
 				{
 					foreach(ref enemy; enemies) 
