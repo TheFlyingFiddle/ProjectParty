@@ -2,7 +2,6 @@ module graphics.texture;
 
 import graphics.context;
 import graphics.enums;
-public import std.traits : Flag;
 
 struct Sampler 
 {
@@ -103,7 +102,7 @@ struct Texture1D
 Texture1D createTexture1D(ColorFormat format, ColorType type,
 						  InternalFormat internalFormat, 
 						  uint width, void[] data, 
-						  Flag!"generateMipMaps" flag)
+						  bool flag)
 {
 	auto texture = Texture1D(createTexture(), width);
 	gl.activeTexture(TextureUnit.zero);
@@ -133,7 +132,7 @@ struct Texture2D
 	static Texture2D create(ColorFormat format, ColorType type, 
 							InternalFormat internalFormat,
 							uint width, uint height, void[] data,
-							Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no) 	
+							bool flag = false) 	
 	{
 		auto texture = Texture2D(createTexture(), width, height);
 		gl.activeTexture(TextureUnit.zero);

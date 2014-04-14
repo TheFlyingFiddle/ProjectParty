@@ -21,7 +21,7 @@ emitters =
 		time = 1
 		points = 
 		[
-			{ time = 0.2  count = 15  particle = fire},
+			{ time = 0.2  count = 20  particle = fire},
 			{ time = 0.4  count = 5   particle = particle-smoke },
 			{ time = 0.5  count = 5   particle = smoke }
 		]

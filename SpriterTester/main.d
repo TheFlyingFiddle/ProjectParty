@@ -45,9 +45,11 @@ void main()
 
 }
 
+struct B { int x,y; }
+
 void init(A)(ref A allocator)
 {
-	import content.sdl;
+	import content.sdl, extender, math;
 
 	auto config = fromSDLFile!GameConfig(GC.it, "config.sdl");
 	game.Game = allocator.allocate!Game_Impl(allocator, config);

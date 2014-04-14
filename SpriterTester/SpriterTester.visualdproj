@@ -197,5 +197,6 @@
   <File path="particle.d" />
   <File path="ParticleSettings.sdl" />
   <File path="state.d" />
+  <File path="test.sdl" />
  </Folder>
 </DProject>

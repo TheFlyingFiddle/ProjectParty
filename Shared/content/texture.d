@@ -70,11 +70,10 @@ struct TextureManager
 
 	void auto_reload(const(char)[] path)
 	{
-		reload(path, 0, Flag!"generateMipMaps".no);
+		reload(path, 0, false);
 	}
 
-	static TextureID load(const(char)[] path, int loadingParam = 0, 
-				   Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
+	static TextureID load(const(char)[] path, int loadingParam = 0, bool flag = false)
 	{
 		auto index = resources.indexOf(path);
 		if(index != -1)
@@ -95,8 +94,7 @@ struct TextureManager
 		resources.remove(path);
 	}
 
-	static TextureID reload(const(char)[] path, uint paramConfig = 0, 
-					 Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
+	static TextureID reload(const(char)[] path, uint paramConfig = 0, bool flag = false)
 	{
 		auto index = resources.indexOf(path);
 		if (index == -1) {
@@ -126,8 +124,7 @@ struct TextureManager
 
 }
 
-private Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0, 
-					  Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
+private Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0, bool flag = false)
 {
 	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_path);
 	if(format == FIF_UNKNOWN)

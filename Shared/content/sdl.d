@@ -983,23 +983,21 @@ string str(ForwardRange a, ForwardRange b)
 	return a.over[a.position .. b.position];
 }
 
-T number(T)(ForwardRange a, ForwardRange b)
-if(isNumeric!T)
+T number(T)(ForwardRange a, ForwardRange b) if(isNumeric!T)
 {
-//BY THE GODS THIS SUCKS
-//TODO: No string allocs.
-//Only alternatives I see right now is to either pass appenders/allocators
-//Or write your own parsers of integers and floats (very hard!)
 	auto numSlice = a.over[a.position .. b.position];
 	size_t properLength = b.position - a.position;
-	string no_ = "";
+
+	//And a static array saved the day :)
+	char[128] no_;
+	int counter = 0;
 	while(a.position != b.position) {
 		if(a.front != '_') {
-			no_ ~= a.front;
+			no_[counter++] = a.front;
 		}
 		a.popFront();
 	}
-	return no_.to!T;
+	return no_[0 .. counter].to!T;
 }
 
 long parseHex(ForwardRange saved, ForwardRange range)

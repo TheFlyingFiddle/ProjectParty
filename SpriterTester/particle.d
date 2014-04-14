@@ -19,9 +19,9 @@ class ParticleState : IGameState
 	{
 		font = Game.content.loadFont("Blocked72");
 		auto atlas = Game.content.loadTextureAtlas("particles");
-		auto system = allocator.allocate!ParticleSystem(allocator, atlas, 1024 * 50);
+		auto system = allocator.allocate!ParticleSystem(allocator, atlas, 1024 * 100);
 
-		collection = new ParticleCollection(allocator, system, 1000);
+		collection = new ParticleCollection(allocator, system, 2000);
 		new ParticleEmitterExtender!ConeEmitter(allocator, collection);
 		auto config = fromSDLFile!ParticleEffectConfig(GC.it, "emitter0.sdl");
 		collection.addEffect(config, float2(Game.window.size/2));
@@ -45,11 +45,11 @@ class ParticleState : IGameState
 			
 			auto config0 = fromSDLFile!ParticleEffectConfig(GC.it, "emitter0.sdl");
 			auto config1 = fromSDLFile!ParticleEffectConfig(GC.it, "emitter1.sdl");
-			foreach(i; 0 .. 500)
+			foreach(i; 0 .. 1000)
 			{
 				float2 pos = float2(Game.window.size.x / 2 + uniform(-600, 600), 
 									Game.window.size.y / 2 + uniform(-300, 150)); 
-				if(dice(0.5, 0.5) == 0)
+				if(dice(0.9, 0.1) == 0)
 					collection.addEffect(config0, pos);
 				else 
 					collection.addEffect(config1, pos);
