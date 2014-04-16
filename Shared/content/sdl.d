@@ -1036,7 +1036,16 @@ T fromSDLFile(T, A)(ref A allocator, string filePath)
 {
     import allocation.native;
     auto app = MallocAppender!SDLObject(1024);
-    string source = readText(filePath);
+    auto source = readText(filePath);
+
+	// Trim BOM (byte order mark) from utf8
+	// The standard library really should handle this...
+	if(source[0] == 0xEF &&
+	   source[1] == 0xBB &&
+	   source[2] == 0xBF)
+	{
+		source = source[3..$];
+	}
     auto cont = fromSDL(app, source);
     return cont.as!T(allocator);
 }
@@ -1824,6 +1833,33 @@ freeColor=0";
 		}
 		auto obj = fromSDL(app, "str = || str2 = ||");
 		assertEquals(obj.as!TestStruct(GC.it), TestStruct());
+	}
+
+	@Test void testUTF8String()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+
+		struct TestStruct
+		{
+			string str;
+		}
+		auto obj = fromSDL(app, "str = |Vad heter solen på engelska?|");
+		assertEquals(obj.as!TestStruct(GC.it), TestStruct("Vad heter solen på engelska?"));
+	}
+
+	@Test void testUTF8StringFromFile()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+
+		struct TestStruct
+		{
+			string str;
+		}
+		auto obj = fromSDLFile!TestStruct(alloc, "content/test.sdl");
+		assertEquals(obj, TestStruct("Vad heter solen på engelska?"));
 	}
 }
 

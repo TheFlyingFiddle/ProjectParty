@@ -98,6 +98,7 @@ class GamePlayState : IGameState
 
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
+		Game.router.reconnectionHandlers ~= &reconnect;
 	}
 
 	ubyte getMetaInfo(ubyte type, ubyte typeIndex) 
@@ -111,10 +112,16 @@ class GamePlayState : IGameState
 		players[id] = TowerPlayer(0, Color(uniform(0xFF000000, 0xFFFFFFFF)));
 		sendTransaction(id, level.startBalance);
 	}
+ 
+	void reconnect(ulong id)
+	{
+		auto balance = players[id].balance;
+		players[id].balance = 0;
+		sendTransaction(id, balance);
+	}
 
 	void disconnect(ulong id)
 	{
-		players.remove(id);
 	}
 
 	void sendTransaction(ulong id, int amount)

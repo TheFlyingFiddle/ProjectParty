@@ -1,6 +1,7 @@
 assets = {}
 
 function init()
+	log("init")
 	font  			= Loader.loadFont("fonts/Segoe54.fnt")
 	pixel 			= Loader.loadFrame("textures/pixel.png")
 	circle 			= Loader.loadFrame("textures/circle.png")
@@ -26,6 +27,9 @@ function init()
 	assets.lightning 	= { id = 5, frame = lightningIcon, 	color = 0xFF00FFFF }
 	assets.wind 		= { id = 6, frame = windIcon, 		color = 0xFFaaFFaa }
 	assets.nature 		= { id = 7, frame = natureIcon,		color = 0xFF00FF00 }
+
+	Game.setFps(45)
+	Screen.setOrientation(Orientation.landscape)
 
 	gui = Gui()
 

@@ -58,7 +58,8 @@ enum NetworkMessage
 	fileReload   = 4,
 	luaLog       = 5,
 	transition   = 6,
-	heartbeat	 = 7
+	heartbeat	 = 7,
+	shutdown	 = 8
 }
 
 struct Server
@@ -130,8 +131,14 @@ struct Server
 		listener.shutdown(SocketShutdown.SEND);
 		listener.close();
 		connector.close();
+		ubyte[3] shutdownMessage;
+		shutdownMessage[0] = 1;
+		shutdownMessage[2] = NetworkMessage.shutdown;
 
 		foreach(ref con; activeConnections) { 
+			
+			send(con.id, shutdownMessage);
+
 			con.socket.shutdown(SocketShutdown.SEND);
 			con.socket.close();
 

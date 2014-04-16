@@ -27,6 +27,11 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Pictionary", "Pictionary\Pi
 		{06AA8B71-5362-45F3-AE99-60E15D95960C} = {06AA8B71-5362-45F3-AE99-60E15D95960C}
 	EndProjectSection
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Quiz", "Quiz\Quiz.visualdproj", "{A82CF13A-F0A2-4ABB-9224-2FAADCE1DD46}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06AA8B71-5362-45F3-AE99-60E15D95960C} = {06AA8B71-5362-45F3-AE99-60E15D95960C}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +84,12 @@ Global
 		{302D4598-ECE2-4F94-8C81-2D1CDB891266}.Release|Win32.ActiveCfg = Release|Win32
 		{302D4598-ECE2-4F94-8C81-2D1CDB891266}.Release|Win32.Build.0 = Release|Win32
 		{302D4598-ECE2-4F94-8C81-2D1CDB891266}.Release|x64.ActiveCfg = Release|Win32
+		{A82CF13A-F0A2-4ABB-9224-2FAADCE1DD46}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A82CF13A-F0A2-4ABB-9224-2FAADCE1DD46}.Debug|Win32.Build.0 = Debug|Win32
+		{A82CF13A-F0A2-4ABB-9224-2FAADCE1DD46}.Debug|x64.ActiveCfg = Debug|Win32
+		{A82CF13A-F0A2-4ABB-9224-2FAADCE1DD46}.Release|Win32.ActiveCfg = Release|Win32
+		{A82CF13A-F0A2-4ABB-9224-2FAADCE1DD46}.Release|Win32.Build.0 = Release|Win32
+		{A82CF13A-F0A2-4ABB-9224-2FAADCE1DD46}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

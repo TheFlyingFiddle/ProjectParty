@@ -406,6 +406,7 @@
    <File path="content\reloading.d" />
    <File path="content\sdl.d" />
    <File path="content\sound.d" />
+   <File path="content\test.sdl" />
    <File path="content\texture.d" />
    <File path="content\textureatlas.d" />
   </Folder>
