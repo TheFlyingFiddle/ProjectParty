@@ -8,6 +8,7 @@ import util.strings;
 import math;
 import collections;
 import std.traits;
+import graphics.color;
 
 struct UniformInfo
 {
@@ -315,7 +316,7 @@ struct Program
 				case UT.float_ : validate!(float ); break;
 				case UT.float2 : validate!(float2); break;
 				case UT.float3 : validate!(float3); break;
-				case UT.float4 : validate!(float4); break;
+				case UT.float4 :  break;
 				case UT.int_   : validate!(int   ); break;
 				case UT.int2   : validate!(int2  ); break;
 				case UT.int3   : validate!(int3  ); break;
@@ -458,6 +459,11 @@ private void flushUniform(int loc, float3[] value)
 private void flushUniform(int loc, float4 value)
 {
 	gl.uniform4f(loc, value.x, value.y, value.z, value.w);
+}
+
+private void flushUniform(int loc, Color color)
+{
+	flushUniform(loc, float4(color.r, color.g, color.b, color.a));
 }
 
 private void flushUniform(int loc, float4[] value)

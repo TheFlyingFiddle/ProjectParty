@@ -99,8 +99,15 @@ struct SDLIterator
 			return !over.root[currentIndex].nextIndex;
 		}
 
+	@property
+		bool hasChildren() {
+			return cast(bool) over.root[currentIndex].objectIndex;
+		}
+
     @property
 		size_t walkLength() {
+			if(!hasChildren)
+				return 0;
 			ushort savedIndex = currentIndex;
 			goToChild();
 			size_t size = 1;
@@ -166,7 +173,7 @@ struct SDLIterator
         SDLObject obj = over.root[currentIndex];
         auto next = cast(ushort)obj.nextIndex;
         if(!next)
-            enforce(0, getSDLIterError()~"Object had no next! Index out of bounds.");
+            enforce(0, getSDLIterError() ~ "\n" ~ "Object had no next! Index out of bounds.");
         currentIndex = next;
 	}
 
@@ -175,13 +182,13 @@ struct SDLIterator
 	{
         static if(isIntegral!T)
 			enforce(over.root[currentIndex].type == TypeID._int,
-					getSDLIterError() ~
+					getSDLIterError() ~ "\n" ~
 					"SDLObject wasn't an integer, which was requested.");
         else static if(isFloatingPoint!T)
 			enforce(over.root[currentIndex].type == TypeID._float ||
 					over.root[currentIndex].type == TypeID._int,
-					getSDLIterError() ~
-					"SDLObject wasn't a floating point value, "~
+					getSDLIterError() ~ "\n" ~
+					"SDLObject wasn't a floating point value, " ~
 					"which was requested.");
         auto range = mixin(curObjObjRange);
         if(over.root[currentIndex].type == TypeID._int)
@@ -193,7 +200,7 @@ struct SDLIterator
 	T as(T)() if(is(T==bool))
 	{
 		assertEquals(over.root[currentIndex].type, TypeID._string,
-				getSDLIterError() ~
+				getSDLIterError() ~ "\n" ~
 	 			"SDLObject wasn't a boolean, which was requested");
 		auto range = mixin(curObjObjRange);
 		return readBool(range);
@@ -238,7 +245,6 @@ struct SDLIterator
 	//TODO: Code duplication (see above) iteration might be refactored into an opApply?
 	T as(T, A)(ref A allocator) if(is(T t == List!U, U))
 	{
-		//If it doesn't work, use static if
         static if(is(T t == List!U, U)) {
 			auto listLength = walkLength;
 			auto list = T(allocator, listLength);
@@ -262,7 +268,7 @@ struct SDLIterator
 	T as(T)() if (is(T == enum))
 	{
 		assertEquals(over.root[currentIndex].type, TypeID._string,
-					 getSDLIterError() ~
+					 getSDLIterError() ~ "\n" ~
 					 "SDLObject wasn't an enum, which was requested");
 		auto range = mixin(curObjObjRange);
 
@@ -273,7 +279,7 @@ struct SDLIterator
 			if(member.to!string == name)
 				return member;
 		}
-		assert(0, getSDLIterError() ~ 
+		assert(0, getSDLIterError() ~ "\n" ~ 
 			   name ~ " is not a valid value of enum type " ~ T.stringof);
 	}
 
@@ -977,23 +983,21 @@ string str(ForwardRange a, ForwardRange b)
 	return a.over[a.position .. b.position];
 }
 
-T number(T)(ForwardRange a, ForwardRange b)
-if(isNumeric!T)
+T number(T)(ForwardRange a, ForwardRange b) if(isNumeric!T)
 {
-//BY THE GODS THIS SUCKS
-//TODO: No string allocs.
-//Only alternatives I see right now is to either pass appenders/allocators
-//Or write your own parsers of integers and floats (very hard!)
 	auto numSlice = a.over[a.position .. b.position];
 	size_t properLength = b.position - a.position;
-	string no_ = "";
+
+	//And a static array saved the day :)
+	char[128] no_;
+	int counter = 0;
 	while(a.position != b.position) {
 		if(a.front != '_') {
-			no_ ~= a.front;
+			no_[counter++] = a.front;
 		}
 		a.popFront();
 	}
-	return no_.to!T;
+	return no_[0 .. counter].to!T;
 }
 
 long parseHex(ForwardRange saved, ForwardRange range)
@@ -1032,7 +1036,16 @@ T fromSDLFile(T, A)(ref A allocator, string filePath)
 {
     import allocation.native;
     auto app = MallocAppender!SDLObject(1024);
-    string source = readText(filePath);
+    auto source = readText(filePath);
+
+	// Trim BOM (byte order mark) from utf8
+	// The standard library really should handle this...
+	if(source[0] == 0xEF &&
+	   source[1] == 0xBB &&
+	   source[2] == 0xBF)
+	{
+		source = source[3..$];
+	}
     auto cont = fromSDL(app, source);
     return cont.as!T(allocator);
 }
@@ -1076,7 +1089,7 @@ private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort 
     enforce(range.front == '=', getSDLError(range));
     range.popFront();
 
-    skipWhitespace(range);
+    range.skipWhitespace();
 
     auto c = range.front;
 
@@ -1194,7 +1207,8 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
         readArray(sink, range, nextVacantIndex);
 		if (sink[objIndex].nextIndex == nextVacantIndex) {
 			// Nothing was allocated, arraycloser found when expecting object
-            enforce(0, "Empty slot in array (arraycloser following arrayseparator).");
+            enforce(0, "Empty slot in array (arraycloser following arrayseparator)."
+					~ getSDLError(range));
 		}	
 	} else if(range.front == arrayCloser) {
 		range.popFront();
@@ -1789,6 +1803,63 @@ freeColor=0";
 		}
 		auto obj = fromSDL(app, "str = |asdf4| str2 = |asdf6|");
 		assertEquals(obj.as!TestStruct(GC.it), TestStruct(TestStruct2(1,2), TestStruct2(1,2)));
+	}
+
+	@Test void testEmptyList()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+
+		struct TestStruct
+		{
+			List!int ints;
+			List!string strings;
+		}
+		auto obj = fromSDL(app, "ints = [] strings = []");
+		assertEquals(TestStruct(), obj.as!TestStruct(GC.it));
+	}
+
+	@Test void testEmptyString()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+
+		struct TestStruct
+		{
+			string str;
+			string str2;
+		}
+		auto obj = fromSDL(app, "str = || str2 = ||");
+		assertEquals(obj.as!TestStruct(GC.it), TestStruct());
+	}
+
+	@Test void testUTF8String()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+
+		struct TestStruct
+		{
+			string str;
+		}
+		auto obj = fromSDL(app, "str = |Vad heter solen på engelska?|");
+		assertEquals(obj.as!TestStruct(GC.it), TestStruct("Vad heter solen på engelska?"));
+	}
+
+	@Test void testUTF8StringFromFile()
+	{
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+
+		struct TestStruct
+		{
+			string str;
+		}
+		auto obj = fromSDLFile!TestStruct(alloc, "content/test.sdl");
+		assertEquals(obj, TestStruct("Vad heter solen på engelska?"));
 	}
 }
 

@@ -5,7 +5,7 @@ import util.profile;
 import core.time, std.datetime,
 	core.thread, std.algorithm,
 	content, std.uuid, collections.list,
-	allocation;
+	allocation, sound;
 
 import network.server;
 import network.router;
@@ -46,6 +46,7 @@ struct GameConfig
 	WindowConfig  windowConfig;
 	ServerConfig  serverConfig;
 	ContentConfig contentConfig;
+	SoundConfig	  soundConfig;
 
 	Asset[] resources;
 	string[] phoneResources;
@@ -66,14 +67,14 @@ struct Game_Impl
 	Renderer*		renderer;
 	Server*			server;
 	Router*			router;
+	SoundPlayer*    sound;
 	Window			window;
 
 	this(A)(ref A allocator, GameConfig config)
 	{
-		content = allocator.allocate!Content(allocator, config.contentConfig);
 		server  = allocator.allocate!Server(allocator, config.serverConfig);
 		router  = allocator.allocate!Router(allocator, *server);
-
+		
 		router.connectionHandlers    ~= &onConnect;
 		router.reconnectionHandlers  ~= &onReconnect;
 		router.messageHandlers		 ~= &onMessage;
@@ -84,7 +85,8 @@ struct Game_Impl
 		Phone.init(allocator, config.serverConfig.maxConnections, *router);
 
 		gameStateMachine = allocator.allocate!GameStateFSM(allocator, config.maxStates);
-
+		
+		sound	= allocator.allocate!SoundPlayer(allocator, config.soundConfig);
 
 		WindowManager.init(allocator, config.maxWindows);
 		window		 = WindowManager.create(config.windowConfig);
@@ -95,6 +97,7 @@ struct Game_Impl
 
 		ContentReloader.onTrackedChanged = &onAssetReload;
 
+		content = allocator.allocate!Content(allocator, config.contentConfig);
 		foreach(asset ; config.resources)
 			content.loadAsset(asset);
 
@@ -145,7 +148,8 @@ struct Game_Impl
 		msg.write!ubyte(NetworkMessage.fileReload, &offset);
 		msg.write(p2, &offset);
 		msg.write!ushort(cast(ushort)(offset - 2), 0);
-  import logging;
+		
+		import logging;
 		auto logChnl = LogChannel("GAME");
 		logChnl.info("Offset:", offset);
 		foreach(player; players)

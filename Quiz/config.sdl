@@ -1,0 +1,79 @@
+//Quiz master configuration file.
+
+//Buffers 
+maxStates  = 10
+maxWindows = 1
+initialRenderSize = 100_00
+
+//Content buffer sizes.
+contentConfig =
+{
+	maxTrackingResources = 110
+	maxReloaders         = 10
+
+	maxTextures    = 100
+	maxFonts       = 10
+	maxSounds      = 50
+	maxAtlases	   = 5
+}
+
+//Windows and whatnot.
+windowConfig = 
+{
+	size = 
+	{
+		x=1366
+		y=768
+	}
+
+	fullScreen = false
+	blocking   = false
+	decorated  = true
+}
+
+serverConfig = 
+{
+	maxConnections = 20
+	broadcastPort  = 7331
+	maxMessageSize = 0xffff
+	broadcastInterval = 1.0
+	connectionTimeout = 15
+}
+
+soundConfig =
+{
+	freq = 22050
+	numChannels = 32
+	bufferSize = 4096
+	
+	musicVolume  = 1.0
+	soundVolume  = 1.0 
+	masterVolume = 0.5
+	muted        = true
+
+	musicFoulderPath = |..\\resources\\quiz\\music|
+}
+
+gameName = quiz
+
+resources = [ 
+	{ type = texture	path = |quiz\textures\pixel.png| },
+	{ type = font		path = |quiz\fonts\SegoeUILight72.fnt| }
+]
+
+phoneResources = [
+	|quiz/scripts/main.lua|,
+	|quiz/scripts/button.lua|,
+	|quiz/scripts/rect.lua|,
+	|quiz/scripts/table.lua|,
+	|quiz/scripts/vector2.lua|,
+	|quiz/scripts/gui.lua|,
+	|quiz/scripts/networking.lua|,
+	|quiz/scripts/states.lua|,
+	|quiz/scripts/guessing.lua|,
+	|quiz/textures/pixel.png|,
+	|quiz/textures/plus.png|,
+	|quiz/textures/circle.png|,
+	|quiz/fonts/SegoeUILight72.fnt|,
+	|quiz/fonts/SegoeUILight72_0.png|
+]

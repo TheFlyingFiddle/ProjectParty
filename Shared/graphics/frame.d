@@ -16,19 +16,24 @@ struct Frame
 
 	@property float width() 
 	{
-		return texture.width;
+		return  _srcRect.z;
 	}
 
 	@property float height() 
 	{
-		return texture.height;
+		return  _srcRect.w;
+	}
+
+	@property float2 dim()
+	{
+		return _srcRect.zw;
 	}
 
 	this(TextureID texture)
 	{
 		this.texture = texture;
 		this.coords = float4(0,0,1,1);
-		this._srcRect = float4(0, 0, 1, 1);
+		this._srcRect = float4(0, 0, texture.width, texture.height);
 	}
 
 	this(TextureID texture, float4 srcRect)

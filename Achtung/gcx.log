@@ -1,90 +1,90 @@
-GC::malloc(gcx = 002C6968, size = 120 bits = 1, ti = core.thread.Thread)
-Setting a pointer bitmap for core.thread.Thread at 02000F80 + 120
+GC::malloc(gcx = 005C6968, size = 120 bits = 1, ti = core.thread.Thread)
+Setting a pointer bitmap for core.thread.Thread at 00250F80 + 120
 	Setting bitmap for new object (core.thread.Thread)
-		at 02000F80		copying from 0044A784 + 120: 001000110001111111010000000011
-	malloc => 02000F80
+		at 00250F80		copying from 0044A784 + 120: 001000110001111111010000000011
+	malloc => 00250F80
 GC.addRange_hp(0045A760 - 0045AA20, tls=0)
 GC.addRange_hp(0045AACC - 0045AB1C, tls=1)
-GC::malloc(gcx = 002C6968, size = 11 bits = 4a, ti = TypeInfo_a)
-	malloc => 02001FF0
-GC::malloc(gcx = 002C6968, size = 31 bits = 4a, ti = TypeInfo_a)
-	malloc => 02002FE0
-GC::malloc(gcx = 002C6968, size = 59 bits = 4a, ti = TypeInfo_a)
-	malloc => 02003FC0
-GC::malloc(gcx = 002C6968, size = 60 bits = 4a, ti = TypeInfo_a)
-	malloc => 02003F80
-GC::malloc(gcx = 002C6968, size = 522 bits = 4a, ti = TypeInfo_u)
-	malloc => 02004C00
-GC::malloc(gcx = 002C6968, size = 12 bits = 0, ti = std.array.Appender!string.Appender.Data)
-Setting a pointer bitmap for std.array.Appender!string.Appender.Data at 02001FE0 + 12
+GC::malloc(gcx = 005C6968, size = 11 bits = 4a, ti = TypeInfo_a)
+	malloc => 00251FF0
+GC::malloc(gcx = 005C6968, size = 31 bits = 4a, ti = TypeInfo_a)
+	malloc => 00252FE0
+GC::malloc(gcx = 005C6968, size = 59 bits = 4a, ti = TypeInfo_a)
+	malloc => 00253FC0
+GC::malloc(gcx = 005C6968, size = 60 bits = 4a, ti = TypeInfo_a)
+	malloc => 00253F80
+GC::malloc(gcx = 005C6968, size = 522 bits = 4a, ti = TypeInfo_u)
+	malloc => 00254C00
+GC::malloc(gcx = 005C6968, size = 12 bits = 0, ti = std.array.Appender!string.Appender.Data)
+Setting a pointer bitmap for std.array.Appender!string.Appender.Data at 00251FE0 + 12
 	Setting bitmap for new object (std.array.Appender!string.Appender.Data)
-		at 02001FE0		copying from 00441FE4 + 12: 001
-	malloc => 02001FE0
-GC::malloc(gcx = 002C6968, size = 8 bits = 2, ti = null)
-	malloc => 02001FD0
-GC::malloc(gcx = 002C6968, size = 32 bits = 2, ti = null)
-	malloc => 02002FC0
-GC::malloc(gcx = 002C6968, size = 64 bits = 2, ti = null)
-	malloc => 02003F40
-GC::malloc(gcx = 002C6968, size = 128 bits = 2, ti = null)
-	malloc => 02000F00
-GC::malloc(gcx = 002C6968, size = 256 bits = 2, ti = null)
-	malloc => 02005F00
-GC::malloc(gcx = 002C6968, size = 512 bits = 2, ti = null)
-	malloc => 02006E00
-GC::malloc(gcx = 002C6968, size = 1024 bits = 2, ti = null)
-	malloc => 02004800
-GC::malloc(gcx = 002C6968, size = 48 bits = 4a, ti = TypeInfo_a)
-	malloc => 02003F00
-GC::malloc(gcx = 002C6968, size = 12 bits = 0, ti = std.array.Appender!(immutable(wchar)[]).Appender.Data)
-Setting a pointer bitmap for std.array.Appender!(immutable(wchar)[]).Appender.Data at 02001FC0 + 12
+		at 00251FE0		copying from 00441FE4 + 12: 001
+	malloc => 00251FE0
+GC::malloc(gcx = 005C6968, size = 8 bits = 2, ti = null)
+	malloc => 00251FD0
+GC::malloc(gcx = 005C6968, size = 32 bits = 2, ti = null)
+	malloc => 00252FC0
+GC::malloc(gcx = 005C6968, size = 64 bits = 2, ti = null)
+	malloc => 00253F40
+GC::malloc(gcx = 005C6968, size = 128 bits = 2, ti = null)
+	malloc => 00250F00
+GC::malloc(gcx = 005C6968, size = 256 bits = 2, ti = null)
+	malloc => 00255F00
+GC::malloc(gcx = 005C6968, size = 512 bits = 2, ti = null)
+	malloc => 00256E00
+GC::malloc(gcx = 005C6968, size = 1024 bits = 2, ti = null)
+	malloc => 00254800
+GC::malloc(gcx = 005C6968, size = 48 bits = 4a, ti = TypeInfo_a)
+	malloc => 00253F00
+GC::malloc(gcx = 005C6968, size = 12 bits = 0, ti = std.array.Appender!(immutable(wchar)[]).Appender.Data)
+Setting a pointer bitmap for std.array.Appender!(immutable(wchar)[]).Appender.Data at 00251FC0 + 12
 	Setting bitmap for new object (std.array.Appender!(immutable(wchar)[]).Appender.Data)
-		at 02001FC0		copying from 00442084 + 12: 001
-	malloc => 02001FC0
-GC::malloc(gcx = 002C6968, size = 16 bits = 2, ti = null)
-	malloc => 02001FB0
-GC::malloc(gcx = 002C6968, size = 32 bits = 2, ti = null)
-	malloc => 02002FA0
-GC::malloc(gcx = 002C6968, size = 64 bits = 2, ti = null)
-	malloc => 02003EC0
-GC::malloc(gcx = 002C6968, size = 128 bits = 2, ti = null)
-	malloc => 02000E80
-GC::malloc(gcx = 002C6968, size = 95 bits = 4a, ti = TypeInfo_u)
-	malloc => 02000E00
-GC::malloc(gcx = 002C6968, size = 22 bits = 4a, ti = TypeInfo_a)
-	malloc => 02002F80
-GC::malloc(gcx = 002C6968, size = 2065 bits = 2a, ti = TypeInfo_a)
+		at 00251FC0		copying from 00442084 + 12: 001
+	malloc => 00251FC0
+GC::malloc(gcx = 005C6968, size = 16 bits = 2, ti = null)
+	malloc => 00251FB0
+GC::malloc(gcx = 005C6968, size = 32 bits = 2, ti = null)
+	malloc => 00252FA0
+GC::malloc(gcx = 005C6968, size = 64 bits = 2, ti = null)
+	malloc => 00253EC0
+GC::malloc(gcx = 005C6968, size = 128 bits = 2, ti = null)
+	malloc => 00250E80
+GC::malloc(gcx = 005C6968, size = 95 bits = 4a, ti = TypeInfo_u)
+	malloc => 00250E00
+GC::malloc(gcx = 005C6968, size = 22 bits = 4a, ti = TypeInfo_a)
+	malloc => 00252F80
+GC::malloc(gcx = 005C6968, size = 2065 bits = 2a, ti = TypeInfo_a)
 In bigAlloc.  Size:  2065
 Gcx.fullcollect()
 Set bits
 Marked free entries.
 	scan stacks.
 marking tls range from 0018F8AC to 00190000
-		@0018FA00 -> 02002F80: mark(x2f8) = 0
-		@0018FAC0 -> 02002F80: mark(x2f8) = 16777216
-		@0018FB08 -> 02002F80: mark(x2f8) = 16777216
-		@0018FB10 -> 02002F80: mark(x2f8) = 16777216
-		@0018FBA4 -> 02003F80: mark(x3f8) = 0
-		@0018FBAC -> 02004800: mark(x480) = 0
-		@0018FBBC -> 02000E00: mark(xe0) = 0
-		@0018FC38 -> 02003FC0: mark(x3fc) = 0
-		@0018FCB4 -> 02003F80: mark(x3f8) = 16777216
-marking tls range from 02000FD0 to 02000FF0
-		@02000FD4 -> 02000F80: mark(xf8) = 0
-not skipping 02000FB0, biti = 1009, at 02000FC4
-		@02000FC4 -> 02000FB0: mark(xf8) = 16777216
-marking tls hp range from 0045AACC to 0045AB1C, base 002B37C8
-Mark call for 1 002B37D8 with type info TypeInfo_AssociativeArray: rtInfo: has 1 pointers
-Mark call for 1 002B37E8 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002B37F8 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002B3808 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002B380C with type info core.thread.Thread: class reference
-		@002B380C -> 02000F80: mark(xf8) = 16777216
-Mark call for 1 002B3828 with type info core.thread.Fiber: class reference
-Mark call for 1 002B3838 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002B383C with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002B3840 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-Mark call for 1 002B3848 with type info std.file.DirIteratorImpl: mark with rtInfo
+		@0018FA00 -> 00252F80: mark(x2f8) = 0
+		@0018FAC0 -> 00252F80: mark(x2f8) = 16777216
+		@0018FB08 -> 00252F80: mark(x2f8) = 16777216
+		@0018FB10 -> 00252F80: mark(x2f8) = 16777216
+		@0018FBA4 -> 00253F80: mark(x3f8) = 0
+		@0018FBAC -> 00254800: mark(x480) = 0
+		@0018FBBC -> 00250E00: mark(xe0) = 0
+		@0018FC38 -> 00253FC0: mark(x3fc) = 0
+		@0018FCB4 -> 00253F80: mark(x3f8) = 16777216
+marking tls range from 00250FD0 to 00250FF0
+		@00250FD4 -> 00250F80: mark(xf8) = 0
+not skipping 00250FB0, biti = 1009, at 00250FC4
+		@00250FC4 -> 00250FB0: mark(xf8) = 16777216
+marking tls hp range from 0045AACC to 0045AB1C, base 005B37C8
+Mark call for 1 005B37D8 with type info TypeInfo_AssociativeArray: rtInfo: has 1 pointers
+Mark call for 1 005B37E8 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 005B37F8 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 005B3808 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 005B380C with type info core.thread.Thread: class reference
+		@005B380C -> 00250F80: mark(xf8) = 16777216
+Mark call for 1 005B3828 with type info core.thread.Fiber: class reference
+Mark call for 1 005B3838 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 005B383C with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 005B3840 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
+Mark call for 1 005B3848 with type info std.file.DirIteratorImpl: mark with rtInfo
 	scan roots[]
 	scan ranges[]
 	mark hasPointer area
@@ -158,11 +158,11 @@ Mark call for 1 0045ADA0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045ADB0 with type info rt.critical_.D_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE40 with type info core.sys.windows.windows._RTL_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE6C with type info core.thread.Thread: class reference
-		@0045AE6C -> 02000F80: mark(xf8) = 16777216
+		@0045AE6C -> 00250F80: mark(xf8) = 16777216
 Mark call for 1 0045AEC0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-		@0045AEC0 -> 02000FB0: mark(xf8) = 16777216
+		@0045AEC0 -> 00250FB0: mark(xf8) = 16777216
 Mark call for 1 0045AEC8 with type info core.thread.Thread: class reference
-		@0045AEC8 -> 02000F80: mark(xf8) = 16777216
+		@0045AEC8 -> 00250F80: mark(xf8) = 16777216
 Mark call for 1 0045AEE0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 00448320 with type info std.datetime.UTC: rtInfo: has 1 pointers
 Mark call for 1 00448A90 with type info std.datetime.LocalTime: rtInfo: has 1 pointers
@@ -182,33 +182,33 @@ Mark call for 1 00457A20 with type info TypeInfo_Array: rtInfo: has 2 pointers
 Mark call for 1 00458C30 with type info std.uni.Trie!(BitPacked!(bool, 1), dchar, 1114112u, sliceBits!(13u, 21u), sliceBits!(8u, 13u), sliceBits!(0u, 8u)).Trie: rtInfo: has 8 pointers
 	scan heap
 	free'ing
-	collecting 02000E80
-	collecting 02000F00
-	collecting 02001FB0
-	collecting 02001FC0
-	collecting 02001FD0
-	collecting 02001FE0
-	collecting 02001FF0
-	collecting 02002FA0
-	collecting 02002FC0
-	collecting 02002FE0
-	collecting 02003EC0
-	collecting 02003F00
-	collecting 02003F40
-	collecting 02004C00
-	collecting 02005F00
-	collecting 02006E00
+	collecting 00250E80
+	collecting 00250F00
+	collecting 00251FB0
+	collecting 00251FC0
+	collecting 00251FD0
+	collecting 00251FE0
+	collecting 00251FF0
+	collecting 00252FA0
+	collecting 00252FC0
+	collecting 00252FE0
+	collecting 00253EC0
+	collecting 00253F00
+	collecting 00253F40
+	collecting 00254C00
+	collecting 00255F00
+	collecting 00256E00
 	free complete pages
 	recovered pages = 3
 	free'd 2416 bytes, 0 pages from 1 pools
 Minimizing.
 Done minimizing.
-Pool 003A0578:  256 really free, 256 supposedly free
-Pool 003A0578:  255 really free, 255 supposedly free
-Got large alloc:  02100000, pt = 8, np = 1
-	malloc => 02100000
-Emplacing TypeInfo_a at 02100010 + 4080
-Setting a pointer bitmap for TypeInfo_a at 02100010 + 4080
+Pool 006A0578:  256 really free, 256 supposedly free
+Pool 006A0578:  255 really free, 255 supposedly free
+Got large alloc:  00470000, pt = 8, np = 1
+	malloc => 00470000
+Emplacing TypeInfo_a at 00470010 + 4080
+Setting a pointer bitmap for TypeInfo_a at 00470010 + 4080
 	Compiler generated rtInfo: no pointers
 Gcx.fullcollect()
 Set bits
@@ -258,8 +258,11 @@ Mark call for 1 00442108 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0044210C with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 00442110 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045ABD0 with type info std.stdio.File: mark with rtInfo
+not skipping 00446460, biti = 0, at 0045ABD0
 Mark call for 1 0045ABDC with type info std.stdio.File: mark with rtInfo
+not skipping 0044646C, biti = 0, at 0045ABDC
 Mark call for 1 0045ABE8 with type info std.stdio.File: mark with rtInfo
+not skipping 00446478, biti = 0, at 0045ABE8
 Mark call for 1 00443200 with type info TypeInfo_StaticArray: rtInfo: has 46 pointers
 Mark call for 1 0045AC10 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045AC30 with type info TypeInfo_Array: mark with rtInfo
@@ -269,15 +272,22 @@ Mark call for 1 0045AC60 with type info gc.gc.GC: class reference
 Mark call for 1 0045AC70 with type info gc.proxy.Proxy: mark with rtInfo
 Mark call for 1 0045ACCC with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045ACD0 with type info rt.sections_win32.SectionGroup: mark with rtInfo
+not skipping 0045AA20, biti = 1, at 0045ACD4
+not skipping 0045A760, biti = 9, at 0045ACF4
+not skipping 0045AACC, biti = 11, at 0045ACFC
 Mark call for 1 0045AD00 with type info TypeInfo_Array: mark with rtInfo
+not skipping 0045AA20, biti = 1, at 0045AD04
 Mark call for 1 0045AD14 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 00446028 with type info TypeInfo_Aya: rtInfo: has 2 pointers
 Mark call for 1 00446110 with type info TypeInfo_Array: rtInfo: has 2 pointers
 Mark call for 1 004461F0 with type info TypeInfo_StaticArray: rtInfo: has 24 pointers
 Mark call for 1 00446280 with type info TypeInfo_StaticArray: rtInfo: has 24 pointers
 Mark call for 1 00446460 with type info std.stdio.File.Impl: mark with rtInfo
+not skipping 00458D58, biti = 0, at 00446460
 Mark call for 1 0044646C with type info std.stdio.File.Impl: mark with rtInfo
+not skipping 00458D78, biti = 0, at 0044646C
 Mark call for 1 00446478 with type info std.stdio.File.Impl: mark with rtInfo
+not skipping 00458D98, biti = 0, at 00446478
 Mark call for 1 0045AD54 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045AD58 with type info gc.gc.GCMutex: class reference
 Mark call for 1 0045AD90 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
@@ -286,22 +296,24 @@ Mark call for 1 0045ADA0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045ADB0 with type info rt.critical_.D_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE40 with type info core.sys.windows.windows._RTL_CRITICAL_SECTION: mark with rtInfo
 Mark call for 1 0045AE6C with type info core.thread.Thread: class reference
-		@0045AE6C -> 02000F80: mark(xf8) = 0
-not skipping 02000FB0, biti = 1009, at 02000FC4
-		@02000FC4 -> 02000FB0: mark(xf8) = 16777216
+		@0045AE6C -> 00250F80: mark(xf8) = 0
+not skipping 00250FB0, biti = 1009, at 00250FC4
+		@00250FC4 -> 00250FB0: mark(xf8) = 16777216
 Mark call for 1 0045AEC0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
-		@0045AEC0 -> 02000FB0: mark(xf8) = 16777216
+		@0045AEC0 -> 00250FB0: mark(xf8) = 16777216
 Mark call for 1 0045AEC8 with type info core.thread.Thread: class reference
-		@0045AEC8 -> 02000F80: mark(xf8) = 16777216
+		@0045AEC8 -> 00250F80: mark(xf8) = 16777216
 Mark call for 1 0045AEE0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 00448320 with type info std.datetime.UTC: rtInfo: has 1 pointers
 Mark call for 1 00448A90 with type info std.datetime.LocalTime: rtInfo: has 1 pointers
 Mark call for 1 0045AFA0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045B130 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0044B1A0 with type info TypeInfo_StaticArray: mark with rtInfo
+not skipping 0044B164, biti = 1, at 0044B1A4
 Mark call for 1 0045B180 with type info core.sys.windows.dbghelp.DbgHelp: mark with rtInfo
 Mark call for 1 0045B1C0 with type info TypeInfo_Pointer: rtInfo: has 1 pointers
 Mark call for 1 0045B2A0 with type info TypeInfo_Aya: mark with rtInfo
+not skipping 0044D4E7, biti = 1, at 0045B2A4
 Mark call for 1 0044F870 with type info TypeInfo_Array: rtInfo: has 2 pointers
 Mark call for 1 00450660 with type info TypeInfo_Array: rtInfo: has 2 pointers
 Mark call for 1 00452730 with type info std.uni.Trie!(ushort, dchar, 1114112u, sliceBits!(13u, 21u), sliceBits!(6u, 13u), sliceBits!(0u, 6u)).Trie: rtInfo: has 8 pointers
@@ -312,12 +324,12 @@ Mark call for 1 00457A20 with type info TypeInfo_Array: rtInfo: has 2 pointers
 Mark call for 1 00458C30 with type info std.uni.Trie!(BitPacked!(bool, 1), dchar, 1114112u, sliceBits!(13u, 21u), sliceBits!(8u, 13u), sliceBits!(0u, 8u)).Trie: rtInfo: has 8 pointers
 	scan heap
 	free'ing
-	collecting 02000E00
-	collecting 02002F80
-	collecting 02003F80
-	collecting 02003FC0
-	collecting 02004800
-	collecting big 02100000
+	collecting 00250E00
+	collecting 00252F80
+	collecting 00253F80
+	collecting 00253FC0
+	collecting 00254800
+	collecting big 00470000
 	free complete pages
 	recovered pages = 3
 	free'd 1312 bytes, 1 pages from 2 pools

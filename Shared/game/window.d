@@ -46,7 +46,7 @@ struct WindowManager
 	{
 		//glfwWindowHint(GLFW_VERSION_MAJOR, 3);
 		//glfwWindowHint(GLFW_VERSION_MINOR, 3);
-		//glfwWindowHint(GLFW_SAMPLES, 16);
+		glfwWindowHint(GLFW_SAMPLES, 4);
 		glfwWindowHint(GLFW_DECORATED, decorated);
 
 		auto glfwWindow = glfwCreateWindow(size.x, size.y, title.toCString(), monitor._monitor, null);
@@ -74,6 +74,10 @@ struct WindowManager
 			//multiple windows. (As in it is broken)
 			//I am not sure of the best way to resolve this so for now
 			//only a single window is allowed.
+			//An obvious way would be to require that all graphical commands
+			//Goes through a graphics context object that is current on the thread.
+			//But that is so annoying to manage. A diffrent approach is to have each
+			//Window have it's own state and send stuff through messages.
 		} else assert(0, "Only a single window is supported at this point.");
 
 		windows   ~= window;

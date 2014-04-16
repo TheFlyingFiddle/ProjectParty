@@ -1,0 +1,81 @@
+//Pictionary master configuration file.
+
+//Buffers 
+maxStates  = 10
+maxWindows = 1
+initialRenderSize = 100_00
+
+//Content buffer sizes.
+contentConfig =
+{
+	maxTrackingResources = 110
+	maxReloaders         = 10
+
+	maxTextures    = 100
+	maxFonts       = 10
+	maxSounds      = 50
+	maxAtlases	   = 5
+}
+
+//Windows and whatnot.
+windowConfig = 
+{
+	size = 
+	{
+		x=1366
+		y=768
+	}
+
+	fullScreen = false
+	blocking   = false
+	decorated  = true
+}
+
+serverConfig = 
+{
+	maxConnections = 20
+	broadcastPort  = 7331
+	maxMessageSize = 0xffff
+	broadcastInterval = 1.0
+	connectionTimeout = 15
+}
+
+soundConfig =
+{
+	freq = 22050
+	numChannels = 32
+	bufferSize = 4096
+	
+	musicVolume  = 1.0
+	soundVolume  = 1.0 
+	masterVolume = 0.5
+	muted        = true
+
+	musicFoulderPath = |..\\resources\\pictionary\\music|
+}
+
+gameName = pictionary
+
+resources = [ 
+	{ type = texture	path = |pictionary\textures\pixel.png| },
+	{ type = texture	path = |pictionary\textures\smooth.png| }
+]
+
+phoneResources = [
+	|pictionary/scripts/main.lua|,
+	|pictionary/scripts/button.lua|,
+	|pictionary/scripts/rect.lua|,
+	|pictionary/scripts/table.lua|,
+	|pictionary/scripts/vector2.lua|,
+	|pictionary/scripts/between.lua|,
+	|pictionary/scripts/drawing.lua|,
+	|pictionary/scripts/guessing.lua|,
+	|pictionary/scripts/gui.lua|,
+	|pictionary/scripts/networking.lua|,
+	|pictionary/scripts/states.lua|,
+	|pictionary/scripts/grid.lua|,
+	|pictionary/textures/pixel.png|,
+	|pictionary/fonts/SegoeUILight72.fnt|,
+	|pictionary/fonts/SegoeUILight72_0.png|
+	
+]

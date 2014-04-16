@@ -1,4 +1,4 @@
-//Achtung master configuration file.
+//Elements master configuration file.
 
 //Buffers 
 maxStates  = 10
@@ -13,6 +13,7 @@ contentConfig =
 
 	maxTextures    = 100
 	maxFonts       = 10
+	maxSounds      = 50
 }
 
 //Windows and whatnot.
@@ -20,12 +21,13 @@ windowConfig =
 {
 	size = 
 	{
-		x=800 
-		y=600
+		x=1920 
+		y=1080
 	}
 
 	fullScreen = false
 	blocking   = false
+	decorated  = false
 }
 
 serverConfig = 
@@ -35,6 +37,20 @@ serverConfig =
 	maxMessageSize = 0xffff
 	broadcastInterval = 1.0
 	connectionTimeout = 15
+}
+
+soundConfig =
+{
+	freq = 22050
+	numChannels = 32
+	bufferSize = 4096
+	
+	musicVolume  = 1.0
+	soundVolume  = 1.0 
+	masterVolume = 0.5
+	muted        = true
+
+	musicFoulderPath = ||
 }
 
 gameName = achtung 

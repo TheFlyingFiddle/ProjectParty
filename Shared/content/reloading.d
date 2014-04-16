@@ -116,6 +116,14 @@ enum FileExtention
 	frag,
 	fnt,
 	lua,
+	scon,
+	ogg,
+	wav,
+	aiff,
+	riff,
+	voc,
+	atlas,
+	txt,
 	unknown
 }
 
@@ -234,6 +242,7 @@ struct ResourceTable(Resource, alias obliterator)
 
 	this(A)(ref A allocator, size_t capacity)
 	{
+		import allocation;
 		this.resources = allocator.allocate!(Resource[])(capacity);
 		this.ids       = allocator.allocate!(uint[])(capacity);
 		this.ids[]     = noResource;

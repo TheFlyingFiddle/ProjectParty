@@ -4,7 +4,7 @@ module math.polar;
 import std.math;
 import math.vector;
 
-struct Polar(T) if(isFloatingPoint!(T))
+struct Polar(T)
 {
 	T angle;
 	T magnitude;

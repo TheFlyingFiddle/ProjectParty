@@ -83,12 +83,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib dunit.lib</libfiles>
+  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib DerelictSDL2.lib DerelictOGG.lib dunit.lib</libfiles>
   <libpaths>..\lib\win32</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>2</cRuntime>
   <additionalOptions>-unittest</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
@@ -183,6 +184,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>1</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -277,6 +279,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>2</cRuntime>
   <additionalOptions>-unittest</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
@@ -371,6 +374,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>1</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -401,7 +405,10 @@
    <File path="content\phoneReloading.d" />
    <File path="content\reloading.d" />
    <File path="content\sdl.d" />
+   <File path="content\sound.d" />
+   <File path="content\test.sdl" />
    <File path="content\texture.d" />
+   <File path="content\textureatlas.d" />
   </Folder>
   <Folder name="event">
    <File path="event\package.d" />
@@ -429,14 +436,17 @@
    <File path="graphics\common.d" />
    <File path="graphics\context.d" />
    <File path="graphics\convinience.d" />
+   <File path="graphics\emitter.d" />
    <File path="graphics\enums.d" />
    <File path="graphics\font.d" />
    <File path="graphics\frame.d" />
    <File path="graphics\framebuffer.d" />
    <File path="graphics\package.d" />
+   <File path="graphics\particle.d" />
    <File path="graphics\program.d" />
    <File path="graphics\shader.d" />
    <File path="graphics\texture.d" />
+   <File path="graphics\textureatlas.d" />
    <File path="graphics\vertex.d" />
   </Folder>
   <Folder name="logging">
@@ -454,6 +464,15 @@
    <File path="network\message.d" />
    <File path="network\router.d" />
    <File path="network\server.d" />
+  </Folder>
+  <Folder name="sound">
+   <File path="sound\package.d" />
+   <File path="sound\sound.d" />
+  </Folder>
+  <Folder name="spriter">
+   <File path="spriter\loader.d" />
+   <File path="spriter\renderer.d" />
+   <File path="spriter\types.d" />
   </Folder>
   <Folder name="testing">
    <File path="main.d" />

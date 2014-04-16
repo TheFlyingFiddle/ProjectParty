@@ -24,9 +24,8 @@ void addRect(Renderer* renderer,
 			 float rotation = 0)
 {
 	renderer.addFrame(pixel, 
-					  rect.xy,
+					  rect,
 					  color,
-					  rect.zw,
 					  origin,
 					  rotation);
 }
@@ -62,9 +61,8 @@ void addLine(Renderer* renderer,
 	auto dist  = distance(start, end);
 
 	renderer.addFrame(pixel, 
-					  start, 
+					  float4(start.x, start.y, dist, width), 
 					  color,
-					  float2(dist, width),
 					  float2(0, width / 2), angle);
 }
 

@@ -1,68 +1,363 @@
-tileMap = |..\resources\elements\textures\map2_tiletypes.png|
-tileSize = { x = 23 y = 23 }
-path =  {
-wayPoints = [ 
-	{ x = 1  y = 32 }, { x = 1 y = 25},  { x = 23 y = 25 }, 
-	{ x = 23 y = 18 }, { x = 1 y = 18}, { x = 1 y = 1},
-	{ x = 8 y = 1 }, { x = 8 y = 11}, { x = 20 y = 11}, 
-	{ x = 20 y = 1 }, { x = 27 y = 1}, { x = 27 y = 12}
-	]
-	tileSize = { x = 23 y = 23 }
-}
+tileMap = |..\resources\elements\textures\map3_beta_tiletype.png|
 
-enemyPrototypes = [ { maxHealth = 50	speed = 70	worth = 5	frame = baws },
-					{ maxHealth = 200	speed = 42	worth = 15	frame = teddy } ]
+tileSize = { x = 72 y = 77 }
+paths =  
+[ 
+	{
+		//Should be in resolution independant pixel positions
+		wayPoints = 
+		[ 
+			{ x = 0  y = 9 }, 
+			{ x = 0  y = 8 },  
+			{ x = 7 y = 8}, 
+			{ x = 7 y = 5 }, 
+			{ x = 0  y = 5 }, 
+			{ x = 0  y = 0  },
+			{ x = 3  y = 0  }, 
+			{ x = 3  y = 2 }, 
+			{ x = 6 y = 2 }, 
+			{ x = 6 y = 0  }, 
+			{ x = 9 y = 0  }, 
+			{ x = 9 y = 2 }
+		]
+
+		tileSize = { x = 72 y = 77 }
+	}
+]
+
+startBalance = 200
+enemyPrototypes = 
+[ 
+	{ 
+		maxHealth = 50	
+		speed	  = 70	
+		worth	  = 5	
+		frame	  = baws 
+		components = 
+		[
+			{		
+				type	  = speedup
+				interval  = 5
+				duration  = 2
+				amount    = 3
+			}
+		]
+	},
+	{ 
+		maxHealth = 200	
+		speed = 42	
+		worth = 15	
+		frame = teddy 
+		components = 
+		[
+			{		
+				type  = heal
+				interval = 5
+				amount   = 50
+			}
+		]
+	},
+	{ 
+		maxHealth = 200	
+		speed = 42	
+		worth = 15	
+		frame = skeleton 
+		components = 
+		[
+			{		
+				type  = heal
+				interval = 1
+				amount   = 10
+			},
+			{		
+				type  = speedup
+				interval = 3
+				duration = 0.5
+				amount   = 5
+			}
+		]
+	},
+	{ 
+		maxHealth = 200	
+		speed = 42	
+		worth = 15	
+		frame = orange 
+		components = 
+		[
+			{		
+				type  = towerBreaker
+				interval = 1
+				range    = 100
+			}
+		]
+	},
+	{ 
+		maxHealth = 200	
+		speed = 42	
+		worth = 15	
+		frame = banana 
+		components = 
+		[
+			{		
+				type  = statusRemover
+				statusType = watered
+				interval = 1
+			}
+		]
+	} 
+]
+
+ventPrototypes = 
+[ 
+	{ 
+		damage = 10 
+		spread = 0.10
+		fullyOpen = 30
+		frame = cone //Will be replaced by steam supplier
+		towerFrame = tower_cone 
+		status = {duration = 5 value = 0.2 type = water}
+	},
+	{ 
+		damage = 0
+		spread = 0.10
+		fullyOpen = 30
+		frame = baws 
+		towerFrame = tower_cone 
+		status = {duration = 15 value = 5 type = fire}
+	},
+	{ 
+		damage = 1
+		spread = 0.1
+		fullyOpen = 30
+		frame = teddy 
+		towerFrame = tower_cone 
+		status = {duration = 5 value = 1 type = oil}
+	 },
+	 { 
+		damage = 50 
+		spread = 0.1
+		fullyOpen = 30
+		frame = rocket_big 
+		towerFrame = tower_cone 
+		status = {duration = 5 value = 0.2 type = liqNit}
+	 }
+]
+
+towers = 
+[
+	{ 
+		cost = 10 
+		range = 300 
+		phoneIcon = |textures/fire_icon.png| 
+		name = |Steam vent|
+		info = |This tower scolds enemies in a lethal sauna.|
+		type = vent 
+		typeIndex = 0 
+		regenRate = 10
+		towerFrame = tower_cone
+		startPressure = 1
+		upgradeIndex0 = 1
+		upgradeIndex1 = 2 
+		upgradeIndex2 = 3
+		basic = true 
+	},
+	{ 
+		cost = 100 
+		range = 340 
+		phoneIcon = |textures/water_icon.png|
+		name = |Fire vent|
+		info = |This tower burns enemies in a lethal oven.|
+		regenRate = 10
+		towerFrame = tower_cone
+		type = vent 
+		typeIndex = 1  
+		startPressure = 1
+	},
+	{ 
+		cost = 100 
+		range = 340 
+		phoneIcon = |textures/nature_icon.png|
+		name = |Oil vent|
+		info = |This tower makes enemies slippery and sticky 
+in a lethal barrel of oil.|
+		regenRate = 10
+		towerFrame = tower_cone
+		type = vent 
+		typeIndex = 2  
+		startPressure = 1
+	},
+	{ 
+		cost = 20 
+		range = 400 
+		phoneIcon = |textures/wind_icon.png|
+		name = |Liquid nitrogen vent|
+		info = |This tower makes enemies cold (or frozen) in 
+a lethal container of coldness.|
+		regenRate = 10
+		towerFrame = tower_cone
+		type = vent 
+		typeIndex = 3  
+		startPressure = 1
+	},
+	{ 
+		cost = 20 
+		range = 930 
+		phoneIcon = |textures/rocket_icon.png|
+		name = |Rocket launcher|
+		info = 
+			|This tower makes enemies explode in a lethal
+rocket explosion.|
+		type = rocket 
+		regenRate = 30
+		towerFrame = rocket 
+		basic = true 
+		typeIndex = 0  
+		upgradeIndex0 = 5
+	},
+	{ 
+		cost = 100 
+		range = 900 
+		phoneIcon = |textures/rocket_icon.png|
+		name = |Rocket launcher|
+		info = |This tower makes enemies explode in a very 
+lethal rocket explosion.|
+		type = rocket 
+		regenRate = 30
+		towerFrame = rocket 
+		typeIndex = 1  
+	},
+	{ 
+		cost = 40 
+		range = 600 
+		phoneIcon = |textures/gatling_icon.png|
+		name = |Gatling tower|
+		info = |This tower fills the enemies with bullets in a 
+lethal storm of... bullets.|
+		type = gatling	
+		regenRate = 30
+		towerFrame = tower0 
+		typeIndex = 0  
+		basic = true
+	}
+]
+
+ballisticProjectilePrototypes = 
+[ 
+	{ 
+		damage = 100 
+		speed = 150 
+		radius = 200 
+		frame = rocket_big 
+	} 
+]
+
+homingPrototypes = 
+[ 
+	{ 
+		damage = 20 
+		speed = 200 
+		radius = 60 
+		frame = rocket 
+	} 
+]
+
+ballisticTowerPrototypes = 
+[ 
+	{ 
+		homingPrefabIndex = 0 
+		ballisticPrefabIndex = 0 
+		range = 300
+	    maxDistance = 500 
+		pressureCost = 300
+		reloadTime = 2 
+		frame = rocket 
+	},
+	{ 
+		homingPrefabIndex = 0 
+		ballisticPrefabIndex = 0 
+		range = 300
+		maxDistance = 500 
+		pressureCost = 300
+		reloadTime = 0.4 
+		frame = rocket 
+	}  
+]
+
+gatlingTowerPrototypes = 
+[ 
+	{
+		homingPrefabIndex = 0 
+		gatlingPrefabIndex = 1 
+		range = 300
+		maxDistance = 500 
+		reloadTime = 0.02 
+		anglePerShot = 1
+		pressureCost = 20
+		frame = tower0 
+	} 
+]
+
+autoProjectilePrototypes = 
+[ 
+	{ 
+		damage = 1 
+		speed = 1200 
+		radius = 40 
+		frame = bullet 
+	},
+	{ 
+		damage = 20 
+		speed = 1200 
+		radius = 40 
+		frame = bullet_power 
+	}
+]
 
 waves = 
 [  
-	{spawners = 
+	{	spawners = 
 		[
-			{ startTime = 1		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 },
-			{ startTime = 1.5	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5}
+			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20  pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5   pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3   pathIndex = 0},
+			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1   pathIndex = 0},
+			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 10  pathIndex = 0}
 		] 
+		pauseTime = 10
 	},
-	{spawners =
+	{	spawners =
 		[ 
-			{ startTime = 5		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 },
-			{ startTime = 10.25	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25}
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
 		]
+		pauseTime = 10
+	},
+	{	spawners = 
+		[
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+		] 
+		pauseTime = 10
+	},
+	{	spawners =
+		[ 
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+		]
+		pauseTime = 10
+	},
+		{spawners = 
+		[
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+		] 
+		pauseTime = 10
+	},
+	{	spawners =
+		[ 
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+		]
+		pauseTime = 10
 	}
 ] 
-
-statusPrototypes = [
-	{ duration = 10 type = fire fire = { amount = 3 numTicks = 5 }},
-	{ duration = 4	type = water },
-	{ duration = 2	type = ice},
-	{ duration = 0.1 type = lightning 
-			lightning = { jumpDistance = 430 damage = 7 reduction = 0.8 }},
-	{ duration = 0.1 type= wind 
-			wind = { speed = 600 } },
-	{ duration = 5	type = nature 
-			nature = { amount = 0.5 }}
-]
-
-projectilePrototypes = [
-	{ speed = 300 damage = 10 type = normal statusIndex = 0 },
-	{ speed = 300 damage = 1  type = splash  statusIndex = 1 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 2 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 3 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 4 },
-	{ speed = 300 damage = 10 type = normal statusIndex = 5 }
-]
-
-towerPrototypes = [
-	{ range = 100 type = cone	cost = 0
-			cTower = { width = 1 dps = 20 statusIndex = 0 
-					 reactivationTime = 4 activeTime = 2.5}},
-	{ range = 100 type = cone	cost = 0 
-			cTower = { width = 1 dps = 10 statusIndex = 1
-					 reactivationTime = 0.1 activeTime = 0.02}},
-	{ range = 200 type = projectile cost = 0 
-			pTower = { attackSpeed = 1 projectileIndex = 2}},
-	{ range = 200 type = projectile cost = 0 
-			pTower = { attackSpeed = 1 projectileIndex = 3}},
-	{ range = 200 type = effect cost = 0 
-			eTower = { attackSpeed = 1 statusIndex = 4 damage = 5}},
-	{ range = 200 type = projectile cost = 0 
-			pTower = { attackSpeed = 1 projectileIndex = 5}}
-]

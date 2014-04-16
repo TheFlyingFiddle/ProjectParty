@@ -4,103 +4,17 @@ import graphics;
 import collections;
 import content;
 import allocation;
-
-struct MapMessage
-{
-	enum ubyte id = OutgoingMessages.map;
-	enum maxSize = 8192;
-	uint width;
-	uint height;
-	ubyte[] tiles;
-}
-
-struct SelectedMessage 
-{
-	enum ubyte id = OutgoingMessages.selected;
-	uint x, y, color;
-}
-
-struct DeselectedMessage 
-{
-	enum ubyte id = OutgoingMessages.deselected;
-	uint x, y;
-}
-
-struct TowerBuiltMessage
-{
-	enum ubyte id = OutgoingMessages.towerBuilt;
-	uint x, y;
-	ubyte towerType;
-}
-
-struct TowerEnteredMessage
-{
-	enum ubyte id = OutgoingMessages.towerEntered;
-	uint x, y;
-}
-
-struct TowerExitedMessage
-{
-	enum ubyte id = OutgoingMessages.towerExited;
-	uint x, y;
-}
-
-enum IncomingMessages : ubyte
-{
-	towerRequest = 50,
-	selectRequest = 51,
-	deselect = 52,
-	mapRequest = 53,
-	slingshotStart = 54,
-	slingshotUpdate = 55,
-	slingshotEnd = 56,
-	towerEntered = 57,
-	towerExited = 58
-}
-
-enum OutgoingMessages : ubyte
-{
-	map = 50,
-	towerBuilt = 51,
-	selected = 52,
-	deselected = 53,
-	towerEntered = 54,
-	towerExited = 55
-}
+import vent;
+import ballistic;
+import gatling;
 
 enum TileType : ubyte
 {
 	buildable = 0,
 	nonbuildable = 1,
-	fireTower = 2,
-	waterTower = 3,
-	iceTower = 4,
-	lightningTower = 5,
-	windTower = 6,
-	natureTower = 7,
-	slingshotTower = 8
-}
-
-enum ElementType
-{
-	nature = 0,
-	fire = 1,
-	water = 2,
-	ice = 3,
-	wind = 4,
-	lightning = 5
-}
-
-struct MapConfig
-{
-	string map;
-	SpawnerConfig[][] waves;
-	EnemyConfig[] enemies;
-	uint2[] path;
-	uint2 tileSize;
-	StatusConfig[] statuses;
-	Projectile[] projectiles;
-	TowerConfig[] towers;
+	vent = 2, 
+	rocket = 3,
+	gatling = 4
 }
 
 struct PathConfig
@@ -113,52 +27,74 @@ struct Level
 {
 	@Convert!mapConverter() Grid!TileType tileMap;
 	List!Wave waves;
-	@Convert!pathConverter() Path path;
+	@Convert!pathConverter() List!Path paths;
 	uint2 tileSize;
-	List!EnemyPrototype enemyPrototypes;
-	List!StatusPrototype statusPrototypes;
-	List!ProjectilePrototype projectilePrototypes;
-	List!TowerPrototype towerPrototypes;
+	uint startBalance;
+
+	//Should be in enemies.sdl
+	List!EnemyPrefab enemyPrototypes;
+	//Should be in vents.sdl
+	List!VentTower		ventPrototypes;
+	
+	//Should be in ballistic.sdl
+	List!BallisticProjectilePrefab	ballisticProjectilePrototypes;
+	List!BallisticTower					ballisticTowerPrototypes;
+
+	//Should be in gatling.sdl
+	List!AutoProjectilePrefab			autoProjectilePrototypes;
+//	List!GatlingProjectilePrefab		gatlingProjectilePrototypes;
+	List!GatlingTower						gatlingTowerPrototypes;
+
+	//Should be in metatowers.sdl
+	List!Tower			towers;
 }
 
-struct EnemyPrototype
+struct Tower
+{
+	uint cost;
+	string phoneIcon;
+	string name;
+	string info;
+	TileType type;
+	float regenRate;
+	float range;
+	ubyte typeIndex;
+	@Convert!stringToFrame() Frame towerFrame;
+	@Optional(0f) float startPressure;
+	@Optional(false) bool basic;
+	@Optional(ubyte.max) ubyte upgradeIndex0;
+	@Optional(ubyte.max) ubyte upgradeIndex1;
+	@Optional(ubyte.max) ubyte upgradeIndex2;
+}
+
+
+struct EnemyPrefab
 {
 	int worth;
 	float maxHealth;
 	float speed;
 	@Convert!stringToFrame() Frame frame;
+
+	@Optional(List!EnemyComponentPrefab.init) List!EnemyComponentPrefab components;
 }
 
-struct StatusPrototype
+enum ComponentType
 {
-	float duration;
-	ElementType type;
-	@Optional(IceStatus()) IceStatus ice;
-	@Optional(FireStatus()) FireStatus fire;
-	@Optional(WaterStatus()) WaterStatus water;
-	@Optional(LightningStatus()) LightningStatus lightning;
-	@Optional(NatureStatus()) NatureStatus nature;
-	@Optional(WindStatus()) WindStatus wind;
+	speedup,
+	heal,
+	towerBreaker,
+	statusRemover
 }
 
-struct ProjectilePrototype
+struct EnemyComponentPrefab
 {
-	float speed;
-	float damage;
-	ProjectileType type;
-	int statusIndex;
-}
+	ComponentType type;
 
-struct TowerPrototype
-{
-	float range;
-	int cost;
-
-	TowerType type;
-	@Optional(ProjectileTower()) ProjectileTower pTower;
-	@Optional(ConeTower()) ConeTower cTower;
-	@Optional(EffectTower()) EffectTower eTower;
-	@Optional(SlingshotTower()) SlingshotTower sTower;
+	@Optional(0.0f) float interval;
+	@Optional(0.0f) float duration;
+	@Optional(0.0f) float amount;
+	@Optional(0.0f) float range;
+	@Optional(StatusType.none) StatusType statusType;
 }
 
 
@@ -168,9 +104,14 @@ auto stringToFrame(string ID)
 	return Frame(Game.content.loadTexture(ID));
 }
 
-Path pathConverter(PathConfig pc)
+auto pathConverter(List!PathConfig pc)
 {
-	return Path(GC.it, pc.tileSize, pc.wayPoints);
+	auto paths = List!Path(GC.it, pc.length);
+	foreach(i;0 .. pc.length)
+	{
+		paths ~= Path(GC.it, pc[i].tileSize, pc[i].wayPoints);
+	}
+	return paths;
 }
 
 Grid!TileType mapConverter(string path)
@@ -179,9 +120,7 @@ Grid!TileType mapConverter(string path)
 	char* c_path = path.toCString();
 	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_path);
 	if(format == FIF_UNKNOWN)
-	{
 		format = FreeImage_GetFIFFromFilename(c_path);
-	}
 
 	FIBITMAP* bitmap = FreeImage_Load(format, c_path, 0);
 	scope(exit) FreeImage_Unload(bitmap);
@@ -202,43 +141,6 @@ Grid!TileType mapConverter(string path)
 		}
 	}
 	return tileMap;
-}
-
-struct SpawnerConfig
-{
-	float startTime;
-	int prototypeIndex;
-	float spawnInterval;
-	int numEnemies;
-}
-
-struct EnemyConfig
-{
-	int health;
-	float speed;
-	int worth;
-	string textureResource;
-}
-
-struct StatusConfig
-{
-	float duration;
-	ElementType type;
-	@Optional(0.0f) float common1;
-	@Optional(0.0f) float common2;
-	@Optional(0.0f) float common3;
-}
-
-struct TowerConfig
-{
-	float range;
-	uint cost;
-	TowerType type;
-	@Optional(0.0f) float common1;
-	@Optional(0.0f) float common2;
-	@Optional(0) int common3;
-	@Optional(0.0f) float common4;
-	@Optional(0.0f) float common5;
 }
 
 struct Path
@@ -285,103 +187,35 @@ struct Path
 	}
 }
 
+enum StatusType
+{
+	none,
+	watered,
+	burning,
+	oiled,
+	cold
+}
+
+enum StatusEffect
+{
+	water,
+	fire, 
+	oil,
+	liqNit
+}
+
+struct StatusConfig
+{
+	float duration;
+	StatusEffect type;
+	float value;
+}	
+
 struct Status
 {
-	int targetIndex;
 	float duration;
-	float elapsed;
-	ElementType type;
-	union
-	{
-		IceStatus ice;
-		FireStatus fire;
-		WaterStatus water;
-		LightningStatus lightning;
-		NatureStatus nature;
-		WindStatus wind;
-	}
-	
-	this(StatusPrototype prefab, int target)
-	{
-		this.targetIndex = target;
-		this.duration = prefab.duration;
-		this.elapsed = 0;
-		this.type = prefab.type;
-		final switch(this.type) with (ElementType)
-		{
-			case ice:
-				this.ice = prefab.ice;
-				break;
-			case fire:
-				this.fire = prefab.fire;
-				break;
-			case water:
-				this.water = prefab.water;
-				break;
-			case lightning:
-				this.lightning = prefab.lightning;
-				break;
-			case nature:
-				this.nature = prefab.nature;
-				break;
-			case wind:
-				this.wind = prefab.wind;
-				break;
-		}
-	}
-}
-
-struct IceStatus
-{
-	float previousSpeed;
-}
-
-struct NatureStatus
-{
-	float amount;
-}
-
-struct FireStatus
-{
-	float amount;
-	int numTicks;
-	@Optional(0f) float elapsed;
-}
-
-struct WaterStatus
-{
-}
-
-struct WindStatus
-{
-	float speed;
-	@Optional(0f) float previousSpeed;
-}
-
-struct LightningStatus
-{
-	float jumpDistance;
-	float damage;
-	float reduction;
-}
-
-struct Enemy
-{
-	float distance;
-	float speed;
-	float health;
-	float maxHealth;
-	int worth;
-	Frame frame;
-	this(EnemyPrototype prefab)
-	{
-		this.distance = 0;
-		this.speed = prefab.speed;
-		this.health = prefab.maxHealth;
-		this.maxHealth = prefab.maxHealth;
-		this.worth = prefab.worth;
-		this.frame = prefab.frame;
-	}
+	StatusType type;
+	float value;
 }
 
 struct Spawner
@@ -390,127 +224,13 @@ struct Spawner
 	float startTime;
 	float spawnInterval;
 	int numEnemies;
+	uint pathIndex;
 	@Optional(0f) float elapsed;
 }
 
 struct Wave
 {
 	List!Spawner spawners;
-}
-
-enum TowerType
-{
-	projectile = 0,
-	cone = 1,
-	effect = 2,
-	interaction = 3
-}
-
-struct ProjectileTower
-{
-	float attackSpeed;
-	@Optional(0f) float deltaAttackTime;
-	int projectileIndex;
-}
-
-struct ConeTower
-{
-	float width;
-	float dps;
-	int statusIndex;
-	float reactivationTime;
-	float activeTime;
-	@Optional(0f) float elapsed;
-}
-
-struct EffectTower
-{
-	float attackSpeed;
-	@Optional(0f) float deltaAttackTime;
-	int statusIndex;
-	float damage;
-}
-
-struct SlingshotTower
-{
-	float2 startPos;
-	float2 endPos;
-}
-
-struct Tower
-{
-	float range;
-	int cost;
-
-	uint2 position;
-
-	TowerType type;
-	union
-	{
-		ProjectileTower pTower;
-		ConeTower cTower;
-		EffectTower eTower;
-		SlingshotTower sTower;
-	}
-
-	this(TowerPrototype prefab, uint2 position)
-	{
-		this.range = prefab.range;
-		this.cost = prefab.cost;
-		this.position = position;
-		this.type = prefab.type;
-		final switch(this.type) with (TowerType)
-		{
-			case projectile:
-				this.pTower = prefab.pTower;
-				break;
-			case cone:
-				this.cTower = prefab.cTower;
-				break;
-			case effect:
-				this.eTower = prefab.eTower;
-				break;
-			case interaction:
-				break;
-		}
-	}
-
-	float2 pixelPos(uint2 tileSize)
-	{
-		return float2 (position.x * tileSize.x + tileSize.x/2, position.y * tileSize.y + tileSize.y/2);	
-	}
-}
-
-enum ProjectileType 
-{
-	normal = 0,
-	splash  = 1,
-}
-
-struct Projectile
-{
-	float attackDmg;
-	float speed;
-	ProjectileType type;
-	uint statusIndex;
-	@Optional(float2.zero) float2 position;
-	@Optional(-1) int target;
-
-	this(ProjectilePrototype prefab, float2 position, int target)
-	{
-		this.attackDmg = prefab.damage;
-		this.speed = prefab.speed;
-		this.type = prefab.type;
-		this.statusIndex = prefab.statusIndex;
-		this.position = position;
-		this.target = target;
-	}
-}
-
-struct Boulder
-{
-	float attackDmg;
-	float2 position;
-	float2 velocity;
-	float radius;
+	float pauseTime;
+	@Optional(0.0f) float elapsed;
 }

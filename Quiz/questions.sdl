@@ -1,0 +1,99 @@
+﻿questionSets = 
+[
+	{
+		category = sports
+		questions =
+		[
+			{ 
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			},
+			{
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			}
+		]
+	},
+	{
+		category = science
+		questions =
+		[
+			{ 
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			},
+			{
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			}
+		]
+	},
+	{
+		category = entertainment
+		questions =
+		[
+			{ 
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			},
+			{
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			}
+		]
+	},
+	{
+		category = geography
+		questions =
+		[
+			{ 
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			},
+			{
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			}
+		]
+	},
+	{
+		category = history
+		questions =
+		[
+			{ 
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			},
+			{
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			}
+		]
+	},
+	{
+		category = culture
+		questions =
+		[
+			{ 
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			},
+			{
+				question = |What is round, and has normal temperature?|
+				answer = |ball|
+				choices = [ |sun|,|water|,|moon|,|ball|	]
+			}
+		]
+	}
+]

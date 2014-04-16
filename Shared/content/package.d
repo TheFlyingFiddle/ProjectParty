@@ -5,6 +5,8 @@ public import content.texture;
 public import content.reloading;
 public import content.font;
 public import content.common;
+public import content.sound;
+public import content.textureatlas;
 
 struct ContentConfig
 {
@@ -12,6 +14,8 @@ struct ContentConfig
 	uint maxReloaders;
 	uint maxTextures;
 	uint maxFonts;
+	uint maxSounds;
+	uint maxAtlases;
 }
 
 struct Content
@@ -20,6 +24,8 @@ struct Content
 	{
 		ContentReloader.init(allocator, c.maxTrackingResources, c.maxReloaders, c.maxTrackingResources);
 		TextureManager.init(allocator, c.maxTextures);
+		SoundManager.init(allocator, c.maxSounds);
+		TextureAtlasManager.init(allocator, c.maxAtlases);
 
 		import allocation;
 		FontManager.init(allocator, GC.cit, c.maxFonts);
@@ -30,6 +36,7 @@ struct Content
 		ContentReloader.shutdown();
 		TextureManager.shutdown();
 		FontManager.shutdown();
+		SoundManager.shutdown();
 	}
 
 	void loadAsset(Asset asset)
@@ -44,9 +51,25 @@ struct Content
 			case font:
 				loadFont(asset.path);
 				break;
+			case sound:
+				loadSound(asset.path);
+				break;
+			case atlas:
+				loadTextureAtlas(asset.path);
+				break;
 			default:
 				assert(0, format("Loading of assettype %s is not supported", asset.type));
 		}
+	}
+
+	TextureAtlasID loadTextureAtlas(const(char[]) path)
+	{
+		return TextureAtlasManager.load(path);
+	}
+
+	SoundID loadSound(const(char[]) path)
+	{
+		return SoundManager.load(path);
 	}
 
 	FontID loadFont(const(char[]) path) 

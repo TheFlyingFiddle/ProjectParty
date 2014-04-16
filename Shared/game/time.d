@@ -13,6 +13,6 @@ struct Time
 
 	static @property float total()
 	{
-		return _total.fracSec.msecs / 1000.0f;
+		return _total.seconds + _total.fracSec.msecs / 1000.0f;
 	}
 }

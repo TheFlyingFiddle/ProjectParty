@@ -179,10 +179,11 @@ struct Renderer
 	{
 		import logging;
 
+		gl.bindBuffer(vbo.target, vbo.glName);
 		vbo.unmapBuffer();
+
 		if(elements == offset) return;
 
-		gl.bindBuffer(vbo.target, vbo.glName);
 		gl.useProgram(usedProgram.glName);
 		usedProgram.uniform["transform"] = transform;
 
@@ -217,7 +218,7 @@ void addFrame(Renderer* renderer,
 	float2 dim = float2(frame.srcRect.z * scale.x, frame.srcRect.w * scale.y);
 	auto vertex = Vertex(float4(pos.x, pos.y, dim.x, dim.y),
 								coords,
-								origin,
+								origin * scale,
 								color,
 								rotation);
 

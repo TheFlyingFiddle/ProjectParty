@@ -66,7 +66,7 @@ class GameOverGameState : IGameState
 		
 		auto msg = text(buffer, "Transitioning to start in: ", interval - elapsed);
 
-		auto size    = font.messure(msg);
+		auto size    = font.measure(msg);
 		auto fsize   = float2(Game.window.fboSize);
 		
 		Game.renderer.addText(font, msg, float2(0, size.y), Color.white, float2(1,1));

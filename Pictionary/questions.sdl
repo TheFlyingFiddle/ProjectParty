@@ -1,0 +1,14 @@
+questions = 
+[ 
+	{ 
+		answer = |ball|
+		choices =
+		[	
+			|sun|,
+			|water|,
+			|moon|,
+			|ball|
+		]
+	}
+]
+

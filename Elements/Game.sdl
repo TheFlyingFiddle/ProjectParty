@@ -13,6 +13,8 @@ contentConfig =
 
 	maxTextures    = 100
 	maxFonts       = 10
+	maxSounds      = 50
+	maxAtlases	   = 5
 }
 
 //Windows and whatnot.
@@ -20,7 +22,7 @@ windowConfig =
 {
 	size = 
 	{
-		x=1366 
+		x=1366
 		y=768
 	}
 
@@ -38,6 +40,20 @@ serverConfig =
 	connectionTimeout = 15
 }
 
+soundConfig =
+{
+	freq = 22050
+	numChannels = 32
+	bufferSize = 4096
+	
+	musicVolume  = 1.0
+	soundVolume  = 1.0 
+	masterVolume = 0.5
+	muted        = true
+
+	musicFoulderPath = |..\\resources\\elements\\music|
+}
+
 gameName = elements
 
 resources = [ 
@@ -50,12 +66,23 @@ resources = [
 { type = texture path = |elements\textures\baws.png| },
 { type = texture path = |elements\textures\image_map1.png| },
 { type = font	 path = |elements\fonts\Blocked72.fnt| },
+{ type = font	 path = |elements\fonts\Segoe36.fnt| },
 { type = texture path = |elements\textures\tower.png| },
 { type = texture path = |elements\textures\projectile.png| },
 { type = texture path = |elements\textures\tower_cone.png| },
 { type = texture path = |elements\textures\tower_effect.png| },
 { type = texture path = |elements\textures\cone.png| },
-{ type = texture path = |elements\textures\map2.png| }
+{ type = texture path = |elements\textures\rocket.png| },
+{ type = texture path = |elements\textures\rocket_big.png| },
+{ type = texture path = |elements\textures\crosshair.png| },
+{ type = texture path = |elements\textures\bullet.png| },
+{ type = texture path = |elements\textures\bullet_power.png| },
+{ type = texture path = |elements\textures\map2.png| },
+{ type = texture path = |elements\textures\map3_beta.png| },
+{ type = texture path = |elements\textures\skeleton.png| },
+{ type = texture path = |elements\textures\orange.png| },
+{ type = texture path = |elements\textures\banana.png| },
+{ type = sound   path = |elements\sounds\machine_gun.ogg| } 
 ]
 
 phoneResources = [
@@ -67,7 +94,23 @@ phoneResources = [
 	|elements/scripts/elements.lua|,
 	|elements/scripts/networking.lua|,
 	|elements/scripts/elementselection.lua|,
-	|elements/scripts/slingshot.lua|,
+	|elements/scripts/vent.lua|,
+	|elements/scripts/vector2.lua|,
+	|elements/scripts/direction_selector.lua|,
+	|elements/scripts/gui.lua|,	
+	|elements/scripts/selector.lua|,
+	|elements/scripts/ballistic.lua|,
+	|elements/scripts/amount_selector.lua|,
+	|elements/scripts/pressure_display.lua|,
+	|elements/scripts/repair.lua|,
+	|elements/scripts/camera.lua|,
+	|elements/scripts/gatling.lua|,
+	|elements/scripts/crank.lua|,
+	|elements/scripts/table.lua|,
+	|elements/scripts/infoscreen.lua|,
+	|elements/scripts/image_box.lua|,
+	|elements/scripts/drag_and_droppable.lua|,
+	|elements/scripts/aim_circle.lua|,
 	|elements/fonts/Segoe54.fnt|,
 	|elements/fonts/Segoe54_0.png|,
 	|elements/fonts/SegoeUILight72.fnt|,
@@ -82,5 +125,12 @@ phoneResources = [
 	|elements/textures/wind_icon.png|,
 	|elements/textures/nature_icon.png|,
 	|elements/textures/cancel_icon.png|,
-	|elements/textures/buy_icon.png|
+	|elements/textures/buy_icon.png|,
+	|elements/textures/rocket_icon.png|,
+	|elements/textures/gatling_icon.png|,
+	|elements/textures/rusty_iron_cog.png|,
+	|elements/textures/iron_cog.png|,
+	|elements/textures/copper_cog.png|,
+	|elements/textures/corroded_cog.png|,
+	|elements/textures/corroded_bolt.png|
 ]
