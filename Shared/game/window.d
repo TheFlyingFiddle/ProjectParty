@@ -46,7 +46,7 @@ struct WindowManager
 	{
 		//glfwWindowHint(GLFW_VERSION_MAJOR, 3);
 		//glfwWindowHint(GLFW_VERSION_MINOR, 3);
-		//glfwWindowHint(GLFW_SAMPLES, 16);
+		glfwWindowHint(GLFW_SAMPLES, 4);
 		glfwWindowHint(GLFW_DECORATED, decorated);
 
 		auto glfwWindow = glfwCreateWindow(size.x, size.y, title.toCString(), monitor._monitor, null);

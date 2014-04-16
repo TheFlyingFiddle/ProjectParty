@@ -57,7 +57,8 @@ enum NetworkMessage
 	allFilesSent = 3,
 	fileReload   = 4,
 	luaLog       = 5,
-	transition   = 6
+	transition   = 6,
+	heartbeat	 = 7
 }
 
 struct Server
