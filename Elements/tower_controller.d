@@ -7,16 +7,28 @@ import enemy_collection;
 import std.algorithm : countUntil, min, max;
 import graphics;
 import game;
+import content;
+import spriter.types;
+import spriter.renderer;
 
 enum maxPressure = 1000;
+enum AnimationState : string
+{
+	idle = "idle",
+	broken = "broken"
+}
 
 interface ITowerController
 {
 	@property TileType type();
 	void buildTower(uint towerIndex, uint prototypeIndex);
-	void removeTower(uint towerIndex);
+	void removeTower(uint towerIndex, BaseTower base);
 	void enterTower(int towerIndex, ulong playerID);
 	void exitTower(int towerIndex, ulong playerID);
+
+	void breakTower(int towerIndex);
+	void repairTower(int towerIndex);
+
 	void update(List!BaseEnemy enemies);
 	void render(List!BaseEnemy enemies);
 }
@@ -30,7 +42,7 @@ struct BaseTower
 	float regenRate;
 	uint metaIndex;
 	float range;
-	Frame frame;
+	SpriteInstance sprite;
 }
 
 uint2 cell(T)(T t, uint2 tileSize)
@@ -71,7 +83,7 @@ final class TowerCollection
 										metas[metaIndex].regenRate, 
 										metaIndex, 
 										metas[metaIndex].range, 
-										metas[metaIndex].towerFrame);
+									metas[metaIndex].spriteID.animationInstance(AnimationState.idle));
 				tc.buildTower(metas[metaIndex].typeIndex, baseTowers.length - 1);
 				return;
 			}
@@ -91,10 +103,11 @@ final class TowerCollection
 
 	void removeTower(uint towerIndex)
 	{
+		auto base = baseTowers[towerIndex];
 		baseTowers.removeAt(towerIndex);
 		foreach(tc;controllers)
 		{
-			tc.removeTower(towerIndex);
+			tc.removeTower(towerIndex, base);
 		}
 	}
 
@@ -119,17 +132,29 @@ final class TowerCollection
 
 	void breakTower(uint towerIndex)
 	{
-		if(baseTowers[towerIndex].isBroken == false)
+		auto base = &baseTowers[towerIndex];
+		if(base.isBroken == false)
 		{
-			baseTowers[towerIndex].isBroken = true;
+			base.isBroken = true;
+			base.sprite = metas[base.metaIndex].spriteID.animationInstance(AnimationState.broken);
 			foreach(handler; onTowerBroken)
 				handler(this, towerIndex);
+			foreach(tc; controllers)
+			{
+				tc.breakTower(towerIndex);
+			}
 		}
 	}
 
 	void repairTower(uint towerIndex)
 	{
-		baseTowers[towerIndex].isBroken = false;
+		auto base = &baseTowers[towerIndex];
+		base.isBroken = false;
+		base.sprite = metas[base.metaIndex].spriteID.animationInstance(AnimationState.idle);
+		foreach(tc; controllers)
+		{
+			tc.repairTower(towerIndex);
+		}
 	}
 
 	void enterTower(uint towerIndex, ulong playerID)
@@ -158,6 +183,7 @@ final class TowerCollection
 	{
 		foreach(ref tower; baseTowers)
 		{
+			tower.sprite.update(Time.delta);
 			tower.pressure = min(tower.pressure + tower.regenRate * Time.delta, maxPressure);
 		}
 
@@ -172,11 +198,13 @@ final class TowerCollection
 		foreach(tower;baseTowers)
 		{
 			Color color = tower.isBroken ? Color(0xFF777777) : Color.white;
-			Game.renderer.addFrame(tower.frame, float4(	tower.position.x, 
-														tower.position.y, 
-														tileSize.x, 
-														tileSize.y), 
-								color, float2(tileSize)/2);
+
+			Game.renderer.addSprite(tower.sprite, tower.position);
+			//Game.renderer.addFrame(tower.frame, float4(	tower.position.x, 
+			//											tower.position.y, 
+			//											tileSize.x, 
+			//											tileSize.y), 
+			//					color, float2(tileSize)/2);
 		}
 
 
@@ -283,12 +311,18 @@ abstract class TowerController(T) : ITowerController
 		return owner.baseTowers[instance.baseIndex].range;
 	}
 
+	final float range(uint instanceIndex)
+	{
+		return range(instances[instanceIndex]);
+	}
+
 	final void buildTower(uint prototypeIndex, uint towerIndex)
 	{
 		instances ~= T(prototypeIndex, towerIndex);
+		towerBuilt(towerIndex, instances.length - 1);
 	}
 
-	final void removeTower(uint towerIndex)
+	final void removeTower(uint towerIndex, BaseTower base)
 	{
 		for(int i = instances.length - 1; i >= 0; i--)
 		{
@@ -298,6 +332,7 @@ abstract class TowerController(T) : ITowerController
 			}
 			else if(instances[i].baseIndex == towerIndex)
 			{
+				towerRemoved(base, instances[i]);
 				instances.removeAt(i);
 			}
 		}
@@ -318,11 +353,18 @@ abstract class TowerController(T) : ITowerController
 
 	final void breakTower(int towerIndex)
 	{
-		auto index = controlled.countUntil!(x => instances[x.instanceIndex].baseIndex == towerIndex);
+		auto index = instances.countUntil!(x => x.baseIndex == towerIndex);
 		if(index != -1)
 		{
-			exitTower(towerIndex, controlled[index].playerID);
+			towerBroken(index);
 		}
+	}
+
+	final void repairTower(int towerIndex)
+	{
+		auto index = instances.countUntil!(x => x.baseIndex == towerIndex);
+		if(index != -1)
+			towerRepaired(index);
 	}
 
 	final void enterTower(int towerIndex, ulong playerID)
@@ -348,6 +390,11 @@ abstract class TowerController(T) : ITowerController
 	{
 		owner.baseTowers[instances[towerIndex].baseIndex].pressure = newPressure;
 	}
+
+	void towerBuilt(int towerIndex, int instanceIndex) { }
+	void towerRemoved(BaseTower base, T towerInstance) { }
+	void towerRepaired(int instanceIndex) { }
+	void towerBroken(int instanceIndex) { }
 
 	abstract void towerEntered(int instanceIndex, ulong playerID);
 	abstract void towerExited(int instanceIndex, ulong playerID);

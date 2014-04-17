@@ -431,6 +431,10 @@
    <File path="game\window.d" />
   </Folder>
   <Folder name="graphics">
+   <Folder name="particle">
+    <File path="graphics\particle\extender.d" />
+    <File path="graphics\particle\particle.d" />
+   </Folder>
    <File path="graphics\buffer.d" />
    <File path="graphics\color.d" />
    <File path="graphics\common.d" />
@@ -442,7 +446,6 @@
    <File path="graphics\frame.d" />
    <File path="graphics\framebuffer.d" />
    <File path="graphics\package.d" />
-   <File path="graphics\particle.d" />
    <File path="graphics\program.d" />
    <File path="graphics\shader.d" />
    <File path="graphics\texture.d" />

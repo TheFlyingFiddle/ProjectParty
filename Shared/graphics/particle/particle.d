@@ -1,4 +1,4 @@
-module graphics.particle;
+module graphics.particle.particle;
 
 import graphics, math, content.textureatlas;
 
@@ -203,7 +203,7 @@ final class ParticleSystem
 
 		queue[firstFreeParticle] = particle;
 		queue[firstFreeParticle].time = currentTime;
-		
+
 		firstFreeParticle = nextFreeParticle;
 	}
 
@@ -221,7 +221,7 @@ final class ParticleSystem
 		uniform float current;
 
 		in vertexAttrib
-	{
+		{
 		vec4 coords;
 		vec2 center;
 		vec2 velocity;
@@ -239,14 +239,14 @@ final class ParticleSystem
 		} vertex[];
 
 		out vertData
-	{
+		{
 		vec4 color;
 		vec2 coord;
 		float alpha;
 		} vertOut;
 
 		vec4 calcPos(in vec2 pos, in vec2 origin, in float sinus, in float cosinus)
-	{
+		{
 		pos.x += origin.x * cosinus - origin.y * sinus;
 		pos.y += origin.x * sinus   + origin.y * cosinus;
 		return vec4(pos, 0 , 1);
@@ -327,7 +327,7 @@ out vertexAttrib
 		} vertex;
 
 		void main() 
-	{
+		{
 		vertex.coords		= coords;
 		vertex.center		= center;
 		vertex.velocity		= velocity;
@@ -361,7 +361,7 @@ in vertData
 		uniform float cutoff_threshold;
 
 		void main(void)
-	{
+		{
 		vec4 sample = texture(tex, vertIn.coord);
 		if(sample.a < cutoff_threshold) discard;
 

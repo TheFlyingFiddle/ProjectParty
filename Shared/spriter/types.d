@@ -1,6 +1,7 @@
 module spriter.types;
 
 import math;
+import spriter.loader;
 
 struct SpriterObject
 {
@@ -96,6 +97,15 @@ struct Animation
 struct SpriteObjectID
 {
 	uint index;
+	auto animationInstance(string animationName)
+	{
+		auto sprite = SpriteManager.lookup(this);
+		foreach(i, animation; sprite.entities[0].animations) if(animation.name == animationName)
+		{
+			return SpriteInstance(0,1,i,0,this);
+		}
+		assert(0, "Couldn't find animation "~animationName);
+	}
 }
 
 
@@ -110,7 +120,7 @@ struct SpriteInstance
 
 	void update(float delta)
 	{
-		import loader;
+		import spriter.loader;
 		auto object = SpriteManager.lookup(id);
 		time += delta * speedMultiplier;
 		if(time > object.entities[entityIndex].animations[animationIndex].length && 

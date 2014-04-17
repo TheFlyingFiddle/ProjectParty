@@ -1,4 +1,4 @@
-module loader;
+module spriter.loader;
 
 import content, std.json, spriter.types, math;
 

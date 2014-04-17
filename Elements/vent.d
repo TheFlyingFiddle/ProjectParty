@@ -21,6 +21,7 @@ struct VentInstance
 	int baseIndex;
 	float direction;
 	float open;
+	ulong particleID;
 	
 	this(int prefab, int baseIndex)
 	{
@@ -43,8 +44,7 @@ struct VentTower
 	float fullyOpen;
 	@Convert!unitToRadiance() float spread;
 	StatusConfig status;
-	@Convert!stringToFrame() Frame frame;
-	@Convert!stringToFrame() Frame towerFrame;
+	@Convert!stringToParticle() ParticleEffectConfig particleConfig;
 }
 
 float unitToRadiance(float value)
@@ -54,9 +54,13 @@ float unitToRadiance(float value)
 
 final class VentController : TowerController!VentInstance
 {
-	this(A)(ref A allocator, TowerCollection owner)
+
+	ParticleCollection particleCollection;
+	this(A)(ref A allocator, TowerCollection owner, ParticleCollection coll)
 	{
 		super(allocator, TileType.vent, owner);
+
+		particleCollection = coll;
 
 		import network_types;
 		Game.router.setMessageHandler(IncomingMessages.ventValue,		&handleVentValue);
@@ -65,6 +69,7 @@ final class VentController : TowerController!VentInstance
 
 	override void update(List!BaseEnemy enemies)
 	{
+		particleCollection.update(Time.delta);
 		foreach(i, ref instance; instances) if(!isBroken(instance))
 		{
 			if(instance.open > 0)
@@ -83,10 +88,24 @@ final class VentController : TowerController!VentInstance
 						}
 					}
 				}
+				else
+				{
+					setOpen(i, 0);
+				}
 			}
 		}
 
 		super.update(enemies);
+	}
+
+	void setOpen(int index, float value)
+	{
+		if(value > 0)
+			particleCollection.play(instances[index].particleID);
+		else
+			particleCollection.pause(instances[index].particleID);
+		particleCollection[instances[index].particleID].particleMultiplier = value;
+		instances[index].open = value;
 	}
 
 	void hitEnemy(ref VentInstance vent, ref BaseEnemy enemy) 
@@ -97,20 +116,7 @@ final class VentController : TowerController!VentInstance
 
 	void render(List!BaseEnemy enemies)
 	{
-		foreach(i, tower; instances) if(!isBroken(tower))
-		{
-			auto position = position(i);
 
-
-
-			if ( tower.open > 0 && pressure(i) > 0) {
-				Color color = Color.white;
-				auto origin = float2(0, tower.frame.height/2);
-				float2 scale = float2(range(tower) / tower.frame.width, 1);
-
-				Game.renderer.addFrame(tower.frame, position, color, scale, origin, tower.direction);
-			}
-		}
 	}
 
 	override void towerEntered(int towerIndex, ulong playerID)
@@ -130,6 +136,33 @@ final class VentController : TowerController!VentInstance
 
 	}
 
+	override void towerBuilt(int baseTowerIndex, int instanceIndex)
+	{
+		instances[instanceIndex].particleID = particleCollection.addEffect(instances[instanceIndex].particleConfig, position(instanceIndex));
+		auto extender = particleCollection.getExtender!(ParticleEmitterExtender!ConeEmitter);
+		foreach(i, _; extender.emitters) if (extender.id(i) == instances[instanceIndex].particleID)
+		{
+			extender.emitters[i].common.speed = range(instanceIndex);
+		}
+	}
+
+	override void towerRemoved(BaseTower base, VentInstance vent)
+	{
+		particleCollection.removeID(vent.particleID);
+	}
+
+	override void towerRepaired(int instanceIndex)
+	{
+		if(instances[instanceIndex].open > 0)
+			particleCollection.play(instances[instanceIndex].particleID);
+		else
+			particleCollection.pause(instances[instanceIndex].particleID);
+	}
+
+	override void towerBroken(int instanceIndex)
+	{
+		particleCollection.pause(instances[instanceIndex].particleID);	
+	}
 
 	void handleVentValue(ulong id, ubyte[] msg)
 	{
@@ -139,7 +172,9 @@ final class VentController : TowerController!VentInstance
 
 		auto index = indexOf(uint2(x,y));
 		if(index != -1)
-			instances[index].open = value;
+		{
+			setOpen(index, value);
+		}
 	}
 
 	void handleVentDirection(ulong id, ubyte[] msg)
@@ -150,6 +185,14 @@ final class VentController : TowerController!VentInstance
 
 		auto index = indexOf(uint2(x,y));
 		if(index != -1)
+		{
+			auto extender = particleCollection.getExtender!(ParticleEmitterExtender!ConeEmitter);
+			foreach(i, _; extender.emitters) if (extender.id(i) == instances[index].particleID)
+			{
+				extender.emitters[i].angle = value;
+				extender.emitters[i].width = instances[index].spread;
+			}
 			instances[index].direction = value;
+		}
 	}
 }

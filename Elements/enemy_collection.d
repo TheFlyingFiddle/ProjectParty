@@ -1,6 +1,11 @@
 module enemy_collection;
-import game, math, graphics, collections, types, tower_controller;
+import game, math, graphics, collections, types, tower_controller, spriter.types, spriter.renderer;
 
+enum AnimationState : string
+{
+	walk = "walk",
+	frozen = "frozen"
+}
 
 struct BaseEnemy {
 	static List!Path paths;
@@ -11,7 +16,7 @@ struct BaseEnemy {
 	float maxHealth;
 	uint pathIndex;
 	int worth;
-	Frame frame;
+	SpriteInstance sprite;
 	Status status;
 
 	this(EnemyPrefab prefab, uint pathIndex)
@@ -21,7 +26,7 @@ struct BaseEnemy {
 		this.health = prefab.maxHealth;
 		this.maxHealth = prefab.maxHealth;
 		this.worth = prefab.worth;
-		this.frame = prefab.frame;
+		this.sprite = prefab.spriteID.animationInstance(AnimationState.walk);
 		this.pathIndex = pathIndex;
 	}
 
@@ -199,6 +204,7 @@ class EnemyCollection
 	{
 		for (int i = enemies.length -1; i >=0; i--)
 		{
+			enemies[i].sprite.update(Time.delta*enemies[i].speed/50);
 			enemies[i].updateStatus(Time.delta);
 			enemies[i].distance += enemies[i].speed * Time.delta;
 			if (enemies[i].distance < 0)
@@ -267,11 +273,7 @@ class EnemyCollection
 			}
 
 			float2 position = enemy.position;
-			float2 origin = float2(enemy.frame.width/2, enemy.frame.height/2);
-			Game.renderer.addFrame(enemy.frame, float4(position.x, 
-													   position.y,
-													   enemy.frame.width, enemy.frame.height),
-								   color, origin);
+			Game.renderer.addSprite(enemy.sprite, position, color);
 		}
 	
 		import std.algorithm, game.debuging;
@@ -279,12 +281,14 @@ class EnemyCollection
 		foreach(ref enemy; enemies)
 		{
 			float2 position = enemy.position;
-			float2 origin = float2(enemy.frame.width/2, enemy.frame.height/2);
+			
+			//TODO: This is not good. Fix this.
+			float2 origin = float2(32,32);
 			float amount = enemy.health/enemy.maxHealth;
 			float hBWidth = min(50, enemy.maxHealth);
-			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + enemy.frame.height/2, 
+			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + origin.y, 
 										 hBWidth, 5), Color.red);
-			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + enemy.frame.height/2, 
+			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + origin.y, 
 										 hBWidth*amount, 5), Color.green);
 		}
 

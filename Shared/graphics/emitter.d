@@ -5,9 +5,35 @@ import std.random, math, graphics, content.sdl, std.algorithm,
 
 enum DELTA = 0.001f;
 
+struct ParticleEffectConfig
+{
+	List!EmitterConfig emitters;
+	float time;
+	@Optional(1.0f) float particleMultiplier;
+	bool looping;
+	bool playing;
+}
+
 struct ParticleEffect
 {
+	ulong id;
 	float2 position;
+	float time;
+	float elapsed;
+	float particleMultiplier;
+	bool playing;
+	bool looping;
+
+	this(ref ParticleEffectConfig config, ulong effectID, float2 pos)
+	{
+		id = effectID;
+		position = pos;
+		time = config.time;
+		elapsed = 0f;
+		particleMultiplier = config.particleMultiplier;
+		playing = config.playing;
+		looping = config.looping;
+	}
 }
 
 struct ParticleCommon
@@ -92,8 +118,6 @@ struct EmitterConfig
 	@Optional(0f) float angle;
 	@Optional(0f) float width;
 	@Optional(0f) float line; 
-
-	float time;
 	List!EmitterPoint points;
 }
 
@@ -112,44 +136,36 @@ struct EmitterPoint
 struct ConeEmitter
 {
 	enum type = EmitterType.cone;
-	float elapsed;
 
 	ParticleCommon common;
 	float angle;
 	float width; 
 	float line;
 
-	float time;
-	float multiplier;
 	List!EmitterPoint points;
-
 
 	this(ref EmitterConfig config, ParticleSystem sys)
 	{	
 		common    = ParticleCommon(config);
 		width	  = config.width;
 		angle	  = config.angle;
-		elapsed	  = 0.0f;
 		line	  = config.line;
-		time	  = config.time;
 		points	  = config.points;
-		multiplier = uniform(0.5f, 2.5f);
 	}
 
 
-	void update(float delta, ParticleSystem system, ref ParticleEffect effect)
+	void update(ParticleSystem system, ref ParticleEffect effect, float delta)
 	{
-		float oldElapsed = elapsed;
-		elapsed += delta * multiplier;
-	
+		float oldElapsed = effect.elapsed - delta;
 		foreach(point; points)
 		{
 			if(oldElapsed < point.time &&
-			   elapsed	  >= point.time)
+			   effect.elapsed >= point.time)
 			{
 
 				float4 coords = system.atlas.frame(point.particle).coords;
-				foreach(i; 0 .. point.count)
+				auto numParticles = cast(size_t)(point.count * effect.particleMultiplier);
+				foreach(i; 0 .. numParticles)
 				{
 					float rnd = uniform(-0.5f, 0.5f);
 					float a = angle + width * rnd;
@@ -160,11 +176,6 @@ struct ConeEmitter
 					system.addParticle(particle);
 				}
 			}
-		}
-
-		if(elapsed > time)
-		{
-			elapsed -= time;
 		}
 	}
 }

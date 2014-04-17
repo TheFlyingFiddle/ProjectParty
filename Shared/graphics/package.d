@@ -12,5 +12,6 @@ public import graphics.texture;
 public import graphics.vertex;
 public import graphics.framebuffer;
 public import graphics.font;
-public import graphics.particle;
+public import graphics.particle.particle;
+public import graphics.particle.extender;
 public import graphics.emitter;

@@ -40,6 +40,8 @@ class GamePlayState : IGameState
 
 	Table!(ulong, TowerPlayer)	players;
 
+	ParticleSystem particleSystem;
+
 	this(A)(ref A allocator, string configFile)
 	{
 		lifeTotal = 1000;
@@ -66,10 +68,14 @@ class GamePlayState : IGameState
 
 		BaseEnemy.paths = level.paths;
 
-		auto ventController = new VentController(allocator, towerCollection);
+		particleSystem = new ParticleSystem(allocator, Game.content.loadTextureAtlas("particles"), 3000);
+		auto particleCollection = new ParticleCollection(allocator, particleSystem, 50);
+		new ParticleEmitterExtender!ConeEmitter(allocator, particleCollection);
+
+		auto ventController = new VentController(allocator, towerCollection, particleCollection);
 		VentInstance.prefabs = level.ventPrototypes;
 		
-		auto ballisticController = new BallisticController(allocator, towerCollection);
+		auto ballisticController = new BallisticController(allocator, towerCollection, particleCollection);
 
 		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
@@ -387,6 +393,15 @@ class GamePlayState : IGameState
 		enemyCollection.render();
 
 		towerCollection.render(enemyCollection.enemies);
+
+		mat4 proj = mat4.CreateOrthographic(0, Game.window.fboSize.x, Game.window.fboSize.y, 0, 1, -1);
+		gl.blendEquationSeparate(BlendEquation.add, BlendEquation.add);
+		gl.blendFuncSeparate(BlendFactor.one, BlendFactor.oneMinusSourceAlpha, 
+							 BlendFactor.one, BlendFactor.zero);
+		particleSystem.render(proj);
+
+		gl.enable(Capability.blend);
+		gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);
 
 		import util.strings;
 		char[128] buffer;

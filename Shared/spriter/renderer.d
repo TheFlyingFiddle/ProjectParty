@@ -1,8 +1,8 @@
 module spriter.renderer;
 
-import game, math, graphics, loader, spriter.types;
+import game, math, graphics, spriter.loader, spriter.types;
 
-void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position)
+void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position, Color color = Color.white)
 {
 	//This is stupid.
 	auto object = SpriteManager.lookup(sprite.id);
@@ -21,7 +21,7 @@ void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position)
 
 		renderer.addFrame(frame, 
 							   position + spatial.pos, 
-							   Color.white, 
+							   color, 
 								spatial.scale, 
 								spatial.origin * float2(frame.srcRect.z, frame.srcRect.w),
 								spatial.rotation);

@@ -6,6 +6,8 @@ function init()
 
 	gui = Gui()
 
+	Screen.setOrientation(Orientation.landscape)
+
     fsm = FSM()
     fsm:addState(Drawing(), "Drawing")
     fsm:addState(Guessing(), "Guessing")

@@ -77,6 +77,7 @@ struct GatlingTower
 	float anglePerShot;
 	float pressureCost;
 	@Convert!stringToFrame() Frame frame;
+	@Convert!stringToSound() SoundID sound;
 }
 
 final class GatlingController : TowerController!GatlingInstance
@@ -139,6 +140,7 @@ final class GatlingController : TowerController!GatlingInstance
 				tower.elapsed -= tower.anglePerShot;
 				if(pressure(instances[c.instanceIndex]) >= tower.pressureCost)
 				{
+					Game.sound.playSound(tower.sound);
 					pressure(instances[c.instanceIndex]) -= tower.pressureCost;
 					auto enemyIndex = findFarthestReachableEnemy(enemies, position(instances[c.instanceIndex]), tower.range);
 					if(enemyIndex != -1) 

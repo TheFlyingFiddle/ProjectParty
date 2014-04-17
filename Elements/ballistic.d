@@ -47,6 +47,8 @@ struct BallisticProjectilePrefab
 	float radius;
 	float speed;
 	@Convert!stringToFrame() Frame frame;
+	@Convert!stringToParticle() ParticleEffectConfig explosion;
+	@Convert!stringToSound() SoundID sound;
 }
 
 struct BallisticInstance
@@ -89,12 +91,15 @@ final class BallisticController : TowerController!BallisticInstance
 {
 	List!BallisticProjectileInstance ballisticProjectiles;
 
-	this(A)(ref A allocator, TowerCollection owner)
+	ParticleCollection particleCollection;
+
+	this(A)(ref A allocator, TowerCollection owner, ParticleCollection coll)
 	{
 		super(allocator, TileType.rocket, owner);
-		this.ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
-
-		Game.router.setMessageHandler(IncomingMessages.ballisticValue,			&handleBallisticValue);
+		ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
+		particleCollection = coll;
+		
+		Game.router.setMessageHandler(IncomingMessages.ballisticValue,		&handleBallisticValue);
 		Game.router.setMessageHandler(IncomingMessages.ballisticDirection,	&handleBallisticDirection);
 		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch,		&handleBallisticLaunch);
 	}
@@ -114,6 +119,8 @@ final class BallisticController : TowerController!BallisticInstance
 
 	override void update(List!BaseEnemy enemies)
 	{
+
+
 		// Update all non-homing projectiles
 		for(int i = ballisticProjectiles.length - 1; i >= 0; --i)
 		{
@@ -122,12 +129,21 @@ final class BallisticController : TowerController!BallisticInstance
 			if(distance(ballisticProjectiles[i].position, ballisticProjectiles[i].target)
 			   < 10)
 			{
-				foreach(ref enemy; enemies)
+				auto proj = ballisticProjectiles[i];
+				Game.sound.playSound(proj.sound);
+				void makeExplosion()
 				{
-					if(distance(enemy.position, ballisticProjectiles[i].position) 
-								< ballisticProjectiles[i].radius)
-						enemy.health -= ballisticProjectiles[i].damage;
+					foreach(ref enemy; enemies)
+					{
+						if(distance(enemy.position, proj.position) 
+						   < proj.radius)
+							enemy.health -= proj.damage;
+					}
 				}
+				particleCollection.addEffect(proj.explosion, 
+											 proj.position,
+											 &makeExplosion);
+
 				ballisticProjectiles.removeAt(i);
 			}
 		}

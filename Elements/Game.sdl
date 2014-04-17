@@ -15,6 +15,7 @@ contentConfig =
 	maxFonts       = 10
 	maxSounds      = 50
 	maxAtlases	   = 5
+	maxSprites	   = 5
 }
 
 //Windows and whatnot.
@@ -42,14 +43,14 @@ serverConfig =
 
 soundConfig =
 {
-	freq = 22050
-	numChannels = 32
+	freq = 44100
+	numChannels = 64
 	bufferSize = 4096
 	
 	musicVolume  = 1.0
 	soundVolume  = 1.0 
 	masterVolume = 0.5
-	muted        = true
+	muted        = false
 
 	musicFoulderPath = |..\\resources\\elements\\music|
 }
@@ -82,7 +83,11 @@ resources = [
 { type = texture path = |elements\textures\skeleton.png| },
 { type = texture path = |elements\textures\orange.png| },
 { type = texture path = |elements\textures\banana.png| },
-{ type = sound   path = |elements\sounds\machine_gun.ogg| } 
+{ type = sound   path = |elements\sounds\machine_gun.ogg| },
+{ type = sound   path = |elements\sounds\explosion.wav| },
+{ type = atlas   path = |elements\textures\atlases\particles.txt| },
+{ type = spriter path = |elements\textures\tower.scon| },
+{ type = spriter path = |elements\textures\enemy.scon| }
 ]
 
 phoneResources = [
