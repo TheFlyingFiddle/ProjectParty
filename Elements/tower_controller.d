@@ -63,13 +63,12 @@ final class TowerCollection
 
 	List!Tower metas;
 
-	this(A)(ref A allocator, List!Tower metas, uint2 tileSize)
+	this(A)(ref A allocator, List!Tower metas)
 	{
 		this.controllers	= List!ITowerController(allocator, 10);
 		this.baseTowers		= List!BaseTower(allocator, 200);
 		this.onTowerBroken	= List!TowerBrokeHandler(allocator, 10); 
 		this.metas = metas;
-		this.tileSize = tileSize;
 	}
 
 	final void buildTower(float2 position, ubyte metaIndex, ulong ownedPlayerID)

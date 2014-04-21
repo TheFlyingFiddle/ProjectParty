@@ -24,8 +24,9 @@ struct TowerPlayer
 
 class GamePlayState : IGameState
 {
-	Level level;
 	FontID lifeFont;
+
+	Level level;
 	
 	int lifeTotal;
 	List!uint2 selections;
@@ -41,9 +42,12 @@ class GamePlayState : IGameState
 	Table!(ulong, TowerPlayer)	players;
 
 	ParticleSystem particleSystem;
+	ParticleCollection particleCollection;
 
 	this(A)(ref A allocator, string configFile)
 	{
+		auto prefabs = fromSDLFile!Prefabs(allocator, configFile);
+
 		lifeTotal = 1000;
 		selections = List!uint2(allocator, 10);
 		players = Table!(ulong, TowerPlayer)(allocator, 20);	
@@ -52,8 +56,8 @@ class GamePlayState : IGameState
 		import std.algorithm;
 
 		lifeFont = Game.content.loadFont("Blocked72");
-		level = fromSDLFile!Level(allocator, configFile);
-		enemyCollection = allocator.allocate!EnemyCollection(allocator, level);
+		enemyCollection = allocator.allocate!EnemyCollection(allocator, prefabs.enemyPrototypes);
+
 		allocator.allocate!SpeedupEnemyController(allocator, enemyCollection);
 		allocator.allocate!HealerEnemyController(allocator, enemyCollection);
 		allocator.allocate!TowerBreakerEnemyController(allocator, enemyCollection);
@@ -63,28 +67,26 @@ class GamePlayState : IGameState
 		enemyCollection.onAtEnd ~= &enemyAtEnd;
 	
 
-		towerCollection = allocator.allocate!TowerCollection(allocator, level.towers, level.tileSize);
+		towerCollection = allocator.allocate!TowerCollection(allocator, prefabs.towers);
 		towerCollection.onTowerBroken ~= &sendTowerBrokenMessage;
 
-		BaseEnemy.paths = level.paths;
-
 		particleSystem = new ParticleSystem(allocator, Game.content.loadTextureAtlas("particles"), 3000);
-		auto particleCollection = new ParticleCollection(allocator, particleSystem, 50);
+		particleCollection = new ParticleCollection(allocator, particleSystem, 50);
 		new ParticleEmitterExtender!ConeEmitter(allocator, particleCollection);
 
 		auto ventController = new VentController(allocator, towerCollection, particleCollection);
-		VentInstance.prefabs = level.ventPrototypes;
+		VentInstance.prefabs = prefabs.ventPrototypes;
 		
 		auto ballisticController = new BallisticController(allocator, towerCollection, particleCollection);
 
-		BallisticProjectileInstance.prefabs = level.ballisticProjectilePrototypes;
-		BallisticInstance.prefabs = level.ballisticTowerPrototypes;
+		BallisticProjectileInstance.prefabs = prefabs.ballisticProjectilePrototypes;
+		BallisticInstance.prefabs = prefabs.ballisticTowerPrototypes;
 
 		auto gatlingController = new GatlingController(allocator, towerCollection);
 		enemyCollection.onDeath ~= &gatlingController.onEnemyDeath;
 
-		AutoProjectileInstance.prefabs = level.autoProjectilePrototypes;
-		GatlingInstance.prefabs = level.gatlingTowerPrototypes;
+		AutoProjectileInstance.prefabs = prefabs.autoProjectilePrototypes;
+		GatlingInstance.prefabs = prefabs.gatlingTowerPrototypes;
 
 		//Temp music
 		Game.sound.playMusic("test.ogg");
@@ -92,12 +94,26 @@ class GamePlayState : IGameState
 
 	void enter()
 	{
+
+		import allocation;
+		level = fromSDLFile!Level(GC.it, "level.sdl");		
+		
+		BaseEnemy.paths = level.paths;
+		enemyCollection.paths = level.paths;
+
+		towerCollection.tileSize = level.tileSize;
+
+		foreach(player; Game.players)
+		{
+			connect(player.id);
+		}
+
 		Game.router.setMessageHandler(IncomingMessages.towerRequest,	&handleTowerRequest);
 		Game.router.setMessageHandler(IncomingMessages.selectRequest,	&handleSelectRequest);
 		Game.router.setMessageHandler(IncomingMessages.mapRequest,		&handleMapRequest);
 		Game.router.setMessageHandler(IncomingMessages.towerEntered,	&handleTowerEntered);
 		Game.router.setMessageHandler(IncomingMessages.towerExited,		&handleTowerExited);
-		Game.router.setMessageHandler(IncomingMessages.deselect,			&handleDeselect);
+		Game.router.setMessageHandler(IncomingMessages.deselect,		&handleDeselect);
 		Game.router.setMessageHandler(IncomingMessages.towerSell,		&handleTowerSell);
 		Game.router.setMessageHandler(IncomingMessages.upgradeTower,	&handleTowerUpgrade);
 		Game.router.setMessageHandler(IncomingMessages.towerRepaired,	&handleTowerRepaired);
@@ -107,15 +123,44 @@ class GamePlayState : IGameState
 		Game.router.reconnectionHandlers ~= &reconnect;
 	}
 
+	void exit()
+	{
+		towerCollection.clear();
+		enemyCollection.clear();
+		players.clear();
+		particleCollection.clear();
+		
+
+		Game.router.setMessageHandler(IncomingMessages.towerRequest,	null);
+		Game.router.setMessageHandler(IncomingMessages.selectRequest,	null);
+		Game.router.setMessageHandler(IncomingMessages.mapRequest,		null);
+		Game.router.setMessageHandler(IncomingMessages.towerEntered,	null);
+		Game.router.setMessageHandler(IncomingMessages.towerExited,		null);
+		Game.router.setMessageHandler(IncomingMessages.deselect,		null);
+		Game.router.setMessageHandler(IncomingMessages.towerSell,		null);
+		Game.router.setMessageHandler(IncomingMessages.upgradeTower,	null);
+		Game.router.setMessageHandler(IncomingMessages.towerRepaired,	null);
+
+		Game.router.connectionHandlers.remove(&connect);
+		Game.router.disconnectionHandlers.remove(&disconnect);
+		Game.router.reconnectionHandlers.remove(&reconnect);
+
+		import core.memory;
+		GC.collect();
+	}
+
 	ubyte getMetaInfo(ubyte type, ubyte typeIndex) 
 	{
-		return cast(ubyte)level.towers.countUntil!(x => x.type == type && x.typeIndex == typeIndex);
+		return cast(ubyte)towerCollection.metas.countUntil!(x => x.type == type && x.typeIndex == typeIndex);
 	}
 
 	void connect(ulong id) 
 	{
 		import std.random;
+		import std.stdio;
 		players[id] = TowerPlayer(0, Color(uniform(0xFF000000, 0xFFFFFFFF)));
+		// TODO: People should not be able to connect during gameplay
+		Game.server.sendMessage(id, TransitionMessage("GamePlay"));
 		sendTransaction(id, level.startBalance);
 	}
  
@@ -123,6 +168,7 @@ class GamePlayState : IGameState
 	{
 		auto balance = players[id].balance;
 		players[id].balance = 0;
+		Game.server.sendMessage(id, TransitionMessage("GamePlay"));
 		sendTransaction(id, balance);
 	}
 
@@ -153,14 +199,14 @@ class GamePlayState : IGameState
 			
 		auto metaIndex = getMetaInfo(type, typeIndex);
 		if (level.tileMap[uint2(x,y)] == TileType.buildable && 
-			balance >= level.towers[metaIndex].cost) {
+			balance >= towerCollection.metas[metaIndex].cost) {
 
 			towerCollection.buildTower(float2(x * level.tileSize.x + level.tileSize.x / 2, 
 												       y * level.tileSize.y + level.tileSize.y / 2), 
 													    metaIndex, id);
 
 			level.tileMap[uint2(x,y)] = cast(TileType) type;
-			sendTransaction(id, -level.towers[metaIndex].cost);
+			sendTransaction(id, -towerCollection.metas[metaIndex].cost);
 
 			foreach(player; Game.players)
 				Game.server.sendMessage(player.id, 
@@ -201,7 +247,7 @@ class GamePlayState : IGameState
 		mapmsg.tiles = cast (ubyte[])level.tileMap.buffer[0 .. level.tileMap.width * level.tileMap.height];
 		Game.server.sendMessage(id, mapmsg);
 
-		foreach(i, tower; level.towers) {
+		foreach(i, tower; towerCollection.metas) {
 			TowerInfoMessage tiMsg;
 			tiMsg.cost = tower.cost;
 			tiMsg.range = tower.range;
@@ -317,11 +363,6 @@ class GamePlayState : IGameState
 			Game.server.sendMessage(player.id, TowerBrokenMessage(c.x, c.y));
 	}
 
-	void exit()
-	{
-
-	}
-
 	void update()
 	{
 		updateTowerBreaker();
@@ -376,7 +417,7 @@ class GamePlayState : IGameState
 		if (spawner.startTime <= 0) {
 			spawner.elapsed += Time.delta;
 			if (spawner.elapsed >= spawner.spawnInterval) {
-				enemyCollection.addEnemy(level.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
+				enemyCollection.addEnemy(enemyCollection.enemyPrototypes[spawner.prototypeIndex], spawner.pathIndex);
 				spawner.numEnemies--;
 				spawner.elapsed = 0;
 			}
@@ -385,9 +426,7 @@ class GamePlayState : IGameState
 
 	void render()
 	{
-		auto imageTex = Game.content.loadTexture("map3_beta.png");
-		auto imageFrame = Frame(imageTex);
-		Game.renderer.addFrame(imageFrame, float4(0,0, Game.window.size.x, Game.window.size.y));
+		Game.renderer.addFrame(level.image, float4(0,0, Game.window.size.x, Game.window.size.y));
 		TextureID towerTexture;
 
 		enemyCollection.render();

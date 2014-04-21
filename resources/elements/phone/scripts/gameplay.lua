@@ -205,16 +205,19 @@ local function Confirm()
 	return t	
 end
 
-function Elements()
-	local elements = {}
+function GamePlay()
+	local gameplay = {}
 	camera = Camera( Rect2(0, 0, Screen.width, Screen.height), vec2(1000, 1000), 0.5, 3)
 	brokenIcon = windIcon
 
-	function elements.enter()
+	function gameplay.enter()
+		if not map then
+			gameplay.init()
+		end
 		state:enterState("Idle")
 	end
 
-	function elements.init()
+	function gameplay.init()
 		sendMapRequestMessage()
 		state = FSM()
 		state:addState(Idle(), "Idle")
@@ -223,7 +226,7 @@ function Elements()
 		state:addState(Confirm(), "Confirm")
 	end
 
-	function elements.render()
+	function gameplay.render()
 		local origin = camera:transform(vec2(0,0))
 		local pos = vec2(origin)
 		local dim = camera:scale(vec2(tilesize, tilesize))
@@ -343,6 +346,8 @@ function Elements()
 	local function handleTowerBroken(cell)
 		local tower = findInstance(vec2(cell.x, cell.y))
 		tower.broken = true
+		logf("Tower broken: %d, %d", cell.x, cell.y)
+		logf("Broken: %b", tower.broken)
 	end
 
 	local function handleTowerRepaired(cell)
@@ -375,7 +380,7 @@ function Elements()
 	Network.setMessageHandler(Network.incoming.towerRepaired, handleTowerRepaired)
 	Network.setMessageHandler(Network.incoming.towerExited, handleTowerExited)
 
-	function elements.onTap(x,y)
+	function gameplay.onTap(x,y)
 		if state.active.onTap then
 			state.active.onTap(vec2(x,y))
 		end
@@ -389,22 +394,22 @@ function Elements()
 		end
 	end
 
-	function elements.onDragBegin(x, y)
+	function gameplay.onDragBegin(x, y)
 		camera:onDragBegin(vec2(x, y))
 	end
 
-	function elements.onDrag(x, y)
+	function gameplay.onDrag(x, y)
 		camera:onDrag(vec2(x,y))
 	end
 
-	function elements.onPinchBegin(x0, y0, x1, y1)
+	function gameplay.onPinchBegin(x0, y0, x1, y1)
 		camera:onPinchBegin(vec2(x0,y0), vec2(x1, y1))
 	end
 
-	function elements.onPinch(x0, y0, x1, y1)
+	function gameplay.onPinch(x0, y0, x1, y1)
 		camera:onPinch(vec2(x0,y0), vec2(x1, y1))
 	end
 
-	return elements
+	return gameplay
 end
 

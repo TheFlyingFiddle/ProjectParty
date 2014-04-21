@@ -3,6 +3,8 @@ Network.incoming = {}
 Network.sendRate = 0.1
 Network.sendElapsed = 0
 
+Network.incoming.transition		= Network.messages.transition
+
 Network.incoming.map 			= 50
 Network.incoming.towerBuilt 	= 51
 Network.incoming.selected 		= 52
@@ -22,6 +24,7 @@ Network.incoming.pressureInfo 	= 64
 Network.outgoing = {}
 
 Network.outgoing.sensor 			= 1
+Network.outgoing.toggleReady		= 49
 Network.outgoing.towerRequest 		= 50
 Network.outgoing.selectRequest 		= 51
 Network.outgoing.deselect 			= 52
@@ -75,6 +78,10 @@ function handleMessage(id, length)
 			end
 		end
 	end
+end
+
+local function readTransition()
+	return In.readUTF8()
 end
 
 local function readCell()
@@ -187,6 +194,8 @@ end
 local function readPressureInfo()
 	return In.readFloat()
 end
+
+Network.decoders[Network.incoming.transition] = readTransition
 
 Network.decoders[Network.incoming.map] = readMap
 Network.decoders[Network.incoming.towerBuilt] = readTowerBuilt
@@ -317,3 +326,7 @@ function sendGatlingValue(cell, gatlingValue)
 	Out.writeFloat(gatlingValue)
 end
 
+function sendToggleReady()
+	Out.writeShort(1)
+	Out.writeByte(Network.outgoing.toggleReady)
+end

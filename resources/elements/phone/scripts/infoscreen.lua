@@ -1,5 +1,5 @@
 local function exit()
-	fsm:enterState("Elements")
+	fsm:enterState("GamePlay")
 end
 
 
@@ -8,10 +8,6 @@ function Info()
 
 	function t.enter(tower) 
 		t.tower = tower
-
-		gui:add(Button(0xFF0000FF, pixel, 
-				   Rect2(10,10, 400, 100), 
-				   exit,   font, "Exit",0xFF000000))
 	end
 
 	function t.exit()
@@ -26,6 +22,11 @@ function Info()
 		local textSize = Font.measure(font, t.tower.info)
 		Renderer.addText(font, t.tower.info, vec2(10, 
 			                                      Screen.height - headingSize.y - textSize.y - 20), 0xFFFFFFFF)
+	end
+
+	function t.onBackButton()
+		exit()
+		return true
 	end
 	
 	return t

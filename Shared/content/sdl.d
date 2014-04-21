@@ -52,6 +52,7 @@ OptionalStruct!T Optional(T)(T val)
 
 struct OptionalStruct(T)
 {
+	alias T defaultType;
 	T defaultValue;
 	this(T)(T t) { defaultValue = t; }
 }
@@ -364,7 +365,8 @@ struct SDLIterator
 			auto firstIndex = currentIndex;
 			//Did the field have an attribute?
 			static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) {
-				static if(is(attributeType == OptionalStruct!fieldType)) {
+				static if(	is(attributeType == OptionalStruct!Type, Type)
+						&&	is(attributeType.defaultType : fieldType)) {
 					static if(is(attributeType == OptionalStruct!fieldType)) {
 						bool thrown = false;
 						try {
@@ -1050,6 +1052,10 @@ T fromSDLFile(T, A)(ref A allocator, string filePath)
     return cont.as!T(allocator);
 }
 
+T fromSDL(T, A)(ref A allocator, string source)
+{
+	return fromSDL(allocator, source).as!T(allocator);
+}
 
 SDLContainer fromSDL(Sink)(ref Sink sink, string source)
 {
@@ -1412,15 +1418,17 @@ class TestSDL {
 		struct OptionalFields {
 			@Optional(7) int totallyOptional;
 			int notOptional;
+			@Optional(7) int alsoOptional;
 		}
 
 		auto buf = new void[1024];
 		auto alloc = RegionAllocator(buf);
 		auto app = RegionAppender!SDLObject(alloc);
-		auto obj = fromSDL(app, "notOptional = 4");
+		auto obj = fromSDL(app, "notOptional = 4 alsoOptional = 4");
 		auto test = obj.as!OptionalFields;
 		assertEquals(test.totallyOptional, 7);
 		assertEquals(test.notOptional, 4);
+		assertEquals(test.alsoOptional, 4);
 	}
 
 	@Test public void testOptionalArray() {
@@ -1860,6 +1868,23 @@ freeColor=0";
 		}
 		auto obj = fromSDLFile!TestStruct(alloc, "content/test.sdl");
 		assertEquals(obj, TestStruct("Vad heter solen på engelska?"));
+	}
+
+	@Test public void testNestedOptional() {
+		struct OptionalFields {
+			@Optional(7) int totallyOptional;
+			@Optional(3) int alsoOptional;
+		}
+		struct Wrapper {
+			OptionalFields opt;
+		}
+
+		auto buf = new void[1024];
+		auto alloc = RegionAllocator(buf);
+		auto app = RegionAppender!SDLObject(alloc);
+		auto test = fromSDL!Wrapper(app, "opt =  { alsoOptional = 4 }");
+		assertEquals(test.opt.totallyOptional, 7);
+		assertEquals(test.opt.alsoOptional, 4);
 	}
 }
 

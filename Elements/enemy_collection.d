@@ -177,14 +177,15 @@ class EnemyCollection
 	List!EnemyAtEndHandler onAtEnd;
 	List!IEnemyController controllers;
 	List!Path paths;
+	List!EnemyPrefab enemyPrototypes;
 
-	this(A)(ref A allocator, Level level)
+	this(A)(ref A allocator, List!EnemyPrefab prefabs)
 	{
 		enemies		= List!BaseEnemy(allocator, 512);
 		onDeath		= List!EnemyDeathHandler(allocator, 16);
 		onAtEnd		= List!EnemyDeathHandler(allocator, 16);
 		controllers = List!IEnemyController(allocator,  16);
-		paths	    = level.paths;
+		enemyPrototypes = prefabs;
 	}
 
 	void addEnemy(ref EnemyPrefab prefab, int pathIndex)

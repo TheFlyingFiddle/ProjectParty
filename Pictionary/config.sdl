@@ -11,10 +11,11 @@ contentConfig =
 	maxTrackingResources = 110
 	maxReloaders         = 10
 
-	maxTextures    = 100
-	maxFonts       = 10
-	maxSounds      = 50
-	maxAtlases	   = 5
+	maxTextures	= 100
+	maxFonts	= 10
+	maxSounds	= 50
+	maxAtlases	= 5
+	maxSprites	= 20
 }
 
 //Windows and whatnot.
@@ -75,6 +76,7 @@ phoneResources = [
 	|pictionary/scripts/states.lua|,
 	|pictionary/scripts/grid.lua|,
 	|pictionary/textures/pixel.png|,
+	|pictionary/textures/smooth.png|,
 	|pictionary/fonts/SegoeUILight72.fnt|,
 	|pictionary/fonts/SegoeUILight72_0.png|
 	

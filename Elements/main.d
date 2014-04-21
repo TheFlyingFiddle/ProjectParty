@@ -2,7 +2,7 @@ import std.stdio;
 
 import logging, external_libraries,
 	allocation, game, gameplay,
-	game.debuging;
+	game.debuging, lobby;
 
 version(X86) 
 enum libPath = "..\\lib\\win32\\";
@@ -55,8 +55,9 @@ void init(A)(ref A allocator)
 	initDebugging("textures\\pixel.png");
 
 	auto fsm = Game.gameStateMachine;
-	fsm.addState(new GamePlayState(allocator, "GamePlay.sdl"), "Elements");
-	Game.transitionTo("Elements");
+	fsm.addState(new GamePlayState(allocator, "gameconfig.sdl"), "GamePlay");
+	fsm.addState(new LobbyState(allocator, "Elements"), "Lobby");
+	Game.transitionTo("Lobby");
 
 	import graphics; 
 	gl.enable(Capability.blend);

@@ -55,7 +55,7 @@ soundConfig =
 	musicFoulderPath = |..\\resources\\elements\\music|
 }
 
-gameName = elements
+gameName = |elements|
 
 resources = [ 
 { type = texture path = |elements\textures\pixel.png| },
@@ -68,6 +68,7 @@ resources = [
 { type = texture path = |elements\textures\image_map1.png| },
 { type = font	 path = |elements\fonts\Blocked72.fnt| },
 { type = font	 path = |elements\fonts\Segoe36.fnt| },
+{ type = font	 path = |elements\fonts\SegoeUILight72.fnt| },
 { type = texture path = |elements\textures\tower.png| },
 { type = texture path = |elements\textures\projectile.png| },
 { type = texture path = |elements\textures\tower_cone.png| },
@@ -80,6 +81,7 @@ resources = [
 { type = texture path = |elements\textures\bullet_power.png| },
 { type = texture path = |elements\textures\map2.png| },
 { type = texture path = |elements\textures\map3_beta.png| },
+{ type = texture path = |elements\textures\map3.png| },
 { type = texture path = |elements\textures\skeleton.png| },
 { type = texture path = |elements\textures\orange.png| },
 { type = texture path = |elements\textures\banana.png| },
@@ -90,52 +92,9 @@ resources = [
 { type = spriter path = |elements\textures\enemy.scon| }
 ]
 
-phoneResources = [
-	|elements/scripts/main.lua|,
-	|elements/scripts/rendertime.lua|,
-	|elements/scripts/button.lua|,
-	|elements/scripts/rect.lua|,
-	|elements/scripts/states.lua|,
-	|elements/scripts/elements.lua|,
-	|elements/scripts/networking.lua|,
-	|elements/scripts/elementselection.lua|,
-	|elements/scripts/vent.lua|,
-	|elements/scripts/vector2.lua|,
-	|elements/scripts/direction_selector.lua|,
-	|elements/scripts/gui.lua|,	
-	|elements/scripts/selector.lua|,
-	|elements/scripts/ballistic.lua|,
-	|elements/scripts/amount_selector.lua|,
-	|elements/scripts/pressure_display.lua|,
-	|elements/scripts/repair.lua|,
-	|elements/scripts/camera.lua|,
-	|elements/scripts/gatling.lua|,
-	|elements/scripts/crank.lua|,
-	|elements/scripts/table.lua|,
-	|elements/scripts/infoscreen.lua|,
-	|elements/scripts/image_box.lua|,
-	|elements/scripts/drag_and_droppable.lua|,
-	|elements/scripts/aim_circle.lua|,
-	|elements/fonts/Segoe54.fnt|,
-	|elements/fonts/Segoe54_0.png|,
-	|elements/fonts/SegoeUILight72.fnt|,
-	|elements/fonts/SegoeUILight72_0.png|,
-	|elements/textures/pixel.png|,
-	|elements/textures/circle.png|,
-	|elements/textures/ring.png|,
-	|elements/textures/fire_icon.png|,
-	|elements/textures/water_icon.png|,
-	|elements/textures/ice_icon.png|,
-	|elements/textures/lightning_icon.png|,
-	|elements/textures/wind_icon.png|,
-	|elements/textures/nature_icon.png|,
-	|elements/textures/cancel_icon.png|,
-	|elements/textures/buy_icon.png|,
-	|elements/textures/rocket_icon.png|,
-	|elements/textures/gatling_icon.png|,
-	|elements/textures/rusty_iron_cog.png|,
-	|elements/textures/iron_cog.png|,
-	|elements/textures/copper_cog.png|,
-	|elements/textures/corroded_cog.png|,
-	|elements/textures/corroded_bolt.png|
+phoneResources = 
+[ 
+	|elements\phone\scripts|, 
+	|elements\phone\textures|, 
+	|elements\phone\fonts| 
 ]

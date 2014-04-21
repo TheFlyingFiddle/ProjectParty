@@ -1,0 +1,97 @@
+tileMap = |..\resources\elements\textures\map3_beta_tiletype.png|
+image = map3
+
+tileSize = { x = 72 y = 77 }
+paths =  
+[ 
+	{
+		wayPoints = 
+		[ 
+			{ x = 40	y = 1120 },
+			{ x = 40	y = 925 }, 
+			{ x = 760	y = 925 },  
+			{ x = 760	y = 600}, 
+			{ x = 60	y = 600 }, 
+			{ x = 60	y = 60 }, 
+			{ x = 350	y = 60  },
+			{ x = 350	y = 265  }, 
+			{ x = 655	y = 265 }, 
+			{ x = 655	y = 60 }, 
+			{ x = 960	y = 60  }, 
+			{ x = 960	y = 265  }
+		]
+	},
+	{
+		wayPoints = 
+		[ 
+			{ x = 1880	y = 1120 },
+			{ x = 1880	y = 925 }, 
+			{ x = 1160	y = 925 },  
+			{ x = 1160	y = 600}, 
+			{ x = 1860	y = 600 }, 
+			{ x = 1860	y = 60 }, 
+			{ x = 1570	y = 60  },
+			{ x = 1570	y = 265  }, 
+			{ x = 1265	y = 265 }, 
+			{ x = 1265	y = 60 }, 
+			{ x = 960	y = 60  }, 
+			{ x = 960	y = 265  }
+		]
+	}
+]
+
+startBalance = 200
+
+waves = 
+[  
+	{	spawners = 
+		[
+			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20  pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5   pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3   pathIndex = 0},
+			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1   pathIndex = 0},
+			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 10  pathIndex = 0},
+			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20  pathIndex = 1},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5   pathIndex = 1},
+			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3   pathIndex = 1},
+			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1   pathIndex = 1},
+			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 10  pathIndex = 1}
+		] 
+		pauseTime = 0
+	},
+	{	spawners =
+		[ 
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+		]
+		pauseTime = 10
+	},
+	{	spawners = 
+		[
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+		] 
+		pauseTime = 10
+	},
+	{	spawners =
+		[ 
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+		]
+		pauseTime = 10
+	},
+		{spawners = 
+		[
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 1	numEnemies = 20 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5  pathIndex = 0}
+		] 
+		pauseTime = 10
+	},
+	{	spawners =
+		[ 
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 0.5	numEnemies = 75 pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 1	numEnemies = 25 pathIndex = 0}
+		]
+		pauseTime = 10
+	}
+] 

@@ -120,6 +120,7 @@ struct PressureInfoMessage
 
 enum IncomingMessages : ubyte
 {
+	readyMessage = 49,
 	towerRequest = 50,
 	selectRequest = 51,
 	deselect = 52,

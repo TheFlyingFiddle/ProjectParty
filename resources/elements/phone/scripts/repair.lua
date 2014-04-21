@@ -1,5 +1,5 @@
 function Repair()
-	local rep = { }
+	local rep = TowerEnteredScreen()
 	rep.speed = 0
 
 	local gravity = 2 
@@ -8,13 +8,8 @@ function Repair()
 	local function repair()
 		sendRepaired(rep.cell)
 		sendTowerExited(rep.cell)
-		fsm:enterState("Elements")
+		fsm:enterState("GamePlay")
 	end	
-
-	local function exit()
-		sendTowerExited(rep.cell)
-		fsm:enterState("Elements")
-	end
 
 	local function checkIfCorrectPosition()
 		log("Checking")
@@ -67,10 +62,7 @@ function Repair()
 		end
 	end
 
-	function rep.enter(cell) 
-		gui:add(Button(0xFF0000FF, pixel, 
-				   Rect2(10,10, 400, 100), 
-				   exit,   font, "Exit" ,0xFF000000))		
+	function rep.enter(cell) 	
 		gui:add(rep.bolt)
 		gui:add(rep.cog)
 		sendTowerEntered(cell)

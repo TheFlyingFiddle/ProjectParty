@@ -3,6 +3,7 @@ score = 0
 function init()
 	font  			= Loader.loadFont("fonts/SegoeUILight72.fnt")
 	pixel 			= Loader.loadFrame("textures/pixel.png")
+	smooth 			= Loader.loadFrame("textures/smooth.png")
 
 	gui = Gui()
 

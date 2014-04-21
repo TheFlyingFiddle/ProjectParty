@@ -14,7 +14,12 @@ function Between()
 	end
 
 	function t.enter()
-		gui:add(SimpleButton(0xFF00FF00, pixel, Rect2(100,100,200,100), onReady))
+		gui:add(Button(0xFF00AA00, pixel, Rect2(
+											Screen.width/3,
+											Screen.height/3,
+											Screen.width/3,
+											Screen.height/3),
+						onReady, font, "I'm ready!", 0xFFFFFFFF))
 		Network.setMessageHandler(Network.incoming.youDraw, onYouDraw)
 		Network.setMessageHandler(Network.incoming.youGuess, onYouGuess)
 	end

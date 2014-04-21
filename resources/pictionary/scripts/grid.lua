@@ -4,12 +4,16 @@ local GridMT =
 	{
 		at =
 			function(self,x,y)
-				return self[x + y * self.width]
+				local xpos = math.floor(x)
+				local ypos = math.floor(y)
+				return self[xpos + ypos * self.width]
 			end,
 		set = 
 			function(self,x,y,value)
-				logf("SETP: [x: %d, y: %d]", x, y)
-				self[x + y * self.width] = value
+				local xpos = math.floor(x)
+				local ypos = math.floor(y)
+				self[xpos + ypos * self.width] = value
+				local success = self:at(x,y)
 			end,
 		clear =
 			function(self)

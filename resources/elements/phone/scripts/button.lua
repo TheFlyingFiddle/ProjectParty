@@ -1,6 +1,6 @@
 local function checkTapped(item, pos)
     if item.callback and pointInRect(item.rect, pos) then
-        item.callback()
+        item.callback(item)
     end
 end
 

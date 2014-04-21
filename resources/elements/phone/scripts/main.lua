@@ -1,5 +1,9 @@
 assets = {}
 
+local function handleTransition(state)
+	fsm:enterState(state, true)
+end
+
 function init()
 	log("init")
 	font  			= Loader.loadFont("fonts/Segoe54.fnt")
@@ -21,27 +25,22 @@ function init()
 	corrodedCog		= Loader.loadFrame("textures/corroded_cog.png")
 	corrodedBolt	= Loader.loadFrame("textures/corroded_bolt.png")
 
-	assets.fire  		= { id = 2, frame = fireIcon, 		color = 0xFF0066FF }
-	assets.water 		= { id = 3, frame = waterIcon, 		color = 0xFFFFaa22 }
-	assets.ice   		= { id = 4, frame = iceIcon,		color = 0xFFFFFFCC }
-	assets.lightning 	= { id = 5, frame = lightningIcon, 	color = 0xFF00FFFF }
-	assets.wind 		= { id = 6, frame = windIcon, 		color = 0xFFaaFFaa }
-	assets.nature 		= { id = 7, frame = natureIcon,		color = 0xFF00FF00 }
-
 	Game.setFps(45)
 	Screen.setOrientation(Orientation.landscape)
 
 	gui = Gui()
 
+	Network.setMessageHandler(Network.incoming.transition, handleTransition)
+
     fsm = FSM()
-    fsm:addState(Elements(), "Elements")
-    fsm.Elements.init()
+    fsm:addState(GamePlay(), "GamePlay")
     fsm:addState(Vent(), "Vent")
     fsm:addState(Ballistic(), "Ballistic")
     fsm:addState(Repair(), "Repair")
 	fsm:addState(Gatling(), "Gatling")
 	fsm:addState(Info(), "Info")
-    fsm:enterState("Elements")
+	fsm:addState(Lobby(), "Lobby")
+    fsm:enterState("Lobby")
 end
 
 function term()
@@ -112,6 +111,20 @@ function onPinch(x0, y0, x1, y1)
 	if fsm.active.onPinch then
 		fsm.active.onPinch(x0, y0, x1, y1)
 	end
+end
+
+function onMenuButton()
+	if fsm.active.onMenuButton then
+		return fsm.active.onMenuButton()
+	end
+	return false
+end
+
+function onBackButton()
+	if fsm.active.onBackButton then
+		return fsm.active.onBackButton()
+	end
+	return false
 end
 
 function logf(fmt, ...)

@@ -37,6 +37,13 @@ struct Player
 	bool ready;
 }
 
+struct TransitionMessage
+{
+	enum ubyte id = NetworkMessage.transition;
+	enum maxSize = 128;
+	string state;
+}
+
 struct GameConfig
 {
 	uint maxStates;
@@ -49,11 +56,30 @@ struct GameConfig
 	SoundConfig	  soundConfig;
 
 	Asset[] resources;
-	string[] phoneResources;
+	@Convert!foldersToFiles() string[] phoneResources;
 
 	string gameName;
 }
 
+string[] foldersToFiles(string[] folders)
+{
+	import std.file;
+	import content;
+	import std.path;
+	import std.array;
+
+	auto app = appender!(string[]);
+	foreach(folder; folders)
+	{
+		foreach (DirEntry e; dirEntries(buildPath(resourceDir, folder), SpanMode.breadth))
+		{
+			auto s = e.name.replace("\\","/");
+			s = s[resourceDir.length +1.. $];
+			app.put(s);
+		}
+	}
+	return app.data;
+}
 
 static Game_Impl* Game;
 
@@ -242,23 +268,12 @@ struct Game_Impl
 
 	void transitionTo(string newState)
 	{
-		import util.bitmanip;
-		import std.path, content.common, std.file, std.stdio : File;
-
-		ubyte[128] buffer = void;
-		auto first = buffer[];
-
-		size_t offset = 2;
-		first.write!ubyte(NetworkMessage.transition, &offset);
-
-
-		first.write(newState, &offset);
-
-		first.write!ushort(cast(ushort)(offset - 2), 0);
+		import network.message;
+		auto msg = TransitionMessage(newState);
 		foreach (player ; players)
-			server.send(player.id, first[0 .. offset]);
+			server.sendMessage(player.id, msg);
 
-		gameStateMachine.transitionTo(newState);		
+		gameStateMachine.transitionTo(newState);
 	}
 
 	void run(Timestep timestep, Duration target = 0.msecs)

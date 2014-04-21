@@ -20,8 +20,7 @@ enum TileType : ubyte
 
 struct PathConfig
 {
-	uint2[] wayPoints;
-	uint2 tileSize;
+	float2[] wayPoints;
 }
 
 struct Level
@@ -31,22 +30,22 @@ struct Level
 	@Convert!pathConverter() List!Path paths;
 	uint2 tileSize;
 	uint startBalance;
+	@Convert!stringToFrame() Frame image;
 
-	//Should be in enemies.sdl
+}
+
+struct Prefabs
+{
 	List!EnemyPrefab enemyPrototypes;
-	//Should be in vents.sdl
+
 	List!VentTower		ventPrototypes;
-	
-	//Should be in ballistic.sdl
+
 	List!BallisticProjectilePrefab	ballisticProjectilePrototypes;
 	List!BallisticTower					ballisticTowerPrototypes;
 
-	//Should be in gatling.sdl
 	List!AutoProjectilePrefab			autoProjectilePrototypes;
-//	List!GatlingProjectilePrefab		gatlingProjectilePrototypes;
 	List!GatlingTower						gatlingTowerPrototypes;
 
-	//Should be in metatowers.sdl
 	List!Tower			towers;
 }
 
@@ -128,7 +127,13 @@ auto pathConverter(List!PathConfig pc)
 	auto paths = List!Path(GC.it, pc.length);
 	foreach(i;0 .. pc.length)
 	{
-		paths ~= Path(GC.it, pc[i].tileSize, pc[i].wayPoints);
+		import game;
+		foreach(ref wayPoint; pc[i].wayPoints)
+		{
+			wayPoint.x *= Game.window.size.x/1920f;
+			wayPoint.y *= Game.window.size.y/1080f;
+		}
+		paths ~= Path(GC.it, pc[i].wayPoints);
 	}
 	return paths;
 }
@@ -168,24 +173,20 @@ struct Path
 	float[] distances;
 	float endDistance;
 
-	this(A)(ref A allocator, uint2 tileSize, uint2[] wayPoints)
+	this(A)(ref A allocator, float2[] wayPoints)
 	{
 		this.wayPoints = allocator.allocate!(float2[])(wayPoints.length);
 		this.distances = allocator.allocate!(float[])(wayPoints.length);
 		float dist = 0;
-		float2 oldWp = float2(wayPoints[0] * tileSize + tileSize/2);
+		float2 oldWp = wayPoints[0];
 		foreach(i, wayPoint; wayPoints)
 		{
-			import std.stdio;
-			writeln(wayPoint);
-			float2 wp = float2(wayPoint * tileSize + tileSize/2);
+			float2 wp = wayPoint;
 			this.wayPoints[i] = wp;
 			float d = distance(wp, oldWp);
 			dist+= d;
 			distances[i] = dist;
-			writeln(oldWp, wp);
 			oldWp = wp;
-
 		}
 		endDistance = dist;
 	}
