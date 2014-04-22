@@ -55,8 +55,8 @@ void init(A)(ref A allocator)
 	initDebugging("textures\\pixel.png");
 
 	auto fsm = Game.gameStateMachine;
-	fsm.addState(new GamePlayState(allocator, "gameconfig.sdl"), "GamePlay");
-	fsm.addState(new LobbyState(allocator, "Elements"), "Lobby");
+	fsm.addState(allocator.allocate!GamePlayState(allocator, "gameconfig.sdl"), "GamePlay");
+	fsm.addState(allocator.allocate!LobbyState(allocator, "Elements"), "Lobby");
 	Game.transitionTo("Lobby");
 
 	import graphics; 

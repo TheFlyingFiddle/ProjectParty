@@ -44,6 +44,28 @@ struct TransitionMessage
 	string state;
 }
 
+struct FileTransferHeader
+{
+	enum ubyte id = NetworkMessage.file;
+	enum maxSize = 256;
+	string path;
+	ulong size;
+}
+
+struct FileReloadMessage
+{
+	enum ubyte id = NetworkMessage.fileReload;
+	enum maxSize = 256;
+	string path;
+}
+
+struct AllFilesSentMessage
+{
+	enum ubyte id = NetworkMessage.allFilesSent;
+	enum maxSize = 256;
+	string gameName;
+}
+
 struct GameConfig
 {
 	uint maxStates;
@@ -159,34 +181,25 @@ struct Game_Impl
 	void onAssetReload(const(char)[] path)
 	{
 		import util.bitmanip,std.array;
+		import network.message;
 		import std.path;
-		auto p2 = path.replace("\\", "/");
+		auto p2 = cast(string)path.replace("\\", "/");
 		auto index = config.phoneResources.countUntil!(x => x == p2);
 		if(index == -1) return;
 
 		ubyte[0xFFFF] bytes = void;
 		foreach(player; players)
 			sendAsset(player.id, config.phoneResources[index], bytes);
-
-
-		size_t offset = 2;
-		auto msg = bytes[];
-		msg.write!ubyte(NetworkMessage.fileReload, &offset);
-		msg.write(p2, &offset);
-		msg.write!ushort(cast(ushort)(offset - 2), 0);
 		
-		import logging;
-		auto logChnl = LogChannel("GAME");
-		logChnl.info("Offset:", offset);
 		foreach(player; players)
-			server.send(player.id, msg[0 .. offset]);
+			server.sendMessage(player.id, FileReloadMessage(p2));
 	}
 
 
 	void sendAsset(ulong id, const(char)[] path, ubyte[] chunkBuffer)
 	{
-		import util.bitmanip;
 		import std.path, content.common, std.file, std.stdio : File;
+		import network.message;
 
 		string s = buildPath(resourceDir, path);
 		assert(s.exists, format("The file : %s does not exist!", s));
@@ -194,25 +207,11 @@ struct Game_Impl
 		File file = File(s, "r");
 		if(file.size == 0) return;
 
-		ubyte[] first = chunkBuffer;
-
-		size_t offset = 2;
-		first.write!ubyte(NetworkMessage.file,&offset);
-
-		//TODO: We should write the file type here.
-		//first.write(type, &offset);
-		
-		first.write(path, &offset);
-
-		auto size = file.size;
-		first.write!ulong(size, &offset);
-
-		first.write!ushort(cast(ushort)(offset - 2), 0);
-		server.send(id, first[0 .. offset]);
+		server.sendMessage(id, FileTransferHeader(cast(string)path, file.size));
 
 		import logging;
 		auto l = LogChannel("MSG");
-		l.info("sendin asset of size ", size);
+		l.info("sendin asset of size ", file.size);
 
 		while(!file.eof)
 		{
@@ -223,16 +222,9 @@ struct Game_Impl
 
 	void sendAllAssetsSent(ulong id)
 	{
-		ubyte[128] bytes = void;
- 		import util.bitmanip;
-		auto b = bytes[];
-		size_t offset = 2;
-		b.write!ubyte(cast(ubyte)NetworkMessage.allFilesSent, &offset);
-		b.write(config.gameName, &offset);
-		b.write!ushort(cast(ushort)(offset - 2), 0);
-		server.send(id, b[0 .. offset]);
+		import network.message;
+		server.sendMessage(id, AllFilesSentMessage(config.gameName));
 	}
-
 
 	void onDisconnect(ulong id)
 	{

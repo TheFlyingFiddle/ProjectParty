@@ -2,13 +2,29 @@ module spriter.loader;
 
 import content, std.json, spriter.types, math;
 
+int readInteger(JSONValue val)
+{
+	import std.conv;
+	switch(val.type)
+	{
+		case JSON_TYPE.INTEGER:
+			return cast(int)val.integer;
+		case JSON_TYPE.FLOAT:
+			return cast(int)val.floating;
+		case JSON_TYPE.STRING:
+			return to!int(val.str);
+		default:
+			assert(0, "Can't read integer from " ~ val.type.to!string);
+	}
+}
+
 auto readFile(JSONValue[string] file)
 {
 	File f;
 	foreach(k, v; file) switch(k)
 	{
-		case "height"  : f.height	 = cast(int)v.integer;   break;
-		case "width"   : f.width	 = cast(int)v.integer;   break;
+		case "height"  : f.height	 = v.readInteger;   break;
+		case "width"   : f.width	 = v.readInteger;   break;
 		case "name"    : f.name		 = v.str;				    break;
 		case "pivot_x" : f.origin.x = cast(float)v.floatOrInt; break;
 		case "pivot_y" : f.origin.y = v.floatOrInt; break;
@@ -45,9 +61,9 @@ auto readObjectRef(JSONValue[string] ref_)
 	Ref r;
 	foreach(k, v; ref_) switch(k)
 	{
-		case "key":			r.key			= cast(int)v.integer; break;
-		case "timeline":	r.timeline	= cast(int)v.integer; break;
-		case "z_index":	r.z_index	= cast(int)v.integer; break;
+		case "key":			r.key			= v.readInteger; break;
+		case "timeline":	r.timeline	= v.readInteger; break;
+		case "z_index":	r.z_index	= v.readInteger; break;
 		default: break;
 	}
 	return r;
@@ -67,7 +83,7 @@ auto readMainKey(JSONValue[string] key)
 	{
 		switch(k)
 		{
-			case "time": m.time = cast(int)v.integer / 1000f; break;
+			case "time": m.time = v.readInteger / 1000f; break;
 			case "object_ref": m.objectRefs = readObjectRefs(v.array);	break;
 			default: break;
 		}
@@ -98,8 +114,8 @@ auto readSpatial(JSONValue[string] spatial)
 	{		
 		switch(k)
 		{
-			case "file"	 :	info.file		= cast(int)v.integer;	  break;
-			case "folder": info.foulder	= cast(int)v.integer;     break;
+			case "file"	 :	info.file		= v.readInteger;	  break;
+			case "folder": info.foulder	= v.readInteger;     break;
 			case "a"		 : info.alpha     = v.floatOrInt;  break;
 			case "x"		 : info.pos.x     = v.floatOrInt;  break;
 			case "y"     : info.pos.y     = v.floatOrInt;  break;
@@ -122,8 +138,8 @@ auto readTKey(JSONValue[string] tKey)
 	foreach(k, v; tKey) switch(k)
 	{
 		case "object": t.info		= readSpatial(v.object);		 break;
-		case "spin"  : t.spin		= cast(int)v.integer;			 break;
-		case "time"  : t.time      = cast(int)v.integer / 1000f;	 break;
+		case "spin"  : t.spin		= v.readInteger;			 break;
+		case "time"  : t.time      = v.readInteger / 1000f;	 break;
 		case "c0"	 : t.curve0    = v.floatOrInt();					 break;
 		case "c1"    : t.curve1    = v.floatOrInt();					 break;
 		case "curve_type" : 
