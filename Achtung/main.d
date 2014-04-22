@@ -2,9 +2,9 @@ module main;
 
 import logging, external_libraries,
 	   allocation, game, achtung,
-	   main_menu, game_over,
+	   game_over,
 	   achtung_game_data,
-	   game.debuging;
+	   game.debuging, types;
 
 version(X86) 
 	enum libPath = "..\\lib\\win32\\";
@@ -24,6 +24,7 @@ auto logChnl = LogChannel("MAIN");
 
 void main()
 {
+	import std.stdio;
 	initializeTcpLogger("logger.sdl");
 	init_dlls();
 	try
@@ -32,15 +33,10 @@ void main()
 	}
 	catch(Throwable t)
 	{
-		logChnl.error(t);
-		while(t.next !is null) {
-			logChnl.error(t.next);
-			t = t.next;
-		}
+		writeln(t);
 	}
 
 	//This is bad. Don't do this okej? -- Basically background processes are preventing program to close. 
-	import std.stdio;
 	readln;
 	std.c.stdlib.exit(0);
 
@@ -59,7 +55,8 @@ void init(A)(ref A allocator)
 	auto agd = new AchtungGameData(allocator, config.serverConfig.maxConnections);
 
 	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl", agd), "Achtung");
-	fsm.addState(allocator.allocate!MainMenu("Achtung Main Menu", agd,config.serverConfig.maxConnections), "MainMenu");
+	import game.states.lobby;
+	fsm.addState(allocator.allocate!LobbyState(allocator, "lobby.sdl", "Achtung", AchtungMessages.toggleReady), "MainMenu");
 	fsm.addState(allocator.allocate!GameOverGameState(agd, 10), "GameOver");
 	Game.transitionTo("MainMenu");
 

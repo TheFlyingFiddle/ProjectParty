@@ -345,6 +345,10 @@ struct Window
 	private bool blocking;
 
 
+	@property float2 relativeScale()
+	{
+		return float2(size)/float2(1920f,1080f);
+	}
 
 	@property void onPositionChanged(PositionCallback cb)
 	{

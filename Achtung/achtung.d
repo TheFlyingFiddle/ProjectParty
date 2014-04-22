@@ -54,13 +54,11 @@ class AchtungGameState : IGameState
 
 	void enter()		
 	{
-		foreach(ref pd; agd.data)
+		agd.data.clear();
+		foreach(player; Game.players)
 		{
-			pd.score = 0;
+			agd.data ~= PlayerData(player.id, player.color, 0);
 		}
-
-
-		size_t c = Game.players.length;
 
 		map = masterMap.subGrid(Game.window.fboSize.x - 100, Game.window.fboSize.y);
 
@@ -269,7 +267,7 @@ class AchtungGameState : IGameState
 				foreach(ref playerData; agd.data) if(playerData.color == snakes.keys[0])
 				{
 					playerData.score += agd.data.length -1;
-					sendDeathMessage(playerData.playerId, playerData.score);
+					sendWinMessage(playerData.playerId, playerData.score);
 				}
 				reset();
 				return;
@@ -287,6 +285,19 @@ class AchtungGameState : IGameState
 
 		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
 		buffer.write!ubyte(AchtungMessages.death, &offset);
+		buffer.write!ushort(cast(ushort)score, &offset);
+
+		Game.server.send(id, buffer[0 .. offset]);
+	}
+
+	void sendWinMessage(ulong id, uint score)
+	{
+		import util.bitmanip;
+		ubyte[32] buff = void; auto buffer = buff[0 .. 32];
+		size_t offset = 0;
+
+		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
+		buffer.write!ubyte(AchtungMessages.win, &offset);
 		buffer.write!ushort(cast(ushort)score, &offset);
 
 		Game.server.send(id, buffer[0 .. offset]);

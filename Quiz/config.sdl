@@ -15,6 +15,7 @@ contentConfig =
 	maxFonts       = 10
 	maxSounds      = 50
 	maxAtlases	   = 5
+	maxSprites	   = 0
 }
 
 //Windows and whatnot.
@@ -58,22 +59,12 @@ gameName = quiz
 
 resources = [ 
 	{ type = texture	path = |quiz\textures\pixel.png| },
-	{ type = font		path = |quiz\fonts\SegoeUILight72.fnt| }
+	{ type = font		path = |quiz\fonts\SegoeUILight72.fnt| },
+	{ type = font		path = |quiz\fonts\Segoe54.fnt| }
 ]
 
 phoneResources = [
-	|quiz/scripts/main.lua|,
-	|quiz/scripts/button.lua|,
-	|quiz/scripts/rect.lua|,
-	|quiz/scripts/table.lua|,
-	|quiz/scripts/vector2.lua|,
-	|quiz/scripts/gui.lua|,
-	|quiz/scripts/networking.lua|,
-	|quiz/scripts/states.lua|,
-	|quiz/scripts/guessing.lua|,
-	|quiz/textures/pixel.png|,
-	|quiz/textures/plus.png|,
-	|quiz/textures/circle.png|,
-	|quiz/fonts/SegoeUILight72.fnt|,
-	|quiz/fonts/SegoeUILight72_0.png|
+	|quiz/phone/scripts|,
+	|quiz/phone/textures|,
+	|quiz/phone/fonts|
 ]

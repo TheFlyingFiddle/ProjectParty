@@ -2,7 +2,7 @@ module spriter.renderer;
 
 import game, math, graphics, spriter.loader, spriter.types;
 
-void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position, Color color = Color.white)
+void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position, Color color, float2 scale)
 {
 	//This is stupid.
 	auto object = SpriteManager.lookup(sprite.id);
@@ -20,9 +20,9 @@ void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position, C
 												 files[spatial.file].name));
 
 		renderer.addFrame(frame, 
-							   position + spatial.pos, 
+							   position + spatial.pos * scale, 
 							   color, 
-								spatial.scale, 
+								spatial.scale * scale, 
 								spatial.origin * float2(frame.srcRect.z, frame.srcRect.w),
 								spatial.rotation);
 	}

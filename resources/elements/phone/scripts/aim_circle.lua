@@ -6,8 +6,8 @@ local AimCircleMT =
 			if pointInRect(self.rect, pos) then 
 				self.direction = Vector2.angleBetween(
 					self.rect:center(), pos)
-				self.magnitude = Vector2.distance(
-					self.rect:center(), pos)
+				self.magnitude = math.min(Vector2.distance(
+					self.rect:center(), pos), self.rect.dim.x/2)
 				if self.callback then
 					self.callback(self.direction, self.magnitude / (self.rect.dim.x / 2))
 				end

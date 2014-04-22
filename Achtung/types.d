@@ -31,7 +31,13 @@ enum AchtungMessages : ubyte
 	death = 50,
 	toggleReady = 51,
 	color = 52,
-	position = 53
+	position = 53,
+	win = 54
+}
+
+enum IncomingMessages : ubyte
+{
+	readyMessage = 51
 }
 
 struct ColorMessage

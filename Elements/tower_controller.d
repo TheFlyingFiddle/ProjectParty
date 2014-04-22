@@ -45,17 +45,17 @@ struct BaseTower
 	SpriteInstance sprite;
 }
 
-uint2 cell(T)(T t, uint2 tileSize)
+uint2 cell(T)(T t, float2 tileSize)
 {
-	return uint2((t.position.x - tileSize.x/2) / tileSize.x, 
-					 (t.position.y - tileSize.y/2) / tileSize.y);
+	return uint2(cast(int)(t.position.x / tileSize.x), 
+				 cast(int)(t.position.y / tileSize.y));
 }
 
 alias TowerBrokeHandler = void delegate(TowerCollection, uint);
 
 final class TowerCollection
 {
-	uint2 tileSize;
+	float2 tileSize;
 	List!ITowerController controllers;
 	List!BaseTower baseTowers;
 	List!TowerBrokeHandler onTowerBroken;
@@ -81,7 +81,7 @@ final class TowerCollection
 							maxPressure*metas[metaIndex].startPressure, 
 										metas[metaIndex].regenRate, 
 										metaIndex, 
-										metas[metaIndex].range, 
+										metas[metaIndex].range * tileSize.x, 
 									metas[metaIndex].spriteID.animationInstance(AnimationState.idle));
 				tc.buildTower(metas[metaIndex].typeIndex, baseTowers.length - 1);
 				return;
@@ -95,7 +95,7 @@ final class TowerCollection
 	}
 
 
-	uint towerIndex(uint2 cell, uint2 tileSize)
+	uint towerIndex(uint2 cell, float2 tileSize)
 	{
 		return baseTowers.countUntil!(x => x.cell(tileSize) == cell);
 	}
@@ -198,7 +198,7 @@ final class TowerCollection
 		{
 			Color color = tower.isBroken ? Color(0xFF777777) : Color.white;
 
-			Game.renderer.addSprite(tower.sprite, tower.position);
+			Game.renderer.addSprite(tower.sprite, tower.position, color, Game.window.relativeScale);
 			//Game.renderer.addFrame(tower.frame, float4(	tower.position.x, 
 			//											tower.position.y, 
 			//											tileSize.x, 
@@ -217,12 +217,13 @@ final class TowerCollection
 		{
 
 			float amount = tower.pressure/maxPressure;
-			float sBWidth = min(50, maxPressure);
+			float width = min(50, maxPressure)*Game.window.relativeScale.x;
+			float height = 5*Game.window.relativeScale.y;
 			import game.debuging;
-			Game.renderer.addRect(float4(tower.position.x - sBWidth/2, tower.position.y + tileSize.y/2, 
-										 sBWidth, 5), Color.blue);
-			Game.renderer.addRect(float4(tower.position.x - sBWidth/2, tower.position.y + tileSize.y/2, 
-										 sBWidth*amount, 5), Color.white);
+			Game.renderer.addRect(float4(tower.position.x - width/2, tower.position.y + tileSize.y/2, 
+										 width, height), Color.blue);
+			Game.renderer.addRect(float4(tower.position.x - width/2, tower.position.y + tileSize.y/2, 
+										 width*amount, height), Color.white);
 		}
 	}
 }

@@ -44,45 +44,46 @@ class GamePlayState : IGameState
 	ParticleSystem particleSystem;
 	ParticleCollection particleCollection;
 
-	this(A)(ref A allocator, string configFile)
+	this(A)(ref A allo, string configFile)
 	{
-		auto prefabs = fromSDLFile!Prefabs(allocator, configFile);
+		auto prefabs = fromSDLFile!Prefabs(allo, configFile);
 
 		lifeTotal = 1000;
-		selections = List!uint2(allocator, 10);
-		players = Table!(ulong, TowerPlayer)(allocator, 20);	
+		selections = List!uint2(allo, 10);
+		players = Table!(ulong, TowerPlayer)(allo, 20);	
 
 
 		import std.algorithm;
 
 		lifeFont = Game.content.loadFont("Blocked72");
-		enemyCollection = allocator.allocate!EnemyCollection(allocator, prefabs.enemyPrototypes);
+		enemyCollection = allo.allocate!EnemyCollection(allo, prefabs.enemyPrototypes);
 
-		allocator.allocate!SpeedupEnemyController(allocator, enemyCollection);
-		allocator.allocate!HealerEnemyController(allocator, enemyCollection);
-		allocator.allocate!TowerBreakerEnemyController(allocator, enemyCollection);
-		allocator.allocate!StatusRemoverEnemyController(allocator, enemyCollection);
+		allo.allocate!SpeedupEnemyController(allo, enemyCollection);
+		allo.allocate!HealerEnemyController(allo, enemyCollection);
+		allo.allocate!TowerBreakerEnemyController(allo, enemyCollection);
+		allo.allocate!StatusRemoverEnemyController(allo, enemyCollection);
 
 		enemyCollection.onDeath ~= &killEnemy;
 		enemyCollection.onAtEnd ~= &enemyAtEnd;
 	
 
-		towerCollection = allocator.allocate!TowerCollection(allocator, prefabs.towers);
+		towerCollection = allo.allocate!TowerCollection(allo, prefabs.towers);
 		towerCollection.onTowerBroken ~= &sendTowerBrokenMessage;
 
-		particleSystem = new ParticleSystem(allocator, Game.content.loadTextureAtlas("particles"), 3000);
-		particleCollection = new ParticleCollection(allocator, particleSystem, 50);
-		new ParticleEmitterExtender!ConeEmitter(allocator, particleCollection);
+		particleSystem = allo.allocate!ParticleSystem(allo, Game.content.loadTextureAtlas("particles"), 3000);
+		particleCollection = allo.allocate!ParticleCollection(allo, particleSystem, 50);
+		particleCollection.scale = Game.window.relativeScale;
+		allo.allocate!(ParticleEmitterExtender!ConeEmitter)(allo, particleCollection);
 
-		auto ventController = new VentController(allocator, towerCollection, particleCollection);
+		auto ventController = allo.allocate!VentController(allo, towerCollection, particleCollection);
 		VentInstance.prefabs = prefabs.ventPrototypes;
 		
-		auto ballisticController = new BallisticController(allocator, towerCollection, particleCollection);
+		auto ballisticController = allo.allocate!BallisticController(allo, towerCollection, particleCollection);
 
 		BallisticProjectileInstance.prefabs = prefabs.ballisticProjectilePrototypes;
 		BallisticInstance.prefabs = prefabs.ballisticTowerPrototypes;
 
-		auto gatlingController = new GatlingController(allocator, towerCollection);
+		auto gatlingController = allo.allocate!GatlingController(allo, towerCollection);
 		enemyCollection.onDeath ~= &gatlingController.onEnemyDeath;
 
 		AutoProjectileInstance.prefabs = prefabs.autoProjectilePrototypes;
@@ -96,7 +97,7 @@ class GamePlayState : IGameState
 	{
 
 		import allocation;
-		level = fromSDLFile!Level(GC.it, "level.sdl");		
+		level = fromSDLFile!Level(GC.it, "level.sdl");
 		
 		BaseEnemy.paths = level.paths;
 		enemyCollection.paths = level.paths;

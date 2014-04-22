@@ -2,7 +2,8 @@ import std.stdio;
 
 import logging, external_libraries,
 	allocation, game, gameplay,
-	game.debuging, lobby;
+	network_types,
+	game.debuging, game.states.lobby, types, math;
 
 version(X86) 
 enum libPath = "..\\lib\\win32\\";
@@ -56,7 +57,7 @@ void init(A)(ref A allocator)
 
 	auto fsm = Game.gameStateMachine;
 	fsm.addState(allocator.allocate!GamePlayState(allocator, "gameconfig.sdl"), "GamePlay");
-	fsm.addState(allocator.allocate!LobbyState(allocator, "Elements"), "Lobby");
+	fsm.addState(allocator.allocate!LobbyState(allocator, "lobby.sdl", "GamePlay", IncomingMessages.readyMessage), "Lobby");
 	Game.transitionTo("Lobby");
 
 	import graphics; 

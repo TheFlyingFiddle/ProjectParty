@@ -68,6 +68,8 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 		foreach(i; 0 .. keys.length)
 		{
 			result = dg(values[i]);
+			if(result)
+				break;
 		}
 		return result;
 	}
@@ -78,6 +80,20 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 		foreach(i; 0 .. keys.length)
 		{
 			result = dg(keys[i], values[i]);
+			if(result)
+				break;
+		}
+		return result;
+	}
+
+	int opApply(int delegate(int, K, ref V) dg)
+	{
+		int result;
+		foreach(i; 0 .. keys.length)
+		{
+			result = dg(i, keys[i], values[i]);
+			if(result)
+				break;
 		}
 		return result;
 	}

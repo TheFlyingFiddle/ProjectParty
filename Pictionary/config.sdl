@@ -23,8 +23,8 @@ windowConfig =
 {
 	size = 
 	{
-		x=1366
-		y=768
+		x=1067
+		y=600
 	}
 
 	fullScreen = false
@@ -59,25 +59,14 @@ gameName = pictionary
 
 resources = [ 
 	{ type = texture	path = |pictionary\textures\pixel.png| },
-	{ type = texture	path = |pictionary\textures\smooth.png| }
+	{ type = texture	path = |pictionary\textures\smooth.png| },
+	{ type = texture	path = |pictionary\textures\background.png| },
+	{ type = font		path = |pictionary\fonts\SegoeUILight72.fnt| },
+	{ type = font		path = |pictionary\fonts\Segoe54.fnt| }
 ]
 
 phoneResources = [
-	|pictionary/scripts/main.lua|,
-	|pictionary/scripts/button.lua|,
-	|pictionary/scripts/rect.lua|,
-	|pictionary/scripts/table.lua|,
-	|pictionary/scripts/vector2.lua|,
-	|pictionary/scripts/between.lua|,
-	|pictionary/scripts/drawing.lua|,
-	|pictionary/scripts/guessing.lua|,
-	|pictionary/scripts/gui.lua|,
-	|pictionary/scripts/networking.lua|,
-	|pictionary/scripts/states.lua|,
-	|pictionary/scripts/grid.lua|,
-	|pictionary/textures/pixel.png|,
-	|pictionary/textures/smooth.png|,
-	|pictionary/fonts/SegoeUILight72.fnt|,
-	|pictionary/fonts/SegoeUILight72_0.png|
-	
+	|pictionary/phone/scripts|,
+	|pictionary/phone/textures|,
+	|pictionary/phone/fonts|
 ]

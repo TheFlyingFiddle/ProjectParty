@@ -23,12 +23,12 @@ struct BallisticProjectileInstance
 	float2	position;
 	float2	target;
 
-	this(int prefabIndex, float2 position, float2 target)
+	this(int prefabIndex, float2 position, float2 target, float scale)
 	{
 		this.prefabIndex = prefabIndex;
 
 		auto polar = (target - position).toPolar;
-		polar.magnitude = this.speed;
+		polar.magnitude = this.speed * scale;
 		this.velocity = polar.toCartesian;
 
 		this.position = position;
@@ -79,42 +79,44 @@ struct BallisticInstance
 
 struct BallisticTower
 {
-	int homingPrefabIndex;
-	int ballisticPrefabIndex;
-	float maxDistance; //Separate range for manual projectiles.
-	float reloadTime;
-	float pressureCost;
-	@Convert!stringToFrame() Frame frame;
+	int bigBoomPrefabIndex;
+	int smallBoomPrefabIndex;
+	float bigBoomCost;
+	float smallBoomCost;
 }
 
 final class BallisticController : TowerController!BallisticInstance
 {
-	List!BallisticProjectileInstance ballisticProjectiles;
+	List!BallisticProjectileInstance projectiles;
 
 	ParticleCollection particleCollection;
 
 	this(A)(ref A allocator, TowerCollection owner, ParticleCollection coll)
 	{
 		super(allocator, TileType.rocket, owner);
-		ballisticProjectiles = List!BallisticProjectileInstance(allocator, 100);
+		projectiles = List!BallisticProjectileInstance(allocator, 100);
 		particleCollection = coll;
 		
-		Game.router.setMessageHandler(IncomingMessages.ballisticValue,		&handleBallisticValue);
-		Game.router.setMessageHandler(IncomingMessages.ballisticDirection,	&handleBallisticDirection);
-		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch,		&handleBallisticLaunch);
+		Game.router.setMessageHandler(IncomingMessages.ballisticValue,		&handleValue);
+		Game.router.setMessageHandler(IncomingMessages.ballisticDirection,	&handleDirection);
+		Game.router.setMessageHandler(IncomingMessages.ballisticLaunch,		&handleLaunch);
 	}
 
-	void launch(int towerIndex)
+	void launch(int towerIndex, bool bigBoom)
 	{
+		auto pressureCost = bigBoom ? instances[towerIndex].bigBoomCost : instances[towerIndex].smallBoomCost;
+		auto  prefabIndex = bigBoom ? instances[towerIndex].bigBoomPrefabIndex 
+									: instances[towerIndex].smallBoomPrefabIndex;
 		pressure(towerIndex, max(0,	pressure(towerIndex)
-											-	instances[towerIndex].pressureCost));
+											-	pressureCost));
 		auto target = Polar!float(
 							instances[towerIndex].angle,
 							instances[towerIndex].distance).toCartesian;
-		ballisticProjectiles ~= BallisticProjectileInstance(
-												instances[towerIndex].ballisticPrefabIndex,
-												position(towerIndex),
-												position(towerIndex) + target);
+		projectiles ~= BallisticProjectileInstance(
+									prefabIndex,
+									position(towerIndex),
+									position(towerIndex) + target,
+									owner.tileSize.x);
 	}
 
 	override void update(List!BaseEnemy enemies)
@@ -122,21 +124,21 @@ final class BallisticController : TowerController!BallisticInstance
 
 
 		// Update all non-homing projectiles
-		for(int i = ballisticProjectiles.length - 1; i >= 0; --i)
+		for(int i = projectiles.length - 1; i >= 0; --i)
 		{
-			ballisticProjectiles[i].position += ballisticProjectiles[i].velocity * Time.delta;
+			projectiles[i].position += projectiles[i].velocity * Time.delta;
 			
-			if(distance(ballisticProjectiles[i].position, ballisticProjectiles[i].target)
+			if(distance(projectiles[i].position, projectiles[i].target)
 			   < 10)
 			{
-				auto proj = ballisticProjectiles[i];
+				auto proj = projectiles[i];
 				Game.sound.playSound(proj.sound);
 				void makeExplosion()
 				{
 					foreach(ref enemy; enemies)
 					{
 						if(distance(enemy.position, proj.position) 
-						   < proj.radius)
+						   < proj.radius * owner.tileSize.x)
 							enemy.health -= proj.damage;
 					}
 				}
@@ -144,7 +146,7 @@ final class BallisticController : TowerController!BallisticInstance
 											 proj.position,
 											 &makeExplosion);
 
-				ballisticProjectiles.removeAt(i);
+				projectiles.removeAt(i);
 			}
 		}
 
@@ -164,21 +166,21 @@ final class BallisticController : TowerController!BallisticInstance
 				auto origin = size/2;
 
 				// Calculate the position
-				auto distance = min(tower.distance, tower.maxDistance);
+				auto distance = min(tower.distance, range(tower));
 				auto vecToTarget = Polar!float(tower.angle, distance).toCartesian();
 				auto position = position(tower) + vecToTarget;
 
 
-				Game.renderer.addFrame(targetFrame, position, Color.white, float2.one, origin);
+				Game.renderer.addFrame(targetFrame, position, Color.white, Game.window.relativeScale, origin);
 			}
 			auto position = position(tower);
 		}
 
-		foreach(projectile; ballisticProjectiles)
+		foreach(projectile; projectiles)
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(	projectile.frame, projectile.position, Color.white, float2.one, origin, 
+			Game.renderer.addFrame(	projectile.frame, projectile.position, Color.white, Game.window.relativeScale, origin, 
 								atan2(	projectile.target.y - projectile.position.y, 
 										projectile.target.x - projectile.position.x));
 		}
@@ -190,22 +192,15 @@ final class BallisticController : TowerController!BallisticInstance
 		msg.pressure = pressure(towerIndex);
 		msg.maxPressure = maxPressure;
 		msg.direction = instances[towerIndex].angle;
-		msg.distance = instances[towerIndex].distance;
-		msg.maxDistance = instances[towerIndex].maxDistance;
-		msg.pressureCost = instances[towerIndex].pressureCost;
+		msg.smallBoomCost = instances[towerIndex].smallBoomCost;
+		msg.bigBoomCost = instances[towerIndex].bigBoomCost;
 
 		Game.server.sendMessage(playerID, msg);
 	}
 
 	override void towerExited(int towerIndex, ulong playerID) { }
- 
-	private void spawnBallisticProjectile(int projectilePrefabIndex, float2 position, float2 target)
-	{
-		auto projectile = BallisticProjectileInstance(projectilePrefabIndex, position, target);
-		ballisticProjectiles ~= projectile;
-	}
 
-	void handleBallisticValue(ulong id, ubyte[] msg)
+	void handleValue(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
@@ -214,12 +209,12 @@ final class BallisticController : TowerController!BallisticInstance
 		auto index = indexOf(uint2(x,y));
 		if(index != -1)
 		{
-			auto distance = instances[index].maxDistance * value;
+			auto distance = range(index) * value;
 			instances[index].distance = distance;
 		}
 	}
 
-	void handleBallisticDirection(ulong id, ubyte[] msg)
+	void handleDirection(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
@@ -230,13 +225,14 @@ final class BallisticController : TowerController!BallisticInstance
 			instances[index].angle = value;
 	}	
 
-	void handleBallisticLaunch(ulong id, ubyte[] msg)
+	void handleLaunch(ulong id, ubyte[] msg)
 	{
 		auto x = msg.read!uint;
 		auto y = msg.read!uint;
+		auto bigBoom = msg.read!ubyte == 1;
 
 		auto index = indexOf(uint2(x,y));
 		if(index != -1)
-			launch(index);
+			launch(index, bigBoom);
 	}
 }

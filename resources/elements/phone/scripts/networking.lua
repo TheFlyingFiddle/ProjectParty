@@ -178,9 +178,8 @@ local function readBallisticInfo()
 	 bInfo.pressure = In.readFloat()
 	 bInfo.maxPressure = In.readFloat()
 	 bInfo.direction = In.readFloat()
-	 bInfo.distance = In.readFloat()
-	 bInfo.maxDistance = In.readFloat()
-	 bInfo.pressureCost = In.readFloat()
+	 bInfo.bigBoomCost = In.readFloat()
+	 bInfo.smallBoomCost = In.readFloat()
 	return bInfo
 end
 
@@ -295,11 +294,12 @@ function sendBallisticDirection(cell, ballisticDir)
 	Out.writeFloat(ballisticDir)
 end
 
-function sendBallisticLaunch(cell)
-	Out.writeShort(9)
+function sendBallisticLaunch(cell, bigBoom)
+	Out.writeShort(10)
 	Out.writeByte(Network.outgoing.ballisticLaunch)
 	Out.writeInt(cell.x)
 	Out.writeInt(cell.y)
+	Out.writeByte(bigBoom)
 end
 
 function sendUpgradeTower(cell, index)

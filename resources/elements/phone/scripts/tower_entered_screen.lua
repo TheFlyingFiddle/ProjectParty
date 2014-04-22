@@ -17,7 +17,8 @@ function PressureTowerScreen()
 	local t = TowerEnteredScreen()
 
 	t.pressureDisplay = 
-		PressureDisplay(Rect2(100, 130,100, 250), 
+		PressureDisplay(Rect2(	Screen.width/24, Screen.height/12, 
+								Screen.width/12, Screen.height*3/5), 
 					0xFFFF8800,
 					0xFF770000,
 					1)
@@ -27,6 +28,7 @@ function PressureTowerScreen()
 	end
 
 	local function handleTowerBroken(cell)
+		log("towerBroken")
 		if cell.x == t.cell.x and cell.y == t.cell.y then
 			exit(t)			
 		end

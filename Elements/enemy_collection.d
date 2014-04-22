@@ -274,7 +274,7 @@ class EnemyCollection
 			}
 
 			float2 position = enemy.position;
-			Game.renderer.addSprite(enemy.sprite, position, color);
+			Game.renderer.addSprite(enemy.sprite, position, color, Game.window.relativeScale);
 		}
 	
 		import std.algorithm, game.debuging;
@@ -284,13 +284,14 @@ class EnemyCollection
 			float2 position = enemy.position;
 			
 			//TODO: This is not good. Fix this.
-			float2 origin = float2(32,32);
+			float2 origin = float2(32,32) * Game.window.relativeScale;
 			float amount = enemy.health/enemy.maxHealth;
-			float hBWidth = min(50, enemy.maxHealth);
-			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + origin.y, 
-										 hBWidth, 5), Color.red);
-			Game.renderer.addRect(float4(position.x - hBWidth/2, position.y + origin.y, 
-										 hBWidth*amount, 5), Color.green);
+			float width = min(50, enemy.maxHealth) * Game.window.relativeScale.x;
+			float height = 5 * Game.window.relativeScale.y;
+			Game.renderer.addRect(float4(position.x - width/2, position.y + origin.y, 
+										 width, height), Color.red);
+			Game.renderer.addRect(float4(position.x - width/2, position.y + origin.y, 
+										 width*amount, height), Color.green);
 		}
 
 		foreach(controller; controllers)

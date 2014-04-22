@@ -14,6 +14,15 @@ import
 import std.random;
 import std.algorithm : max, min;
 
+enum IncomingMessages : ubyte
+{
+	lobbyReady = 49,
+	choice = 50,
+	ready = 51,
+	pixel = 52,
+	clear = 53
+}
+
 struct YouDraw
 {
 	enum ubyte id = 50;
@@ -46,8 +55,9 @@ struct IncorrectAnswer
 
 struct PlayerData
 {
-	Color playerColor;
+	Color color;
 	int score;
+	bool ready;
 }
 
 struct Question
@@ -83,8 +93,26 @@ struct Line
 	float2 endPos;
 }
 
+struct Layout
+{
+	float4 drawingArea;
+	float4 nameArea;
+	float4 roundArea;
+}
+
+ref float4 scale(ref float4 toScale, float2 s)
+{
+	toScale.x *= s.x;
+	toScale.y *= s.y;
+	toScale.z *= s.x;
+	toScale.w *= s.y;
+	return toScale;
+}
+
 class GamePlayState : IGameState
 {
+	Layout layout;
+
 	List!Line lines;
 	Table!(ulong, PlayerData) players;
 	Questions questions;
@@ -101,7 +129,11 @@ class GamePlayState : IGameState
 	{
 		lines = List!Line(allocator, 1_000_000);
 		players = Table!(ulong, PlayerData)(allocator, 40);
-		questions = fromSDLFile!(Questions)(GC.it, "questions.sdl");
+		questions = fromSDLFile!Questions(allocator, "questions.sdl");
+		layout = fromSDLFile!Layout(allocator, "layout.sdl");
+		layout.drawingArea.scale(Game.window.relativeScale);
+		layout.nameArea.scale(Game.window.relativeScale);
+		
 		state = GameState.betweenRounds;
 		elapsed = 0;
 		playTime = 10;
@@ -109,19 +141,24 @@ class GamePlayState : IGameState
 
 	void enter()
 	{
-		Game.router.setMessageHandler(50, &handleChoice);
-		Game.router.setMessageHandler(51, &handleReady);
-		Game.router.setMessageHandler(52, &handlePixel);
-		Game.router.setMessageHandler(53, &handleClear);
+		Game.router.setMessageHandler(IncomingMessages.choice, &handleChoice);
+		Game.router.setMessageHandler(IncomingMessages.ready, &handleReady);
+		Game.router.setMessageHandler(IncomingMessages.pixel, &handlePixel);
+		Game.router.setMessageHandler(IncomingMessages.clear, &handleClear);
 
 		foreach(i, player; Game.players)
 		{
 			auto color = Color(uniform(0, 0xFFFFFF+1) | 0xFF000000);
-			players[player.id] = PlayerData(color, 0);
+			players[player.id] = PlayerData(color, 0, false);
 			Game.server.sendMessage(player.id, BetweenRounds(i == 0));
 		}
 
 		drawingPlayer = 0;
+	}
+
+	void onConnect(ulong id)
+	{
+
 	}
 
 	void handleChoice(ulong id, ubyte[] msg)
@@ -137,22 +174,36 @@ class GamePlayState : IGameState
 		else
 		{
 			Game.server.sendMessage(id, IncorrectAnswer());
-			players[id].score = max(0, players[id].score - 1);
+			players[id].score--;
 		}
-		
 	}
 
 	void handleReady(ulong id, ubyte[] msg)
 	{
-		state = GameState.inRound;
+		if(players.indexOf(id) == -1) 
+			return;
+		players[id].ready = true;
+		if(allReady()) {
+			state = GameState.inRound;
+			nextQuestion();
+		}
+	}
 
-		nextQuestion();
+	bool allReady()
+	{
+		foreach(player; players)
+		{
+			if(!player.ready)
+				return false;
+		}
+		return true;
 	}
 
 	void handlePixel(ulong id, ubyte[] msg)
 	{
 		auto start = msg.read!ubyte;
-		auto position = float2(msg.read!float * Game.window.size.x, msg.read!float * Game.window.size.y);
+		auto position = float2(msg.read!float * layout.drawingArea.z + layout.drawingArea.x, 
+							   msg.read!float * layout.drawingArea.w + layout.drawingArea.y);
 		if (start || lines.length == 0)
 			lines ~= Line(position, position);
 		else
@@ -205,6 +256,7 @@ class GamePlayState : IGameState
 		{
 			auto index = players.indexOf(id);
 			Game.server.sendMessage(id, BetweenRounds(index == drawingPlayer));
+			players[id].ready = false;
 		}
 
 		lines.clear();
@@ -217,6 +269,30 @@ class GamePlayState : IGameState
 
 		auto texture	= Game.content.loadTexture("smooth");
 		auto frame		= Frame(texture);
+		
+		auto font		= Game.content.loadFont("SegoeUILight72");
+
+		auto bgtexture	= Game.content.loadTexture("background");
+		auto bgframe		= Frame(bgtexture);
+
+		Game.renderer.addFrame(bgframe, float4(0,0,Game.window.size.x,Game.window.size.y), Color.white);
+
+		import util.strings;
+		char[128] buf;
+		Game.renderer.addText(font, text(buf, "Time left: ", playTime - elapsed), float2(0, Game.window.size.y), 
+							  Color.black, Game.window.relativeScale);
+		foreach(i, id, player; players)
+		{
+			auto index = Game.players.countUntil!(p=>p.id == id);
+			if(index == -1)
+				continue;
+			auto scoreText = text(buf, Game.players[index].name, ": ", player.score);
+			auto size = font.measure(scoreText);
+
+			Game.renderer.addText(font, scoreText,
+				  float2(layout.nameArea.x, layout.nameArea.y + layout.nameArea.w - i*size.y), 
+								  player.color, Game.window.relativeScale);
+		}
 
 		if (state == GameState.inRound)
 		{
@@ -230,28 +306,5 @@ class GamePlayState : IGameState
 				Game.renderer.addLine(line.startPos, line.endPos, Color.black, 4);
 			}
 		}
-	}
-}
-
-class LobbyState : IGameState
-{
-	this() { }
-
-	void enter() { }
-	void exit() { }
-
-	void update()
-	{
-		if(Keyboard.isDown(Key.enter))
-		{
-			Game.transitionTo("GamePlay");
-		}
-	}
-
-	void render() 
-	{
-		gl.clearColor(1,0,1,0);
-		gl.clear(ClearFlags.all);
-		
 	}
 }

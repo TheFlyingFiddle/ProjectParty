@@ -19,6 +19,7 @@ final class ParticleCollection
 
 	List!Callback callbacks;
 	
+	float2 scale;
 
 	this(A)(ref A allocator, ParticleSystem sys, uint maxEffects)
 	{
@@ -27,6 +28,7 @@ final class ParticleCollection
 		callbacks = List!Callback(allocator, 20);
 		system = sys;
 		idCounter = 0;
+		scale = float2.one;
 	}
 
 	auto getExtender(T)()
@@ -169,7 +171,7 @@ final class ParticleEmitterExtender(Emitter) : IParticleExtender
 	{
 		foreach(ref emitter; config.emitters) if (emitter.type == Emitter.type)
 		{
-			emitters ~= Emitter(emitter, collection.system);
+			emitters ~= Emitter(emitter, collection.system, collection.scale);
 			bases ~= index;
 		}
 	}

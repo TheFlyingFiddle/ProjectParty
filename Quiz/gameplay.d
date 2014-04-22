@@ -14,6 +14,13 @@ game,
 import std.random;
 import std.algorithm : max, min, any;
 
+enum IncomingMessages : ubyte
+{
+	toggleReady = 49,
+	answer = 50,
+	buyScore = 51
+}
+
 struct Choices
 {
 	enum ubyte id = 50;
@@ -125,8 +132,8 @@ class GamePlayState : IGameState
 			players[player.id].answer = ubyte.max;
 		}
 		nextQuestion();
-		Game.router.setMessageHandler(50, &handleAnswer);
-		Game.router.setMessageHandler(51, &handleBuyScore);
+		Game.router.setMessageHandler(IncomingMessages.answer, &handleAnswer);
+		Game.router.setMessageHandler(IncomingMessages.buyScore, &handleBuyScore);
 	}
 
 	void handleAnswer(ulong id, ubyte[] msg)
@@ -261,27 +268,5 @@ class GamePlayState : IGameState
 									float2(Game.window.size/2) - size/2,
 									Color.black);
 		}
-	}
-}
-
-class LobbyState : IGameState
-{
-	this() { }
-
-	void enter() { }
-	void exit() { }
-
-	void update()
-	{
-		if(Keyboard.isDown(Key.enter))
-		{
-			Game.transitionTo("GamePlay");
-		}
-	}
-
-	void render() 
-	{
-		gl.clearColor(1,0,1,1);
-		gl.clear(ClearFlags.all);
 	}
 }

@@ -347,7 +347,6 @@ function GamePlay()
 		local tower = findInstance(vec2(cell.x, cell.y))
 		tower.broken = true
 		logf("Tower broken: %d, %d", cell.x, cell.y)
-		logf("Broken: %b", tower.broken)
 	end
 
 	local function handleTowerRepaired(cell)

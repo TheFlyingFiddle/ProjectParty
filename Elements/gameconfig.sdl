@@ -115,7 +115,7 @@ towers =
 [
 	{ 
 		cost = 10 
-		range = 130 
+		range = 1.5 
 		phoneIcon = |textures/fire_icon.png| 
 		name = |Steam vent|
 		info = |This tower scolds enemies in a lethal sauna.|
@@ -131,7 +131,7 @@ towers =
 	},
 	{ 
 		cost = 100 
-		range = 130 
+		range = 1.50 
 		phoneIcon = |textures/water_icon.png|
 		name = |Fire vent|
 		info = |This tower burns enemies in a lethal oven.|
@@ -143,7 +143,7 @@ towers =
 	},
 	{ 
 		cost = 100 
-		range = 130 
+		range = 1.50 
 		phoneIcon = |textures/nature_icon.png|
 		name = |Oil vent|
 		info = |This tower makes enemies slippery and sticky 
@@ -156,7 +156,7 @@ in a lethal barrel of oil.|
 	},
 	{ 
 		cost = 20 
-		range = 130 
+		range = 1.50 
 		phoneIcon = |textures/wind_icon.png|
 		name = |Liquid nitrogen vent|
 		info = |This tower makes enemies cold (or frozen) in 
@@ -169,7 +169,7 @@ a lethal container of coldness.|
 	},
 	{ 
 		cost = 20 
-		range = 930 
+		range = 5 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
 		info = 
@@ -184,7 +184,7 @@ rocket explosion.|
 	},
 	{ 
 		cost = 100 
-		range = 900 
+		range = 6 
 		phoneIcon = |textures/rocket_icon.png|
 		name = |Rocket launcher|
 		info = |This tower makes enemies explode in a very 
@@ -196,7 +196,7 @@ lethal rocket explosion.|
 	},
 	{ 
 		cost = 40 
-		range = 600 
+		range = 2 
 		phoneIcon = |textures/gatling_icon.png|
 		name = |Gatling tower|
 		info = |This tower fills the enemies with bullets in a 
@@ -213,42 +213,36 @@ ballisticProjectilePrototypes =
 [ 
 	{ 
 		damage = 100 
-		speed = 150 
-		radius = 200 
+		speed = 1.5 
+		radius = 3 
 		frame = rocket_big 
 		explosion = |elements\particles\explosion.sdl|
 		sound = explosion
-	} 
-]
-
-homingPrototypes = 
-[ 
+	} ,
 	{ 
-		damage = 20 
-		speed = 200 
-		radius = 60 
+		damage = 30 
+		speed = 3 
+		radius =  1
 		frame = rocket 
+		explosion = |elements\particles\small_explosion.sdl|
+		sound = explosion
 	} 
 ]
 
 ballisticTowerPrototypes = 
 [ 
 	{ 
-		homingPrefabIndex = 0 
-		ballisticPrefabIndex = 0 
-		range = 300
-	    maxDistance = 500 
-		pressureCost = 300
-		reloadTime = 2 
+		bigBoomPrefabIndex = 0 
+		smallBoomPrefabIndex = 1 
+		bigBoomCost = 300
+		smallBoomCost = 50
 		frame = rocket 
 	},
 	{ 
-		homingPrefabIndex = 0 
-		ballisticPrefabIndex = 0 
-		range = 300
-		maxDistance = 500 
-		pressureCost = 300
-		reloadTime = 0.4 
+		bigBoomPrefabIndex = 0 
+		smallBoomPrefabIndex = 1 
+		bigBoomCost = 300
+		smallBoomCost = 50
 		frame = rocket 
 	}  
 ]
@@ -258,12 +252,8 @@ gatlingTowerPrototypes =
 	{
 		homingPrefabIndex = 0 
 		gatlingPrefabIndex = 1 
-		range = 300
-		maxDistance = 500 
-		reloadTime = 0.02 
 		anglePerShot = 1
-		pressureCost = 20
-		frame = tower0 
+		pressureCost = 10
 		sound = machine_gun
 	} 
 ]

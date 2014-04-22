@@ -24,13 +24,13 @@ windowConfig =
 {
 	size = 
 	{
-		x=1920 
-		y=1080
+		x=1067 
+		y=600
 	}
 
 	fullScreen = false
 	blocking   = false
-	decorated  = false
+	decorated  = true
 }
 
 serverConfig = 
@@ -60,19 +60,11 @@ gameName = achtung
 
 resources = [ 
 { type = texture path = |achtung\textures\pixel.png| },
-{ type = font	 path = |achtung\fonts\Blocked72.fnt| } ]
+{ type = font	 path = |achtung\fonts\Blocked72.fnt| },
+{ type = font	 path = |achtung\fonts\Segoe54.fnt| } ]
 
 phoneResources = [
-	|achtung/scripts/main.lua|,
-	|achtung/scripts/rendertime.lua|,
-	|achtung/scripts/button.lua|,
-	|achtung/scripts/rect.lua|,
-	|achtung/scripts/lobby.lua|,
-	|achtung/scripts/states.lua|,
-	|achtung/scripts/gameplay.lua|,
-	|achtung/scripts/gameover.lua|,
-	|achtung/fonts/Segoe54.fnt|,
-	|achtung/fonts/Segoe54_0.png|,
-	|achtung/textures/wallpaper.png|,
-	|achtung/textures/pixel.png|
+	|achtung/phone/scripts|,
+	|achtung/phone/fonts|,
+	|achtung/phone/textures|
 ]

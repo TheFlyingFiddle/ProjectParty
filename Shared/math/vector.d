@@ -45,14 +45,16 @@ struct Vector(size_t size, T)
 				this.data[i] = other.data[i];
 			foreach(i; staticIota!(N, size))
 				this.data[i] = v[i];
+			return this;
 		}
 
 
-	ref Vector!(size, T) opAssign(U)(auto ref Vector2!(size, U) other)
+	ref Vector!(size, T) opAssign(U)(auto ref Vector!(size, U) other)
 		if(is(U : T))
 		{
 			foreach(i; staticIota!(0, size))
 				this.data[i] = other.data[i];
+			return this;
 		}
 
 	Vector!(size, T) opUnary(string s)() if(s == "+" || s == "-")
@@ -64,7 +66,7 @@ struct Vector(size_t size, T)
 	}
 
 	Vector!(size, T) opBinary(string s, U)(auto ref Vector!(size, U) vec) 
-		if(is(U : T) && (s == "+" || s == "-" || s == "*"))
+		if(is(U : T) && (s == "+" || s == "-" || s == "*" || s == "/"))
 		{
 			Vector!(size, T) res;
 			foreach(i; staticIota!(0, size))

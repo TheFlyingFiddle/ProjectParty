@@ -89,7 +89,6 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <cRuntime>2</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -184,7 +183,6 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <cRuntime>1</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -193,6 +191,7 @@
  <Folder name="Quiz">
   <File path="config.sdl" />
   <File path="gameplay.d" />
+  <File path="lobby.sdl" />
   <File path="main.d" />
   <File path="questions.sdl" />
  </Folder>

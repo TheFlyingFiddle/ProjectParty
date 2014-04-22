@@ -2,6 +2,7 @@ import std.stdio;
 
 import logging, external_libraries,
 	allocation, game,
+	game.states.lobby,
 	game.debuging;
 import gameplay;
 
@@ -56,8 +57,8 @@ void init(A)(ref A allocator)
 	initDebugging("pictionary\\textures\\pixel.png");
 
 	auto fsm = Game.gameStateMachine;
-	fsm.addState(new GamePlayState(allocator), "GamePlay");
-	fsm.addState(new LobbyState(), "Lobby");
+	fsm.addState(allocator.allocate!GamePlayState(allocator), "GamePlay");
+	fsm.addState(allocator.allocate!LobbyState(allocator, "lobby.sdl", "GamePlay", IncomingMessages.toggleReady), "Lobby");
 	Game.transitionTo("Lobby");
 
 	import graphics; 

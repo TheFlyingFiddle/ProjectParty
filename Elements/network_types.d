@@ -100,9 +100,8 @@ struct BallisticInfoMessage
 	float pressure;
 	float maxPressure;
 	float direction;
-	float distance;
-	float maxDistance;
-	float pressureCost;
+	float bigBoomCost;
+	float smallBoomCost;
 }
 
 struct GatlingInfoMessage

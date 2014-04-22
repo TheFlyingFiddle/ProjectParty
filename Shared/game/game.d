@@ -34,7 +34,7 @@ struct Player
 {
 	ulong id;
 	string name;
-	bool ready;
+	Color color;
 }
 
 struct TransitionMessage

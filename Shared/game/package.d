@@ -6,3 +6,4 @@ public import game.window;
 public import game.input;
 public import game.rendering;
 public import game.game;
+public import game.conversions;

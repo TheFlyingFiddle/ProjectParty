@@ -27,16 +27,17 @@ function Ballistic()
 						circleSize),
 			sendDirectionAndAmount)
 
-	local function launch()
-		if t.pressureDisplay.amount >= t.pressureCost then
-			sendBallisticLaunch(t.cell)
+	local function launch(button)
+		if t.pressureDisplay.amount >= button.cost then
+			sendBallisticLaunch(t.cell, button.id)
 		end
 	end
 
 	local function handleBallisticInfo(bInfo)
 		t.pressureDisplay.maxAmount = bInfo.maxPressure
 		t.pressureDisplay.amount = bInfo.pressure
-		t.pressureCost = bInfo.pressureCost
+		t.smallBoomButton.cost = bInfo.smallBoomCost
+		t.bigBoomButton.cost = bInfo.bigBoomCost
 	end
 
 	Network.setMessageHandler(Network.incoming.ballisticInfo, handleBallisticInfo)
@@ -45,17 +46,42 @@ function Ballistic()
 
 	function t.enter(cell)
 		baseEnter(cell)
-
-		gui:add(Button(0xFF00FF00, pixel, 
-				   Rect2(margin,
-				   	     Screen.height / 2 + margin, 
+		t.smallBoomButton = Button(0xFF00FF00, pixel, 
+				   Rect2(t.pressureDisplay.rect:right() + margin,
+				   	     t.pressureDisplay.rect:bottom(), 
 				   	     buttonWidth,
 				   	     buttonHeight), 
-				   launch, font,"BOOM!", 0xFF000000))
+				   launch, font,"boom", 0xFF000000)
+		t.smallBoomButton.id = 0
+		t.smallBoomButton.cost = 1000
+
+		t.bigBoomButton = Button(0xFF00FF00, pixel, 
+				   Rect2(t.pressureDisplay.rect:right() + margin,
+				   	     t.pressureDisplay.rect:bottom() + buttonHeight + margin, 
+				   	     buttonWidth,
+				   	     buttonHeight), 
+				   launch, font,"BOOM!", 0xFF000000)
+		t.bigBoomButton.id = 1
+		t.bigBoomButton.cost = 1000
+
+		gui:add(t.smallBoomButton)
+		gui:add(t.bigBoomButton)
 		
 		gui:add(aimCircle)
-		t.pressureCost = 0.1
-		t.pressureDisplay.amount = 1
+	end
+
+	function t.update()
+		if t.pressureDisplay.amount >= t.smallBoomButton.cost then
+			t.smallBoomButton.tint = 0xFF00FF00
+		else
+			t.smallBoomButton.tint = 0xFF888888
+		end
+		if t.pressureDisplay.amount >= t.bigBoomButton.cost then
+			t.bigBoomButton.tint = 0xFF00FF00
+		else
+			t.bigBoomButton.tint = 0xFF888888
+		end
+
 	end
 
 	return t

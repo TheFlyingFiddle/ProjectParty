@@ -69,14 +69,9 @@ struct GatlingInstance
 
 struct GatlingTower
 {
-	int homingPrefabIndex;
 	int gatlingPrefabIndex;
-	float range;
-	float maxDistance;
-	float reloadTime;
 	float anglePerShot;
 	float pressureCost;
-	@Convert!stringToFrame() Frame frame;
 	@Convert!stringToSound() SoundID sound;
 }
 
@@ -142,7 +137,7 @@ final class GatlingController : TowerController!GatlingInstance
 				{
 					Game.sound.playSound(tower.sound);
 					pressure(instances[c.instanceIndex]) -= tower.pressureCost;
-					auto enemyIndex = findFarthestReachableEnemy(enemies, position(instances[c.instanceIndex]), tower.range);
+					auto enemyIndex = findFarthestReachableEnemy(enemies, position(instances[c.instanceIndex]), range(c.instanceIndex));
 					if(enemyIndex != -1) 
 					{
 						spawnHomingProjectile(tower.gatlingPrefabIndex, enemyIndex, position(instances[c.instanceIndex]));
@@ -162,12 +157,12 @@ final class GatlingController : TowerController!GatlingInstance
 		foreach(c; controlled)
 		{
 			auto tower = instances[c.instanceIndex];
-			auto enemyIndex = findFarthestReachableEnemy(enemies, position(c.instanceIndex), tower.range);
+			auto enemyIndex = findFarthestReachableEnemy(enemies, position(c.instanceIndex), range(c.instanceIndex));
 			if(enemyIndex != -1) 
 			{
 				auto size = float2(targetFrame.width, targetFrame.height);
 				auto origin = size/2;
-				Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, float2.one, origin);
+				Game.renderer.addFrame(targetFrame, enemies[enemyIndex].position, Color.white, Game.window.relativeScale, origin);
 			}
 		}
 
@@ -175,7 +170,7 @@ final class GatlingController : TowerController!GatlingInstance
 		{
 			auto size = float2(projectile.frame.width, projectile.frame.height);
 			auto origin = size/2;
-			Game.renderer.addFrame(	projectile.frame, projectile.position, Color(0xFF99FFFF), float2.one, origin, 
+			Game.renderer.addFrame(	projectile.frame, projectile.position, Color(0xFF99FFFF), Game.window.relativeScale, origin, 
 								atan2(	enemies[projectile.targetIndex].position.y - projectile.position.y, 
 										enemies[projectile.targetIndex].position.x - projectile.position.x));
 		}

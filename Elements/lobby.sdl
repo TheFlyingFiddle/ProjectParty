@@ -1,6 +1,8 @@
-players = { x = 10 y = 400 }
+titleMargin = 50
+playerMargin = 10
+playerSpacing = 20
+rightLeftMargin = 15
 
-playerSpacing = 42
 colors = 
 [
  0xFFFF0000,
@@ -14,3 +16,8 @@ colors =
  0xFF53788C,
  0xFF00DDAA 
 ]
+
+title = |Tower defence game!|
+titleFont = SegoeUILight72
+titleColor = 0xFF00FFFF
+playerFont = Segoe54

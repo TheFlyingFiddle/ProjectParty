@@ -8,6 +8,12 @@ import vent;
 import ballistic;
 import gatling;
 import spriter.types;
+import game;
+
+float2 tilesToPixels(float2 tiles)
+{
+	return tiles*Game.window.relativeScale;
+}
 
 enum TileType : ubyte
 {
@@ -28,7 +34,7 @@ struct Level
 	@Convert!mapConverter() Grid!TileType tileMap;
 	List!Wave waves;
 	@Convert!pathConverter() List!Path paths;
-	uint2 tileSize;
+	@Convert!tilesToPixels() float2 tileSize;
 	uint startBalance;
 	@Convert!stringToFrame() Frame image;
 
@@ -98,30 +104,6 @@ struct EnemyComponentPrefab
 }
 
 
-auto stringToFrame(string ID)
-{
-	import game, graphics;
-	return Frame(Game.content.loadTexture(ID));
-}
-
-auto stringToParticle(string ID)
-{
-	import game, content.common, std.path;
-	return fromSDLFile!ParticleEffectConfig(GC.it, buildPath(resourceDir, ID));
-}
-
-auto stringToSound(string ID)
-{
-	import game;
-	return Game.content.loadSound(ID);
-}
-
-auto stringToSprite(string ID)
-{
-	import game;
-	return Game.content.loadSprite(ID);
-}
-
 auto pathConverter(List!PathConfig pc)
 {
 	auto paths = List!Path(GC.it, pc.length);
@@ -130,8 +112,7 @@ auto pathConverter(List!PathConfig pc)
 		import game;
 		foreach(ref wayPoint; pc[i].wayPoints)
 		{
-			wayPoint.x *= Game.window.size.x/1920f;
-			wayPoint.y *= Game.window.size.y/1080f;
+			wayPoint = wayPoint * Game.window.relativeScale;
 		}
 		paths ~= Path(GC.it, pc[i].wayPoints);
 	}

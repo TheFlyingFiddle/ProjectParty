@@ -14,4 +14,4 @@ public import graphics.framebuffer;
 public import graphics.font;
 public import graphics.particle.particle;
 public import graphics.particle.extender;
-public import graphics.emitter;
+public import graphics.particle.emitter;

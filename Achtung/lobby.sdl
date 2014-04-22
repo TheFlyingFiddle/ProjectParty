@@ -1,0 +1,25 @@
+titleMargin = 50
+playerMargin = 10
+playerSpacing = 20
+rightLeftMargin = 15
+
+colors = 
+[
+ 0xFFFF0000,
+ 0xFF00FF00,
+ 0xFF0000FF,
+ 0xFF0175EB,
+ 0xFFF600FE,
+ 0xFFBCFF00,
+ 0xFF8AE2FF,
+ 0xFFA9AFB6,
+ 0xFF53788C,
+ 0xFF00DDAA 
+]
+
+title = ACHTUNG
+titleFont = Blocked72
+titleColor = 0xFFFF4400
+
+playerFont = Segoe54
+

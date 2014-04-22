@@ -252,7 +252,7 @@ uint addText(T,Sink)(FontID fontID,
 					  ref Sink sink)
 {
 	auto font  = fontID.font;
-	origin = float2(origin.x * scale.x, origin.y * scale.y);
+	origin = float2(-origin.x * scale.x, -origin.y * scale.y);
 	CharInfo spaceInfo = font[' '];
 
 

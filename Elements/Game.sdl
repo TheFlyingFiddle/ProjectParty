@@ -23,8 +23,8 @@ windowConfig =
 {
 	size = 
 	{
-		x=1366
-		y=768
+		x=1067
+		y=600
 	}
 
 	fullScreen = false
@@ -68,6 +68,7 @@ resources = [
 { type = texture path = |elements\textures\image_map1.png| },
 { type = font	 path = |elements\fonts\Blocked72.fnt| },
 { type = font	 path = |elements\fonts\Segoe36.fnt| },
+{ type = font	 path = |elements\fonts\Segoe54.fnt| },
 { type = font	 path = |elements\fonts\SegoeUILight72.fnt| },
 { type = texture path = |elements\textures\tower.png| },
 { type = texture path = |elements\textures\projectile.png| },
