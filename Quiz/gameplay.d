@@ -120,7 +120,7 @@ class GamePlayState : IGameState
 		questions = fromSDLFile!(Questions)(GC.it, "questions.sdl");
 		elapsed = 0;
 		questionTime = 15;
-		answerTime = 5;
+		answerTime = 0.1;
 	}
 
 	void enter()

@@ -11,11 +11,12 @@ local categoryColors =
 	0xFF002288
 }
 
-local categoryScores = { 0, 0, 0, 0, 0, 0 }
+local categoryScores
 
-local extraScore = 0
+local extraScore
 local extraScoreColor = 0xFFFFFFFF
 local scoreCost = 3
+local maxExtraScore = 6
 
 function Guessing()
 	local t = {}
@@ -54,7 +55,7 @@ function Guessing()
 
 	local function onCorrectAnswer()
 		if categoryScores[t.category] == 3 then
-			extraScore = extraScore + 1
+			extraScore = math.min(maxExtraScore, extraScore + 1)
 		else
 			categoryScores[t.category] = categoryScores[t.category] + 1
 		end
@@ -114,6 +115,8 @@ function Guessing()
 	end
 
 	function t.enter()
+		categoryScores = { 0, 0, 0, 0, 0, 0 }
+		extraScore = 0
 		Network.setMessageHandler(Network.incoming.choices, onChoices)
 		Network.setMessageHandler(Network.incoming.correctAnswer, onCorrectAnswer)
 		Network.setMessageHandler(Network.incoming.showAnswer, onShowAnswer)

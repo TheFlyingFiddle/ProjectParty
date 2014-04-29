@@ -60,7 +60,7 @@ gameName = pictionary
 resources = [ 
 	{ type = texture	path = |pictionary\textures\pixel.png| },
 	{ type = texture	path = |pictionary\textures\smooth.png| },
-	{ type = texture	path = |pictionary\textures\background.png| },
+	{ type = texture	path = |pictionary\textures\background2.png| },
 	{ type = font		path = |pictionary\fonts\SegoeUILight72.fnt| },
 	{ type = font		path = |pictionary\fonts\Segoe54.fnt| }
 ]

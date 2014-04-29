@@ -4,7 +4,7 @@ enemyPrototypes =
 		maxHealth = 50	
 		speed	  = 70	
 		worth	  = 5	
-		spriteID  = enemy
+		spriteID  = enemyclock
 		components = 
 		[
 			{		
@@ -19,7 +19,7 @@ enemyPrototypes =
 		maxHealth = 200	
 		speed = 42	
 		worth = 15	
-		spriteID  = enemy
+		spriteID  = enemyclock
 		components = 
 		[
 			{		
@@ -33,7 +33,7 @@ enemyPrototypes =
 		maxHealth = 200	
 		speed = 42	
 		worth = 15	
-		spriteID  = enemy
+		spriteID  = clock
 		components = 
 		[
 			{		
@@ -53,7 +53,7 @@ enemyPrototypes =
 		maxHealth = 200	
 		speed = 42	
 		worth = 15	
-		spriteID  = enemy
+		spriteID  = tank
 		components = 
 		[
 			{		
@@ -67,7 +67,7 @@ enemyPrototypes =
 		maxHealth = 200	
 		speed = 42	
 		worth = 15	
-		spriteID  = enemy
+		spriteID  = enemyclock
 		components = 
 		[
 			{		

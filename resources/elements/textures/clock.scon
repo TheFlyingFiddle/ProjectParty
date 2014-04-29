@@ -1,0 +1,287 @@
+{
+  "entity": [
+    {
+      "animation": [
+        {
+          "id": 0,
+          "length": 1000,
+          "mainline": {
+            "key": [
+              {
+                "bone_ref": [],
+                "id": 0,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 0,
+                    "timeline": 2,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 1,
+                    "timeline": 0,
+                    "z_index": "1"
+                  },
+                  {
+                    "id": 2,
+                    "key": 0,
+                    "timeline": 1,
+                    "z_index": "2"
+                  }
+                ]
+              },
+              {
+                "bone_ref": [],
+                "id": 1,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 1,
+                    "timeline": 2,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 3,
+                    "timeline": 0,
+                    "z_index": "1"
+                  },
+                  {
+                    "id": 2,
+                    "key": 1,
+                    "timeline": 1,
+                    "z_index": "2"
+                  }
+                ],
+                "time": 333
+              },
+              {
+                "bone_ref": [],
+                "id": 2,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 2,
+                    "timeline": 2,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 3,
+                    "timeline": 0,
+                    "z_index": "1"
+                  },
+                  {
+                    "id": 2,
+                    "key": 2,
+                    "timeline": 1,
+                    "z_index": "2"
+                  }
+                ],
+                "time": 666
+              }
+            ]
+          },
+          "name": "walk",
+          "soundline": [],
+          "timeline": [
+            {
+              "id": 0,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "file": 0,
+                    "folder": 0,
+                    "scale_x": 0.5000000000000001,
+                    "scale_y": 0.5000000000000001,
+                    "x": -39.584553146809974,
+                    "y": -4.122964103690537
+                  }
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "file": 0,
+                    "folder": 0,
+                    "scale_x": 0.5000000000000001,
+                    "scale_y": 0.5000000000000001,
+                    "x": -78.50000000000003,
+                    "y": 87.99610894941634
+                  }
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "angle": 3,
+                    "file": 0,
+                    "folder": 0,
+                    "pivot_x": 0,
+                    "pivot_y": 1,
+                    "scale_x": 0.5000000000000001,
+                    "scale_y": 0.5000000000000001,
+                    "x": -83.26780750902553,
+                    "y": 85.833185837673
+                  },
+                  "time": 333
+                },
+                {
+                  "id": 3,
+                  "object": {
+                    "angle": 3,
+                    "file": 0,
+                    "folder": 0,
+                    "pivot_x": 0.3040269285405473,
+                    "pivot_y": 0.28031974177260266,
+                    "scale_x": 0.5000000000000001,
+                    "scale_y": 0.5000000000000001,
+                    "x": -39.584553146809974,
+                    "y": -4.122964103690527
+                  },
+                  "spin": -1,
+                  "time": 333
+                }
+              ],
+              "name": "clockenemy"
+            },
+            {
+              "id": 1,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.49221789883268485,
+                    "pivot_y": 0.5077821011673151,
+                    "scale_x": 0.2566904715757455,
+                    "scale_y": 0.2566904715757456,
+                    "x": -39.99610894941635,
+                    "y": -4.507782101167324
+                  },
+                  "spin": -1
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "angle": 240,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.49221789883268485,
+                    "pivot_y": 0.5077821011673151,
+                    "scale_x": 0.2566904715757455,
+                    "scale_y": 0.2566904715757456,
+                    "x": -39.99610894941635,
+                    "y": -4.507782101167324
+                  },
+                  "spin": -1,
+                  "time": 333
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "angle": 120,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.49221789883268485,
+                    "pivot_y": 0.5077821011673151,
+                    "scale_x": 0.2566904715757455,
+                    "scale_y": 0.2566904715757456,
+                    "x": -39.99610894941635,
+                    "y": -4.507782101167324
+                  },
+                  "spin": -1,
+                  "time": 666
+                }
+              ],
+              "name": "rusty_iron_cog"
+            },
+            {
+              "id": 2,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5,
+                    "pivot_y": 0.5077821011673151,
+                    "scale_x": 0.24513618677042814,
+                    "scale_y": 0.24513618677042912,
+                    "x": -20.00000000000003,
+                    "y": 10.992217898832678
+                  },
+                  "spin": -1
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "angle": 240,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5,
+                    "pivot_y": 0.5077821011673151,
+                    "scale_x": 0.24513618677042814,
+                    "scale_y": 0.24513618677042912,
+                    "x": -20.00000000000003,
+                    "y": 10.992217898832678
+                  },
+                  "spin": -1,
+                  "time": 333
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "angle": 120,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5,
+                    "pivot_y": 0.5077821011673151,
+                    "scale_x": 0.24513618677042814,
+                    "scale_y": 0.24513618677042912,
+                    "x": -20.00000000000003,
+                    "y": 10.992217898832678
+                  },
+                  "spin": -1,
+                  "time": 666
+                }
+              ],
+              "name": "rusty_iron_cog_000"
+            }
+          ]
+        }
+      ],
+      "character_map": [],
+      "id": 0,
+      "name": "entity_000",
+      "obj_info": []
+    }
+  ],
+  "folder": [
+    {
+      "file": [
+        {
+          "height": 256,
+          "id": 0,
+          "name": "clockenemy.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 256
+        },
+        {
+          "height": 256,
+          "id": 1,
+          "name": "rusty_iron_cog.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 256
+        }
+      ],
+      "id": 0
+    }
+  ],
+  "generator": "BrashMonkey Spriter",
+  "generator_version": "b6.1",
+  "scon_version": "1.0"
+}

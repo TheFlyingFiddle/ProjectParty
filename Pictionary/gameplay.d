@@ -264,7 +264,7 @@ class GamePlayState : IGameState
 
 	void render()
 	{
-		gl.clearColor(1,1,1,1);
+		gl.clearColor(0,0,0,0);
 		gl.clear(ClearFlags.all);
 
 		auto texture	= Game.content.loadTexture("smooth");
@@ -272,7 +272,7 @@ class GamePlayState : IGameState
 		
 		auto font		= Game.content.loadFont("SegoeUILight72");
 
-		auto bgtexture	= Game.content.loadTexture("background");
+		auto bgtexture	= Game.content.loadTexture("background2");
 		auto bgframe		= Frame(bgtexture);
 
 		Game.renderer.addFrame(bgframe, float4(0,0,Game.window.size.x,Game.window.size.y), Color.white);

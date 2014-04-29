@@ -58,7 +58,7 @@ void init(A)(ref A allocator)
 	auto fsm = Game.gameStateMachine;
 	fsm.addState(allocator.allocate!GamePlayState(allocator, "gameconfig.sdl"), "GamePlay");
 	fsm.addState(allocator.allocate!LobbyState(allocator, "lobby.sdl", "GamePlay", IncomingMessages.readyMessage), "Lobby");
-	Game.transitionTo("Lobby");
+	Game.transitionTo("GamePlay");
 
 	import graphics; 
 	gl.enable(Capability.blend);

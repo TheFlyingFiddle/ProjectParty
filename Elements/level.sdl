@@ -46,16 +46,16 @@ waves =
 [  
 	{	spawners = 
 		[
-			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20  pathIndex = 0},
-			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5   pathIndex = 0},
-			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3   pathIndex = 0},
+			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 1  pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 1   pathIndex = 0},
+			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 1   pathIndex = 0},
 			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1   pathIndex = 0},
-			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 10  pathIndex = 0},
-			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 20  pathIndex = 1},
-			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 5   pathIndex = 1},
-			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 3   pathIndex = 1},
+			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 1  pathIndex = 0},
+			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 1  pathIndex = 1},
+			{ startTime = 0 	prototypeIndex = 1	spawnInterval = 3	numEnemies = 1   pathIndex = 1},
+			{ startTime = 0 	prototypeIndex = 2	spawnInterval = 6	numEnemies = 1   pathIndex = 1},
 			{ startTime = 0     prototypeIndex = 3  spawnInterval = 1   numEnemies = 1   pathIndex = 1},
-			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 10  pathIndex = 1}
+			{ startTime = 0     prototypeIndex = 4  spawnInterval = 2   numEnemies = 1  pathIndex = 1}
 		] 
 		pauseTime = 0
 	},
