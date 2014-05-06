@@ -10,6 +10,7 @@ function init()
 	smooth 			= Loader.loadFrame("textures/smooth.png")
 
 	gui = Gui()
+	Game.setFps(60)
 
 	Screen.setOrientation(Orientation.landscape)
 

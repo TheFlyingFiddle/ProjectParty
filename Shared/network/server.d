@@ -49,18 +49,9 @@ struct ServerConfig
 	ushort broadcastPort;
 }
 
-enum NetworkMessage
-{
-	alias_       = 0,
-	sensor       = 1,
-	file         = 2,
-	allFilesSent = 3,
-	fileReload   = 4,
-	luaLog       = 5,
-	transition   = 6,
-	heartbeat	 = 7,
-	shutdown	 = 8
-}
+//This is a special case message since the server send's it itself
+//Should probably be 0 and not 8
+enum SHUTDOWN_ID = 8;
 
 struct Server
 {
@@ -131,10 +122,7 @@ struct Server
 		listener.shutdown(SocketShutdown.SEND);
 		listener.close();
 		connector.close();
-		ubyte[3] shutdownMessage;
-		shutdownMessage[0] = 1;
-		shutdownMessage[2] = NetworkMessage.shutdown;
-
+		ubyte[3] shutdownMessage = [1, 0, SHUTDOWN_ID];
 		foreach(ref con; activeConnections) { 
 			
 			send(con.id, shutdownMessage);
@@ -267,8 +255,7 @@ struct Server
 			if(Socket.ERROR == read)
 			{	
 				//Reading will fail if we are in non-blocking mode and no
-				//message was received. Since timeout is wierd in non-blocking mode
-				//we do it manually.
+				//message was received.
 				con.timeSinceLastMessage += elapsed;
 				if(con.timeSinceLastMessage > config.connectionTimeout)
 				{
@@ -351,16 +338,6 @@ struct Server
 					break;
 				}
 
-				//Do we want to do this here? It
-				//spits data oriented design in the face
-				//i think? But the only other reasonable way
-				//to do it would be to split it up into multiple
-				//buffers 1 per message and then run those buffers
-				//side by side... (That might be better)
-				//This can also be done here if we do it in the router.
-				//But then a all messages sent delegate is required
-				//It does open up the door for some cool optimizations
-				//so maby that is the best thing to do.
 				ubyte[] message = buffer[0 .. len];
 				buffer = buffer[len .. $];
 				onMessage(key, message);

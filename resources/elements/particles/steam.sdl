@@ -18,8 +18,8 @@ emitters =
 		rotationSpeed = 0
 		rotationVariance = 5
 
-		startAlpha = 0.1
-		endAlpha = 0.3
+		startAlpha = 0.5
+		endAlpha = 0
 
 		points = 
 		[

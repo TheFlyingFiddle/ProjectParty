@@ -134,6 +134,8 @@ final class LobbyState : IGameState
 
 	void render()
 	{
+		import util.profile;
+
 		import util.strings;
 		auto resolutionScale = Game.window.relativeScale;
 		char[1024] buffer = void;

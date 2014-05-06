@@ -1,6 +1,7 @@
 module types;
 
 import graphics, math, event, std.uuid, collections;
+import network.message;
 
 alias EventStream = EventStreamN!(uint);
 
@@ -26,28 +27,37 @@ struct InputEvent
 	float input;
 }
 
-enum AchtungMessages : ubyte
+private alias Out = OutgoingNetworkMessage;
+enum Outgoing : Out
 {
-	death = 50,
-	toggleReady = 51,
-	color = 52,
-	position = 53,
-	win = 54
+	death = Out(50),
+	color = Out(52),
+	position = Out(53),
+	win = Out(54)
 }
 
-enum IncomingMessages : ubyte
+private alias In = IncommingNetworkMessage;
+enum IncomingMessages : In
 {
-	readyMessage = 51
+	readyMessage = In(51)
 }
 
-struct ColorMessage
+@(Outgoing.death) struct DeathMessage
 {
-	enum ubyte id = AchtungMessages.color;
+	ushort score;
+}
+
+@(Outgoing.win) struct WinMessage
+{
+	ushort score;
+}
+
+@(Outgoing.color) struct ColorMessage
+{
 	uint color;
 }
 
-struct PositionMessage
+@(Outgoing.position) struct PositionMessage
 {
-	enum ubyte id = AchtungMessages.position;
 	ushort position;
 }

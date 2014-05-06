@@ -279,28 +279,14 @@ class AchtungGameState : IGameState
 	
 	void sendDeathMessage(ulong id, uint score)
 	{
-		import util.bitmanip;
-		ubyte[32] buff = void; auto buffer = buff[0 .. 32];
-		size_t offset = 0;
-
-		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
-		buffer.write!ubyte(AchtungMessages.death, &offset);
-		buffer.write!ushort(cast(ushort)score, &offset);
-
-		Game.server.send(id, buffer[0 .. offset]);
+		import network.message;
+		Game.server.sendMessage(id, DeathMessage(cast(ushort)score));
 	}
 
 	void sendWinMessage(ulong id, uint score)
 	{
-		import util.bitmanip;
-		ubyte[32] buff = void; auto buffer = buff[0 .. 32];
-		size_t offset = 0;
-
-		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
-		buffer.write!ubyte(AchtungMessages.win, &offset);
-		buffer.write!ushort(cast(ushort)score, &offset);
-
-		Game.server.send(id, buffer[0 .. offset]);
+		import network.message;
+		Game.server.sendMessage(id, WinMessage(cast(ushort)score));
 	}
 
 	void renderFrame(ref AchtungRenderer buffer,

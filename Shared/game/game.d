@@ -9,6 +9,7 @@ import core.time, std.datetime,
 
 import network.server;
 import network.router;
+import network.message;
 
 import allocation.common;
 import graphics;
@@ -37,32 +38,43 @@ struct Player
 	Color color;
 }
 
-struct TransitionMessage
+private alias Out = OutgoingNetworkMessage;
+private alias In  = IncommingNetworkMessage;
+enum Incomming
 {
-	enum ubyte id = NetworkMessage.transition;
-	enum maxSize = 128;
+	alias_       = In(0),
+	sensor       = In(1),
+	luaLog		 = In(5),
+	heartbeat	 = In(7),
+}
+
+enum Outgoing
+{
+	file         = Out(2),
+	allFilesSent = Out(3),
+	fileReload   = Out(4),
+	transition   = Out(6),
+	shutdown	 = Out(8)
+}
+
+@(Outgoing.transition) struct TransitionMessage
+{
 	string state;
 }
 
-struct FileTransferHeader
+@(Outgoing.file) struct FileTransferHeader
 {
-	enum ubyte id = NetworkMessage.file;
-	enum maxSize = 256;
 	string path;
 	ulong size;
 }
 
-struct FileReloadMessage
+@(Outgoing.fileReload) struct FileReloadMessage
 {
-	enum ubyte id = NetworkMessage.fileReload;
-	enum maxSize = 256;
 	string path;
 }
 
-struct AllFilesSentMessage
+@(Outgoing.allFilesSent) struct AllFilesSentMessage
 {
-	enum ubyte id = NetworkMessage.allFilesSent;
-	enum maxSize = 256;
 	string gameName;
 }
 
@@ -181,7 +193,6 @@ struct Game_Impl
 	void onAssetReload(const(char)[] path)
 	{
 		import util.bitmanip,std.array;
-		import network.message;
 		import std.path;
 		auto p2 = cast(string)path.replace("\\", "/");
 		auto index = config.phoneResources.countUntil!(x => x == p2);
@@ -239,7 +250,7 @@ struct Game_Impl
 
 	void onMessage(ulong id, ubyte[] message)
 	{
-		if(message[0] == NetworkMessage.alias_)
+		if(message[0] == Incomming.alias_.id)
 		{
 			auto s = Mallocator.it.allocate!(ubyte[])(message.length - 1);
 			s[] = message[1 .. $];
@@ -250,7 +261,7 @@ struct Game_Impl
 				Mallocator.it.deallocate((cast(void[])players[index].name));
 
 			players[index].name = cast(string)s;
-		} else if (message[0] == NetworkMessage.luaLog) {
+		} else if (message[0] == Incomming.luaLog.id) {
 			import logging;
 
 			auto logChannel = LogChannel("lua");
@@ -299,7 +310,7 @@ struct Game_Impl
 			{
 				auto p = StackProfile("Render");
 				import math;
-				mat4 proj = mat4.CreateOrthographic(0,window.fboSize.x,window.fboSize.y,0,1,-1);
+				mat4 proj = mat4.CreateOrthographic(0,window.fboSize.x, window.fboSize.y, 0, 1,-1);
 				renderer.start(proj);
 				gameStateMachine.render();
 				renderer.end();
