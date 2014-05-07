@@ -19,5 +19,5 @@ colors =
 
 title = |Tower defence game!|
 titleFont = SegoeUILight72
-titleColor = 0xFF00FFFF
+titleColor = 0xFF00FFFF // Yellow (ABGR)
 playerFont = Segoe54

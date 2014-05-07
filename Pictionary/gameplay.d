@@ -169,6 +169,8 @@ class GamePlayState : IGameState
 		{
 			Game.server.sendMessage(id, CorrectAnswer());
 			players[id].score++;
+			// Added as an incentive to paint at all...
+			players[drawingPlayer].score++;
 			nextQuestion();
 		}
 		else

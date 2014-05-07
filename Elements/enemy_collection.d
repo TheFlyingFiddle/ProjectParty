@@ -274,7 +274,9 @@ class EnemyCollection
 			}
 
 			float2 position = enemy.position;
-			Game.renderer.addSprite(enemy.sprite, position, color, Game.window.relativeScale);
+			// We need to make the enemies walk in the appropriate direction
+			float angle = (paths[enemy.pathIndex].nextWayPoint(enemy.distance) - position).toPolar.angle;
+			Game.renderer.addSprite(enemy.sprite, position, color, Game.window.relativeScale, angle);
 		}
 	
 		import std.algorithm, game.debuging;

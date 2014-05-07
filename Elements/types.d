@@ -186,6 +186,14 @@ struct Path
 		import std.conv;
 		assert(0, text("Invalid distance ", distance, "."));
 	}
+
+	float2 nextWayPoint(float distance)
+	{
+		foreach(i, d; distances) if (distance < d)
+			return wayPoints[i];
+		import std.conv;
+		assert(0, text("Invalid distance ", distance, "."));
+	}
 }
 
 enum StatusType

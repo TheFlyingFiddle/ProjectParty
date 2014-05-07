@@ -2,7 +2,7 @@ module spriter.renderer;
 
 import game, math, graphics, spriter.loader, spriter.types;
 
-void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position, Color color, float2 scale)
+void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position, Color color, float2 scale, float rotation = 0f)
 {
 	//This is stupid.
 	auto object = SpriteManager.lookup(sprite.id);
@@ -19,12 +19,18 @@ void addSprite(Renderer* renderer, ref SpriteInstance sprite, float2 position, C
 								 loadTexture(object.foulders[spatial.foulder].
 												 files[spatial.file].name));
 
-		renderer.addFrame(frame, 
-							   position + spatial.pos * scale, 
-							   color, 
-								spatial.scale * scale, 
-								spatial.origin * float2(frame.srcRect.z, frame.srcRect.w),
-								spatial.rotation);
+		import std.math : cos, sin;
+		auto scaledPos = spatial.pos * scale;
+		// Rotate the vector around origo
+		auto rotatedPos = float2(	scaledPos.x*cos(rotation) - scaledPos.y*sin(rotation),
+									scaledPos.x*sin(rotation) + scaledPos.y*cos(rotation));
+
+		renderer.addFrame(	frame, 
+							position + rotatedPos, 
+							color, 
+							spatial.scale * scale, 
+							spatial.origin * float2(frame.srcRect.z, frame.srcRect.w),
+							spatial.rotation + rotation);
 	}
 }
 
