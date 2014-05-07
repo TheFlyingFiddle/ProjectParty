@@ -15,12 +15,12 @@ import dunit;
 
 alias TypeID = SDLObject.Type;
 
-enum stringSeperator = '|';
-enum arrayOpener = '[';
-enum arrayCloser = ']';
-enum arraySeparator = ',';
-enum objectOpener = '{';
-enum objectCloser = '}';
+enum stringSeperator	= '|';
+enum arrayOpener 		= '[';
+enum arrayCloser 		= ']';
+enum arraySeparator 	= ',';
+enum objectOpener 		= '{';
+enum objectCloser 		= '}';
 
 
 struct SDLObject
@@ -1207,19 +1207,22 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
             enforce(0, "Unrecognized char while parsing array.");		
     }
     range.skipWhitespace();
-    if (range.front == arraySeparator) {
-        range.popFront();
-        sink[objIndex].nextIndex = nextVacantIndex;
-        readArray(sink, range, nextVacantIndex);
-		if (sink[objIndex].nextIndex == nextVacantIndex) {
-			// Nothing was allocated, arraycloser found when expecting object
-            enforce(0, "Empty slot in array (arraycloser following arrayseparator)."
-					~ getSDLError(range));
-		}	
-	} else if(range.front == arrayCloser) {
+	
+	if(range.front == arrayCloser) {
 		range.popFront();
 		return;
 	}
+
+	if (range.front == arraySeparator) {
+		range.popFront();
+	}
+	sink[objIndex].nextIndex = nextVacantIndex;
+	readArray(sink, range, nextVacantIndex);
+	if (sink[objIndex].nextIndex == nextVacantIndex) {
+		// Nothing was allocated, arraycloser found when expecting object
+		enforce(0, "Empty slot in array (arraycloser following arrayseparator)."
+				~ getSDLError(range));
+	}	
 
 }
 
