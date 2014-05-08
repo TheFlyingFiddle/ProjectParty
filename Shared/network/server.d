@@ -64,6 +64,7 @@ struct Server
 	List!Connection pendingConnections;
 	
 	Socket connector;
+	Socket udpSocket;
 	Listener listener;
 
 	InternetAddress listenerAddress;
@@ -91,7 +92,9 @@ struct Server
 
 		connector = allocator.allocate!(UdpSocket)();
 		connector.blocking = false;
-
+		
+		udpSocket = allocator.allocate!(UdpSocket)();
+		udpSocket.blocking = false;
 
 		partialMessages	   = List!PartialMessage(allocator, config.maxConnections);
 		foreach(i; 0 .. config.maxConnections)
@@ -104,7 +107,10 @@ struct Server
 			if(r.addressFamily == AddressFamily.INET) {
 				string stringAddr = r.toAddrString();
 				connector.bind(r);
-				listener.bind(r);
+				listener.bind(r);; 
+
+				InternetAddress udpAddr = allocator.allocate!InternetAddress(stringAddr, cast(ushort)12345);
+				udpSocket.bind(udpAddr);
 
 				listenerAddress = allocator.allocate!InternetAddress(stringAddr, listener.localAddress.toPortString.to!ushort);
 				
@@ -151,6 +157,7 @@ struct Server
 
 		acceptIncoming();
 		processPendingConnections(elapsed);
+		processUDPMessages(elapsed);
 		processMessages(elapsed);
 	}
 
@@ -230,10 +237,35 @@ struct Server
 		} 
 	}
 
+	void processUDPMessages(float elapsed)
+	{
+		import util.bitmanip;
+		ubyte[8192] buffer = void;
+		while(true)
+		{
+			auto read = udpSocket.receive(buffer);
+			if(read == 0 || read == Socket.ERROR) break;
+			
+			ubyte[] buf = buffer[0 .. read];
+			read -= ulong.sizeof;
+			auto sessionID = buf.read!ulong;
+			auto index = partialMessages.countUntil!(x => x.id == sessionID);
+			if(index != -1)
+			{
+				ubyte[0xFFFF] tmp;
+				//Insert UDP message at begining and let the other code deal with it. 
+				const len = partialMessages[index].length;
+				tmp[0 .. len] = partialMessages[index].data[0 .. len];
+				partialMessages[index].data[0 .. read] = buf[0 .. read];
+				partialMessages[index].data[read .. read + len] = tmp[0 .. len];
+				partialMessages[index].length += read;
+			}
+		}
+	}
+
 	void processMessages(float elapsed)
 	{
 		ubyte[8192] buffer = void;
-
 		for(int i = activeConnections.length - 1; i >= 0; i--)
 		{
 			auto con = &activeConnections[i];

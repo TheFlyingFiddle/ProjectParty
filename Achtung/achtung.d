@@ -33,9 +33,9 @@ class AchtungGameState : IGameState
 	EventStream stream;
 	AchtungRenderer renderer;
 
-	Table!(ulong) ids;
-	Table!(Snake) snakes;
-	Table!(float) timers;
+	types.Table!(ulong) ids;
+	types.Table!(Snake) snakes;
+	types.Table!(float) timers;
     AchtungGameData agd;
 
 	AchtungConfig config;
@@ -44,8 +44,8 @@ class AchtungGameState : IGameState
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 
-		snakes     = Table!(Snake)(allocator, config.maxSnakes);
-		timers     = Table!(float)(allocator, config.maxSnakes);
+		snakes     = types.Table!(Snake)(allocator, config.maxSnakes);
+		timers     = types.Table!(float)(allocator, config.maxSnakes);
 		masterMap  = Grid!bool(allocator, config.maxResolution.x, config.maxResolution.y);
 		renderer   = AchtungRenderer(allocator, cast(uint)agd.data.capacity, config.maxResolution.x, config.maxResolution.y);
 		stream     = EventStream(allocator, 1024 * 1000);
@@ -65,6 +65,10 @@ class AchtungGameState : IGameState
 		reset();
 
 		Game.window.onSizeChanged = &sizeChanged;
+
+		Game.router.messageHandlers ~= &timeMessurements;
+		import allocation;
+		latencyCounter = collections.table.Table!(ulong, StopWatch[])(GC.it, 20);
 	}
 
 	void exit()
@@ -300,4 +304,27 @@ class AchtungGameState : IGameState
 		buffer.draw(snakes, agd, config.snakeSize);
 	}
 
+
+
+	import std.datetime, collections.table;
+	collections.table.Table!(ulong, StopWatch[]) latencyCounter;
+	void timeMessurements(ulong id, ubyte[] msg)
+	{
+		//Phone sensor ID
+		if(msg[0] == 1)
+		{
+			if(latencyCounter.indexOf(id) == -1) {
+				StopWatch sw; sw.start();
+				StopWatch[] data = [ sw ]; 
+				latencyCounter[id] = data;
+			} else {
+				latencyCounter[id][$ - 1].stop(); 
+				StopWatch sw; sw.start();
+				latencyCounter[id] ~= sw;
+				import std.stdio, std.algorithm;
+				writeln("Sensor data max: ", latencyCounter[id].map!(x => x.peek().msecs).reduce!( (a,b) => max(a,b)));
+				writeln("Sensor data avg: ", latencyCounter[id][0 .. $ - 1].map!(x => x.peek().msecs).reduce!( (a,b) => a + b) / latencyCounter[id].length);
+			}
+		}
+	}
 }

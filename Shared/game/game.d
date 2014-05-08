@@ -322,7 +322,25 @@ struct Game_Impl
 			if(timestep == Timestep.fixed) {
 				auto frametime = watch.peek() - last;
 				Duration sleeptime = max(0.msecs, target - frametime);
-				Thread.sleep(sleeptime);
+			
+				//Seems to yield better consistency then sleeping the sleeptime duration.
+				//Consumes like 0.1-0.5% more cpu percentage units
+				auto now_ = watch.peek();
+				while(sleeptime > 1.msecs)
+				{
+					Thread.sleep(1.hnsecs);
+					auto tmp_ = watch.peek();
+					sleeptime -= tmp_ - now_;
+					now_= tmp_;
+				}
+
+				now_ = watch.peek();
+				while(sleeptime > 100.hnsecs)
+				{
+					auto tmp_ = watch.peek();
+					sleeptime -= tmp_ - now_;
+					now_ = tmp_;
+				}
 			}
 		}
 	}
