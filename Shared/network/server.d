@@ -243,22 +243,17 @@ struct Server
 		ubyte[8192] buffer = void;
 		while(true)
 		{
-			auto read = udpSocket.receive(buffer);
+			auto read = udpSocket.receiveFrom(buffer);
 			if(read == 0 || read == Socket.ERROR) break;
 			
 			ubyte[] buf = buffer[0 .. read];
 			read -= ulong.sizeof;
 			auto sessionID = buf.read!ulong;
-			auto index = partialMessages.countUntil!(x => x.id == sessionID);
+			auto index = activeConnections.countUntil!(x => x.id == sessionID);
 			if(index != -1)
 			{
-				ubyte[0xFFFF] tmp;
-				//Insert UDP message at begining and let the other code deal with it. 
-				const len = partialMessages[index].length;
-				tmp[0 .. len] = partialMessages[index].data[0 .. len];
-				partialMessages[index].data[0 .. read] = buf[0 .. read];
-				partialMessages[index].data[read .. read + len] = tmp[0 .. len];
-				partialMessages[index].length += read;
+				onMessage(sessionID, buf[2 .. $]);
+				activeConnections[index].timeSinceLastMessage = 0;
 			}
 		}
 	}

@@ -26,17 +26,17 @@ function GamePlay()
 		if useButtons then
 			--Send le buttons
 		else
-			Out.writeShort(25)
-			Out.writeByte(sensorNetworkID)
-			Out.writeVec3(Sensors.acceleration)
-			Out.writeVec3(Sensors.gyroscope)
+			UOut.writeShort(25)
+			UOut.writeByte(sensorNetworkID)
+			UOut.writeVec3(Sensors.acceleration)
+			UOut.writeVec3(Sensors.gyroscope)
 		end
 
-		Network.send()
+		Network.usend()
 	end
 	function gamePlay.handleMessage(id, length)
 		if id == Network.messages.death then
-			vibrate(1000)
+			--vibrate(1000)
 			score = In.readShort()
 		elseif id == Network.messages.win then
 			score = In.readShort()

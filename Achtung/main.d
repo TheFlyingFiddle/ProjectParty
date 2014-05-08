@@ -74,5 +74,7 @@ void run()
 	init(ss);
 	logChnl.info("Total Allocated is: ", allocator.bytesAllocated / 1024 , "kb");
 	import std.datetime;
-	Game.run(Timestep.variable, 16_667.usecs);	
+	import core.memory;
+	GC.disable();
+	Game.run(Timestep.fixed, 16_667.usecs);	
 }
