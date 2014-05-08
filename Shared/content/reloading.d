@@ -258,7 +258,7 @@ struct ResourceTable(Resource, alias obliterator)
 		ContentReloader.registerResource(path);
 
 		index = ids.countUntil!(x => x == noResource);
-		assert(index != -1, "Out of space for resources!");
+		assert(index != -1, "Out of space for resources of type "~Resource.stringof~"!");
 
 		resources[index] = resource;
 		ids[index]       = id;

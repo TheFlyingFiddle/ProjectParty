@@ -122,7 +122,7 @@ towers =
 		type = vent 
 		typeIndex = 0 
 		regenRate = 10
-		spriteID = |tower|
+		spriteID = |fire_tower|
 		startPressure = 1
 		upgradeIndex0 = 1
 		upgradeIndex1 = 2 
@@ -136,7 +136,7 @@ towers =
 		name = |Fire vent|
 		info = |This tower burns enemies in a lethal oven.|
 		regenRate = 10
-		spriteID = |tower|
+		spriteID = |fire_tower|
 		type = vent 
 		typeIndex = 1  
 		startPressure = 1
@@ -149,7 +149,7 @@ towers =
 		info = |This tower makes enemies slippery and sticky 
 in a lethal barrel of oil.|
 		regenRate = 10
-		spriteID = |tower|
+		spriteID = |fire_tower|
 		type = vent 
 		typeIndex = 2  
 		startPressure = 1
@@ -162,7 +162,7 @@ in a lethal barrel of oil.|
 		info = |This tower makes enemies cold (or frozen) in 
 a lethal container of coldness.|
 		regenRate = 10
-		spriteID = |tower|
+		spriteID = |fire_tower|
 		type = vent 
 		typeIndex = 3  
 		startPressure = 1
@@ -177,7 +177,7 @@ a lethal container of coldness.|
 rocket explosion.|
 		type = rocket 
 		regenRate = 30
-		spriteID = |tower|
+		spriteID = |fire_tower|
 		basic = true 
 		typeIndex = 0  
 		upgradeIndex0 = 5
@@ -191,7 +191,7 @@ rocket explosion.|
 lethal rocket explosion.|
 		type = rocket 
 		regenRate = 30
-		spriteID = |tower|
+		spriteID = |fire_tower|
 		typeIndex = 1  
 	},
 	{ 
@@ -203,7 +203,7 @@ lethal rocket explosion.|
 lethal storm of... bullets.|
 		type = gatling	
 		regenRate = 30
-		spriteID = |tower|
+		spriteID = |fire_tower|
 		typeIndex = 0  
 		basic = true
 	}

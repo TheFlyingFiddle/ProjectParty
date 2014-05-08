@@ -8,14 +8,14 @@ initialRenderSize = 10_000
 //Content buffer sizes.
 contentConfig =
 {
-	maxTrackingResources = 110
+	maxTrackingResources = 120
 	maxReloaders         = 10
 
-	maxTextures    = 100
+	maxTextures    = 109
 	maxFonts       = 10
 	maxSounds      = 50
 	maxAtlases	   = 5
-	maxSprites	   = 5
+	maxSprites	   = 15
 }
 
 //Windows and whatnot.
@@ -23,8 +23,8 @@ windowConfig =
 {
 	size = 
 	{
-		x=1280
-		y=720
+		x=1920
+		y=1080
 	}
 
 	fullScreen = false
@@ -92,6 +92,8 @@ resources = [
 { type = texture path = |elements\textures\clock_minute.png| },
 { type = texture path = |elements\textures\rusty_iron_cog.png| },
 { type = texture path = |elements\textures\tank.png| },
+{ type = texture path = |elements\textures\fire_tower.png| },
+{ type = texture path = |elements\textures\base_tower.png| },
 { type = sound   path = |elements\sounds\machine_gun.ogg| },
 { type = sound   path = |elements\sounds\explosion.wav| },
 { type = atlas   path = |elements\textures\atlases\particles.txt| },
@@ -99,7 +101,8 @@ resources = [
 { type = spriter path = |elements\textures\enemy.scon| },
 { type = spriter path = |elements\textures\tank.scon| },
 { type = spriter path = |elements\textures\enemyclock.scon| },
-{ type = spriter path = |elements\textures\clock.scon| }
+{ type = spriter path = |elements\textures\clock.scon| },
+{ type = spriter path = |elements\textures\fire_tower.scon| }
 ]
 
 phoneResources = 

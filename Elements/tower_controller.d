@@ -42,6 +42,7 @@ struct BaseTower
 	float regenRate;
 	uint metaIndex;
 	float range;
+	float angle;
 	SpriteInstance sprite;
 }
 
@@ -82,6 +83,7 @@ final class TowerCollection
 										metas[metaIndex].regenRate, 
 										metaIndex, 
 										metas[metaIndex].range * tileSize.x, 
+										0f,
 									metas[metaIndex].spriteID.animationInstance(AnimationState.idle));
 				tc.buildTower(metas[metaIndex].typeIndex, baseTowers.length - 1);
 				return;
@@ -194,16 +196,19 @@ final class TowerCollection
 
 	void render(List!BaseEnemy enemies)
 	{
+		auto baseTexture = Game.content.loadTexture("base_tower");
+		auto baseFrame = Frame(baseTexture);
 		foreach(tower;baseTowers)
 		{
 			Color color = tower.isBroken ? Color(0xFF777777) : Color.white;
 
-			Game.renderer.addSprite(tower.sprite, tower.position, color, Game.window.relativeScale);
-			//Game.renderer.addFrame(tower.frame, float4(	tower.position.x, 
-			//											tower.position.y, 
-			//											tileSize.x, 
-			//											tileSize.y), 
-			//					color, float2(tileSize)/2);
+
+			Game.renderer.addFrame(baseFrame, float4(	tower.position.x, 
+														tower.position.y, 
+														tileSize.x, 
+														tileSize.y), 
+								color, float2(tileSize)/2);
+			Game.renderer.addSprite(tower.sprite, tower.position, color, Game.window.relativeScale, tower.angle);
 		}
 
 

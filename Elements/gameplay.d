@@ -122,6 +122,10 @@ class GamePlayState : IGameState
 		Game.router.connectionHandlers ~= &connect;
 		Game.router.disconnectionHandlers ~= &disconnect;
 		Game.router.reconnectionHandlers ~= &reconnect;
+
+		towerCollection.buildTower(float2(5 * level.tileSize.x + level.tileSize.x / 2, 
+										  4 * level.tileSize.y + level.tileSize.y / 2), 
+								   0, 0);
 	}
 
 	void exit()
