@@ -13,3 +13,5 @@ maxInvis = 0.4
 
 minVis = 1.5
 maxVis = 4.5
+
+snakeSpeed = 3

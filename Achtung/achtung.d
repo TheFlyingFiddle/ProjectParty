@@ -22,6 +22,7 @@ struct AchtungConfig
 	int winningScore;
 	uint maxSnakes;
     uint2 maxResolution;
+	float snakeSpeed;
 }
 
 class AchtungGameState : IGameState
@@ -69,11 +70,17 @@ class AchtungGameState : IGameState
 		Game.router.messageHandlers ~= &timeMessurements;
 		import allocation;
 		latencyCounter = collections.table.Table!(ulong, TimeLatency)(GC.it, 20);
+
 	}
 
 	void exit()
 	{
 		Game.window.onSizeChanged = null;
+		foreach(latency; latencyCounter.values)
+		{
+			latency.logFile.flush();
+			latency.logFile.close();
+		}
 	}
 
 	void sizeChanged(int x, int y)
@@ -181,7 +188,7 @@ class AchtungGameState : IGameState
 		foreach(key, ref snake; snakes)	
 		{
 			auto oldPos = uint2(snake.pos);
-			snake.pos += snake.dir;
+			snake.pos += snake.dir * config.snakeSpeed;
 			auto newPos = uint2(snake.pos);
 			if(oldPos != newPos && snake.visible) 
 			{
@@ -306,8 +313,10 @@ class AchtungGameState : IGameState
 
 
 	import std.datetime, collections.table;
+	import std.stdio;
 	struct TimeLatency
 	{
+		File logFile;
 		StopWatch watch;
 		ulong[] high;
 		ulong max;
@@ -320,14 +329,15 @@ class AchtungGameState : IGameState
 		//Phone sensor ID
 		if(msg[0] == 1)
 		{
+			auto name = Game.players.find!(x => x.id == id)[0].name;
 			if(latencyCounter.indexOf(id) == -1) {
 				StopWatch sw; sw.start();
-				latencyCounter[id] = TimeLatency(sw);
+				latencyCounter[id] = TimeLatency(File(name~"TCP.txt", "w"), sw);
+				latencyCounter[id].logFile.writeln(name);
 			} else {
 				latencyCounter[id].messageCount++;
 				ulong elapsed = latencyCounter[id].watch.peek.msecs;
 				import std.stdio, std.algorithm;
-				auto name = Game.players.find!(x => x.id == id)[0].name;
 				if(elapsed > latencyCounter[id].max)
 				{
 					latencyCounter[id].max = elapsed;
@@ -340,6 +350,8 @@ class AchtungGameState : IGameState
 					writeln("Average spike for ",name,": ", latencyCounter[id].high.reduce!"a+b"/cast(double)latencyCounter[id].high.length);
 
 				}
+
+				latencyCounter[id].logFile.write(elapsed,"\n");
 
 				latencyCounter[id].watch.reset;
 				latencyCounter[id].watch.start;
