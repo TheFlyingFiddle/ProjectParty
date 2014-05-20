@@ -1,34 +1,52 @@
 questions = 
 [ 
-	{ 
-		answer = |ball|
-		choices =
-		[	
-			|sun|,
-			|uranus|,
-			|moon|,
-			|ball|
-		]
-	},
-	{ 
-		answer = |sun|
-		choices =
-		[	
-			|sun|,
-			|neptune|,
-			|moon|,
-			|ball|
-		]
-	},
-	{ 
-		answer = |moon|
-		choices =
-		[	
-			|sun|,
-			|jupiter|,
-			|moon|,
-			|ball|
-		]
-	}
+	[	
+		|Pingpong ball|,
+		|Uranus|,
+		|Volley ball|,
+		|Football|
+	],
+	[
+		|Chef|,
+		|Christmas|,
+		|Change|,
+		|Chicken|
+	],
+	[
+		|Storm|,
+		|Thunder|,
+		|Rain|,
+		|Cloud|
+	],
+	[
+		|Parrot|,
+		|Pirate|,
+		|Flag|,
+		|Boat|
+	],
+	[
+		|Pizza|,
+		|Hamburger|,
+		|Junk food|,
+		|Donut|
+	],
+	[
+		|Battery|,
+		|Power|,
+		|Electricity|,
+		|Rocket|
+	],
+	[
+		|Apple|,
+		|Banana|,
+		|Pear|,
+		|Melon|
+	],
+	[
+		|Alcohol|,
+		|Bartender|,
+		|Water|,
+		|Bar|
+	]
 ]
 

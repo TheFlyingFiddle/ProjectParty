@@ -1,3 +1,3 @@
 drawingArea = { x = 528 y = 111 z = 1280 w = 720 }
 nameArea =    { x = 124 y = 111 z = 362  w = 720 }
-roundArea =   { x = 124 y = 111 z = 362  w = 720 }
+roundArea =   { x = 124 y = 1000 z = 362  w = 720 }

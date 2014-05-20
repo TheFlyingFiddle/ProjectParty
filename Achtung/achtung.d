@@ -63,6 +63,8 @@ class AchtungGameState : IGameState
 		agd.data.clear();
 		foreach(player; Game.players)
 		{
+			import network.message;
+			Game.server.sendMessage(player.id, ColorMessage(player.color.packedValue));
 			agd.data ~= PlayerData(player.id, player.color, 0);
 		}
 
@@ -76,9 +78,9 @@ class AchtungGameState : IGameState
 
 		Game.window.onSizeChanged = &sizeChanged;
 
-		Game.router.messageHandlers ~= &timeMessurements;
-		import allocation;
-		latencyCounter = collections.table.Table!(ulong, TimeLatency)(GC.it, 20);
+	//	Game.router.messageHandlers ~= &timeMessurements;
+	//	import allocation;
+	//	latencyCounter = collections.table.Table!(ulong, TimeLatency)(GC.it, 20);
 
 	}
 
@@ -93,6 +95,7 @@ class AchtungGameState : IGameState
 		import network.message;
 		auto msg = TransitionMessage("Achtung");
 		Game.server.sendMessage(id, msg);
+		Game.server.sendMessage(id, ColorMessage(color.packedValue));
 
 
 		reset();
@@ -112,11 +115,11 @@ class AchtungGameState : IGameState
 		Game.router.connectionHandlers.remove(&onConnect);
 		Game.router.disconnectionHandlers.remove(&onDisconnect);
 		Game.window.onSizeChanged = null;
-		foreach(latency; latencyCounter.values)
-		{
-			latency.logFile.flush();
-			latency.logFile.close();
-		}
+	//	foreach(latency; latencyCounter.values)
+	//	{
+	//		latency.logFile.flush();
+	//		latency.logFile.close();
+	//	}
 	}
 
 	void sizeChanged(int x, int y)
@@ -358,50 +361,50 @@ class AchtungGameState : IGameState
 	}
 
 
-	import std.datetime, collections.table;
-	import std.stdio;
-	struct TimeLatency
-	{
-		File logFile;
-		StopWatch watch;
-		ulong[] high;
-		ulong max;
-		ulong messageCount;
-	}
+//	import std.datetime, collections.table;
+//	import std.stdio;
+//	struct TimeLatency
+//	{
+//		File logFile;
+//		StopWatch watch;
+//		ulong[] high;
+//		ulong max;
+//		ulong messageCount;
+//	}
 
-	collections.table.Table!(ulong, TimeLatency) latencyCounter;
-	void timeMessurements(ulong id, ubyte[] msg)
-	{
-		//Phone sensor ID
-		if(msg[0] == 1)
-		{
-			auto name = Game.players.find!(x => x.id == id)[0].name;
-			if(latencyCounter.indexOf(id) == -1) {
-				StopWatch sw; sw.start();
-				latencyCounter[id] = TimeLatency(File(name~"TCP.txt", "w"), sw);
-				latencyCounter[id].logFile.writeln(name);
-			} else {
-				latencyCounter[id].messageCount++;
-				ulong elapsed = latencyCounter[id].watch.peek.msecs;
-				import std.stdio, std.algorithm;
-				if(elapsed > latencyCounter[id].max)
-				{
-					latencyCounter[id].max = elapsed;
-					writeln("New max for ",name,": ", elapsed);
-				}
-				if(elapsed > 50)
-				{
-					latencyCounter[id].high ~= elapsed;
-					writeln("Spike ratio for ",name,": ", latencyCounter[id].high.length/cast(double)latencyCounter[id].messageCount);
-					writeln("Average spike for ",name,": ", latencyCounter[id].high.reduce!"a+b"/cast(double)latencyCounter[id].high.length);
+//	collections.table.Table!(ulong, TimeLatency) latencyCounter;
+//	void timeMessurements(ulong id, ubyte[] msg)
+//	{
+//		//Phone sensor ID
+//		if(msg[0] == 1)
+//		{
+//			auto name = Game.players.find!(x => x.id == id)[0].name;
+//			if(latencyCounter.indexOf(id) == -1) {
+//				StopWatch sw; sw.start();
+//				latencyCounter[id] = TimeLatency(File(name~"TCP.txt", "w"), sw);
+//				latencyCounter[id].logFile.writeln(name);
+//			} else {
+//				latencyCounter[id].messageCount++;
+//				ulong elapsed = latencyCounter[id].watch.peek.msecs;
+//				import std.stdio, std.algorithm;
+//				if(elapsed > latencyCounter[id].max)
+//				{
+//					latencyCounter[id].max = elapsed;
+//					writeln("New max for ",name,": ", elapsed);
+//				}
+//				if(elapsed > 50)
+//				{
+//					latencyCounter[id].high ~= elapsed;
+//					writeln("Spike ratio for ",name,": ", latencyCounter[id].high.length/cast(double)latencyCounter[id].messageCount);
+//					writeln("Average spike for ",name,": ", latencyCounter[id].high.reduce!"a+b"/cast(double)latencyCounter[id].high.length);
 
-				}
+//				}
 
-				latencyCounter[id].logFile.write(elapsed,"\n");
+//				latencyCounter[id].logFile.write(elapsed,"\n");
 
-				latencyCounter[id].watch.reset;
-				latencyCounter[id].watch.start;
-			}
-		}
-	}
+//				latencyCounter[id].watch.reset;
+//				latencyCounter[id].watch.start;
+//			}
+//		}
+//	}
 }

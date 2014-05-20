@@ -9,7 +9,7 @@ struct OutgoingNetworkMessage
 alias Out = OutgoingNetworkMessage;
 enum Outgoing : OutgoingNetworkMessage 
 {
-	transaction = { id:50 },
+	transaction = Out(50),
 	bla		    = Out(51),
 	bur			= Out(52)
 }

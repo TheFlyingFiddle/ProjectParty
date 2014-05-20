@@ -66,15 +66,9 @@ struct PlayerData
 	bool ready;
 }
 
-struct Question
-{
-	string		answer;
-	string[]	choices;
-}
-
 struct Questions
 {
-	List!Question questions;
+	string[][] questions;
 
 	auto ref opIndex(size_t index)
 	{
@@ -128,6 +122,7 @@ class GamePlayState : IGameState
 
 	uint drawingPlayer;
 	uint currentQuestion;
+	uint currentAnswer;
 
 	FBO fbo;
 	float2 oldDrawPos;
@@ -172,13 +167,12 @@ class GamePlayState : IGameState
 	void handleChoice(ulong id, ubyte[] msg)
 	{
 		auto choice = msg.read!ubyte;
-		if(questions[currentQuestion].answer == 
-		   questions[currentQuestion].choices[choice])
+		if(currentAnswer == choice)
 		{
 			Game.server.sendMessage(id, CorrectAnswer());
 			players[id].score++;
 			// Added as an incentive to paint at all...
-			players[drawingPlayer].score++;
+			players.at(drawingPlayer).score++;
 			nextQuestion();
 		}
 		else
@@ -236,8 +230,18 @@ class GamePlayState : IGameState
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
 		gl.clearColor(1,1,1,1);
 		gl.clear(ClearFlags.all);
-		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 
+		gl.viewport(0,0, fbo.width, fbo.height);
+
+		mat4 proj = mat4.CreateOrthographic(0,fbo.width, fbo.height,0,1,-1);
+		Game.renderer.start(proj);
+		auto bgtexture	= Game.content.loadTexture("papertexture");
+		auto bgframe	= Frame(bgtexture);
+		Game.renderer.addFrame (bgframe, float4(0,0,fbo.width, fbo.height), Color.white);
+		Game.renderer.draw();
+		Game.renderer.end();
+		gl.viewport(0,0, Game.window.fboSize.x, Game.window.fboSize.y);
+		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 	}
 
 	void exit()
@@ -261,12 +265,13 @@ class GamePlayState : IGameState
 	void nextQuestion()
 	{
 		currentQuestion = uniform(0, questions.length);
+		currentAnswer = uniform(0, questions[currentQuestion].length);
 		auto drawingID = players.keyAt(drawingPlayer);
-		Game.server.sendMessage(drawingID, YouDraw(questions[currentQuestion].answer));
+		Game.server.sendMessage(drawingID, YouDraw(questions[currentQuestion][currentAnswer]));
 		
 		foreach(id, player; players) if (id != drawingID)
 		{
-			Game.server.sendMessage(id, YouGuess(questions[currentQuestion].choices));
+			Game.server.sendMessage(id, YouGuess(questions[currentQuestion]));
 		}
 
 		clear();
@@ -299,8 +304,10 @@ class GamePlayState : IGameState
 		auto mag = distance(position, oldDrawPos);
 		import std.stdio;
 		writeln("Dir:", dir, "Mag:", mag);
+
+		gl.viewport(0,0, fbo.width, fbo.height);
 		
-		mat4 proj = mat4.CreateOrthographic(0,Game.window.fboSize.x, Game.window.fboSize.y,0,1,-1);
+		mat4 proj = mat4.CreateOrthographic(0,fbo.width, fbo.height,0,1,-1);
 		buffer.start(proj);
 
 		foreach(i; 0 .. cast(int)(mag * 10))
@@ -319,6 +326,7 @@ class GamePlayState : IGameState
 
 
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
+		gl.viewport(0,0, Game.window.fboSize.x, Game.window.fboSize.y);
 	}
 
 	void render()

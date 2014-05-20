@@ -6,7 +6,7 @@ maxResolution =
 
 maxSnakes = 20
 snakeSize = 4
-winningScore = 1000
+winningScore = 10
 
 minInvis = 0.2
 maxInvis = 0.4
@@ -18,4 +18,4 @@ pause = 1
 
 deathSounds = [ |squeek| , |cough| ]
 
-snakeSpeed = 3
+snakeSpeed = 1.6
