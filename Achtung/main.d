@@ -57,7 +57,7 @@ void init(A)(ref A allocator)
 	fsm.addState(allocator.allocate!AchtungGameState(allocator, "Config.sdl", agd), "Achtung");
 	import game.states.lobby;
 	fsm.addState(allocator.allocate!LobbyState(allocator, "lobby.sdl", "Achtung", AchtungMessages.toggleReady), "MainMenu");
-	fsm.addState(allocator.allocate!GameOverGameState(agd, 10), "GameOver");
+	fsm.addState(allocator.allocate!GameOverGameState(allocator, agd, 10), "GameOver");
 	Game.transitionTo("MainMenu");
 
 

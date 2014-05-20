@@ -21,6 +21,8 @@ struct Layout
 	List!uint colors;
 
 	string title;
+
+	@Optional("") string allReadySound;
 }
 
 struct PlayerData
@@ -95,7 +97,14 @@ final class LobbyState : IGameState
 		players[id].ready = !players[id].ready;
 
 		if(allPlayersReady())
+		{
+			if(layout.allReadySound != "")
+			{
+				auto sound = Game.content.loadSound(layout.allReadySound);
+				Game.sound.playSound(sound);
+			}
 			elapsed = 0;
+		}
 	}
 
 	private bool allPlayersReady()
@@ -142,7 +151,7 @@ final class LobbyState : IGameState
 		gl.clear(ClearFlags.color);
 
 		auto titleSize = layout.titleFont.measure(layout.title);
-		auto pos = float2(s.x / 2, s.y - layout.titleMargin);
+		auto pos = float2(s.x / 2, s.y - layout.titleMargin*resolutionScale.y);
 
 		auto sb = Game.renderer;
 		sb.addText(layout.titleFont, layout.title, pos, layout.titleColor, resolutionScale, titleSize/2);
@@ -151,12 +160,12 @@ final class LobbyState : IGameState
 		{
 			auto nameSize = layout.playerFont.measure(player.name);
 			float2 textPos = float2(s.x/2 - layout.rightLeftMargin, 
-									pos.y - titleSize.y - layout.playerMargin - (i + 1) * (layout.playerSpacing + nameSize.y));
+									pos.y - titleSize.y*resolutionScale.y - layout.playerMargin*resolutionScale.y - (i + 1) * (layout.playerSpacing*resolutionScale.y + nameSize.y));
 
 			sb.addText(layout.playerFont, player.name, 
 					   textPos, player.color,resolutionScale,float2(nameSize.x, 0));
 
-			float2 readyPos = float2(s.x/2 + layout.rightLeftMargin,textPos.y);
+			float2 readyPos = float2(s.x/2 + layout.rightLeftMargin*resolutionScale.x,textPos.y);
 
 			if(players[player.id].ready)
 				sb.addText(layout.playerFont, "Ready!", readyPos, Color.green, resolutionScale);

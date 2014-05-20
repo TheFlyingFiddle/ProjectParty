@@ -13,3 +13,7 @@ maxInvis = 0.4
 
 minVis = 1.5
 maxVis = 4.5
+
+pause = 1
+
+deathSounds = [ |squeek| , |cough| ]

@@ -136,7 +136,7 @@ class GamePlayState : IGameState
 		
 		state = GameState.betweenRounds;
 		elapsed = 0;
-		playTime = 10;
+		playTime = 100;
 	}
 
 	void enter()
@@ -281,8 +281,8 @@ class GamePlayState : IGameState
 
 		import util.strings;
 		char[128] buf;
-		Game.renderer.addText(font, text(buf, "Time left: ", playTime - elapsed), float2(0, Game.window.size.y), 
-							  Color.black, Game.window.relativeScale);
+		Game.renderer.addText(font, text(buf, "Time left: ", playTime - elapsed), layout.roundArea.xy, 
+							  Color.white, Game.window.relativeScale);
 		foreach(i, id, player; players)
 		{
 			auto index = Game.players.countUntil!(p=>p.id == id);

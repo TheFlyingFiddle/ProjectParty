@@ -1,7 +1,7 @@
-titleMargin = 50
-playerMargin = 10
+titleMargin = 200
+playerMargin = 250
 playerSpacing = 20
-rightLeftMargin = 15
+rightLeftMargin = 100
 
 colors = 
 [
@@ -21,5 +21,6 @@ title = ACHTUNG
 titleFont = Blocked72
 titleColor = 0xFFFF4400
 
-playerFont = Blocked72
+playerFont = Megaman24
 
+allReadySound = allready

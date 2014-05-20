@@ -51,7 +51,7 @@ soundConfig =
 	musicVolume  = 1.0
 	soundVolume  = 1.0 
 	masterVolume = 0.5
-	muted        = true
+	muted        = false
 
 	musicFoulderPath = ||
 }
@@ -61,6 +61,11 @@ gameName = achtung
 resources = [ 
 { type = texture path = |achtung\textures\pixel.png| },
 { type = font	 path = |achtung\fonts\Blocked72.fnt| },
+{ type = font	 path = |achtung\fonts\Megaman24.fnt| },
+{ type = sound   path = |achtung\sounds\allready.wav| },
+{ type = sound   path = |achtung\sounds\cough.wav| },
+{ type = sound   path = |achtung\sounds\squeek.wav| },
+{ type = sound   path = |achtung\sounds\halleluja.wav| },
 { type = font	 path = |achtung\fonts\Segoe54.fnt| } ]
 
 phoneResources = [

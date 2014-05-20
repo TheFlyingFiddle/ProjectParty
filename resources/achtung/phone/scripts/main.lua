@@ -6,7 +6,7 @@ Network.messages.win = 54
 
 function init()
     fsm = FSM()
-	Game.setFps(45)
+	Game.setFps(90)
     Screen.setOrientation(Orientation.landscape)
     fsm:addState(Lobby(), "MainMenu")
     fsm:addState(GamePlay(), "Achtung")

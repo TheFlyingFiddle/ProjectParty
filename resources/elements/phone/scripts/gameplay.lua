@@ -275,7 +275,7 @@ function GamePlay()
 			Renderer.addFrame(frame, pos, dim, 0xFFFFFFFF)
 		end
 
-		renderTime(font)
+		--renderTime(font)
 		Renderer.addText(font, string.format("Gold: %d ", money), vec2(0, 300), 0xFFFFFFFF)
 
 		if selector then

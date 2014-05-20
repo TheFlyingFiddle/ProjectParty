@@ -22,6 +22,8 @@ struct AchtungConfig
 	int winningScore;
 	uint maxSnakes;
     uint2 maxResolution;
+	string[] deathSounds;
+	float pause;
 }
 
 class AchtungGameState : IGameState
@@ -40,6 +42,8 @@ class AchtungGameState : IGameState
 
 	AchtungConfig config;
 
+	float elapsed;
+
 	this(A)(ref A allocator, string configPath, AchtungGameData agd)
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
@@ -50,6 +54,7 @@ class AchtungGameState : IGameState
 		renderer   = AchtungRenderer(allocator, cast(uint)agd.data.capacity, config.maxResolution.x, config.maxResolution.y);
 		stream     = EventStream(allocator, 1024 * 1000);
 		this.agd = agd;
+		elapsed = 0f;
 	}
 
 	void enter()		
@@ -62,13 +67,44 @@ class AchtungGameState : IGameState
 
 		map = masterMap.subGrid(Game.window.fboSize.x - 100, Game.window.fboSize.y);
 
+		Game.router.reconnectionHandlers  ~= &onConnect;
+		Game.router.connectionHandlers    ~= &onConnect;
+		Game.router.disconnectionHandlers ~= &onDisconnect;
+
 		reset();
 
 		Game.window.onSizeChanged = &sizeChanged;
 	}
 
+	void onConnect(ulong id)
+	{
+		auto color = Color(0xFF333333 | uniform(0,uint.max));
+		auto index = Game.players.countUntil!(x => x.id == id);
+		Game.players[index].color = color;
+
+		agd.data ~= PlayerData(id, color, 0);
+
+		import network.message;
+		auto msg = TransitionMessage("Achtung");
+		Game.server.sendMessage(id, msg);
+
+
+		reset();
+	}
+
+	void onDisconnect(ulong id)
+	{
+ 		collections.list.remove!(w => w.playerId == id)(agd.data);
+
+		reset();
+	}
+
 	void exit()
 	{
+		import collections.list;
+		Game.router.reconnectionHandlers.remove(&onConnect);
+		Game.router.connectionHandlers.remove(&onConnect);
+		Game.router.disconnectionHandlers.remove(&onDisconnect);
 		Game.window.onSizeChanged = null;
 	}
 
@@ -103,18 +139,24 @@ class AchtungGameState : IGameState
 			snakes[playerData.color]   = snake;
 			timers[playerData.color]   = 1.0f;
 		}
+
+		elapsed = 0f;
 	}
 
 	void update()
 	{
-		generateInputEvents(stream);
-		handleInput(snakes, stream);
-		updateTimers(timers, snakes, Time.delta);
+		if (elapsed == 0f || elapsed > config.pause)
+		{
+			generateInputEvents(stream);
+			handleInput(snakes, stream);
+			updateTimers(timers, snakes, Time.delta);
 
-		moveSnakes(snakes, map, stream, config.snakeSize);
-		handleCollision(snakes, timers, map, stream);
+			moveSnakes(snakes, map, stream, config.snakeSize);
+			handleCollision(snakes, timers, map, stream);
 
-		stream.clear();
+			stream.clear();
+		}
+		elapsed += Time.delta;
 	}
 
 	void render()
@@ -260,6 +302,10 @@ class AchtungGameState : IGameState
 
 			foreach(ref playerData; agd.data) if(collision.color == playerData.color) {
 				playerData.score += toGet;
+
+				auto sound = Game.content.loadSound(config.deathSounds[uniform(0, config.deathSounds.length)]);
+				
+				Game.sound.playSound(sound);
 				sendDeathMessage(playerData.playerId, playerData.score);
 			}
 

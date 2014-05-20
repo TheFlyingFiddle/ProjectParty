@@ -94,6 +94,7 @@ resources = [
 { type = texture path = |elements\textures\tank.png| },
 { type = texture path = |elements\textures\fire_tower.png| },
 { type = texture path = |elements\textures\base_tower.png| },
+{ type = texture path = |elements\textures\smiley.png| },
 { type = sound   path = |elements\sounds\machine_gun.ogg| },
 { type = sound   path = |elements\sounds\explosion.wav| },
 { type = atlas   path = |elements\textures\atlases\particles.txt| },

@@ -44,6 +44,12 @@ startBalance = 200
 
 waves = 
 [  
+	{	spawners =
+		[ 
+			{ startTime = 0		prototypeIndex = 0	spawnInterval = 1	numEnemies = 75 pathIndex = 0}
+		]
+		pauseTime = 10
+	},
 	{	spawners = 
 		[
 			{ startTime = 0  	prototypeIndex = 0	spawnInterval = 1	numEnemies = 1  pathIndex = 0},
