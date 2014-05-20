@@ -334,9 +334,13 @@ function GamePlay()
 
 	local function handleTowerSold(cell)
 		map.tiles[cell.y*map.width + cell.x] = 0
+		log("Tower was sold!")
+		logf("%d", cell.x)
+		logf("%d", cell.y)
 
 		for k, v in pairs(towerInstances) do
 			if v.pos.x == cell.x and v.pos.y == cell.y then
+				log("found!")
 				table.remove(towerInstances, k)
 				return
 			end

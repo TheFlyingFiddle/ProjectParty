@@ -36,7 +36,7 @@ function GamePlay()
 	end
 	function gamePlay.handleMessage(id, length)
 		if id == Network.messages.death then
-			vibrate(1000)
+			--vibrate(1000)
 			score = In.readShort()
 		elseif id == Network.messages.win then
 			score = In.readShort()

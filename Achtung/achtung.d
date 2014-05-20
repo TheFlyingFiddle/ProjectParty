@@ -24,6 +24,7 @@ struct AchtungConfig
     uint2 maxResolution;
 	string[] deathSounds;
 	float pause;
+	float snakeSpeed;
 }
 
 class AchtungGameState : IGameState
@@ -35,9 +36,9 @@ class AchtungGameState : IGameState
 	EventStream stream;
 	AchtungRenderer renderer;
 
-	Table!(ulong) ids;
-	Table!(Snake) snakes;
-	Table!(float) timers;
+	types.Table!(ulong) ids;
+	types.Table!(Snake) snakes;
+	types.Table!(float) timers;
     AchtungGameData agd;
 
 	AchtungConfig config;
@@ -48,8 +49,8 @@ class AchtungGameState : IGameState
 	{
 		config     = fromSDLFile!AchtungConfig(allocator, configPath);
 
-		snakes     = Table!(Snake)(allocator, config.maxSnakes);
-		timers     = Table!(float)(allocator, config.maxSnakes);
+		snakes     = types.Table!(Snake)(allocator, config.maxSnakes);
+		timers     = types.Table!(float)(allocator, config.maxSnakes);
 		masterMap  = Grid!bool(allocator, config.maxResolution.x, config.maxResolution.y);
 		renderer   = AchtungRenderer(allocator, cast(uint)agd.data.capacity, config.maxResolution.x, config.maxResolution.y);
 		stream     = EventStream(allocator, 1024 * 1000);
@@ -74,6 +75,11 @@ class AchtungGameState : IGameState
 		reset();
 
 		Game.window.onSizeChanged = &sizeChanged;
+
+		Game.router.messageHandlers ~= &timeMessurements;
+		import allocation;
+		latencyCounter = collections.table.Table!(ulong, TimeLatency)(GC.it, 20);
+
 	}
 
 	void onConnect(ulong id)
@@ -106,6 +112,11 @@ class AchtungGameState : IGameState
 		Game.router.connectionHandlers.remove(&onConnect);
 		Game.router.disconnectionHandlers.remove(&onDisconnect);
 		Game.window.onSizeChanged = null;
+		foreach(latency; latencyCounter.values)
+		{
+			latency.logFile.flush();
+			latency.logFile.close();
+		}
 	}
 
 	void sizeChanged(int x, int y)
@@ -219,7 +230,7 @@ class AchtungGameState : IGameState
 		foreach(key, ref snake; snakes)	
 		{
 			auto oldPos = uint2(snake.pos);
-			snake.pos += snake.dir;
+			snake.pos += snake.dir * config.snakeSpeed;
 			auto newPos = uint2(snake.pos);
 			if(oldPos != newPos && snake.visible) 
 			{
@@ -325,28 +336,14 @@ class AchtungGameState : IGameState
 	
 	void sendDeathMessage(ulong id, uint score)
 	{
-		import util.bitmanip;
-		ubyte[32] buff = void; auto buffer = buff[0 .. 32];
-		size_t offset = 0;
-
-		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
-		buffer.write!ubyte(AchtungMessages.death, &offset);
-		buffer.write!ushort(cast(ushort)score, &offset);
-
-		Game.server.send(id, buffer[0 .. offset]);
+		import network.message;
+		Game.server.sendMessage(id, DeathMessage(cast(ushort)score));
 	}
 
 	void sendWinMessage(ulong id, uint score)
 	{
-		import util.bitmanip;
-		ubyte[32] buff = void; auto buffer = buff[0 .. 32];
-		size_t offset = 0;
-
-		buffer.write!ushort(ushort.sizeof + ubyte.sizeof, &offset);
-		buffer.write!ubyte(AchtungMessages.win, &offset);
-		buffer.write!ushort(cast(ushort)score, &offset);
-
-		Game.server.send(id, buffer[0 .. offset]);
+		import network.message;
+		Game.server.sendMessage(id, WinMessage(cast(ushort)score));
 	}
 
 	void renderFrame(ref AchtungRenderer buffer,
@@ -360,4 +357,51 @@ class AchtungGameState : IGameState
 		buffer.draw(snakes, agd, config.snakeSize);
 	}
 
+
+	import std.datetime, collections.table;
+	import std.stdio;
+	struct TimeLatency
+	{
+		File logFile;
+		StopWatch watch;
+		ulong[] high;
+		ulong max;
+		ulong messageCount;
+	}
+
+	collections.table.Table!(ulong, TimeLatency) latencyCounter;
+	void timeMessurements(ulong id, ubyte[] msg)
+	{
+		//Phone sensor ID
+		if(msg[0] == 1)
+		{
+			auto name = Game.players.find!(x => x.id == id)[0].name;
+			if(latencyCounter.indexOf(id) == -1) {
+				StopWatch sw; sw.start();
+				latencyCounter[id] = TimeLatency(File(name~"TCP.txt", "w"), sw);
+				latencyCounter[id].logFile.writeln(name);
+			} else {
+				latencyCounter[id].messageCount++;
+				ulong elapsed = latencyCounter[id].watch.peek.msecs;
+				import std.stdio, std.algorithm;
+				if(elapsed > latencyCounter[id].max)
+				{
+					latencyCounter[id].max = elapsed;
+					writeln("New max for ",name,": ", elapsed);
+				}
+				if(elapsed > 50)
+				{
+					latencyCounter[id].high ~= elapsed;
+					writeln("Spike ratio for ",name,": ", latencyCounter[id].high.length/cast(double)latencyCounter[id].messageCount);
+					writeln("Average spike for ",name,": ", latencyCounter[id].high.reduce!"a+b"/cast(double)latencyCounter[id].high.length);
+
+				}
+
+				latencyCounter[id].logFile.write(elapsed,"\n");
+
+				latencyCounter[id].watch.reset;
+				latencyCounter[id].watch.start;
+			}
+		}
+	}
 }

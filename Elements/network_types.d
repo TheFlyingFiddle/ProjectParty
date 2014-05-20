@@ -1,29 +1,72 @@
 module network_types;
 
+import network.message;
+
+alias In = IncommingNetworkMessage;
+enum IncomingMessages : In
+{
+	readyMessage		= In(49),
+	towerRequest		= In(50),
+	selectRequest		= In(51),
+	deselect			= In(52),
+	mapRequest			= In(53),
+	towerEntered		= In(54),
+	towerExited			= In(55),
+	ventValue			= In(56),
+	ventDirection		= In(57),
+	towerSell			= In(58),
+	ballisticValue		= In(59),
+	ballisticDirection	= In(60),
+	ballisticLaunch		= In(61),
+	upgradeTower		= In(62),
+	towerRepaired		= In(63),
+	gatlingValue		= In(64)
+}
+
+alias Out = OutgoingNetworkMessage;
+enum OutgoingMessages : Out
+{
+	map				= Out(50),
+	towerBuilt		= Out(51),
+	selected		= Out(52),
+	deselected		= Out(53),
+	towerEntered	= Out(54),
+	towerExited		= Out(55), 
+	towerInfo		= Out(56),
+	transaction		= Out(57),
+	towerSold		= Out(58),
+	towerBroken		= Out(59),
+	towerRepaired	= Out(60),
+	ventInfo		= Out(61),
+	ballisticInfo	= Out(62),
+	gatlingInfo		= Out(63),
+	pressureInfo	= Out(64)
+}
+
+
+@(OutgoingMessages.map)
 struct MapMessage
 {
-	enum ubyte id = OutgoingMessages.map;
-	enum maxSize = 8192;
 	uint width;
 	uint height;
 	ubyte[] tiles;
 }
 
+@(OutgoingMessages.selected)
 struct SelectedMessage 
 {
-	enum ubyte id = OutgoingMessages.selected;
 	uint x, y, color;
 }
 
+@(OutgoingMessages.deselected)
 struct DeselectedMessage 
 {
-	enum ubyte id = OutgoingMessages.deselected;
 	uint x, y;
 }
 
+@(OutgoingMessages.towerBuilt)
 struct TowerBuiltMessage
 {
-	enum ubyte id = OutgoingMessages.towerBuilt;
 	uint x, y;
 	ubyte towerType;
 	ubyte typeIndex;
@@ -32,28 +75,27 @@ struct TowerBuiltMessage
 	ubyte isBroken;
 }
 
+@(OutgoingMessages.towerEntered)
 struct TowerEnteredMessage
 {
-	enum ubyte id = OutgoingMessages.towerEntered;
 	uint x, y;
 }
 
+@(OutgoingMessages.towerExited)
 struct TowerExitedMessage
 {
-	enum ubyte id = OutgoingMessages.towerExited;
 	uint x, y;
 }
 
+@(OutgoingMessages.towerSold)
 struct TowerSoldMessage
 {
-	enum ubyte id = OutgoingMessages.towerSold;
 	uint x, y;
 }
 
+@(OutgoingMessages.towerInfo)
 struct TowerInfoMessage
 {
-	enum ubyte id = OutgoingMessages.towerInfo;
-	enum maxSize = 512;
 	uint cost;
 	float range;
 	string phoneIcon;
@@ -67,36 +109,36 @@ struct TowerInfoMessage
 	ubyte upgradeIndex2;
 }
 
+@(OutgoingMessages.transaction)
 struct TransactionMessage
 {
-	enum ubyte id = OutgoingMessages.transaction;
 	int amount;
 }
 
+@(OutgoingMessages.towerRepaired)
 struct TowerRepairedMessage
 {
-	enum ubyte id = OutgoingMessages.towerRepaired;
 	uint x, y;
 }	
 
+@(OutgoingMessages.towerBroken)
 struct TowerBrokenMessage
 {
-	enum ubyte id = OutgoingMessages.towerBroken;
 	uint x, y;
 }
 
+@(OutgoingMessages.ventInfo)
 struct VentInfoMessage
 {
-	enum ubyte id = OutgoingMessages.ventInfo;
 	float pressure;
 	float maxPressure;
 	float direction;
 	float open;
 }
 
+@(OutgoingMessages.ballisticInfo)
 struct BallisticInfoMessage
 {
-	enum ubyte id = OutgoingMessages.ballisticInfo;
 	float pressure;
 	float maxPressure;
 	float direction;
@@ -104,54 +146,21 @@ struct BallisticInfoMessage
 	float smallBoomCost;
 }
 
+@(OutgoingMessages.gatlingInfo)
 struct GatlingInfoMessage
 {
-	enum ubyte id = OutgoingMessages.gatlingInfo;
 	float pressure;
 	float maxPressure;
 }
 
+
+@(OutgoingMessages.pressureInfo)
 struct PressureInfoMessage
 {
-	enum ubyte id = OutgoingMessages.pressureInfo;
 	float pressure;
 }
 
-enum IncomingMessages : ubyte
+static this()
 {
-	readyMessage = 49,
-	towerRequest = 50,
-	selectRequest = 51,
-	deselect = 52,
-	mapRequest = 53,
-	towerEntered = 54,
-	towerExited = 55,
-	ventValue = 56,
-	ventDirection = 57,
-	towerSell = 58,
-	ballisticValue = 59,
-	ballisticDirection = 60,
-	ballisticLaunch = 61,
-	upgradeTower = 62,
-	towerRepaired = 63,
-	gatlingValue = 64
-}
-
-enum OutgoingMessages : ubyte
-{
-	map = 50,
-	towerBuilt = 51,
-	selected = 52,
-	deselected = 53,
-	towerEntered = 54,
-	towerExited = 55, 
-	towerInfo = 56,
-	transaction = 57,
-	towerSold = 58,
-	towerBroken = 59,
-	towerRepaired = 60,
-	ventInfo = 61,
-	ballisticInfo = 62,
-	gatlingInfo = 63,
-	pressureInfo = 64
+	generateLuaCode!(mixin(__MODULE__));
 }

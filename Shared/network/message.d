@@ -3,38 +3,48 @@ import std.traits;
 import util.bitmanip;
 import network.server;
 
-template isMessage(T)
+struct IncommingNetworkMessage
 {
-	enum isMessageTrue = __traits(compiles, T.id)		&&
-							is(typeof(T.id) == ubyte);
-
-	static if (!__traits(compiles, T.id))
-		static assert(0, "Messages has to have a enum named id."
-					  ~"Type: "~ T.stringof);
-	static if (!is(typeof(T.id) == ubyte))
-		static assert(0, "Message id has to be of type ubyte. "
-					  ~"Type: "~ T.stringof);
-
-	enum isMessage = isMessageTrue;
+	ubyte id;
+	alias id this;
 }
 
-template isIndirectMessage(T)
+struct OutgoingNetworkMessage
 {
-	enum isMessageTrue =	
-					__traits(compiles, T.maxSize);
+	ubyte id;
+	ushort size = 0;
 
-	static if (!__traits(compiles, T.maxSize))
-		static assert(0, "Indirect messages need to have a maximal size. "~
-						"Type: "~T.stringof);
-
-	enum isIndirectMessage = isMessageTrue;
+	alias id this;
 }
+
+template isOutgoingMessage(T)
+{
+	static if(__traits(getAttributes,T).length > 0)
+		enum attribute = __traits(getAttributes, T)[0];
+	else 
+		enum attribute = null;
+	alias type = OriginalType!(typeof(attribute));
+	enum isOutgoingMessage = is(type == OutgoingNetworkMessage);
+}
+
+template isIncommingMessage(T)
+{
+	static if(__traits(getAttributes,T).length > 0)
+		enum attribute = __traits(getAttributes, T)[0];
+	else 
+		enum attribute = null;
+	alias type = OriginalType!(typeof(attribute));
+	enum isIncommingMessage = is(type == IncommingNetworkMessage);
+}
+
+//I am not sure this should be here. And i am sure that it should not be in this form. 
 
 size_t writeMessage(T)(ubyte[] buf, T message)
-if (isMessage!T)
 {
+	enum meta = __traits(getAttributes, T)[0];
+
 	size_t offset = 2;
-	buf.write!ubyte(T.id, &offset);
+	buf.write!ubyte(meta.id, &offset);
 	foreach(i, field; message.tupleof)
 	{
 		alias type = typeof(field);
@@ -44,17 +54,33 @@ if (isMessage!T)
 	return offset;
 }
 
-void sendMessage(T)(Server* server, ulong id, T message)
-if (isMessage!T && hasIndirections!T && isIndirectMessage!T)
+T readMessageContent(T)(ref ubyte[] buf) if(isIncommingMessage!T)
 {
-	ubyte[T.maxSize + ubyte.sizeof + ushort.sizeof] buf = void;
-	auto length = buf.writeMessage(message);
+	T t;
+	foreach(i, field; t.tupleof)
+	{
+		alias type = typeof(field);
+		t.tupleof[i] =  buf.read!type;
+	}
+
+	return t;
+}
+
+void sendMessage(T)(Server* server, ulong id, T message) 
+	if (isOutgoingMessage!T && hasIndirections!T)
+{
+	enum meta = __traits(getAttributes, T)[0];
+	static if(meta.size == 0)
+		ubyte[0xFFFF] buf = void;
+	else
+		ubyte[meta.size + ubyte.sizeof + ushort.sizeof] buf = void;
 	
+	auto length = buf.writeMessage(message);
 	server.send(id, buf[0..length]);
 }
 
-void sendMessage(T)(Server* server, ulong id, T message)
-if (isMessage!T && !hasIndirections!T)
+void sendMessage(T)(Server* server, ulong id, T message) 
+	if (isOutgoingMessage!T && !hasIndirections!T)
 {
 	ubyte[T.sizeof + ubyte.sizeof + ushort.sizeof] buf = void;
 	auto length = buf.writeMessage(message);
@@ -63,19 +89,158 @@ if (isMessage!T && !hasIndirections!T)
 }
 
 unittest {
-	struct Message {
-		enum ubyte id = 5;
-		uint content = 298;
+	//struct Message {
+	//    enum meta = Message(5, Outgoing);
+	//    uint content = 298;
+	//}
+	//
+	//struct IncommingMessage {
+	//    enum meta = Message(5, Incomming);
+	//    uint content;
+	//}
+	//
+	//struct IndirectMessage {
+	//    enum meta = Message(234, Outgoing);
+	//    enum maxSize = 7;
+	//    string content = "saldf";
+	//}
+	//
+	//ubyte[7] buf = void;
+	//
+	//Message msg;
+	//buf.writeMessage(msg);
+	//
+	//auto readMsg = buf[3 .. $].readMessageContent!IncommingMessage;
+	//assert(msg.content == readMsg.content);
+	//assert(__traits(compiles, sendMessage(null, 234, Message())));
+	//assert(__traits(compiles, sendMessage(null, 23, IndirectMessage())));
+}
+
+import network.message;
+string generateLuaCode(alias module_)()
+{
+	string code = "";
+
+	foreach(member; __traits(allMembers, module_))
+	{
+		alias type = TypeTuple!(__traits(getMember, module_, member))[0];
+		static if(is(type == struct) && isOutgoingMessage!type) 
+		{
+			pragma(msg, luaReadMessage!type);
+		} 
+		else static if(is(type == struct) && isIncommingMessage!type)
+		{
+			pragma(msg, luaWriteMessage!type);
+		}
 	}
 
-	struct IndirectMessage {
-		enum ubyte id = 234;
-		enum maxSize = 7;
-		string content = "saldf";
+	return code;
+}
+
+private string luaReadMessage(T)()
+{
+	string code = "function read" ~ T.stringof ~ "()\n\t";
+	code ~= "local t = { }\n\t";
+	foreach(i, field; T.init.tupleof)
+	{
+		alias type = typeof(field);
+		enum  name = T.tupleof[i].stringof;
+		code ~= "t." ~ name ~ " = " ~ luaReadType!type ~ "\n\t";
 	}
 
-	ubyte[7] buf = void;
-	buf.writeMessage(Message());
-	assert(__traits(compiles, sendMessage(null, 234, Message())));
-	assert(__traits(compiles, sendMessage(null, 23, IndirectMessage())));
+	code ~= "return t\nend\n\n";
+	return code;
+}
+
+private string luaWriteMessage(T)()
+{
+	import std.conv, network.message;
+
+	string code = "function send" ~ T.stringof ~ "(";
+	foreach(i, field; T.init.tupleof)
+		code ~= T.tupleof[i].stringof ~ ",";
+	code ~= ")\n";
+
+	static if(__traits(compiles, isIndirectMessage!T))
+		code ~= luaIndirectCalculateLength!T;
+	else 
+		code ~= "\tOut.writeShort(" ~ messageLength!T.to!string ~ ")\n";
+
+	code ~= "\tOut.writeByte(" ~ T.id.to!string ~ ")\n";
+	foreach(i, field; T.init.tupleof)
+	{
+		alias type  = typeof(field);
+		enum  name  = T.tupleof[i].stringof;
+		code ~= "\t" ~ luaWriteType!type(name) ~ "\n";
+	}
+	code ~= "end\n\n";
+	return code;
+}
+
+private alias types = TypeTuple!(byte, ubyte, short, ushort,
+						 int, uint, long, ulong, 
+						 float, double,
+						 string, ubyte[]);
+
+private enum names  = 
+["Byte", "Byte",  "Short", "Short",
+"Int",  "Int",   "Long",  "Long",
+"Float","Double","UTF8","ByteArray"];
+
+
+import std.traits, std.typetuple;
+private string luaReadType(T)()
+{
+	enum index = staticIndexOf!(T, types);
+	static assert(index != -1);
+
+	return "In.read" ~ names[index] ~ "()";
+}
+
+private string luaWriteType(T)(string variable)
+{
+	enum index = staticIndexOf!(T, types);
+	static assert(index != -1);
+	return "Out.write" ~ names[index] ~ "(" ~ variable ~ ")"; 
+}
+
+private string luaIndirectCalculateLength(T)()
+{
+	import std.conv;
+	size_t size = 0;
+	string code = "";
+	foreach(i, field; T.init.tupleof)
+	{
+		alias type = typeof(field);
+		enum  name = T.tupleof[i].stringof;
+		static if(is(type == string) || is(type == ubyte[]))
+		{
+			size += 2;
+			code ~= "\tsize = size + #" ~ name ~ "\n";
+		} else 
+			size += luaTypeSize!type;
+	}
+
+	code ~= "\tOut.writeShort(size)\n";
+	return "\tlocal size = " ~ size.to!string ~ "\n" ~ code;
+}
+
+private size_t messageLength(T)()
+{
+	size_t length = 0;
+	foreach(i, field; T.init.tupleof)
+	{
+		alias type = typeof(field);
+		length += luaTypeSize!type;
+	}
+	return length + 1;
+}
+
+private size_t luaTypeSize(T)()
+{
+	enum sizes = [ 1, 1, 2, 2, 4, 4, 8, 8, 4, 8 ];
+
+	enum index = staticIndexOf!(T, types);
+	static assert(index != -1);
+	return sizes[index];
 }

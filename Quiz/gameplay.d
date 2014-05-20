@@ -1,7 +1,7 @@
 module gameplay;
 
 import 
-game, 
+	game, 
 	graphics, 
 	math, 
 	content, 
@@ -14,29 +14,37 @@ game,
 import std.random;
 import std.algorithm : max, min, any;
 
-enum IncomingMessages : ubyte
+alias In = IncommingNetworkMessage;
+enum IncomingMessages : In
 {
-	toggleReady = 49,
-	answer = 50,
-	buyScore = 51
+	toggleReady	= In(49),
+	answer		= In(50),
+	buyScore	= In(51),
 }
 
+alias Out = OutgoingNetworkMessage;
+enum OutgoingMessages : Out
+{
+	choices			= Out(50, 1024),
+	correctAnswer	= Out(51),
+	showAnswer		= Out(52),
+}
+
+
+@(OutgoingMessages.choices)
 struct Choices
 {
-	enum ubyte id = 50;
-	enum uint maxSize = 1024;
 	string[] choices;
  	ubyte category;
 }
 
-struct CorrectAnswer
-{
-	enum ubyte id = 51;
-}
+@(OutgoingMessages.correctAnswer)
+struct CorrectAnswer { }
 
-struct ShowAnswer
+
+@(OutgoingMessages.showAnswer)
+struct ShowAnswer 
 {
-	enum ubyte id = 52;
 	ubyte answer;
 }
 
