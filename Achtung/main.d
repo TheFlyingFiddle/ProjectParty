@@ -21,7 +21,6 @@ pragma(lib, libPath ~ "dunit.lib");
 pragma(lib, "Shared.lib");
 
 auto logChnl = LogChannel("MAIN");
-
 void main()
 {
 	import std.stdio;

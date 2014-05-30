@@ -61,3 +61,15 @@ enum IncomingMessages : In
 {
 	ushort position;
 }
+
+static this()
+{
+	import std.stdio;
+	enum code = generateLuaCode!(types);
+	pragma(msg, "Generated!");
+	pragma(msg, code);
+
+
+	File file = File("../resoruces/achtung/phone/network_generated.lua", "w");
+	file.rawWrite(code);
+}

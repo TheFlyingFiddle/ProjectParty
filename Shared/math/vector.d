@@ -239,7 +239,7 @@ auto cross(T, U)(auto ref Vector!(3, T) vec0,
 	return res;
 }
 
-auto rotate(T)(auto ref Vector!(2, T) toRotate, auto float angle)
+auto rotate(T)(auto ref Vector!(2, T) toRotate, float angle)
 {
 	import std.math;
 	auto s = sin(angle), 

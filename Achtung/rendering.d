@@ -41,9 +41,9 @@ struct AchtungRenderer
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, 0);
 	}
 
-	void draw(ref Table!Snake snakes, 
+	void draw(ref Table!Snake snakes,  
 			  AchtungGameData agd,
-			  float size)
+			  float size) 
 	{
 		gl.bindFramebuffer(FrameBufferTarget.framebuffer, fbo.glName);
 
@@ -82,8 +82,9 @@ struct AchtungRenderer
 		uint i = 0;
 		foreach(playerData; agd.data){
 			buffer.addText(font, text(scoreBuffer, playerData.score),
-						   float2(winSize.x - 80, (winSize.y - font.size) - i* (winSize.y /  agd.data.length)),
-						   playerData.color,float2(0.5, 0.5));
+							   float2(winSize.x - 80, 
+							   (winSize.y - font.size) - i* (winSize.y /  agd.data.length)),
+						      playerData.color,float2(0.5, 0.5));
 			i++;
 		}
 		buffer.draw();

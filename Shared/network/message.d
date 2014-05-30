@@ -119,22 +119,57 @@ unittest {
 import network.message;
 string generateLuaCode(alias module_)()
 {
-	string code = "";
+	string readers   = "";
+	string writers   = "";
+	string decoders  = "";
+	string incomming = "";
+	string outgoing  = "";
 
 	foreach(member; __traits(allMembers, module_))
 	{
-		alias type = TypeTuple!(__traits(getMember, module_, member))[0];
-		static if(is(type == struct) && isOutgoingMessage!type) 
+		static if(__traits(compiles, __traits(getMember, module_, member)))
 		{
-			pragma(msg, luaReadMessage!type);
-		} 
-		else static if(is(type == struct) && isIncommingMessage!type)
-		{
-			pragma(msg, luaWriteMessage!type);
+			alias type = TypeTuple!(__traits(getMember, module_, member))[0];
+			static if(is(type == struct) && isOutgoingMessage!type) 
+			{
+				readers ~= luaReadMessage!type;
+				incomming ~= luaIncommingMessage!type;
+				decoders ~= luaDecoder!type;
+			} 
+			else static if(is(type == struct) && isIncommingMessage!type)
+			{
+				writers ~= luaWriteMessage!type;
+				outgoing ~= luaOutgoingMessage!type;
+			}
 		}
 	}
 
-	return code;
+	return incomming ~ 
+			 outgoing  ~ 
+		    readers   ~ 
+		    writers   ~
+		    decoders; 
+}
+
+private string luaIncommingMessage(T)()
+{
+	import std.conv, std.string;
+	enum id = __traits(getAttributes, T)[0].id;
+	enum name = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
+	return "Network.incomming." ~ name ~  " = " ~ id.to!string ~ "\n";
+}
+
+private string luaOutgoingMessage(T)()
+{
+	import std.conv, std.string;
+	enum id = __traits(getAttributes, T)[0].id;
+	enum name = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
+	return "Network.outgoing." ~ name ~ " = " ~ id.to!string ~ "\n";
+}
+
+private string luaDecoder(T)()
+{
+	return "Network.decoders[Network.incoming." ~ T.stringof ~ "] = read" ~ T.stringof ~ "\n";
 }
 
 private string luaReadMessage(T)()
@@ -177,7 +212,7 @@ private string luaWriteMessage(T)()
 	return code;
 }
 
-private alias types = TypeTuple!(byte, ubyte, short, ushort,
+private alias basic_types = TypeTuple!(byte, ubyte, short, ushort,
 						 int, uint, long, ulong, 
 						 float, double,
 						 string, ubyte[]);
@@ -187,11 +222,12 @@ private enum names  =
 "Int",  "Int",   "Long",  "Long",
 "Float","Double","UTF8","ByteArray"];
 
+enum sizes = [ 1, 1, 2, 2, 4, 4, 8, 8, 4, 8 ];
 
 import std.traits, std.typetuple;
 private string luaReadType(T)()
 {
-	enum index = staticIndexOf!(T, types);
+	enum index = staticIndexOf!(T, basic_types);
 	static assert(index != -1);
 
 	return "In.read" ~ names[index] ~ "()";
@@ -199,7 +235,7 @@ private string luaReadType(T)()
 
 private string luaWriteType(T)(string variable)
 {
-	enum index = staticIndexOf!(T, types);
+	enum index = staticIndexOf!(T, basic_types);
 	static assert(index != -1);
 	return "Out.write" ~ names[index] ~ "(" ~ variable ~ ")"; 
 }
@@ -238,7 +274,6 @@ private size_t messageLength(T)()
 
 private size_t luaTypeSize(T)()
 {
-	enum sizes = [ 1, 1, 2, 2, 4, 4, 8, 8, 4, 8 ];
 
 	enum index = staticIndexOf!(T, types);
 	static assert(index != -1);

@@ -11,6 +11,13 @@ uint typeHash(P...)()
 	return bytesHash(cast(void*)s.ptr, s.length);
 }
 
+///Gets the hash of the type T (hash on the fully qualified name)
+template cHash(T)
+{
+	import std.traits;
+	enum name = fullyQualifiedName!T;
+	enum cHash = bytesHash(name.ptr, name.length, 0);
+}
 
 //Murmur3 hash algorithm by Austin Appleby in public domain.
 //Taken from Dlang/github/druntime

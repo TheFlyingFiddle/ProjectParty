@@ -3,6 +3,8 @@ module collections.table;
 import std.algorithm;
 import collections.list;
 
+@nogc:
+
 enum SortStrategy
 {
 	unsorted,

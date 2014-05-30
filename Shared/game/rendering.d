@@ -39,7 +39,7 @@ struct Renderer
 	private uint offset;
 	private uint bufferSize;
 
-	private Vertex* bufferPtr;
+	private Vertex* bufferPtr, basePtr;
 
 	mat4 transform;
 	Program* usedProgram;
@@ -106,6 +106,14 @@ struct Renderer
 		*(bufferPtr++) = vertex;
 	}
 
+	void addItem(uint index, TextureID id, ref Vertex vertex)
+	{
+		texture = id;
+		elements++;
+		basePtr[index] = vertex;
+	}
+
+
 	void addItems(Range)(TextureID id, ref Range vertices)
 	{
 		if(texture != id) {
@@ -151,6 +159,7 @@ struct Renderer
 		}
 
 		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.write);
+		basePtr = bufferPtr;
 	}
 
 	/** Draws all elements that has thus far been added for rendering immediatly.
@@ -194,6 +203,9 @@ struct Renderer
 		gl.bindTexture(tex.target, tex.glName);
 		gl.drawArrays(PrimitiveType.points, offset, elements - offset);
 
+		if(bufferSize - elements < 0xFFFF)
+			elements = 0;
+
 		offset = elements;
 	}
 
@@ -224,6 +236,34 @@ void addFrame(Renderer* renderer,
 
 	renderer.addItem(frame.texture, vertex);
 }
+
+
+void addFrame(Renderer* renderer,
+				  uint index,
+				  ref Frame frame,
+				  float2 pos,
+				  Color color,
+				  float2 scale = float2(1,1),
+				  float2 origin = float2(0,0),
+				  float rotation = 0,
+				  bool mirror = false)
+{
+
+	float4 coords = frame.coords;
+	if(mirror) {
+		swap(coords.x, coords.z);
+	}
+
+	float2 dim = float2(frame.srcRect.z * scale.x, frame.srcRect.w * scale.y);
+	auto vertex = Vertex(float4(pos.x, pos.y, dim.x, dim.y),
+								coords,
+								origin * scale,
+								color,
+								rotation);
+
+	renderer.addItem(index, frame.texture, vertex);
+}
+
 
 
 void addFrame(Renderer* renderer,

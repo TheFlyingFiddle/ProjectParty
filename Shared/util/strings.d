@@ -64,7 +64,7 @@ private uint id(const(char[]) s,  uint hash)
 	return hash;
 }
 
-const (char)[] text(Args...)(char[] buffer, Args args)
+const (char)[] text(Args...)(char[] buffer, Args args) 
 {
 	import std.format, collections.list;
 	template staticFormatString(size_t u)
@@ -73,14 +73,13 @@ const (char)[] text(Args...)(char[] buffer, Args args)
 		else enum staticFormatString = staticFormatString!(u - 1) ~ "%s";
 	}
 
-
 	auto appender = List!(char)(buffer);
 	formattedWrite(&appender, staticFormatString!(Args.length), args);
 
 	return appender.array;
 }
 
-const (char)[] format(Args...)(char[] buffer, string s, Args args)
+const (char)[] format(Args...)(char[] buffer, string s, Args args) 
 {
 	import std.format, collections.list;
 

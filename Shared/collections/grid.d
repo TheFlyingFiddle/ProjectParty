@@ -1,7 +1,7 @@
 module collections.grid;
-
 import math.vector : uint2;
 
+@nogc:
 struct Grid(T)
 {
 	T* buffer;
