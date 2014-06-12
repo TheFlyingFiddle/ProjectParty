@@ -1,10 +1,10 @@
-module system;
-import world;
-import entity_table;
+module entity.system;
+import entity.world;
+import entity.component;
+
 import std.traits;
 
 nothrow @nogc:
-
 interface ISystem 
 {
 	uint hash();
@@ -20,9 +20,15 @@ interface ISystem
 template isSystem(T)
 {
 	enum isSystem = 
-	__traits(compiles, 
-				{
-							});
+		__traits(compiles, 
+				 {
+				 });
+}
+
+mixin template SystemBase(Collection)
+{
+	void dest(typeof(Collection.init[CompHandle()]) comp) { }
+	mixin SystemBase!(Collection, dest);
 }
 
 mixin template SystemBase(Collection, alias destructor = void)
@@ -52,17 +58,10 @@ mixin template SystemBase(Collection, alias destructor = void)
 
 	void removeRef(CompHandle handle)
 	{
-		static if(is(destructor == void))
+		auto comp = collection[handle];
+		if(collection.removeRef(handle))
 		{
-			collection.removeRef(handle);
-		} 
-		else 
-		{
-			auto comp = collection[handle];
-			if(collection.removeRef(handle))
-			{
 				destructor(comp);		
-			}
 		}
 	}
 
@@ -97,10 +96,10 @@ class System(T) if(isSystem!T) : ISystem
 	}
 
 	static if(hasElaborateDestructor!T)
-	~this()
-	{
-		wraped.__dtor();
-	}
+		~this()
+		{
+			wraped.__dtor();
+		}
 
 	void initialize(World world)
 	{

@@ -10,7 +10,6 @@ import std.string;
 import std.range : repeat;
 import collections.list;
 import allocation;
-import dunit;
 
 
 alias TypeID = SDLObject.Type;
@@ -200,7 +199,7 @@ struct SDLIterator
 
 	T as(T)() if(is(T==bool))
 	{
-		assertEquals(over.root[currentIndex].type, TypeID._string,
+		assert(over.root[currentIndex].type == TypeID._string,
 				getSDLIterError() ~ "\n" ~
 	 			"SDLObject wasn't a boolean, which was requested");
 		auto range = mixin(curObjObjRange);
@@ -209,7 +208,7 @@ struct SDLIterator
 
     T as(T, A)(ref A allocator) if(isSomeString!T)
 	{
-        assertEquals(over.root[currentIndex].type, TypeID._string);
+        assert(over.root[currentIndex].type == TypeID._string);
 
         auto range = mixin(curObjObjRange);
         string str = readString!T(range);
@@ -268,7 +267,7 @@ struct SDLIterator
 
 	T as(T)() if (is(T == enum))
 	{
-		assertEquals(over.root[currentIndex].type, TypeID._string,
+		assert(over.root[currentIndex].type == TypeID._string,
 					 getSDLIterError() ~ "\n" ~
 					 "SDLObject wasn't an enum, which was requested");
 		auto range = mixin(curObjObjRange);
@@ -1246,6 +1245,8 @@ size_t getLineNumber(ref ForwardRange currentPos)
 
 
 version(unittest) {	
+
+	import dunit;
 	class TestSDL {
 
 

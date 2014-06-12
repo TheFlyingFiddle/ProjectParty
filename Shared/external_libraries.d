@@ -52,12 +52,9 @@ void init_dlls()
 	DerelictSDL2.load(SDL_PATH);
 	DerelictSDL2Mixer.load(SDL_MIXER_PATH);
 
-
-
 	FreeImage_Initialise();
 	SDL_Init(SDL_INIT_AUDIO);
 	Mix_Init(MIX_INIT_OGG);
-
 
 	glfwSetErrorCallback(&glfwError);
 	enforce(glfwInit(), "GLFW did not initialize properly!");

@@ -295,26 +295,15 @@ struct Game_Impl
 			Time._total += Time._delta;
 			last = curr;
 
-			{
-				auto p = StackProfile("Server / Message Handling");
-				server.update(Time.delta);
-			}
-
-			window.update(); //Process windowing events.
-
-			{
-				auto p = StackProfile("Update");
-				gameStateMachine.update();
-			}
-
-			{
-				auto p = StackProfile("Render");
-				import math;
-				mat4 proj = mat4.CreateOrthographic(0,window.fboSize.x, window.fboSize.y, 0, 1,-1);
-				renderer.start(proj);
-				gameStateMachine.render();
-				renderer.end();
-			}
+			server.update(Time.delta);
+			window.update();
+			gameStateMachine.update();
+			
+			import math;
+			mat4 proj = mat4.CreateOrthographic(0,window.fboSize.x, window.fboSize.y, 0, 1,-1);
+			renderer.start(proj);
+			gameStateMachine.render();
+			renderer.end();
 
 			window.swapBuffer();
 
@@ -328,7 +317,7 @@ struct Game_Impl
 				auto now_ = watch.peek();
 				while(sleeptime > 1.msecs)
 				{
-					Thread.sleep(1.hnsecs);
+					Thread.sleep(1.msecs);
 					auto tmp_ = watch.peek();
 					sleeptime -= tmp_ - now_;
 					now_= tmp_;

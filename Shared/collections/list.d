@@ -4,17 +4,6 @@ import std.traits;
 import allocation.common;
 import std.conv;
 
-void assertText(string file = __FILE__, size_t line = __LINE__, Args...)(bool b, Args args) 
-{
-	import std.c.stdlib, util.strings;
-	if(b)
-	{
-		char[] buffer = (cast(char*)std.c.stdlib.malloc(1024 * 32))[0 .. 1024 * 32];
-		auto s = text(buffer, file, ":(", line, ") ", args);
-		assert(b, s);
-	}	 
-}
-
 struct List(T)
 {
 	//This could potentially length + capacity at the begining of the buffer
@@ -49,7 +38,7 @@ struct List(T)
 
 	ref T opIndex(size_t index)
 	{
-		assertText(index < length, "A list was indexed outsize of it's bounds! Length: ", length, " Index: ", index);
+		assert(index < length, text("A list was indexed outsize of it's bounds! Length: ", length, " Index: ", index));
 		return buffer[index];
 	}
 
@@ -60,13 +49,13 @@ struct List(T)
 
 	void opIndexAssign(ref T value, size_t index)
 	{
-		assertText(index < length, "A list was indexed outsize of it's bounds! Length: ", length, " Index: ", index);
+		assert(index < length, text("A list was indexed outsize of it's bounds! Length: ", length, " Index: ", index));
 		buffer[index] = value;
 	}
 
 	void opIndexAssign(T value, size_t index)
 	{
-		assertText(index < length,"A list was indexed outsize of it's bounds! Length: ", length, " Index: ", index);
+		assert(index < length, text("A list was indexed outsize of it's bounds! Length: ", length, " Index: ", index));
 		buffer[index] = value;
 	}
 
@@ -79,7 +68,7 @@ struct List(T)
 						 size_t x,
 						 size_t y)
 	{
-		assertText(x <= y && x < length && y < length, "A list was siced outsize of it's bounds! Length: ",  length, " Slice: ", x ," ", y);
+		assert(x <= y && x < length && y < length, text("A list was siced outsize of it's bounds! Length: ",  length, " Slice: ", x ," ", y));
 		buffer[x .. y] = value;
 	}
 
@@ -138,7 +127,7 @@ struct List(T)
 	
 	void insert(size_t index, T value)
 	{
-		assertText(length < capacity,"Cannot insert outside of bounds! Length: ", length, " Index: ", index);
+		assert(length < capacity, text("Cannot insert outside of bounds! Length: ", length, " Index: ", index));
 
 		foreach_reverse(i; index .. length)
 			buffer[i + 1] = buffer[i];
@@ -149,8 +138,8 @@ struct List(T)
 
 	//Range interface
 	List!T save() { return this; }
-	T front() { return *buffer; }
-	T back()  { return buffer[length - 1]; }
+	ref T front() { return *buffer; }
+	ref T back()  { return buffer[length - 1]; }
 	bool empty() { return length == 0; }
 	void popFront() {
 		length--;
@@ -200,8 +189,8 @@ bool remove(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, auto ref T
 
 bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t index)
 {
-	assertText(index < list.length, "Cannot remove outsize of bounds! 
-				  Length: ",  list.length, " Index: ", cast(ptrdiff_t)index); 
+	assert(index < list.length, text("Cannot remove outsize of bounds! 
+		   Length: ",  list.length, " Index: ", cast(ptrdiff_t)index)); 
 
 	static if(s == SwapStrategy.unstable)
 	{

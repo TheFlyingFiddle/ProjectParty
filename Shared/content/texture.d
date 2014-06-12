@@ -133,6 +133,9 @@ private Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0, bool fl
 	}
 
 	FIBITMAP* bitmap = FreeImage_Load(format, c_path, paramConfig);
+	
+
+
 	scope(exit) FreeImage_Unload(bitmap);
 
 	uint width  = FreeImage_GetWidth(bitmap);
@@ -145,18 +148,34 @@ private Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0, bool fl
 	ColorType   cType;
 	InternalFormat iFormat;
 
-	cFormat = bpp == 32 ? ColorFormat.bgra : 
-	bpp == 24 ? ColorFormat.bgr  : 
-	bpp == 16 ? ColorFormat.bgr  : ColorFormat.red;
+	if(bpp == 16)
+	{
+		cFormat = ColorFormat.red;
+	}
+	else 
+	{
+		cFormat = bpp == 32 ? ColorFormat.bgra : 
+		bpp == 24 ? ColorFormat.bgr  : 
+		bpp == 16 ? ColorFormat.bgr  : ColorFormat.red;
+	}
 
-	cType   = bpp == 32 ? ColorType.ubyte_ :
-	bpp == 24 ? ColorType.ubyte_ :
-	bpp == 16 ? ColorType.ushort_5_6_5 : ColorType.ubyte_;
+	import derelict.opengl3.gl3;
 
-	iFormat = bpp == 32 ? InternalFormat.rgba8 :
-	bpp == 24 ? InternalFormat.rgb8  :
-	bpp == 16 ? InternalFormat.rgb8  : InternalFormat.red8;
+	if(bpp == 16)
+		cType = ColorType.ushort_;
+	else
+		cType   = bpp == 32 ? ColorType.ubyte_ : bpp == 24 ? ColorType.ubyte_ : bpp == 16 ? ColorType.ushort_5_6_5 : ColorType.ubyte_;
 
+	if(bpp == 16)
+	{
+		iFormat = InternalFormat.red16snorm;
+	}
+	else
+	{
+		iFormat = bpp == 32 ? InternalFormat.rgba8 :
+		bpp == 24 ? InternalFormat.rgb8  :
+		bpp == 16 ? InternalFormat.rgb8  : InternalFormat.red8;
+	}
 	return Texture2D.create(cFormat, cType, iFormat,
 									width, height, bits[0 .. bpp / 8 * width * height],
 									flag);

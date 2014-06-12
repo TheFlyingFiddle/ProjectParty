@@ -1,6 +1,5 @@
-module moving;
-
-import entity_table, system, math, tree, game.time, world;
+module systems.moving;
+import entity, systems, math, game;
 
 struct MoveComponent
 {
@@ -34,11 +33,9 @@ struct MoveSystem
 
 	void update()
 	{
-		import std.parallelism;
-
 		immutable delta = Time.delta;
 		auto items = collection.items[0 .. collection.numObjects];
-		foreach(i, ref elem; taskPool.parallel(items, 2048))
+		foreach(i, ref elem; items)
 		{
 			auto trans = &treeTransform.locals[elem.transform];
 

@@ -1,0 +1,11 @@
+<DProject>
+ <ProjectGuid>820e458b-f423-444d-89a8-d3f049d236f4</ProjectGuid>
+ <Config name="Debug">
+  <!-- default to defaults -->
+ </Config>
+ <Config name="Release">
+  </Config>
+ <Folder name="Content_Pipeline">
+  <File path="main.d" />
+ </Folder>
+</DProject>

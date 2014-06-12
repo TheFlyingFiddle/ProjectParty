@@ -13,7 +13,7 @@
   <verbose>0</verbose>
   <vtls>0</vtls>
   <symdebug>1</symdebug>
-  <optimize>1</optimize>
+  <optimize>0</optimize>
   <cpu>0</cpu>
   <isX86_64>0</isX86_64>
   <isLinux>0</isLinux>
@@ -29,7 +29,7 @@
   <useIn>0</useIn>
   <useOut>0</useOut>
   <useArrayBounds>0</useArrayBounds>
-  <noboundscheck>1</noboundscheck>
+  <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
   <useUnitTests>0</useUnitTests>
   <useInline>0</useInline>
@@ -61,7 +61,7 @@
   <doHdrGeneration>0</doHdrGeneration>
   <hdrdir />
   <hdrname />
-  <doXGeneration>1</doXGeneration>
+  <doXGeneration>0</doXGeneration>
   <xfilename>$(IntDir)\$(TargetName).json</xfilename>
   <debuglevel>0</debuglevel>
   <debugids />
@@ -89,6 +89,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>2</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -125,7 +126,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>1</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>1</useUnitTests>
+  <useUnitTests>0</useUnitTests>
   <useInline>1</useInline>
   <release>1</release>
   <preservePaths>0</preservePaths>
@@ -177,12 +178,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictGL3.lib DerelictGLFW3.lib DerelictUtil.lib DerelictFI.lib dunit.lib</libfiles>
+  <libfiles>DerelictGL3.lib DerelictGLFW3.lib DerelictUtil.lib DerelictFI.lib DerelictSDL2.lib</libfiles>
   <libpaths>..\lib\win32</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>1</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -277,6 +279,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>2</cRuntime>
   <additionalOptions>-unittest</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
@@ -371,6 +374,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>1</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -393,6 +397,10 @@
    <File path="collections\map.d" />
    <File path="collections\package.d" />
    <File path="collections\table.d" />
+  </Folder>
+  <Folder name="concurency">
+   <File path="concurency\messagepassing.d" />
+   <File path="concurency\threadpool.d" />
   </Folder>
   <Folder name="content">
    <File path="content\common.d" />
@@ -447,6 +455,7 @@
    <File path="graphics\framebuffer.d" />
    <File path="graphics\package.d" />
    <File path="graphics\program.d" />
+   <File path="graphics\program2.d" />
    <File path="graphics\shader.d" />
    <File path="graphics\texture.d" />
    <File path="graphics\textureatlas.d" />
@@ -471,6 +480,10 @@
   <Folder name="sound">
    <File path="sound\package.d" />
    <File path="sound\sound.d" />
+  </Folder>
+  <Folder name="spacial">
+   <File path="spacial\shape.d" />
+   <File path="spacial\transform.d" />
   </Folder>
   <Folder name="spriter">
    <File path="spriter\loader.d" />

@@ -22,13 +22,21 @@ struct VertexArray
 		gl.deleteVertexArrays(1, &glName);
 	}
 
+	void bind()
+	{
+		if(context.vao == glName)
+			return;
+
+		context.vao = glName;
+		gl.bindVertexArray(glName);
+	}
+
 	VertexArray bindAttribute(T)(VertexAttribute attrib, int stride, int offset, bool normalize = glNormalized!T) 
 	{
 		assertValidAttib!T(attrib);
 
 		gl.enableVertexAttribArray(attrib.loc);
-		gl.vertexAttribPointer(attrib.loc, glUnitSize!T, glType!T, 
-							   normalize, stride, 
+		gl.vertexAttribPointer(attrib.loc, glUnitSize!T, glType!T, normalize, stride, 
 							   cast(void*)offset);
 		return this;
 	}

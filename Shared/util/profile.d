@@ -21,3 +21,9 @@ struct StackProfile
 		chan.info("Running time for ", s, "was ", sw.peek.msecs);
 	}
 }
+
+
+mixin template Profile(string s)
+{
+	auto ___STACK___PROFILE___ = StackProfile(s);
+}

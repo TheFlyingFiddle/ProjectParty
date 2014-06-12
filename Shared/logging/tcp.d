@@ -22,21 +22,18 @@ struct NetConfig
 
 void initializeTcpLogger(string configFile)
 {
-	scope(failure) 
-	{
-		logger = &fallbackLogger;
-		return;
-	}
+	logger = &fallbackLogger;
+	return;
 
-	auto config = fromSDLFile!NetConfig(GC.it, configFile);    
-
-	logger = &tcpLogger;
-    buffer = GC.it.allocate!(ubyte[])(config.bufferSize, 8);
-
-	socket  =  GC.it.allocate!TcpSocket;
-	address =  getAddress(config.ip, config.port)[0];
-
-	socket.connect(address);
+	//auto config = fromSDLFile!NetConfig(GC.it, configFile);    
+	//
+	//logger = &tcpLogger;
+	//buffer = GC.it.allocate!(ubyte[])(config.bufferSize, 8);
+	//
+	//socket  =  GC.it.allocate!TcpSocket;
+	//address =  getAddress(config.ip, config.port)[0];
+	//
+	//socket.connect(address);
 }
 
 void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, string file, size_t line) nothrow
@@ -44,7 +41,7 @@ void fallbackLogger(string channel, Verbosity verbosity, const(char)[] msg, stri
 	import std.stdio;
 	scope(failure) return;
 
-	if(channel == "PROFILE") return;
+	//if(channel == "PROFILE") return;
 
 	writeln(channel, "   ", msg, "    ", file, "(", line, ")");
 }

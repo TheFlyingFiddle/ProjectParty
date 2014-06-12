@@ -219,6 +219,11 @@ struct Matrix3
 		assert(approxEqual(mat.determinant, 82.072f));
 	}
 
+	void opIndexAssing(float f, int index)
+	{
+		_rep[index] = f;
+	}
+
 	float opIndex(int m, int n)
 	{
 		return _rep[m + n*3];

@@ -27,7 +27,7 @@ struct ContentReloader
 		reloadFunctions = List!ReloadHandler(allocator, maxLoaders);
 		trackedResources = List!string(allocator, maxTrackedResouces);
 
-		spawn(&listenOnDirectory, thisTid, resourceDir);
+		//spawn(&listenOnDirectory, thisTid, resourceDir);
 	}
 
 	static void shutdown()
@@ -65,40 +65,40 @@ struct ContentReloader
 	{
 		import std.concurrency, std.datetime;
 
-		bool received = true;
-		while(received)
-		{
-			received = receiveTimeout(0.msecs,
-			(FileChangedEvent fileChanged)
-			{
-				import logging;
-				auto logChannel = LogChannel("RELOADING");
-				logChannel.info("File Changed", fileChanged.filePath);
-				foreach(r; loadedResources) logChannel.info("Loaded: ", r);
-				
-				if(loadedResources.canFind!(x => x == fileChanged.filePath))
-				{
-					auto fileExt = getFileExt(fileChanged.filePath);
-					if(fileExt == FileExtention.unknown)
-					{
-						logChnl.warn("File extention for file" ~ fileChanged.filePath ~ " is unkown");
-						return;
-					}
-
-					auto reloadHandler = reloadFunctions.find!(x => x.extention == fileExt)[0];
-					reloadHandler.reload(fileChanged.filePath);
-				}	
-
-				import std.array;
-				auto path = fileChanged.filePath.replace("\\", "/");
-				if(trackedResources.canFind!(x => x == path))
-				{
-					if(onTrackedChanged)
-						onTrackedChanged(fileChanged.filePath);
-				}
-
-			});
-		}
+		//bool received = true;
+		//while(received)
+		//{
+		//    received = receiveTimeout(0.msecs,
+		//    (FileChangedEvent fileChanged)
+		//    {
+		//        import logging;
+		//        auto logChannel = LogChannel("RELOADING");
+		//        logChannel.info("File Changed", fileChanged.filePath);
+		//        foreach(r; loadedResources) logChannel.info("Loaded: ", r);
+		//        
+		//        if(loadedResources.canFind!(x => x == fileChanged.filePath))
+		//        {
+		//            auto fileExt = getFileExt(fileChanged.filePath);
+		//            if(fileExt == FileExtention.unknown)
+		//            {
+		//                logChnl.warn("File extention for file" ~ fileChanged.filePath ~ " is unkown");
+		//                return;
+		//            }
+		//
+		//            auto reloadHandler = reloadFunctions.find!(x => x.extention == fileExt)[0];
+		//            reloadHandler.reload(fileChanged.filePath);
+		//        }	
+		//
+		//        import std.array;
+		//        auto path = fileChanged.filePath.replace("\\", "/");
+		//        if(trackedResources.canFind!(x => x == path))
+		//        {
+		//            if(onTrackedChanged)
+		//                onTrackedChanged(fileChanged.filePath);
+		//        }
+		//
+		//    });
+		//}
 	}
 
 }
@@ -196,6 +196,12 @@ version(Windows)
 		
 		ubyte[] buffer = new ubyte[1024];
 		uint bytesReturned;
+
+		import core.thread;
+
+		Thread t = Thread.getThis();
+		t.isDaemon = true;
+
 
 		while(true)
 		{

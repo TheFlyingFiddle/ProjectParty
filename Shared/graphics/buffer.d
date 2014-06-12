@@ -43,9 +43,7 @@ T[] getBufferSubData(T,Buffer)(ref Buffer buffer, uint offset, uint size, T[] ou
 T* mapRange(T, Buffer)(ref Buffer _buffer, uint offset, uint length, BufferRangeAccess access)
 {
 	auto ptr = gl.mapBufferRange(Buffer.target, offset * T.sizeof, length * T.sizeof, access);
-	if(!ptr) {
-		throw new Exception("Mapping of buffer failed!");
-	}
+	assert(ptr, "Mapping of buffer failed!");
 	return cast(T*)ptr;
 }
 
@@ -138,28 +136,75 @@ alias TextureBuffer TBO;
 struct TextureBuffer 
 {
 	mixin BufferData!(TextureBuffer, BufferTarget.texture, TextureBuffer, false,  int);
+
+	void bind()
+	{
+		if(context.texbo == glName)
+			return;
+
+		context.texbo = glName;
+		gl.bindBuffer(target, glName);
+	}
 }
 
 alias PixelPackBuffer PPBO;
 struct PixelPackBuffer  
 {
 	mixin BufferData!(PixelPackBuffer, BufferTarget.pixelPack,PixelPackBuffer, false, int);
+
+	void bind()
+	{
+		if(context.pixbo == glName)
+			return;
+
+		context.pixbo = glName;
+		gl.bindBuffer(target, glName);
+	}
+
 }
 
 alias PixelUnpackBuffer PUBO;
 struct PixelUnpackBuffer  
 {
 	mixin BufferData!(PixelUnpackBuffer,BufferTarget.pixelUnpack,PixelUnpackBuffer, false, int);
+
+	void bind()
+	{
+		if(context.pixubo == glName)
+			return;
+
+		context.pixubo = glName;
+		gl.bindBuffer(target, glName);
+	}
+
 } 
 
 alias VertexBuffer VBO;
 struct VertexBuffer 
 {
 	mixin BufferData!(VertexBuffer,BufferTarget.vertex,VertexBuffer,  true, uint, float, int, short, ushort);
+
+	void bind()
+	{
+		if(context.vbo == glName)
+			return;
+
+		context.vbo = glName;
+		gl.bindBuffer(target, glName);
+	}
 }
 
 alias IndexBuffer IBO;
 struct IndexBuffer  
 {
 	mixin BufferData!(IndexBuffer,BufferTarget.index,IndexBuffer,  false, ubyte, ushort, uint);
+
+	void bind()
+	{
+		if(context.ibo == glName)
+			return;
+
+		context.ibo = glName;
+		gl.bindBuffer(target, glName);
+	}
 }

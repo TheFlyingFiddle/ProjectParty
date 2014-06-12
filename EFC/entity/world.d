@@ -1,6 +1,6 @@
-module world;
+module entity.world;
+import entity.system;
 import collections.list;
-import system;
 
 struct ServiceLocator
 {
@@ -60,9 +60,9 @@ class World
 	private ServiceLocator locator;
 
 	this(A)(ref A allocator, 
-			  size_t maxSystems, 
-			  size_t maxEntitySystems, 
-			  size_t maxServices)
+			size_t maxSystems, 
+			size_t maxEntitySystems, 
+			size_t maxServices)
 	{
 		systems		  = List!ISystem(allocator, maxSystems);
 		entitySystems = List!IEntitySystem(allocator, maxEntitySystems);
@@ -106,7 +106,7 @@ class World
 	void addSystem(T)(System!T system) 
 	{
 		systems ~= cast(ISystem)system;
-	   import std.algorithm;
+	    import std.algorithm;
 		sort!("a.order() < b.order()")(systems.buffer[0 .. systems.length]);
 	} 
 

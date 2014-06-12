@@ -1,7 +1,6 @@
-module circle;
+module systems.circle;
 import game, math, collections, 
-		 entity_table, system, 
-		 tree, graphics, world;
+	   entity, systems, graphics;
 
 struct CircleComp
 {
@@ -35,16 +34,15 @@ struct CircleRenderSystem
 
 	void update()
 	{
-		import std.parallelism, std.range;
 		auto impl = Game;
-
-		foreach(i; taskPool.parallel(iota(0,collection.numObjects), 2048))
+		auto items = collection.items;
+		auto transforms = treeTransform.globals;
+		foreach(i, comp; items)
 		{
-			auto comp      = &collection.items[i];
-			auto transform = &treeTransform.globals[comp.transform];
+			auto transform = &transforms[comp.transform];
 			impl.renderer.addFrame(i, frame, transform.position, comp.color, 
-										  transform.scale, frame.dim / 2, 
-										  transform.rotation);
+								   transform.scale, frame.dim / 2, 
+								   transform.rotation);
 		}
 	}
 }	

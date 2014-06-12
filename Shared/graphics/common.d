@@ -53,7 +53,7 @@ unittest{
 
 template glNormalized(T) 
 {
-	static static if(isAny!(T, int, uint, int2, uint2, 
+	static static if(isAny!(T, uint, int2, uint2, 
 							int3, uint3, int4, uint4, Color)) {
 								enum glNormalized = true;
 							} else {

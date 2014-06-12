@@ -66,7 +66,6 @@ T allocate(T, A)(ref A allocator, size_t size, size_t alignment = 8) if (isArray
 
 T* allocate(T, A, Args...)(ref A allocator, auto ref Args args) if(is(T == struct) || isNumeric!T)
 {
-	import std.conv;
 	void[] buffer = allocator.allocate_impl(T.sizeof, T.alignof);
 	return emplace!T(buffer, args);
 }

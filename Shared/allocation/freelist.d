@@ -56,12 +56,6 @@ struct FreeList(T) if(is(T == class))
 {
 	enum tsize  = __traits(classInstanceSize, T);
 		
-
-	//You can never be sure that the writing to the memory
-	//in value will not to horrible things apperently...
-	//If your using sockets don't be allarmed when it 
-	//suddenly starts to write all over the console and 
-	//trigger sounds and whatnot... 
 	struct Item
 	{
 		uint next;
@@ -89,7 +83,6 @@ struct FreeList(T) if(is(T == class))
 			items[i].next = i + 1;
 		}
 	}
-
 
 	auto allocate(Args...)(Args args)
 	{

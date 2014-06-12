@@ -178,7 +178,7 @@
   <objfiles />
   <linkswitches />
   <libfiles />
-  <libpaths>..\lib\x86; ..\Core\Release</libpaths>
+  <libpaths>..\lib\x86; ..\Shared\Release</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>

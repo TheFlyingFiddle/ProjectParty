@@ -2,6 +2,7 @@ module graphics.context;
 
 import derelict.opengl3.gl3;
 import logging;
+import graphics.enums;
 
 auto logChnl = LogChannel("OPENGL");
 struct gl
@@ -21,27 +22,28 @@ struct gl
 void checkGLError(Args...)(string name, Args args)
 {
 	auto err = glGetError();
+	import std.stdio;
 	if(err)
 	{
 		switch(err)
 		{
 			case GL_INVALID_ENUM: 
-				logChnl.error("Got GL_INVALID_ENUM error when calling " ~ name);
+				writeln("Got GL_INVALID_ENUM error when calling " ~ name);
 				break;
 			case GL_INVALID_VALUE:
-				logChnl.error("Got GL_INVALID_VALUE error when calling " ~ name);
+				writeln("Got GL_INVALID_VALUE error when calling " ~ name);
 				break;
 			case GL_INVALID_OPERATION:
-				logChnl.error("Got GL_INVALID_OPERATION error when calling " ~ name);
+				writeln("Got GL_INVALID_OPERATION error when calling " ~ name);
 				break;
 			case GL_INVALID_FRAMEBUFFER_OPERATION:
-				logChnl.error("Got GL_INVALID_FRAMEBUFFER_OPERATION error when calling " ~ name);
+				writeln("Got GL_INVALID_FRAMEBUFFER_OPERATION error when calling " ~ name);
 				break;
 			case GL_OUT_OF_MEMORY:
-				logChnl.error("Got GL_OUT_OF_MEMORY error when calling " ~ name);
+				writeln("Got GL_OUT_OF_MEMORY error when calling " ~ name);
 				break;
 			default:
-				logChnl.error("IDK");
+				writeln("IDK");
 				break;
 		}	
 
@@ -56,3 +58,38 @@ void checkGLError(Args...)(string name, Args args)
 		assert(0, "GL ERROR");
 	}
 }
+
+
+struct Context
+{
+	import graphics.texture;
+
+	uint program;
+	uint[TextureUnit.max - TextureUnit.min] textures;
+	uint[TextureUnit.max - TextureUnit.min] samplers;
+	uint ibo, vbo, texbo, pixbo, pixubo, vao;
+	uint fbo;
+
+
+	void opIndexAssign(T)(T texture, TextureUnit unit)
+	{
+		if(textures[unit - TextureUnit.min] == texture.glName)
+			return;
+
+		textures[unit - TextureUnit.min] = texture.glName;
+		gl.activeTexture(unit);
+		gl.bindTexture(texture.target, texture.glName);
+	}
+
+	void opIndexAssign(Sampler sampler, TextureUnit unit)
+	{
+		if(samplers[unit - TextureUnit.min] == sampler.glName)
+			return;
+
+		samplers[unit - TextureUnit.min] = sampler.glName;
+		gl.bindSampler(unit - TextureUnit.min, sampler.glName);
+	}
+
+}
+
+__gshared Context context;

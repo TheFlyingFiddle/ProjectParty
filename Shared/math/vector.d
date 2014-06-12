@@ -3,6 +3,8 @@ module math.vector;
 import std.string : format;
 import std.traits : isFloatingPoint, CommonType, isNumeric;
 
+//Sadly this module should be rewritten :(
+
 alias float2 = Vector!(2, float);
 alias int2   = Vector!(2, int);
 alias uint2  = Vector!(2, uint);
@@ -65,7 +67,7 @@ struct Vector(size_t size, T)
 		return res;
 	}
 
-	Vector!(size, T) opBinary(string s, U)(auto ref Vector!(size, U) vec) 
+	Vector!(size, T) opBinary(string s, U)(auto ref Vector!(size, U) vec) const
 		if(is(U : T) && (s == "+" || s == "-" || s == "*" || s == "/"))
 		{
 			Vector!(size, T) res;
@@ -74,7 +76,7 @@ struct Vector(size_t size, T)
 			return res;
 		}
 
-	Vector!(size, T) opBinary(string op, U)(U u)
+	Vector!(size, T) opBinary(string op, U)(U u) const
 		if(isNumeric!U && is(U : T) && (op == "+" || op == "-" || op == "/" || op == "*"))
 		{
 			Vector!(size, T) res;
@@ -109,7 +111,7 @@ struct Vector(size_t size, T)
 			return data[offset];
 		}
 
-	void opDispatch(string s, Vec)(ref Vec vec)
+	void opDispatch(string s, Vec)(ref Vec vec) 
 		if(is(Vec v == Vector!Args, Args...)
 		   && s.length == Args[0] 
 			&& is(Args[1] : T))
@@ -239,7 +241,7 @@ auto cross(T, U)(auto ref Vector!(3, T) vec0,
 	return res;
 }
 
-auto rotate(T)(auto ref Vector!(2, T) toRotate, float angle)
+auto rotate(T)(Vector!(2, T) toRotate, float angle)
 {
 	import std.math;
 	auto s = sin(angle), 

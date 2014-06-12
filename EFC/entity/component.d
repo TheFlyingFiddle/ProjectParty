@@ -1,5 +1,7 @@
-module entity_table;
+module entity.component;
+
 import std.traits;
+
 
 struct TableIndex
 {
@@ -7,10 +9,6 @@ struct TableIndex
 	ushort refcount;
 }
 
-//The handle returned from comp collection should have
-//a type baked into it. This might seem obvious but apperently it wasnt :) 
-//This type is how you identify the system from each other. (IF needed?) 
-//The exact method of identification can be 
 nothrow @nogc:
 
 template ComponentType(T) if(isInstanceOf!(AOS, T) ||  isInstanceOf!(SOA, T))
@@ -24,13 +22,7 @@ template ComponentType(T) if(isInstanceOf!(AOS, T) ||  isInstanceOf!(SOA, T))
 
 }
 
-template isComponent(T)
-{
-	import std.traits;
-	enum isComponent = !hasIndirections!T;
-}
-
-template componentHash(T)// if(isComponent!T)
+template componentHash(T) 
 {
 	import util.hash;
 	enum hash = cHash!T;
@@ -55,7 +47,7 @@ struct SOA(T)
 	{
 		foreach(i, field; T.init.tupleof)
 			mixin("this." ~ T.tupleof[i].stringof ~ " = allocator.allocate!(typeof(T.tupleof[i])[])(size).ptr;");
-		
+
 		this.size = size;
 	}
 
@@ -67,7 +59,7 @@ struct SOA(T)
 		{
 			mixin("t." ~ T.tupleof[i].stringof ~ " = this." ~ T.tupleof[i].stringof ~ "[index];");
 		}
-		
+
 		return t;
 	}
 
@@ -109,7 +101,7 @@ struct CompCollection(T) if(isInstanceOf!(AOS, T) ||  isInstanceOf!(SOA, T))
 {
 	TableIndex*	indecies; 
 	ushort*		backref; 
-	T				objects;
+	T			objects;
 
 	ushort firstFree;
 	ushort capacity;
@@ -140,7 +132,7 @@ struct CompCollection(T) if(isInstanceOf!(AOS, T) ||  isInstanceOf!(SOA, T))
 
 		TableIndex index = TableIndex(numObjects, 1);
 		auto nextFree		= indecies[firstFree].index;
-		
+
 		indecies[firstFree]   = index;
 		objects[numObjects]   = ComponentType!T(args);
 		backref[numObjects++] = firstFree;		
@@ -159,14 +151,14 @@ struct CompCollection(T) if(isInstanceOf!(AOS, T) ||  isInstanceOf!(SOA, T))
 	void addRef(CompHandle handle) 
 	{
 		assert(active(handle));
-		indecies[handle.index].refcount--;
+		indecies[handle.index].refcount++;
 	}
 
 	bool removeRef(CompHandle handle)
 	{
 		assert(active(handle));
 		indecies[handle.index].refcount--;
-		
+
 		if(indecies[handle.index].refcount == 0) {
 			removeObject(handle.index);
 			return true;
@@ -185,7 +177,7 @@ struct CompCollection(T) if(isInstanceOf!(AOS, T) ||  isInstanceOf!(SOA, T))
 		objects[index] = objects[numObjects - 1];
 		indecies[backref[numObjects - 1]].index = index;
 		backref[index] = backref[numObjects - 1];
-		
+
 		if(index < firstFree)
 		{
 			indecies[index] = TableIndex(firstFree, ushort.max);
@@ -203,7 +195,7 @@ struct CompCollection(T) if(isInstanceOf!(AOS, T) ||  isInstanceOf!(SOA, T))
 	void swap(ushort index0, ushort index1)
 	{
 		import std.algorithm;
-	
+
 		auto tmp = objects[index0];
 		objects[index0] = objects[index1];
 		objects[index1] = tmp;

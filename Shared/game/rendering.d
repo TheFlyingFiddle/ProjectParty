@@ -52,7 +52,7 @@ struct Renderer
 		this.vbo = VBO.create(BufferHint.streamDraw);
 		this.vao = VAO.create();
 		
-		gl.bindBuffer(vbo.target, vbo.glName);
+		vbo.bind();
 		vbo.initialize(cast(uint)(bufferSize * Vertex.sizeof));
 
 		auto gShader = Shader(ShaderType.geometry, gs),
@@ -65,7 +65,7 @@ struct Renderer
 		vShader.destroy();
 		fShader.destroy();
 
-		gl.bindVertexArray(vao.glName);
+		vao.bind();
 		vao.bindAttributesOfType!Vertex(program);
 
 		texture = TextureID.invalid;
@@ -150,15 +150,14 @@ struct Renderer
 		usedProgram = program == null ? &this.program : program;
 		this.transform = transform;
 
-		gl.bindBuffer(vbo.target, vbo.glName);
-
+		vbo.bind();
 		if(elements == bufferSize)
 		{
 			elements = 0;
 			offset   = 0;
 		}
 
-		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.write);
+		bufferPtr = vbo.mapRange!Vertex(elements, bufferSize - elements, BufferRangeAccess.unsynchronizedWrite);
 		basePtr = bufferPtr;
 	}
 
@@ -188,19 +187,20 @@ struct Renderer
 	{
 		import logging;
 
-		gl.bindBuffer(vbo.target, vbo.glName);
+		vbo.bind();
 		vbo.unmapBuffer();
 
 		if(elements == offset) return;
 
+		
 		gl.useProgram(usedProgram.glName);
+		context.program = usedProgram.glName;
 		usedProgram.uniform["transform"] = transform;
 
-		gl.bindVertexArray(vao.glName);
-
+		vao.bind();
 		auto tex = texture.texture;
-		gl.activeTexture(TextureUnit.zero);
-		gl.bindTexture(tex.target, tex.glName);
+
+		context[TextureUnit.zero] = tex;
 		gl.drawArrays(PrimitiveType.points, offset, elements - offset);
 
 		if(bufferSize - elements < 0xFFFF)
@@ -487,6 +487,6 @@ void main()
 
 		void main()
 		{
-        fragColor = texture2D(sampler, vertIn.texCoord) * vertIn.color;
+			fragColor = texture2D(sampler, vertIn.texCoord) * vertIn.color;
 		}
 		";

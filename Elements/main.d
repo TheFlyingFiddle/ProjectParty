@@ -37,13 +37,9 @@ void main()
 			logChnl.error(t.next);
 			t = t.next;
 		}
+
+		readln;
 	}
-
-	//This is bad. Don't do this okej? -- Basically background processes are preventing program to close. 
-	import std.stdio;
-	readln;
-	std.c.stdlib.exit(0);
-
 }
 
 void init(A)(ref A allocator)

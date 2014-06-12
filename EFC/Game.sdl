@@ -60,3 +60,4 @@ gameName = EFC
 
 resources = [ { type = texture path = |efc\circle.png| } ]
 phoneResources = [ ]
+

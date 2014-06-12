@@ -28,6 +28,8 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "EFC", "EFC\EFC.visualdproj"
 		{06AA8B71-5362-45F3-AE99-60E15D95960C} = {06AA8B71-5362-45F3-AE99-60E15D95960C}
 	EndProjectSection
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Content_Pipeline", "Content_Pipeline\Content_Pipeline.visualdproj", "{820E458B-F423-444D-89A8-D3F049D236F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -76,6 +78,12 @@ Global
 		{06A398C8-C273-416E-A03B-999EC252E0E3}.Release|Win32.ActiveCfg = Release|Win32
 		{06A398C8-C273-416E-A03B-999EC252E0E3}.Release|Win32.Build.0 = Release|Win32
 		{06A398C8-C273-416E-A03B-999EC252E0E3}.Release|x64.ActiveCfg = Release|Win32
+		{820E458B-F423-444D-89A8-D3F049D236F4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{820E458B-F423-444D-89A8-D3F049D236F4}.Debug|Win32.Build.0 = Debug|Win32
+		{820E458B-F423-444D-89A8-D3F049D236F4}.Debug|x64.ActiveCfg = Debug|Win32
+		{820E458B-F423-444D-89A8-D3F049D236F4}.Release|Win32.ActiveCfg = Release|Win32
+		{820E458B-F423-444D-89A8-D3F049D236F4}.Release|Win32.Build.0 = Release|Win32
+		{820E458B-F423-444D-89A8-D3F049D236F4}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

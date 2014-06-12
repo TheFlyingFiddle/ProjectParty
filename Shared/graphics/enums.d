@@ -629,6 +629,7 @@ enum ColorType
 	short_ = GL_SHORT,
 	int_ = GL_INT,
 	float_ = GL_FLOAT,
+	halfFloat = GL_HALF_FLOAT,
 	ubyte_ = GL_UNSIGNED_BYTE,
 	ushort_ = GL_UNSIGNED_SHORT,
 	uint_ = GL_UNSIGNED_INT,
@@ -724,4 +725,90 @@ enum BufferTarget
 	uniform = GL_UNIFORM_BUFFER,
 	read    = GL_COPY_READ_BUFFER,
 	write   = GL_COPY_WRITE_BUFFER
+}
+
+bool isUniformType(T)(UniformType ut)
+{
+	import math, graphics.color;
+
+	alias U = UniformType;
+	static if(is(T == float))
+		return ut == U.float_;
+	static if(is(T == float2))
+		return ut == U.float2;
+	static if(is(T == float3))
+		return ut == U.float3_;
+	static if(is(T == float4) || is(T == Color))
+		return ut == U.float4;
+
+	static if(is(T == int))
+		return ut == U.int_ ||
+			ut == U.sampler1D || 
+			ut == U.sampler2D || 
+			ut == U.sampler3D;
+
+	static if(is(T == int2))
+		return ut == U.int2;
+	static if(is(T == int3))
+		return ut == U.int3_;
+	static if(is(T == int4))
+		return ut == U.int4;
+
+	static if(is(T == uint))
+		return ut == U.uint_;
+	static if(is(T == uint2))
+		return ut == U.uint2;
+	static if(is(T == uint3))
+		return ut == U.uint3_;
+	static if(is(T == uint4))
+		return ut == U.uint4;
+
+	static if(is(T == mat2))
+		return ut == U.mat2;
+	static if(is(T == mat3))
+		return ut == U.mat3;
+	static if(is(T == mat4))
+		return ut == U.mat4;
+	else 
+		static assert("Uniform type not yet supported! Add it!");
+}
+
+bool isVertexArrayType(T)(VertexAttributeArray at)
+{
+	alias A = VertexAttributeArray;
+	static if(is(T == float))
+		return ut == A.float_;
+	static if(is(T == float2))
+		return ut == A.float2;
+	static if(is(T == float3))
+		return ut == A.float3_;
+	static if(is(T == float4))
+		return ut == A.float4;
+
+	static if(is(T == int))
+		return ut == U.int_;
+	static if(is(T == int2))
+		return ut == A.int2;
+	static if(is(T == int3))
+		return ut == A.int3_;
+	static if(is(T == int4))
+		return ut == A.int4;
+
+	static if(is(T == uint))
+		return ut == A.uint_;
+	static if(is(T == uint2))
+		return ut == A.uint2;
+	static if(is(T == uint3))
+		return ut == A.uint3_;
+	static if(is(T == uint4))
+		return ut == A.uint4;
+
+	static if(is(T == mat2))
+		return ut == A.mat2;
+	static if(is(T == mat3))
+		return ut == A.mat3;
+	static if(is(T == mat4))
+		return ut == A.mat4;
+	else 
+		static assert("Uniform type not yet supported! Add it!");
 }
