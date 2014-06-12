@@ -601,7 +601,7 @@ void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isArray!T && !is(T
 {
 	sink.put(arrayOpener);
 	foreach(i; 0 .. value.length) {
-		toSDL(value[i], sink, level);
+		toSDL(value[i], sink, level + 1);
 		if(i != value.length - 1)
 			sink.put(',');
 	}
