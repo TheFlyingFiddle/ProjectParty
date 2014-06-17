@@ -103,7 +103,7 @@ struct Router
 		{
 			alias del_t = void delegate(ulong, T);
 			del_t del = cast(del_t)d;
-
+			
 			T t = data.readMessageContent!T;
 			del(id, t);
 		}

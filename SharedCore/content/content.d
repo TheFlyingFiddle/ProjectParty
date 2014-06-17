@@ -120,7 +120,7 @@ struct ContentLoader
 		return item !is null;
 	}
 
-	ContentHandle!(T) loadItem(T)(string path)
+	ContentHandle!(T) load(T)(string path)
 	{
 		auto hash = bytesHash(path);
 		auto item = hash in items;
@@ -144,7 +144,7 @@ struct ContentLoader
 		return ContentHandle!(T)(cHash!T, loaded);
 	}
 
-	bool unloadItem(T)(ContentHandle!(T) handle)
+	bool unload(T)(ContentHandle!(T) handle)
 	{
 		foreach(key, value; items)
 		{
@@ -206,14 +206,14 @@ struct AsyncContentLoader
 		numRequests = 0;
 	}
 	
-	ContentHandle!(T) loadItem(T)(string path)
+	ContentHandle!(T) load(T)(string path)
 	{
-		return loader.loadItem(path);
+		return loader.load!T(path);
 	}
 
-	void unloadItem(T)(ContentHandle!T handle)
+	void unload(T)(ContentHandle!T handle)
 	{
-		loader.unloadItem(handle);
+		loader.unload(handle);
 	}
 
 	void reload(uint hash)
@@ -249,7 +249,7 @@ struct AsyncContentLoader
 		loader.addItem(hash, storedType, item);
 	}
 
-	void asyncLoadItem(T)(string path)
+	void asyncLoad(T)(string path)
 	{
 		import std.algorithm, util.strings;
 		auto fileLoader = loader.fileLoaders.find!(x => x.typeHash == cHash!T)[0];

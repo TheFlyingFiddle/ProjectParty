@@ -61,6 +61,7 @@ struct Game
 		router.connections		~= &onConnect;
 		router.reconnections	~= &onConnect;
 		router.disconnections	~= &onDisconnect;
+		router.messageHandlers  ~= &onMessage;
 		router.setMessageHandler(&onAliasMessage);
 		this.step = step;
 	}	
@@ -83,6 +84,17 @@ struct Game
 
 		players.remove(id);
 	}
+
+	void onMessage(ulong id, ubyte[] msg)
+	{
+		import util.bitmanip;
+		ubyte msgid = msg.read!ubyte;
+		if(msgid == Incoming.alias_.id)
+		{
+			onAliasMessage(id, AliasMessage(cast(string)msg));
+		}
+	}
+
 
 	void onAliasMessage(ulong id, AliasMessage alias_)
 	{
@@ -109,6 +121,7 @@ struct Game
 			total += delta;
 			last = curr;
 
+			server.update(delta.msecs / 1000.0f);
 			window.update();
 			step(total, delta);
 			consumeTasks(); 
