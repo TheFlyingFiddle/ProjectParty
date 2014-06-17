@@ -1,0 +1,13 @@
+local atlas = { }
+atlas.frame  = Loader.loadFrame("textures\Atlas")
+atlas.width  = 512
+atlas.height = 512
+atlas.wallpaper = Rect2(0,0,480,320)
+atlas.Anubis_1 = Rect2(0,320,153,431)
+atlas.banana = Rect2(0,431,64,495)
+atlas.banana2 = Rect2(64,431,128,495)
+atlas.base_tower = Rect2(153,320,217,384)
+atlas.baws = Rect2(153,384,201,432)
+atlas.boulder = Rect2(480,0,512,32)
+atlas.pixel = Rect2(480,32,496,48)
+return atlas

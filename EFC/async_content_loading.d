@@ -245,7 +245,6 @@ RFunc constructRFunc(AsyncStuff...)()
 
 }
 
-
 void threadpoolFunc2(Inbox* inbox, Outbox* outbox)
 {
 	inbox.receive(
@@ -254,7 +253,6 @@ void threadpoolFunc2(Inbox* inbox, Outbox* outbox)
 					  handleLoadRepoFile(file, outbox);
 				  });
 }
-
 
 void handleLoadRepoFile(LoadRepoFile loadFile, Outbox* outbox)
 {

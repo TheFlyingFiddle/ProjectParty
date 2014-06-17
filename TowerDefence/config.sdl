@@ -1,0 +1,49 @@
+contentConfig =
+{
+	maxResources = 512
+	resourceFolder = |..\compiled_resources\tower_defence\desktop|
+}
+
+windowConfig = 
+{
+	size = 
+	{
+		x=1067 
+		y=600
+	}
+
+	fullScreen = false
+	blocking   = false
+	decorated  = true
+	title      = |Tower Defence Game|
+}
+
+serverConfig = 
+{
+	maxConnections = 20
+	broadcastPort  = 7331
+	maxMessageSize = 0xffff
+	broadcastInterval = 1.0
+	connectionTimeout = 15
+}
+
+concurencyConfig = 
+{
+	numThreads   = 4
+	stackSize    = 1024_000 //1mb
+	inboxSize    = 0xFFFF   
+}
+
+//soundConfig =
+//{
+//	freq = 22050
+//	numChannels = 32
+//	bufferSize = 4096
+//	
+//	musicVolume  = 1.0
+//	soundVolume  = 1.0 
+//	masterVolume = 0.5
+//	muted        = false
+//
+//	musicFoulderPath = ||
+//}

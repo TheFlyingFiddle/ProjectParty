@@ -10,7 +10,7 @@ import event;
 import std.random;
 import logging;
 import std.algorithm;
-import game;
+import game.game;
 import std.variant;
 import collections.grid;
 import achtung_game_data;

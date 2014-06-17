@@ -1,0 +1,37 @@
+time = 0.32
+playing = true
+looping = false
+
+emitters = 
+[
+	{
+		//Particle Common stuff
+		startSize = { x = 100  y = 100 }
+		endSize	  = { x = 150  y = 150  }
+		speed	  = 150
+		speedVariance = 100
+		lifeTime  = 0.6
+
+		startColor	= 0xaa0000FF
+		endColor	= 0xaa000000
+		colorVariance = 0x00008800
+
+		rotationSpeed = 0
+		rotationVariance = 5
+
+		startAlpha = 0.5
+		endAlpha = 0
+
+		points = 
+		[
+			{ time = 0  count = 100  particle = fire},
+			{ time = 0.2  count = 20   particle = particle-smoke },
+			{ time = 0.3  count = 20   particle = smoke }
+		]
+
+		//Cone stuff
+		angle	  =	1.57
+		line	  = 0
+		width	  = 6.28
+	}
+]

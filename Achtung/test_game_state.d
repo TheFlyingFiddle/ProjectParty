@@ -1,7 +1,7 @@
 module test_game_state;
 
 
-import game, math, graphics, content,
+import game.game, math, graphics, content,
 	   allocation, std.random;
 
 final class TestGameState : IGameState

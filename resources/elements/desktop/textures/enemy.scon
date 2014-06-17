@@ -1,0 +1,275 @@
+{
+  "entity": [
+    {
+      "animation": [
+        {
+          "id": 0,
+          "length": 1000,
+          "mainline": {
+            "key": [
+              {
+                "bone_ref": [],
+                "id": 0,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 0,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ]
+              },
+              {
+                "bone_ref": [],
+                "id": 1,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 1,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 252
+              },
+              {
+                "bone_ref": [],
+                "id": 2,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 2,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 843
+              }
+            ]
+          },
+          "name": "walk",
+          "soundline": [],
+          "timeline": [
+            {
+              "id": 0,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "angle": 0.29067742972063115,
+                    "file": 0,
+                    "folder": 0,
+                    "pivot_x": 0.5159340659340659,
+                    "pivot_y": 0.26428571428571435,
+                    "x": 0.8769230769230743,
+                    "y": -14.942857142857147
+                  }
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "angle": 26.80649625463269,
+                    "file": 0,
+                    "folder": 0,
+                    "pivot_x": 0.5159340659340659,
+                    "pivot_y": 0.26428571428571435,
+                    "x": 0.8769230769230743,
+                    "y": -14.942857142857147
+                  },
+                  "spin": -1,
+                  "time": 252
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "angle": 336.0608471219115,
+                    "file": 0,
+                    "folder": 0,
+                    "pivot_x": 0.5159340659340659,
+                    "pivot_y": 0.26428571428571435,
+                    "x": 0.8769230769230743,
+                    "y": -14.942857142857147
+                  },
+                  "time": 843
+                }
+              ],
+              "name": "teddy"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "length": 1000,
+          "mainline": {
+            "key": [
+              {
+                "bone_ref": [],
+                "id": 0,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 0,
+                    "timeline": 0,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 0,
+                    "timeline": 1,
+                    "z_index": "1"
+                  }
+                ],
+                "time": 163
+              },
+              {
+                "bone_ref": [],
+                "id": 1,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 0,
+                    "timeline": 0,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 1,
+                    "timeline": 1,
+                    "z_index": "1"
+                  }
+                ],
+                "time": 514
+              },
+              {
+                "bone_ref": [],
+                "id": 2,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 0,
+                    "timeline": 0,
+                    "z_index": "0"
+                  },
+                  {
+                    "id": 1,
+                    "key": 2,
+                    "timeline": 1,
+                    "z_index": "1"
+                  }
+                ],
+                "time": 846
+              }
+            ]
+          },
+          "name": "frozen",
+          "soundline": [],
+          "timeline": [
+            {
+              "id": 0,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "angle": 359.71998207186925,
+                    "file": 0,
+                    "folder": 0,
+                    "pivot_x": 0.5159340659340659,
+                    "pivot_y": 0.26428571428571435,
+                    "x": 0.8769230769230743,
+                    "y": -14.942857142857147
+                  },
+                  "spin": 0,
+                  "time": 846
+                }
+              ],
+              "name": "teddy"
+            },
+            {
+              "id": 1,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "angle": 288.1678288048015,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5223730517848165,
+                    "pivot_y": 0.5316731154191582,
+                    "scale_x": 0.27640355753196216,
+                    "scale_y": 0.2704783589774941,
+                    "x": 0.8866731517509803,
+                    "y": 0.884290250574868
+                  },
+                  "spin": -1,
+                  "time": 163
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "angle": 136.4732685161945,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5223730517848165,
+                    "pivot_y": 0.5316731154191582,
+                    "scale_x": 0.27640355753196216,
+                    "scale_y": 0.27047835897749417,
+                    "x": 0.8866731517509803,
+                    "y": 0.884290250574868
+                  },
+                  "spin": -1,
+                  "time": 514
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5223730517848165,
+                    "pivot_y": 0.5316731154191582,
+                    "scale_x": 0.2764035575319621,
+                    "scale_y": 0.27047835897749417,
+                    "x": 0.8866731517509803,
+                    "y": 0.884290250574868
+                  },
+                  "spin": -1,
+                  "time": 846
+                }
+              ],
+              "name": "ring"
+            }
+          ]
+        }
+      ],
+      "character_map": [],
+      "id": 0,
+      "name": "entity_000",
+      "obj_info": []
+    }
+  ],
+  "folder": [
+    {
+      "file": [
+        {
+          "height": 64,
+          "id": 0,
+          "name": "teddy.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 256,
+          "id": 1,
+          "name": "ring.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 256
+        }
+      ],
+      "id": 0
+    }
+  ],
+  "generator": "BrashMonkey Spriter",
+  "generator_version": "b6.1",
+  "scon_version": "1.0"
+}

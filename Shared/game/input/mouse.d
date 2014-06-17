@@ -1,1 +1,0 @@
-module game.input.mouse;

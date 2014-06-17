@@ -9,7 +9,7 @@ import types;
 import content.sdl;
 import derelict.glfw3.glfw3;
 import main;
-import game;
+import game.game;
 import achtung_game_data;
 
 /** Very simple renderer that stores everything that has been drawn into a rendertarget. **/

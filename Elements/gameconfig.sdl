@@ -86,28 +86,28 @@ ventPrototypes =
 		spread = 0.10
 		fullyOpen = 30
 		status = {duration = 5 value = 0.2 type = water}
-		particleConfig = |elements\particles\steam.sdl|
+		particleConfig = |elements\desktop\particles\steam.sdl|
 	},
 	{ 
 		damage = 0
 		spread = 0.10
 		fullyOpen = 30
 		status = {duration = 15 value = 5 type = fire}
-		particleConfig = |elements\particles\steam.sdl|
+		particleConfig = |elements\desktop\particles\steam.sdl|
 	},
 	{ 
 		damage = 1
 		spread = 0.1
 		fullyOpen = 30
 		status = {duration = 5 value = 1 type = oil}
-		particleConfig = |elements\particles\steam.sdl|
+		particleConfig = |elements\desktop\particles\steam.sdl|
 	 },
 	 { 
 		damage = 50 
 		spread = 0.1
 		fullyOpen = 30
 		status = {duration = 5 value = 0.2 type = liqNit}
-		particleConfig = |elements\particles\cold.sdl|
+		particleConfig = |elements\desktop\particles\cold.sdl|
 	 }
 ]
 
@@ -216,7 +216,7 @@ ballisticProjectilePrototypes =
 		speed = 1.5 
 		radius = 3 
 		frame = rocket_big 
-		explosion = |elements\particles\explosion.sdl|
+		explosion = |elements\desktop\particles\explosion.sdl|
 		sound = explosion
 	} ,
 	{ 
@@ -224,7 +224,7 @@ ballisticProjectilePrototypes =
 		speed = 3 
 		radius =  1
 		frame = rocket 
-		explosion = |elements\particles\small_explosion.sdl|
+		explosion = |elements\desktop\particles\small_explosion.sdl|
 		sound = explosion
 	} 
 ]

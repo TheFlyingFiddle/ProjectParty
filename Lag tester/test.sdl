@@ -1,7 +1,0 @@
-sessions = 
-[
-	{ packetSize = 100	 sendInterval = 0.01 }
-]
-
-sessionInterval = 10
-saveFile = |Lag_Data.txt|

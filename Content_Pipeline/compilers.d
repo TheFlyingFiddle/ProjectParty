@@ -1,0 +1,138 @@
+module compilers;
+
+import derelict.freeimage.freeimage;
+import main;
+import std.stdio;
+import content.sdl, util.hash, allocation, std.path, std.array;
+import std.file;
+
+version(X86) 
+{
+	enum dllPath = "..\\dll\\win32\\";
+	enum libPath = "..\\lib\\win32\\";
+}
+version(X86_64) 
+{
+	enum dllPath = "..\\dll\\win64\\";
+	enum libPath = "..\\lib\\win64\\";
+}
+
+enum FREE_IMAGE_DLL_PATH    = dllPath ~ "FreeImage.dll"; 
+
+
+pragma(lib, libPath ~ "DerelictUtil.lib");
+pragma(lib, libPath ~ "DerelictFI.lib");
+
+void initCompilers()
+{
+	DerelictFI.load(FREE_IMAGE_DLL_PATH);
+	FreeImage_Initialise();
+}
+
+void deinitCompilers()
+{
+	FreeImage_DeInitialise();
+	DerelictFI.unload();
+}
+
+struct CompiledItem
+{
+	string extension;
+	void[] data;
+}
+
+struct CompiledFile
+{
+	CompiledItem[] items;
+	string[] dependencies;
+}	
+
+struct ArrayHandle
+{
+	uint position;
+	void[] array;
+}
+
+extern(Windows) uint readData(void* buffer, uint size, uint count, void* h) nothrow
+{	
+	import std.conv;
+
+	auto handle = cast(ArrayHandle*)h;
+	if(handle.array.length - handle.position >= size * count)
+	{
+		buffer[0 .. size * count] = handle.array[handle.position .. handle.position + size * count];
+		handle.position += size * count;
+		return size * count;
+	} else {
+		auto result = handle.array.length - handle.position;
+		buffer[0 .. result] = handle.array[handle.position .. $];
+		handle.position = handle.array.length;
+		return result;
+	}
+}
+
+extern(Windows) uint writeData(void* buffer, uint size, uint count, void* h) nothrow
+{
+	auto handle = cast(ArrayHandle*)h;
+	assert(handle.array.length - handle.position >= size * count);
+	handle.array[handle.position .. handle.position + size * count] = buffer[0 .. size * count];
+	handle.position += size * count;
+	return size * count;
+}
+
+extern(Windows) int seekData(void* handle, int offset, int origin) nothrow
+{
+	import std.c.stdio;
+
+	auto aHandle = (cast(ArrayHandle*)handle);
+	if(origin == SEEK_CUR)
+		aHandle.position += offset;
+	else if(origin == SEEK_END)
+		aHandle.position = aHandle.array.length + offset;
+	else 
+		aHandle.position = offset;
+
+	return 0;
+}
+
+extern(Windows) int tellData(void* handle) nothrow
+{
+	return (cast(ArrayHandle*)handle).position;
+}
+
+CompiledFile compileImage(void[] data, DirEntry file, ref Context context)
+{
+	FreeImageIO io;
+	io.read_proc  = &readData;
+	io.write_proc = &writeData;
+	io.seek_proc  = &seekData;
+	io.tell_proc  = &tellData;
+
+	ArrayHandle handle = ArrayHandle(0, data);
+	int format;
+	switch(file.name.extension)
+	{
+		case ".psd":
+			format = FIF_PSD;
+			break;
+		case ".jpg":
+			format = FIF_JPEG;
+			break;
+		case ".png":
+			format = FIF_PNG;
+			break;
+		default: 
+			assert(0, "Don't know how to read image format: " ~ file.name.extension);
+	}
+
+	if(format == FIF_PNG)
+		return CompiledFile([CompiledItem(".png", data)]);
+
+	auto image = FreeImage_LoadFromHandle(format, &io, cast(fi_handle)&handle, 0);
+	scope(exit) FreeImage_Unload(image);
+
+	auto saveHandle = ArrayHandle(0, buffer);
+	FreeImage_SaveToHandle(FIF_PNG, image, &io, cast(fi_handle)&saveHandle, 0);
+
+	return CompiledFile([CompiledItem(".png", buffer[0 .. saveHandle.position])]);
+}

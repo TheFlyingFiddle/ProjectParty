@@ -1,31 +1,17 @@
 module main;
 
-import logging, external_libraries,
-	   allocation, game, achtung,
+import logging,
+	   allocation, 
+	   achtung,
 	   game_over,
 	   achtung_game_data,
-	   game.debuging, types;
+	   types;
 
-version(X86) 
-	enum libPath = "..\\lib\\win32\\";
-version(X86_64) 
-	enum libPath = "..\\lib\\win64\\";
-
-pragma(lib, libPath ~ "DerelictGLFW3.lib");
-pragma(lib, libPath ~ "DerelictGL3.lib");
-pragma(lib, libPath ~ "DerelictUtil.lib");
-pragma(lib, libPath ~ "DerelictFI.lib");
-pragma(lib, libPath ~ "DerelictOGG.lib");
-pragma(lib, libPath ~ "DerelictSDL2.lib");
-pragma(lib, libPath ~ "dunit.lib");
-pragma(lib, "Shared.lib");
 
 auto logChnl = LogChannel("MAIN");
 void main()
 {
 	import std.stdio;
-	initializeTcpLogger("logger.sdl");
-	init_dlls();
 	try
 	{	
 		run();
@@ -48,14 +34,13 @@ void init(A)(ref A allocator)
 	auto config = fromSDLFile!GameConfig(GC.it, "Game.sdl");
 	game.Game = allocator.allocate!Game_Impl(allocator, config);
 
-	initDebugging("textures\\pixel.png");
-
 	auto fsm = Game.gameStateMachine;
 	auto agd = new AchtungGameData(allocator, config.serverConfig.maxConnections);
 
 	fsm.addState(new AchtungGameState(allocator, "Config.sdl", agd), "Achtung");
 	import game.states.lobby;
-	fsm.addState(allocator.allocate!LobbyState(allocator, "lobby.sdl", "Achtung", IncomingMessages.readyMessage), "MainMenu");
+	fsm.addState(allocator.allocate!LobbyState(allocator, "lobby.sdl", 
+			     "Achtung", IncomingMessages.readyMessage), "MainMenu");
 	fsm.addState(allocator.allocate!GameOverGameState(allocator, agd, 10), "GameOver");
 	Game.transitionTo("MainMenu");
 
@@ -71,9 +56,5 @@ void run()
 	auto ss        = ScopeStack(allocator);
 	
 	init(ss);
-	logChnl.info("Total Allocated is: ", allocator.bytesAllocated / 1024 , "kb");
-	import std.datetime;
-	import core.memory;
-	GC.disable();
 	Game.run(Timestep.fixed, 16_667.usecs);	
 }

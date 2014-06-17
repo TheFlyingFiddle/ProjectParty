@@ -47,7 +47,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\import; ..\Shared</imppath>
+  <imppath>..\import; ..\SharedCore ..\Graphics; ..\NetworkGame</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -83,12 +83,13 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>Shared.lib</libfiles>
-  <libpaths>..\Shared\Debug</libpaths>
+  <libfiles>SharedCore.lib Graphics.lib NetworkGame.lib</libfiles>
+  <libpaths>..\SharedCore\Debug ..\Graphics\Debug ..\NetworkGame\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>2</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -183,6 +184,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>1</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -277,6 +279,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>2</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -371,6 +374,7 @@
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
+  <cRuntime>1</cRuntime>
   <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
@@ -382,6 +386,7 @@
   <File path="Config.sdl" />
   <File path="Game.sdl" />
   <File path="game_over.d" />
+  <File path="glue.d" />
   <File path="lobby.sdl" />
   <File path="main.d" />
   <File path="rendering.d" />

@@ -1,25 +1,10 @@
 //Achtung master configuration file.
-
-//Buffers 
-maxStates  = 10
-maxWindows = 1
-initialRenderSize = 100_00
-
-//Content buffer sizes.
 contentConfig =
 {
-	maxTrackingResources = 110
-	maxReloaders         = 10
-
-	maxTextures    = 100
-	maxFonts       = 10
-	maxSounds      = 50
-
-	maxAtlases	= 0
-	maxSprites	= 0
+	maxResources = 512
+	resourceFolder = |..\compiled_resources\tower_defence\desktop|
 }
 
-//Windows and whatnot.
 windowConfig = 
 {
 	size = 
@@ -31,6 +16,7 @@ windowConfig =
 	fullScreen = false
 	blocking   = false
 	decorated  = true
+	title      = |Tower Defence Game|
 }
 
 serverConfig = 
@@ -42,34 +28,17 @@ serverConfig =
 	connectionTimeout = 15
 }
 
-soundConfig =
-{
-	freq = 22050
-	numChannels = 32
-	bufferSize = 4096
-	
-	musicVolume  = 1.0
-	soundVolume  = 1.0 
-	masterVolume = 0.5
-	muted        = false
+//soundConfig =
+//{
+//	freq = 22050
+//	numChannels = 32
+//	bufferSize = 4096
+//	
+//	musicVolume  = 1.0
+//	soundVolume  = 1.0 
+//	masterVolume = 0.5
+//	muted        = false
+//
+//	musicFoulderPath = ||
+//}
 
-	musicFoulderPath = ||
-}
-
-gameName = achtung 
-
-resources = [ 
-{ type = texture path = |achtung\textures\pixel.png| },
-{ type = font	 path = |achtung\fonts\Blocked72.fnt| },
-{ type = font	 path = |achtung\fonts\Megaman24.fnt| },
-{ type = sound   path = |achtung\sounds\allready.wav| },
-{ type = sound   path = |achtung\sounds\cough.wav| },
-{ type = sound   path = |achtung\sounds\squeek.wav| },
-{ type = sound   path = |achtung\sounds\halleluja.wav| },
-{ type = font	 path = |achtung\fonts\Segoe54.fnt| } ]
-
-phoneResources = [
-	|achtung/phone/scripts|,
-	|achtung/phone/fonts|,
-	|achtung/phone/textures|
-]

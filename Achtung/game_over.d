@@ -1,6 +1,6 @@
 module game_over;
 import std.variant;
-import game;
+import game.game;
 import content;
 import graphics;
 import collections;
@@ -130,5 +130,4 @@ class GameOverGameState : IGameState
 			Game.renderer.addText(font, str, pos, playerData.color, float2.one, float2(size.x,0));
 		}
 	}
-
 }

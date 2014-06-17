@@ -70,6 +70,6 @@ static this()
 	pragma(msg, code);
 
 
-	File file = File("../resoruces/achtung/phone/network_generated.lua", "w");
-	file.rawWrite(code);
+	//File file = File("../resoruces/achtung/phone/network_generated.lua", "w");
+	//file.rawWrite(code);
 }
