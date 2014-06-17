@@ -66,7 +66,7 @@ void step(TickDuration total, TickDuration delta)
 	    auto atlas = g.content.item!TextureAtlas("Atlas"),
 	         font  = g.content.item!Font("ComicSans32");
 	
-	    //draw(*rend, atlas.asset, font.asset);
+	    draw(*rend, atlas.asset, font.asset);
 	}
 	else 
 	{
