@@ -1,7 +1,7 @@
 module graphics.context;
 
 import derelict.opengl3.gl3;
-import logging;
+import log;
 import graphics.enums;
 
 auto logChnl = LogChannel("OPENGL");

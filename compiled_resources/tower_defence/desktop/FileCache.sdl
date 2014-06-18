@@ -2,15 +2,15 @@
 dependencies=[
 	{
 		name=|Atlas.atl|
-		deps=[|banana.png|,|banana2.png|,|orange.png|,|teddy.png|]
+		deps=[|banana.png|,|banana2.png|,|base_tower.png|,|baws.png|,|boulder.png|,|clock_base.png|,|orange.png|,|teddy.png|]
 	},
 	{
 		name=|ComicSans32.fnt|
 		deps=[|ComicSans32_0.png|]
 	},
 	{
-		name=|Atlas.atl|
-		deps=[|banana.png|,|banana2.png|,|base_tower.png|,|baws.png|,|boulder.png|,|clock_base.png|,|orange.png|,|teddy.png|]
+		name=|ComicSans32_1.png|
+		deps=[]
 	}]
 itemChanged=[
 	{
@@ -19,11 +19,11 @@ itemChanged=[
 	},
 	{
 		name=|ComicSans32.fnt|
-		lastChanged=635385614716422302
+		lastChanged=635386836353135235
 	},
 	{
 		name=|banana.png|
-		lastChanged=635385592248329344
+		lastChanged=635386839410124352
 	},
 	{
 		name=|banana2.png|
@@ -47,7 +47,11 @@ itemChanged=[
 	},
 	{
 		name=|ComicSans32_0.png|
-		lastChanged=635385614720972551
+		lastChanged=635386836358345524
+	},
+	{
+		name=|ComicSans32_1.png|
+		lastChanged=635386835755352166
 	},
 	{
 		name=|orange.png|

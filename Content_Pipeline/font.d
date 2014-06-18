@@ -81,14 +81,13 @@ CompiledFile compileFont(void[] data, DirEntry path, ref Context context)
 	}
 
 
-	auto fontData = new ubyte[float.sizeof * 3 + uint.sizeof + CharInfo.sizeof * chars.length];
+	auto fontData = new ubyte[float.sizeof * 3 + CharInfo.sizeof * chars.length];
 	import util.bitmanip;
 
 	size_t offset = 0;
 	fontData.write!float(iHeader.fontSize, &offset);
 	fontData.write!float(cHeader.base, &offset);
 	fontData.write!float(cHeader.lineHeight, &offset);
-	fontData.write!uint(chars.length, &offset);
 	fontData[offset .. $] = cast(ubyte[])(chars);
 
 	auto dependent = buildPath(path.name.dirName, pageName)[context.inFolder.length + 1 .. $];

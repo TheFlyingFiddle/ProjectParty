@@ -47,7 +47,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\import; ..\SharedCore</imppath>
+  <imppath>..\import; ..\SharedCore ..\Graphics</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -66,7 +66,7 @@
   <debuglevel>0</debuglevel>
   <debugids />
   <versionlevel>0</versionlevel>
-  <versionids />
+  <versionids>RELOADING</versionids>
   <dump_source>0</dump_source>
   <mapverbosity>0</mapverbosity>
   <createImplib>0</createImplib>
@@ -83,8 +83,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib</libfiles>
-  <libpaths>..\SharedCore\Debug</libpaths>
+  <libfiles>SharedCore.lib Graphics.lib</libfiles>
+  <libpaths>..\SharedCore\Debug ..\Graphics\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
@@ -190,12 +190,25 @@
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
- <Folder name="NetworkGame">
-  <Folder name="game">
-   <File path="game\game.d" />
-   <File path="game\messages.d" />
-   <File path="game\phone.d" />
-   <File path="game\screen.d" />
+ <Folder name="Framework">
+  <Folder name="entity">
+   <File path="entity\component.d" />
+   <File path="entity\entity.d" />
+   <File path="entity\package.d" />
+   <File path="entity\system.d" />
+   <File path="entity\world.d" />
+  </Folder>
+  <Folder name="framework">
+   <File path="framework\components.d" />
+   <File path="framework\core.d" />
+   <File path="framework\messages.d" />
+   <File path="framework\package.d" />
+   <File path="framework\phone.d" />
+   <File path="framework\player.d" />
+   <File path="framework\screen.d" />
+  </Folder>
+  <Folder name="screen">
+   <File path="screen\loading.d" />
   </Folder>
  </Folder>
 </DProject>

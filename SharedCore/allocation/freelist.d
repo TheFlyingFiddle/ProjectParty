@@ -1,7 +1,7 @@
 module allocation.freelist;
 
 import std.conv;
-import allocation;
+public import allocation.common;
 
 struct FreeList(T) if(is(T == struct))
 {
@@ -40,9 +40,11 @@ struct FreeList(T) if(is(T == struct))
 
 	void deallocate(T* toDeallocate)
 	{
+		static if(hasFinalizer!T)
+			destructor!(T)(cast(void*)toDeallocate);
+
 		size_t addr = cast(size_t)(cast(void*)toDeallocate);
 		size_t bufferAddr = cast(size_t)(cast(void*)items.ptr);
-		
 		size_t index = (addr - bufferAddr) / Item.sizeof;
 		
 		assert(index < items.length);
@@ -68,7 +70,7 @@ struct FreeList(T) if(is(T == class))
 
 	this(A)(ref A allocator, size_t maxItems)
 	{
-		void[] buffer = allocator.allocateRaw(Item.sizeof * maxItems, T.alignof);
+		void[] buffer = allocator.allocate!(ubyte[])(Item.sizeof * maxItems, T.alignof);
 		this(buffer);
 	}
 
@@ -97,9 +99,11 @@ struct FreeList(T) if(is(T == class))
 
 	void deallocate(T toDeallocate)
 	{
+		static if(hasFinalizer!T)
+			destructor!(T)(cast(void*)toDeallocate);
+
 		size_t addr = cast(size_t)(cast(void*)toDeallocate);
 		size_t bufferAddr = cast(size_t)(cast(void*)items.ptr);
-
 		size_t index = (addr - bufferAddr) / Item.sizeof;
 
 		assert(index < items.length);
@@ -107,5 +111,6 @@ struct FreeList(T) if(is(T == class))
 		items[index] = Item.init;
 		items[index].next = free;
 		free = index;
+
 	}
 }

@@ -242,8 +242,8 @@
    <File path="graphics\texture.d" />
    <File path="graphics\textureatlas.d" />
   </Folder>
-  <Folder name="logging">
-   <File path="logging\package.d" />
+  <Folder name="log">
+   <File path="log\package.d" />
   </Folder>
   <Folder name="math">
    <File path="math\matrix.d" />
@@ -264,9 +264,11 @@
   <Folder name="util">
    <File path="util\bitmanip.d" />
    <File path="util\hash.d" />
+   <File path="util\servicelocator.d" />
    <File path="util\strings.d" />
   </Folder>
   <Folder name="window">
+   <File path="window\keyboard.d" />
    <File path="window\window.d" />
   </Folder>
   <File path="external_libraries.d" />

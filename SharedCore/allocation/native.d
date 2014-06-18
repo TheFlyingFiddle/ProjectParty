@@ -1,6 +1,7 @@
 module allocation.native;
 
-import allocation.common;
+public import allocation.common;
+
 
 version(X86)
 {
@@ -10,9 +11,8 @@ version(X86)
 
 		size_t bytesAllocated;
 		size_t numAllocations;
-		
 
-		package void[] allocate_impl(size_t bytes, size_t alignment)
+		package void[] allocate_impl(size_t bytes, size_t alignment) @nogc nothrow
 		{
 			bytesAllocated += bytes;
 			numAllocations++;
@@ -33,7 +33,7 @@ version(X86)
 			return allocated[0 .. bytes];
 		}	
 
-		package void deallocate_impl(void[] memory) nothrow
+		package void deallocate_impl(void[] memory) nothrow @nogc
 		{
 			bytesAllocated -= memory.length;
 			numAllocations--;

@@ -1,7 +1,16 @@
+numServices = 100
+numComponents = 100
+
 contentConfig =
 {
 	maxResources = 512
 	resourceFolder = |..\compiled_resources\tower_defence\desktop|
+}
+
+renderConfig =
+{
+	maxBatchSize = 1024
+	batchCount   = 3
 }
 
 windowConfig = 

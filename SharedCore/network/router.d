@@ -35,7 +35,7 @@ struct Router
 
 	MessageHandler[ubyte.max] specificMessageHandlers;
 
-	this(A)(ref A allocator, ref Server server)
+	this(A)(ref A allocator, Server* server)
 	{
 		enum maxHandlers = 255;
 

@@ -19,12 +19,6 @@ struct Finalizer
 	}
 }
 
-void destructor(T)(void* ptr)
-{
-	T* t = cast(T*)ptr;
-	t.__dtor();
-}
-
 struct ScopeStack
 {
 	import std.conv;
@@ -46,11 +40,15 @@ struct ScopeStack
 	}
 
 	auto allocate(T, Args...)(auto ref Args args) 
-		if(hasElaborateDestructor!T && !isArray!T)
+		if(hasFinalizer!T && !isArray!T )
 	{
 		//logChnl.info("Allocated RAII Object: Type = ", T.stringof);
-
-		void[] mem = _allocator.allocateRaw(T.sizeof + Finalizer.sizeof, T.alignof);
+		
+		static if(is(T == struct))
+			void[] mem = _allocator.allocateRaw(T.sizeof + Finalizer.sizeof, T.alignof);
+		else 
+			void[] mem = _allocator.allocateRaw(__traits(classInstanceSize, T) + Finalizer.sizeof, T.alignof);
+		
 		auto fin = emplace!(Finalizer)(mem, &destructor!T, _chain);
 		_chain = fin;
 
@@ -58,7 +56,7 @@ struct ScopeStack
 	}
 
 	auto allocate(T, Args...)(auto ref Args args) 
-		if(!hasElaborateDestructor!T && !isArray!T)
+		if(!hasFinalizer!T && !isArray!T)
 	{
 		//logChnl.info("Allocated POD: Type = ", T.stringof);
 		return _allocator.allocate!T(args);
@@ -78,12 +76,30 @@ struct ScopeStack
 
 	~this()
 	{
+		Throwable err = null;
 		for(auto fin = _chain; fin; fin = fin.chain)
 		{
-			fin.destructor(fin + 1);
+			try
+			{
+				fin.destructor(fin + 1);
+			}
+			catch(Throwable t)
+			{
+				if(err is null)
+				{
+					err = t;
+				}
+				else 
+				{
+					t.next == err;
+					err = t;
+				}
+			}
 		}
 
 		_allocator.rewind(_rewindPoint);
+		if(err)
+			throw err;
 	}
 
 	@disable this(this);

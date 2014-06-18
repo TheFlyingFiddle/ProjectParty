@@ -3,7 +3,7 @@ module window.window;
 import derelict.glfw3.glfw3;
 import derelict.opengl3.gl3;
 
-import logging;
+import log;
 import collections;
 import math;
 import util.strings;
@@ -287,7 +287,7 @@ struct Monitor
 
 struct Window
 {
-	private GLFWwindow* _windowHandle;
+	package GLFWwindow* _windowHandle;
 	private bool blocking;
 
 	@property void onPositionChanged(PositionCallback cb)

@@ -120,6 +120,7 @@ struct List(T)
 		return result;
 	}
 
+
 	void clear()
 	{
 		this.length = 0;

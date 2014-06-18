@@ -28,4 +28,3 @@ struct Transform
 		return this;
 	}
 }
-

@@ -3,6 +3,12 @@ module rendering.renderer;
 import graphics, collections.list, math;
 import rendering.asyncrenderbuffer;
 
+struct RenderConfig
+{
+	size_t maxBatchSize;
+	size_t batchCount;
+}
+
 //Supports sorting on texture?
 struct Renderer
 {
@@ -30,16 +36,16 @@ struct Renderer
 	private Program!(Uniform, Vertex) program;
 	private List!RenderData renderData;
 
-	this(A)(ref A allocator, size_t maxBatchSize, size_t batchCount)
+	this(A)(ref A allocator, RenderConfig config)
 	{
-		this.renderData	  = List!RenderData(allocator, maxBatchSize / 6);
+		this.renderData	  = List!RenderData(allocator, config.maxBatchSize / 6);
 		Shader vShader = Shader(ShaderType.vertex, vSource),
 			   fShader = Shader(ShaderType.fragment, fSource);
 
 		program = Program!(Uniform, Vertex)(vShader, fShader);
 		program.uniforms.sampler = 0;
 
-		renderBuffer = AsyncRenderBuffer!Vertex(maxBatchSize, batchCount, program);
+		renderBuffer = AsyncRenderBuffer!Vertex(config.maxBatchSize, config.batchCount, program);
 	}
 
 	void viewport(float2 viewport)

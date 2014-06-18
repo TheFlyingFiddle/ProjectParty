@@ -1,6 +1,6 @@
 module main;
 
-import logging,
+import log,
 	   allocation, 
 	   achtung,
 	   game_over,

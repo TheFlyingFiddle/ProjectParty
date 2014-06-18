@@ -31,7 +31,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>1</useUnitTests>
+  <useUnitTests>0</useUnitTests>
   <useInline>0</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
@@ -83,7 +83,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Graphics.lib NetworkGame.lib</libfiles>
+  <libfiles>SharedCore.lib Graphics.lib Framework.lib</libfiles>
   <libpaths>../SharedCore/Debug ../Graphics/Debug ../NetworkGame/Debug</libpaths>
   <deffile />
   <resfile />

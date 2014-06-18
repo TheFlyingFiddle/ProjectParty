@@ -1,6 +1,6 @@
 module allocation.region;
 
-import allocation.common;
+public import allocation.common;
 
 struct RegionAllocator
 {
@@ -10,7 +10,7 @@ struct RegionAllocator
 	void*  _offset;
 	size_t _capacity;
 
-	size_t bytesAllocated() @property
+	size_t bytesAllocated() @property 
 	{
 		return cast(size_t)_offset - cast(size_t)_buffer;
 	}
@@ -69,7 +69,7 @@ struct RegionAllocator
 	@disable this(this);
 }
 
-void* aligned(void* ptr, size_t alignment)
+void* aligned(void* ptr, size_t alignment) @nogc nothrow
 {
 	return cast(void*)((cast(size_t)ptr + (alignment - 1)) & ~(alignment - 1));
 }

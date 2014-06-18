@@ -11,7 +11,7 @@ import derelict.ogg.vorbis;
 import derelict.ogg.vorbisfile;
 
 import std.exception;
-import logging;
+import log;
 
 version(X86) 
 {

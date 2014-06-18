@@ -5,7 +5,7 @@ import std.exception;
 import util.hash;
 import std.conv : to;
 import collections;
-import logging;
+import log;
 
 auto chan = LogChannel("Event Stream");
 

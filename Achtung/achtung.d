@@ -8,7 +8,7 @@ import content.sdl;
 import graphics;
 import event;
 import std.random;
-import logging;
+import log;
 import std.algorithm;
 import game.game;
 import std.variant;

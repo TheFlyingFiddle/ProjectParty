@@ -12,13 +12,7 @@ struct SourceRect
 struct TextureAtlas
 {
 	Texture2D _texture;
-	uint length;
-	SourceRect[1] _rects;
-
-	private SourceRect[] rects()
-	{
-		return (cast(SourceRect*)_rects)[0 .. length];
-	}
+	SourceRect[] rects;
 
 	@property Texture2D texture()
 	{
@@ -44,13 +38,11 @@ struct TextureAtlas
 	int opApply(int delegate(uint, Frame) dg)
 	{
 		int result;
-		foreach(i; 0 .. length)
+		foreach(i; 0 .. rects.length)
 		{
 			result = dg(i, Frame(texture, rects[i].source));
 			if(result) break;
 		}
 		return result;
 	}
-
-	@disable this(this); //No copying of this is very important not to copy this.
 }

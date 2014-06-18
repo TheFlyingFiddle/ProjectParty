@@ -47,7 +47,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\import; ..\Shared</imppath>
+  <imppath>..\import; ..\SharedCore</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -83,8 +83,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>Shared.lib</libfiles>
-  <libpaths>..\Shared\Debug</libpaths>
+  <libfiles>SharedCore.lib</libfiles>
+  <libpaths>..\SharedCore\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
@@ -204,13 +204,5 @@
    <File path="systems\package.d" />
    <File path="systems\tree.d" />
   </Folder>
-  <File path="async_content_loading.d" />
-  <File path="curve_renderer.d" />
-  <File path="curve_renderer2.d" />
-  <File path="distance_renderer.d" />
-  <File path="Game.sdl" />
-  <File path="main.d" />
-  <File path="renderer.d" />
-  <File path="shapes.d" />
  </Folder>
 </DProject>

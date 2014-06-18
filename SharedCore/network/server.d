@@ -1,6 +1,6 @@
 module network.server;
 
-import std.socket, allocation, logging, collections, std.conv;
+import std.socket, allocation, log, collections, std.conv;
 
 auto logChnl = LogChannel("LOBBY");
 
@@ -87,7 +87,7 @@ struct Server
 		pendingConnections = List!Connection(allocator, config.maxConnections);
 		lostConnections	   = List!ulong(allocator,      config.maxConnections);
 
-		listener = allocator.allocate!Listener(allocator, config.maxConnections);
+		listener =  allocator.allocate!Listener(allocator, config.maxConnections);
 		listener.blocking = false;
 
 		connector = allocator.allocate!(UdpSocket)();

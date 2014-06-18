@@ -17,7 +17,10 @@ struct FontLoader
 		auto texPath = text1024(path[0 .. $ - path.extension.length], ".png", "\0");
 		auto texture = loadTexture(texPath.ptr, 0, false, async);
 
-		auto font  = cast(Font*)data;
+		auto font    = cast(Font*)data;
+		font.page    = texture;
+		font.chars   = cast(CharInfo[])(data[Texture2D.sizeof + float.sizeof * 3 .. $]);
+
 		font.page  = texture;
 		return font;
 	}
@@ -26,6 +29,6 @@ struct FontLoader
 	{
 		item.page.obliterate();
 		auto data = cast(void*)item;
-		allocator.deallocate(data[0 .. Font.sizeof + (item.charInfoLength - 1) * CharInfo.sizeof]);
+		allocator.deallocate(data[0 .. Font.sizeof + item.chars.length * CharInfo.sizeof]);
 	}
 }

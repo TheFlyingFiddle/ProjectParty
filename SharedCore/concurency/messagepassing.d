@@ -6,6 +6,7 @@ import core.sync.condition;
 import core.atomic;
 import allocation;
 
+
 struct MPSCQueue(Serializer)
 {
 	private SPSCQueue!(Serializer) queue;
@@ -15,8 +16,8 @@ struct MPSCQueue(Serializer)
 	this(A)(ref A allocator, size_t size)
 	{
 		queue			 = SPSCQueue!(Serializer)(allocator, size);
-		auto mt			 = allocator.allocate!Mutex;
-		cond			 = allocator.allocate!Condition(mt);
+		auto mt			 = GlobalAllocator.allocate!Mutex;
+		cond			 = GlobalAllocator.allocate!Condition(mt);
 		shouldStop		 = false;
 	}
 
@@ -24,6 +25,8 @@ struct MPSCQueue(Serializer)
 	{
 		cond.mutex.__dtor();
 		cond.__dtor();
+		GlobalAllocator.deallocate(cond.mutex);
+		GlobalAllocator.deallocate(cond);
 	}
 
 	void send(T)(auto ref T value) if(Serializer.constraints!T)
@@ -75,18 +78,20 @@ struct SPMCQueue(Serializer)
 		import allocation;
 
 		queue			 = SPSCQueue!(Serializer)(allocator, size);
-		auto mt			 = allocator.allocate!Mutex;
-		cond			 = allocator.allocate!Condition(mt);
+		auto mt			 = GlobalAllocator.allocate!Mutex;
+		cond			 = GlobalAllocator.allocate!Condition(mt);
 		items			 = 0;
 		shouldStop		 = false;
 	}	
-	
+
 	~this()
 	{
 		cond.mutex.__dtor();
 		cond.__dtor();
+		GlobalAllocator.deallocate(cond.mutex);
+		GlobalAllocator.deallocate(cond);
 	}
-
+	
 	bool send(T)(auto ref T value) if(Serializer.constraints!T)
 	{
 		if(queue.trySend(value))

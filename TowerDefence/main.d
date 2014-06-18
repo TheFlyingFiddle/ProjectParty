@@ -9,14 +9,9 @@ import allocation;
 import concurency.task;
 import content.sdl;
 import content.reloading;
-import game.game;
-
-void writer(string msg, int number)
-{
-	import std.stdio;
-	writeln("Writer recieived message : ", msg);
-	writeln("Number of the message was : ", number);
-}
+import framework;
+import window.window;
+import window.keyboard;
 
 void main()
 {
@@ -24,99 +19,79 @@ void main()
 
 	init_dlls();
 	try
-		run();
-	catch(Throwable t)
+	{
+		auto config = fromSDLFile!PhoneGameConfig(Mallocator.it, "config.sdl");
+		run(config);
+	}
+	catch(Throwable t) {
 		writeln(t);
+		readln;
+	}
 
-	readln;
+	import std.c.stdlib;
+	exit(0);
 }
 
-void run()
+void run(PhoneGameConfig config)
 {
-	auto config = fromSDLFile!GameConfig(Mallocator.it, "config.sdl");
-	g = Game(Mallocator.it, config, &step);
+	RegionAllocator region = RegionAllocator(Mallocator.cit, 1024 * 1024 * 10);
+	auto stack = ScopeStack(region);
 
-	rend = Mallocator.it.allocate!Renderer(Mallocator.it, 1024, 3);
-	rend.viewport = g.window.size;
+	auto game = createPhoneGame(stack, config);
 
-	g.content.asyncLoad!TextureAtlas("Atlas");
-	g.content.asyncLoad!Font("ComicSans32");
-
-	setupReloader(12345, g.content);
-
-	screen = LoadingScreen(rend, &g);
+	import screen.loading;
+	auto endScreen     = stack.allocate!(Screen1)();
+	auto loadingScreen = stack.allocate!(LoadingScreen)(LoadingConfig(["Atlas.atlas", "ComicSans32.fnt"], "ComicSans32"), endScreen);
+	
+	auto s = game.locate!ScreenComponent;
+	s.push(loadingScreen);
 
 	gl.enable(Capability.blend);
 	gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);
-
-	g.run();
-}
-
-import std.datetime;
-Game g;
-Renderer* rend;
-LoadingScreen screen;
-
-void step(TickDuration total, TickDuration delta)
-{
-	screen.draw();
-
-	if(g.content.areAllLoaded())
-	{
-	    auto atlas = g.content.item!TextureAtlas("Atlas"),
-	         font  = g.content.item!Font("ComicSans32");
-	
-	    draw(*rend, atlas.asset, font.asset);
-	}
-	else 
-	{
-	    //taskpool.doTask!writer("Mofasa", i++);	
-	}
+	game.run();
 }
 	
-
-void draw(ref Renderer renderer, 
-		  ref TextureAtlas atlas,
-		  ref Font font)
+class Screen1 : Screen
 {
-	gl.clearColor(0.2,0.2,0.2,1);
-	gl.clear(ClearFlags.color);
+	FontHandle font;
+	AtlasHandle atlas;
 
-	import rendering.shapes;
-	renderer.begin();
-	
-	foreach(i, frame; atlas)
+	this() { super(false, false); }
+
+	float rotation = 0;
+	override void initialize() 
 	{
-		renderer.drawQuad(float4(100 * i + 50, 50, 100 * i + 150, 150), 
-						  frame, Color.white);
-	}
+		auto loader = game.locate!AsyncContentLoader;
 
-	renderer.drawText("Hello World!", float2(50, 300), font, Color.white);
-	renderer.end();
+		font	= loader.load!Font("ComicSans32");
+		atlas	= loader.load!TextureAtlas("Atlas");
+	}
+	override void update(GameTime time) 
+	{
+		rotation += time.delta.to!("seconds", float);	
+
+		auto keyboard = game.locate!Keyboard;	
+		if(keyboard.isDown(Key.enter))
+		{
+			auto s = Mallocator.it.allocate!(Screen2)();
+			owner.push(s);
+		}
+	}
+	override void render(GameTime time)
+	{
+		auto renderer = game.locate!Renderer;
+
+		import util.strings;
+		renderer.drawText("Hello, World!", float2(0, 200), font.asset, Color.black);
+		renderer.drawText(cast(string)text1024(time.delta.to!("seconds", float)), float2(0, 400), font.asset, Color.black);
+		foreach(i, item; atlas.asset())
+		{
+			renderer.drawQuad(float4(100 * i + 50, 50, 100 * i + 150, 150), rotation, item, Color.white);
+		}
+	}
 }
 
-
-struct LoadingScreen
+class Screen2 : Screen
 {
-	Renderer* renderer;
-	Game* game;
-
-	this(Renderer* renderer, Game* game)
-	{
-		this.renderer = renderer;
-		this.game     = game;
-	}
-
-	void draw()
-	{
-		import rendering.shapes;
-		auto font = game.content.load!Font("ComicSans32");	
-
-		renderer.begin();
-		renderer.drawText("Loading stuff\nSo much stuff", 
-						  float2(0, 32), 
-						  font.asset, 
-						  Color.white);
-		renderer.end();
-	}
+	this() { super(true, false); }
 }

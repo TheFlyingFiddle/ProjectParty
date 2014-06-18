@@ -4,31 +4,24 @@ import concurency.messagepassing;
 import core.thread;
 
 alias Inbox  = SPMCQueue!(QueueSerializer);
-alias Outbox = MPSCQueue!(QueueSerializer); 
-
-struct ThreadPool
+struct WorkerPool
 {
 	private Inbox	_inbox;
-	private Outbox	_outbox;
 	private Thread[] threads; 	
 	private bool running;
-	private void function(Inbox*, Outbox*) func;
+	private void function(Inbox*) func;
 
 	Inbox*   inbox()	{ return &this._inbox; }
-	Outbox* outbox()	{ return &this._outbox; }
-
 
 	this(A)(ref A allocator, size_t numThreads, size_t stackSize,
-			size_t inboxSize, size_t outboxSize,
-			void function(Inbox*, Outbox*) func)
+			size_t inboxSize, void function(Inbox*) func)
 	{
 		_inbox   = Inbox(allocator, inboxSize);
-		_outbox  = Outbox(allocator, outboxSize); 
 		threads = allocator.allocate!(Thread[])(numThreads); 
 
 		void makeThread(size_t index)
 		{
-			threads[index] = allocator.allocate!Thread(() => run(index), stackSize);
+			threads[index] = GlobalAllocator.allocate!Thread(() => run(index), stackSize);
 		}
 
 		foreach(i;0 .. numThreads)
@@ -44,16 +37,14 @@ struct ThreadPool
 		inbox.send(toSend);
 	}
 
-	void receive(Handlers...)(Handlers handlers)
-	{
-		outbox.receive(handlers);
-	}
-
 	~this()
 	{	
+		this.stop();
+		_inbox.__dtor();
 		foreach(thread; threads)
 		{
 			thread.__dtor();
+			GlobalAllocator.deallocate(thread);
 		}
 	}	
 
@@ -68,11 +59,6 @@ struct ThreadPool
 	{
 		this.running = false;
 		_inbox.stop();
-		_outbox.stop();
-
-		foreach(thread; threads) {
-			thread.join();
-		}
 	}
 
 	private void run(size_t index)
@@ -81,7 +67,7 @@ struct ThreadPool
 		{
 			try
 			{
-				func(inbox, outbox);
+				func(inbox);
 			}
 			catch(Throwable t)
 			{
@@ -91,7 +77,7 @@ struct ThreadPool
 					file.writeln(t);
 				}
 				import std.c.stdlib;
-				readln;
+
 				exit(-1);
 			}	
 		}

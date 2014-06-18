@@ -1,16 +1,50 @@
 module allocation.common;
 
-import logging;
+import log;
 import std.traits;
 import std.conv;
 
 auto logChnl = LogChannel("ALLOCATION");
+auto destChnl = LogChannel("DESTRUCTOR ERROR");
 
+void destructor(T)(void* ptr) if(is(T == struct))
+{
+	try
+	{
+		T* t = cast(T*)ptr;
+		t.__dtor();
+	}
+	catch(Throwable t)
+	{
+		destChnl.info("Error while processing destructor : ", T.stringof, "\n", t);
+	}
+}
+
+void destructor(T)(void* ptr) if(is(T == class))
+{
+	try
+	{
+		T  t = cast(T)ptr;
+		t.__dtor();
+	}
+	catch(Throwable t)
+	{
+		destChnl.info("Error while calling destructor for: ", T.stringof, "\n", t);
+	}
+}
+
+template hasFinalizer(T)
+{
+	static if(is(T == class))
+		enum hasFinalizer = hasMember!(T, "__dtor");
+	else 
+		enum hasFinalizer = hasElaborateDestructor!T;
+}
 
 interface IAllocator
 {
-	void[] allocate_impl(size_t size, size_t alignment);
-	void   deallocate_impl(void[] memory);
+	void[] allocate_impl(size_t size, size_t alignment) @nogc;
+	void   deallocate_impl(void[] memory) @nogc;
 }
 
 final class CAllocator(T) : IAllocator
@@ -89,6 +123,13 @@ T* allocate(T, A, Args...)(A* allocator, auto ref Args args) if(is(T == struct) 
 T allocate(T, A, Args...)(A* allocator, auto ref Args args) if(is(T == class))
 {
 	return allocate!(T, A, Args)(*allocator, args);
+}
+
+void deallocate(T,A)(ref A allocator, T item) if(is(T == class))
+{
+	void* ptr = cast(void*)item;
+	void[] toDealloc = ptr[0 .. __traits(classInstanceSize, T)];
+	allocator.deallocate_impl(toDealloc);
 }
 
 //Test if out of memory assertion works.

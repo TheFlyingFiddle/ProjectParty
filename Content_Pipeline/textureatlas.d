@@ -91,11 +91,9 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 	import util.bitmanip;
 	if(context.platform == Platform.desktop)
 	{
-		auto atlasMetaData	= new ubyte[uint.sizeof + atlas.rects.length * uint.sizeof * 5];
+		auto atlasMetaData	= new ubyte[atlas.rects.length * uint.sizeof * 5];
 
-		size_t offset = 0;
-		atlasMetaData.write!(int)(atlas.rects.length, &offset);
-		
+		size_t offset = 0;		
 		foreach(i, r; atlas.rects)
 		{
 			atlasMetaData.write!uint(bytesHash(r.name.ptr, r.name.length), &offset);

@@ -1,6 +1,7 @@
 module rendering.shapes;
 
-import  math, 
+public import  
+	math.vector, 
 	graphics.color, 
 	graphics.texture, 
 	graphics.frame,
@@ -61,6 +62,29 @@ void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color)
 	vertices[2] = Vertex(quad.zw, coords.zw, color);
 	vertices[3] = Vertex(quad.xw, coords.xw, color);
 
+	renderer.addItems(vertices, indecies, frame.texture);
+}
+
+void drawQuad(R)(ref R renderer, float4 quad, float rotation, Frame frame, Color color)
+{
+	static uint[6] indecies = [0, 1, 2, 0, 2, 3];
+
+	alias Vertex = R.Vertex;
+	float4 coords = frame.coords;
+
+	Vertex[4] vertices;
+
+	float2 center	   = float2((quad.x + quad.z) / 2, (quad.y + quad.w) / 2);
+	float2 bottomLeft  = (float2(quad.x, quad.y) - center).rotate(rotation) + center;
+	float2 bottomRight = (float2(quad.z, quad.y) - center).rotate(rotation) + center;
+	float2 topRight    = (float2(quad.z, quad.w) - center).rotate(rotation) + center;
+	float2 topLeft     = (float2(quad.x, quad.w) - center).rotate(rotation) + center;
+
+	vertices[0] = Vertex(bottomLeft, coords.xy, color);
+	vertices[1] = Vertex(bottomRight, coords.zy, color);
+	vertices[2] = Vertex(topRight, coords.zw, color);
+	vertices[3] = Vertex(topLeft, coords.xw, color);
+	
 	renderer.addItems(vertices, indecies, frame.texture);
 }
 

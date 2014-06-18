@@ -18,17 +18,10 @@ struct Font
 	enum tabSpaceCount = 4;
 
 	Texture2D page;
-
 	float size;
 	float base;
 	float lineHeight;
-	uint charInfoLength;
-	CharInfo[1] _chars;
-
-	@property CharInfo[] chars()
-	{
-		return (cast(CharInfo*)_chars)[0 .. charInfoLength];
-	}
+	CharInfo[] chars;
 
 	ref CharInfo opIndex(dchar c)
 	{

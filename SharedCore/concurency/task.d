@@ -54,7 +54,7 @@ void initialize(A)(ref A allocator, ConcurencyConfig config)
 {
 	messageAllocator = Mallocator.cit;
 
-	taskpool	= allocator.allocate!TaskThreadPool(allocator, config.numThreads, config.stackSize, config.inboxSize, 0);
+	taskpool	= allocator.allocate!TaskThreadPool(allocator, config.numThreads, config.stackSize, config.inboxSize);
 	taskpool.start();
 
 	threads = allocator.allocate!(TaskThread*[])(config.numThreads); 
@@ -67,7 +67,7 @@ void initialize(A)(ref A allocator, ConcurencyConfig config)
 //Special thread!
 ReturnType!fun doTaskOnMain(alias fun, Args...)(Args args)
 {
-	return doTaskOn!("main", fun, Args)(args);
+	return doBlockingTaskOn!("main", fun, Args)(args);
 }
 
 
@@ -81,7 +81,7 @@ void doTaskOnMain(T)(T task)
 }
 
 
-ReturnType!fun doTaskOn(string threadID, alias fun, Args...)(Args args)
+ReturnType!fun doBlockingTaskOn(string threadID, alias fun, Args...)(Args args)
 {
 	foreach(ref thread; threads) if(thread.id == threadID)
 	{
@@ -150,6 +150,7 @@ struct TaskThread
 	MPSCQueue!(QueueSerializer) queue;
 	Condition waitCond;
 	string id = "";
+	bool shouldStop;
 
 	struct Message
 	{
@@ -160,14 +161,17 @@ struct TaskThread
 	this(A)(ref A allocator, size_t queueSize)
 	{
 		queue = MPSCQueue!(QueueSerializer)(allocator, queueSize);
-		auto mutex = allocator.allocate!(Mutex)();
-		waitCond   = allocator.allocate!Condition(mutex);
+		auto mutex = GlobalAllocator.allocate!(Mutex)();
+		waitCond   = GlobalAllocator.allocate!Condition(mutex);
+		this.shouldStop = false;
 	}
 
 	~this()
 	{
-	  waitCond.__dtor();
-	  waitCond.mutex().__dtor();
+		waitCond.mutex().__dtor();
+		waitCond.__dtor();
+		GlobalAllocator.deallocate(waitCond.mutex);
+		GlobalAllocator.deallocate(waitCond);
 	}
 
 	void doTask(T)(T task)
@@ -223,12 +227,16 @@ struct TaskThread
 
 struct TaskThreadPool
 {
-	private ThreadPool pool;
-	this(A)(ref A allocator, size_t numThreads, size_t stackSize,
-			size_t inboxSize, size_t outboxSize)
+	private WorkerPool pool;
+	this(A)(ref A allocator, size_t numThreads, size_t stackSize, size_t inboxSize)
 	{
-		pool = ThreadPool(allocator, numThreads, stackSize,
-						  inboxSize, outboxSize, &threadLoop);
+		pool = WorkerPool(allocator, numThreads, stackSize,
+						  inboxSize, &threadLoop);
+	}
+
+	~this()
+	{
+		pool.__dtor();
 	}
 
 	void start() { pool.start(); }
@@ -241,11 +249,25 @@ struct TaskThreadPool
 		pool.send(del);
 	}
 
-	static void threadLoop(Inbox* inbox, Outbox* outbox)
+	static void threadLoop(Inbox* inbox)
 	{
 		static void taskfun(void delegate() del)
 		{
-			del();
+			try
+			{
+				del();
+			}
+			catch(Throwable t)
+			{
+				import std.stdio, std.conv;
+				writeln("There has been a crash!");
+				writeln(t);
+				readln;
+
+				import std.c.stdlib;
+				exit(-1);
+			}
+			
 			messageAllocator.deallocate(del.ptr[0 .. 1]);
 		}
 

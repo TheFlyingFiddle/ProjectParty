@@ -1,63 +1,12 @@
 module entity.world;
 import entity.system;
-import collections.list;
+import collections;
 
-struct ServiceLocator
-{
-	import util.hash;
-	struct Service
-	{
-		uint hash;
-		void* ptr; 
-	}	
-
-	List!Service  services;
-	this(A)(ref A allocator, size_t size)
-	{
-		services = List!Service(allocator, size);
-	}
-
-	void add(T)(T* service) if(is(T == struct))
-	{
-		services = Service(cHash!T, cast(void*)service);
-	}
-
-	T* find(T)() if(is(T == struct))
-	{
-		foreach(service; services)
-		{
-			if(cHash!T == service.hash)
-				return cast(T*)service.ptr;
-		}
-
-		assert(0, "Failed to find service");
-	}
-
-	//In a sence this should maby work on Interfaces
-	//Instead of on classes? Well you can always 
-	//Template on the interface. 
-	void add(T)(T service) if(is(T == class) || is(T == interface)) 
-	{
-		services ~= Service(cHash!T, cast(void*)service);
-	}
-
-	T find(T)() if(is(T == class) || is(T == interface))
-	{
-		foreach(service; services)
-		{
-			if(cHash!T == service.hash)
-				return cast(T*)service.ptr;
-		}
-
-		assert(0, "Failed to find service");
-	}
-}
 
 class World
 {
 	private List!ISystem systems;
 	private List!IEntitySystem entitySystems;
-	private ServiceLocator locator;
 
 	this(A)(ref A allocator, 
 			size_t maxSystems, 
@@ -92,16 +41,6 @@ class World
 
 		assert(0, "Failed to find es etc.");
 	}	
-
-	T* locate(T)() if(is(T == struct))
-	{
-		return locator.find!T;
-	}
-
-	T locate(T)() if(is(T == class) || is(T == interface))
-	{
-		return locator.find!T;
-	}
 
 	void addSystem(T)(System!T system) 
 	{

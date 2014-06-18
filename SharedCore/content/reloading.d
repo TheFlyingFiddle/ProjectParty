@@ -14,18 +14,21 @@ version(RELOADING)
 	void reloading(ushort port, AsyncContentLoader* loader)
 	{
 		registerThread("reloader");
-		auto socket = new UdpSocket(); //Mallocator.it.allocate!(UdpSocket)();
+		auto socket  = Mallocator.it.allocate!(UdpSocket)();
 		auto address = Mallocator.it.allocate!(InternetAddress)(InternetAddress.ADDR_ANY, cast(ushort)21345);
 		socket.bind(address);
 		socket.blocking = true;
-		import std.stdio;
-		writeln(socket.isAlive);
-		writeln(socket.localAddress);
-
 		ubyte[256] buffer;
 		while(true)
 		{
 			uint i = socket.receive(buffer);
+			if(i == Socket.ERROR)
+			{
+				if(wouldHaveBlocked())
+					continue;
+			}
+
+
 			auto array = Mallocator.it.allocate!(char[])(i);
 			array[0 .. i] = cast(char[])buffer[0 .. i];
 			doTaskOnMain!performReload(cast(string)array, loader);

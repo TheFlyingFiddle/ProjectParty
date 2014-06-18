@@ -8,32 +8,41 @@ import std.traits,
 	content.textureatlas,
 	std.algorithm;
 
-alias RTable = Table!(uint, UntypedHandle, SortStrategy.sorted);
-struct UntypedHandle
+private alias RTable = Table!(uint, Handle, SortStrategy.sorted);
+
+struct Handle
 {
-	private uint hash;
+	private uint hashID;
+	private uint typeHash;
 	private	void* item;
 }
 
 struct ContentHandle(T)
 {
-	private uint hash;
-	private T* item;
+	private Handle* handle;
+	this(Handle* handle)
+	{
+		this.handle = handle;
+	}
 
 	ref T asset()
 	{
+		assert(handle.typeHash == cHash!T);
+		auto item = cast(T*)(handle.item);
 		return *item;
 	}
 
 	auto ref opDispatch(string s)()
 	{
-		assert(hash != uint.max);
+		assert(handle.typeHash == cHash!T);
+		auto item = cast(T*)(handle.item);
 		mixin("return item." ~ s ~ ";");
 	}
 
 	auto ref opDispatch(string s, Args...)(Args args)
 	{
-		assert(hash != uint.max);
+		assert(handle.typeHash == cHash!T);
+		auto item = cast(T*)(handle.item);
 		mixin("return item." ~ s ~ "(args);");
 	}
 
@@ -42,7 +51,7 @@ struct ContentHandle(T)
 		{
 			item.__dtor();
 			item = null;
-			hash = uint.max;
+			typeHash = uint.max;
 		}
 }
 
@@ -75,12 +84,14 @@ struct ContentLoader
 	List!FileLoader fileLoaders;
 	IAllocator allocator;
 	string resourceFolder;
-	RTable items;
+	Handle[] items;
 
 	this(A)(ref A allocator, IAllocator itemAllocator, 
 			size_t maxResources, string resourceFolder)
 	{
-		items = RTable(allocator, maxResources);
+		items = allocator.allocate!(Handle[])(maxResources);
+		items[] = Handle.init;
+
 		this.allocator = itemAllocator;
 		this.resourceFolder = resourceFolder;
 		
@@ -93,42 +104,59 @@ struct ContentLoader
 		this.fileLoaders ~= fileLoader;
 	}
 
-	private void addItem(T)(uint hash, T* item)
+	private uint indexOf(uint hash)
 	{
-		items[hash] = UntypedHandle(cHash!T, item);
+		auto index = items.countUntil!(x => x.hashID == hash);
+		return index;
 	}
 
-	private void addItem(uint hash, uint typeHash, void* item)
+	private uint addItem(T)(uint hash, T* item)
 	{
-		items[hash] = UntypedHandle(typeHash, item);
+		return addItem(hash, cHash!T, cast(void*)item);
+	}
+
+	private uint addItem(uint hash, uint typeHash, void* item)
+	{
+		foreach(i, ref handle; items)
+		{
+			if(handle.item is null) {
+				items[i] = Handle(hash, typeHash, item);
+				return i;
+			}
+		}
+
+		assert(0, "Resources full!");
 	}
 
 	private ContentHandle!T getItem(T)(uint hash)
 	{
-		return cast(ContentHandle!T )items[hash];
+		ContentHandle!T handle  = ContentHandle!T(&items[indexOf(hash)]);
+		return handle;
 	}
 
-	private UntypedHandle getItem(string path)
+	private Handle getItem(string path)
 	{
-		return items[bytesHash(path)];
+		return items[indexOf(bytesHash(path))];
 	}
 	
 	bool isLoaded(string path)
 	{
-		auto hash = bytesHash(path);
-		auto item = hash in items;
-		return item !is null;
+		return isLoaded(bytesHash(path));
+	}
+
+	bool isLoaded(uint hash)
+	{
+		return indexOf(hash) != -1;
 	}
 
 	ContentHandle!(T) load(T)(string path)
 	{
 		auto hash = bytesHash(path);
-		auto item = hash in items;
-		if(item) 
+		if(isLoaded(path)) 
 		{
-			//TypeChecking yay
-			assert(item.hash == cHash!T);
-			return cast(ContentHandle!T)*item;
+			auto item = items[indexOf(hash)];
+			assert(item.typeHash == cHash!T);
+			return getItem!T(hash);
 		}
 
 		import util.strings;
@@ -139,46 +167,40 @@ struct ContentLoader
 		auto loader = fileLoaders[index];
 		auto file = text1024(resourceFolder, dirSeparator, hash,  loader.extension);
 		T* loaded   = cast(T*)loader.load(allocator, cast(string)file, false);
-
-		items[hash] = UntypedHandle(cHash!T, loaded);
-		return ContentHandle!(T)(cHash!T, loaded);
+	
+		auto itemIndex = addItem(hash, cHash!T, loaded);
+		return ContentHandle!(T)(&items[itemIndex]);
 	}
 
-	bool unload(T)(ContentHandle!(T) handle)
-	{
-		foreach(key, value; items)
-		{
-			if(value.item is handle.item)
-			{
-				auto index = fileLoaders.countUntil!(x => x.typeHash == cHash!T);
-				auto loader = fileLoaders[index];
-				loader.unload(allocator, cast(void*)handle.item);
-				items.remove(key);
-				return true;
-			}
-		}
 
-		return false;
+	bool unload(T)(ContentHandle!(T) cHandle)
+	{
+		auto handle = cHandle.handle;
+		if(handle.item is null) return false;
+		return unloadItem(handle.hashID);
 	}
 
 	private bool unloadItem(uint hash)
 	{
-		auto item   = items[hash];
-		auto loader = fileLoaders.find!(x => x.typeHash == item.hash)[0];
+		auto index  = indexOf(hash);
+		auto item   = items[index];
+
+		auto loader = fileLoaders.find!(x => x.typeHash == item.typeHash)[0];
 		loader.unload(allocator, item.item);
+		items[index] = Handle.init;
+
 		return true;
 	}
 
-	@disable this(this);
-}
-
-template untype(alias fun)
-{
-	void untype(void* item)
+	private void change(uint hash, void* item)
 	{
-		alias type = ParameterTypeTuple!fun[0];
-		fun(cast(type)item);
-	}
+		auto handle = items[indexOf(hash)];
+		auto fileLoader = fileLoaders.find!(x => x.typeHash == handle.typeHash)[0];
+		fileLoader.unload(allocator, handle.item);
+		items[indexOf(hash)].item = item;
+	}	
+
+	@disable this(this);
 }
 
 struct ContentConfig
@@ -189,6 +211,8 @@ struct ContentConfig
 
 struct AsyncContentLoader
 {
+	enum maxNameSize = 25; //Assumes 11bytes for hash and 14bytes for extension
+
 	import concurency.task;
 
 	private ContentLoader loader;
@@ -219,15 +243,11 @@ struct AsyncContentLoader
 	void reload(uint hash)
 	{
 		import util.strings;
-		auto item = hash in loader.items;
-		if(item)
+		auto index = loader.indexOf(hash);
+		if(index != -1)
 		{
-			import std.stdio;
-			writeln(hash);
-			writeln(item.hash);
-			writeln(loader.fileLoaders);
-
-			auto fileLoader = loader.fileLoaders.find!(x => x.typeHash == item.hash)[0];
+			auto item       = loader.items[index];
+			auto fileLoader = loader.fileLoaders.find!(x => x.typeHash == item.typeHash)[0];
 
 			enum maxNameSize = 25; //Assumes 11bytes for hash and 14bytes for extension
 
@@ -239,33 +259,42 @@ struct AsyncContentLoader
 		}
 	}
 
-
 	private void addReloadedAsyncFile(uint hash, void* item)
 	{
 		numRequests--;
-		auto storedType = loader.items[hash].hash;
-		
-		loader.unloadItem(hash);
-		loader.addItem(hash, storedType, item);
+		loader.change(hash, item);
 	}
 
 	void asyncLoad(T)(string path)
 	{
+		if(loader.isLoaded(path)) return;
+
 		import std.algorithm, util.strings;
-		auto fileLoader = loader.fileLoaders.find!(x => x.typeHash == cHash!T)[0];
 		import concurency.threadpool;
-
-		enum maxNameSize = 25; //Assumes 11bytes for hash and 14bytes for extension
-
-		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
-		auto absPath = text(buffer, loader.resourceFolder,
-						 dirSeparator, bytesHash(path), fileLoader.extension);
-
-		
 		import concurency.task;
+
+		auto fileLoader = loader.fileLoaders.find!(x => x.typeHash == cHash!T)[0];
+		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
+		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, bytesHash(path), fileLoader.extension);
+		
 		auto adder = &addAsyncItem!T;
 		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, bytesHash(path), fileLoader, adder);			   
 		numRequests++;
+	}
+
+	void asyncLoad(string path)
+	{
+		import std.path, util.strings;
+		string ext = path.extension;
+		uint hash = bytesHash(path[0 .. $ - ext.length]);
+		if(loader.isLoaded(hash)) return;
+
+
+		auto fileLoader = loader.fileLoaders.find!(x => x.extension == ext)[0];
+		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
+		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash, ext);
+		auto adder = &addAsyncItem!void;
+		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, adder);
 	}
 
 	private void addAsyncItem(T)(uint hash, void* item)
@@ -296,4 +325,5 @@ void asyncLoadFile(string path, uint hash, FileLoader loader, void delegate(uint
 	auto item = loader.load(Mallocator.cit, path, true);
 	auto t = task(adder, hash, item);
 	doTaskOnMain(t);
+	Mallocator.it.deallocate(cast(void[])path);
 }
