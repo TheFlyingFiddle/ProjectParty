@@ -1,6 +1,5 @@
 module main;
 
-import glue;
 import rendering;
 import content;
 import graphics, math, collections;
@@ -12,6 +11,8 @@ import content.reloading;
 import framework;
 import window.window;
 import window.keyboard;
+
+import external_libraries;
 
 void main()
 {

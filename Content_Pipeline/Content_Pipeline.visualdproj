@@ -22,7 +22,7 @@
   <isFreeBSD>0</isFreeBSD>
   <isSolaris>0</isSolaris>
   <scheduler>0</scheduler>
-  <useDeprecated>0</useDeprecated>
+  <useDeprecated>1</useDeprecated>
   <errDeprecated>0</errDeprecated>
   <useAssert>0</useAssert>
   <useInvariants>0</useInvariants>
@@ -83,8 +83,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib</libfiles>
-  <libpaths>..\SharedCore\Debug</libpaths>
+  <libfiles>SharedCore.lib Derelict.lib</libfiles>
+  <libpaths>..\SharedCore\Debug ..\Derelict\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>

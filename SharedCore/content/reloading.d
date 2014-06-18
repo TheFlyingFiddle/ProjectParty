@@ -37,9 +37,9 @@ version(RELOADING)
 
 	void performReload(string id, AsyncContentLoader* loader)
 	{
-		import std.stdio, std.path, std.conv;
+		import std.path, std.conv, util.hash;
 		auto path = id[0 .. $ - id.extension.length];
-		loader.reload(path.to!uint);
+		loader.reload(HashID(path.to!uint));
 		Mallocator.it.deallocate(cast(void[])id);
 	}
 }

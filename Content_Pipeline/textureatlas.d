@@ -96,7 +96,7 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 		size_t offset = 0;		
 		foreach(i, r; atlas.rects)
 		{
-			atlasMetaData.write!uint(bytesHash(r.name.ptr, r.name.length), &offset);
+			atlasMetaData.write!uint(bytesHash(r.name.ptr, r.name.length).value, &offset);
 			atlasMetaData.write!float(r.left, &offset);
 			atlasMetaData.write!float(r.bottom, &offset);
 			atlasMetaData.write!float(r.right - r.left, &offset);

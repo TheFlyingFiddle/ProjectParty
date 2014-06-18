@@ -5,17 +5,20 @@ import std.traits : isFloatingPoint, CommonType, isNumeric;
 
 //Sadly this module should be rewritten :(
 
-alias float2 = Vector!(2, float);
-alias int2   = Vector!(2, int);
-alias uint2  = Vector!(2, uint);
+alias float2  = Vector!(2, float);
+alias int2    = Vector!(2, int);
+alias uint2   = Vector!(2, uint);
+alias ushort2 = Vector!(2, ushort);
 
-alias float3 = Vector!(3, float);
-alias int3   = Vector!(3, int);
-alias uint3  = Vector!(3, uint);
+alias float3  = Vector!(3, float);
+alias int3    = Vector!(3, int);
+alias uint3   = Vector!(3, uint);
+alias ushort3 = Vector!(3, ushort);
 
-alias float4 = Vector!(4, float);
-alias int4   = Vector!(4, int);
-alias uint4  = Vector!(4, uint);
+alias float4  = Vector!(4, float);
+alias int4    = Vector!(4, int);
+alias uint4   = Vector!(4, uint);
+alias ushort4 = Vector!(4, ushort);
 
 struct Vector(size_t size, T) 
 {

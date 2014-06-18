@@ -9,7 +9,7 @@ struct ServiceLocator
 {
 	struct Service
 	{
-		uint hash;
+		HashID hash;
 		void* ptr; 
 	}	
 
@@ -19,23 +19,23 @@ struct ServiceLocator
 		services = List!Service(allocator, size);
 	}
 
-	private uint hashOf(T)(string name)
+	private HashID hashOf(T)(string name)
 	{
 		auto buffer = text1024(T.stringof, name);
-		uint hash = bytesHash(buffer);
+		auto hash = bytesHash(buffer);
 		return hash;
 	}
 
 	void add(T)(T* service, string name = "") if(is(T == struct))
 	{
-		uint hash = hashOf!T(name);
+		auto hash = hashOf!T(name);
 		assert(!services.canFind!(x => x.hash == hash), text("Already present in locator: Type: ", T.stringof, " Name: ", name));
 		services ~= Service(hash, cast(void*)service);
 	}
 
 	bool tryFind(T)(out T* item, string name = "")
 	{		
-		uint hash = hashOf!(T)(name);
+		auto hash = hashOf!(T)(name);
 		foreach(service; services)
 		{
 			if(hash == service.hash)
@@ -48,7 +48,7 @@ struct ServiceLocator
 
 	bool tryFind(T)(out T item, string name = "")
 	{		
-		uint hash = hashOf!(T)(name);
+		auto hash = hashOf!(T)(name);
 		foreach(service; services)
 		{
 			if(hash == service.hash)
@@ -63,7 +63,7 @@ struct ServiceLocator
 
 	T* find(T)(string name = "") if(is(T == struct))
 	{
-		uint hash = hashOf!(T)(name);
+		auto hash = hashOf!(T)(name);
 		foreach(service; services)
 		{
 			if(hash == service.hash)
@@ -75,13 +75,13 @@ struct ServiceLocator
 
 	void add(T)(T service, string name = "") if(is(T == class) || is(T == interface)) 
 	{		
-		uint hash = hashOf!(T)(name);
+		auto hash = hashOf!(T)(name);
 		services ~= Service(hash, cast(void*)service);
 	}
 
 	T find(T)(string name = "") if(is(T == class) || is(T == interface))
 	{
-		uint hash = hashOf!(T)(name);
+		auto hash = hashOf!(T)(name);
 		foreach(service; services)
 		{
 			if(hash == service.hash)
@@ -93,7 +93,7 @@ struct ServiceLocator
 
 	void remove(T)()
 	{
-		uint hash = cHash!T;
+		auto hash = cHash!T;
 		foreach(i, s; services) if(s.hash == hash)
 		{
 			services.removeAt(i);
@@ -103,7 +103,7 @@ struct ServiceLocator
 
 	void remove(string name = "")
 	{
-		uint hash = bytesHash(name);
+		auto hash = bytesHash(name);
 		foreach(i, s; services) if(s.hash == hash)
 		{
 			services.removeAt(i);

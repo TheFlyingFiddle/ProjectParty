@@ -8,12 +8,10 @@ import std.traits,
 	content.textureatlas,
 	std.algorithm;
 
-private alias RTable = Table!(uint, Handle, SortStrategy.sorted);
-
 struct Handle
 {
-	private uint hashID;
-	private uint typeHash;
+	private HashID hashID;
+	private TypeHash typeHash;
 	private	void* item;
 }
 
@@ -45,19 +43,11 @@ struct ContentHandle(T)
 		auto item = cast(T*)(handle.item);
 		mixin("return item." ~ s ~ "(args);");
 	}
-
-	static if(hasElaborateDestructor!(T))
-		private void obliterate()
-		{
-			item.__dtor();
-			item = null;
-			typeHash = uint.max;
-		}
 }
 
 struct FileLoader
 {
-	uint typeHash;
+	TypeHash typeHash;
 	string extension;
 
 	void* function(IAllocator, string, bool) load; 
@@ -104,18 +94,18 @@ struct ContentLoader
 		this.fileLoaders ~= fileLoader;
 	}
 
-	private uint indexOf(uint hash)
+	private uint indexOf(HashID hash)
 	{
 		auto index = items.countUntil!(x => x.hashID == hash);
 		return index;
 	}
 
-	private uint addItem(T)(uint hash, T* item)
+	private uint addItem(T)(HashID hash, T* item)
 	{
 		return addItem(hash, cHash!T, cast(void*)item);
 	}
 
-	private uint addItem(uint hash, uint typeHash, void* item)
+	private uint addItem(HashID hash, TypeHash typeHash, void* item)
 	{
 		foreach(i, ref handle; items)
 		{
@@ -128,7 +118,7 @@ struct ContentLoader
 		assert(0, "Resources full!");
 	}
 
-	private ContentHandle!T getItem(T)(uint hash)
+	private ContentHandle!T getItem(T)(HashID hash)
 	{
 		ContentHandle!T handle  = ContentHandle!T(&items[indexOf(hash)]);
 		return handle;
@@ -144,7 +134,7 @@ struct ContentLoader
 		return isLoaded(bytesHash(path));
 	}
 
-	bool isLoaded(uint hash)
+	bool isLoaded(HashID hash)
 	{
 		return indexOf(hash) != -1;
 	}
@@ -180,7 +170,7 @@ struct ContentLoader
 		return unloadItem(handle.hashID);
 	}
 
-	private bool unloadItem(uint hash)
+	private bool unloadItem(HashID hash)
 	{
 		auto index  = indexOf(hash);
 		auto item   = items[index];
@@ -192,7 +182,7 @@ struct ContentLoader
 		return true;
 	}
 
-	private void change(uint hash, void* item)
+	private void change(HashID hash, void* item)
 	{
 		auto handle = items[indexOf(hash)];
 		auto fileLoader = fileLoaders.find!(x => x.typeHash == handle.typeHash)[0];
@@ -240,7 +230,7 @@ struct AsyncContentLoader
 		loader.unload(handle);
 	}
 
-	void reload(uint hash)
+	void reload(HashID hash)
 	{
 		import util.strings;
 		auto index = loader.indexOf(hash);
@@ -259,7 +249,7 @@ struct AsyncContentLoader
 		}
 	}
 
-	private void addReloadedAsyncFile(uint hash, void* item)
+	private void addReloadedAsyncFile(HashID hash, void* item)
 	{
 		numRequests--;
 		loader.change(hash, item);
@@ -285,8 +275,8 @@ struct AsyncContentLoader
 	void asyncLoad(string path)
 	{
 		import std.path, util.strings;
-		string ext = path.extension;
-		uint hash = bytesHash(path[0 .. $ - ext.length]);
+		auto ext = path.extension;
+		auto hash = bytesHash(path[0 .. $ - ext.length]);
 		if(loader.isLoaded(hash)) return;
 
 
@@ -297,7 +287,7 @@ struct AsyncContentLoader
 		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, adder);
 	}
 
-	private void addAsyncItem(T)(uint hash, void* item)
+	private void addAsyncItem(T)(HashID hash, void* item)
 	{
 		numRequests--;
 		loader.addItem(hash, cast(T*)item);
@@ -319,7 +309,7 @@ struct AsyncContentLoader
 	}
 }
 
-void asyncLoadFile(string path, uint hash, FileLoader loader, void delegate(uint, void*) adder) 
+void asyncLoadFile(string path, HashID hash, FileLoader loader, void delegate(HashID, void*) adder) 
 {
 	import concurency.task;
 	auto item = loader.load(Mallocator.cit, path, true);

@@ -1,7 +1,6 @@
 module framework;
 
 public import framework.core;
-public import framework.messages;
 public import framework.phone;
 public import framework.components;
 public import framework.player;

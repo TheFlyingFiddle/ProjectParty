@@ -50,7 +50,7 @@ static ~this()
 struct FileItem
 {
 	string name;
-	uint   hash;
+	HashID   hash;
 }
 
 struct ItemChanged

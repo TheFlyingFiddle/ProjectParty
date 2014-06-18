@@ -3,9 +3,9 @@ module framework.phone;
 import collections.table;
 import math;
 import network.router;
-import framework.messages;
+import network.message;
 
-struct Sensor
+@InMessage struct Sensor
 {
 	float3 accelerometer;
 }	
@@ -20,7 +20,6 @@ struct SensorService
 		router.connectionHandlers    ~= (id) { onConnection(id); };
 		router.reconnectionHandlers  ~= (id) { onConnection(id); };
 		router.disconnectionHandlers ~= (id) { onDisconnect(id); };
-		router.setMessageHandler(&onSensorMessage);
 	}
 	
 	bool exists(ulong id)
@@ -43,7 +42,7 @@ struct SensorService
 		phones.remove(id);
 	}
 
-	void onSensorMessage(ulong id, SensorMessage msg)
+	void onSensorMessage(ulong id, Sensor msg)
 	{
 		phones[id].accelerometer = msg.accelerometer;
 	}

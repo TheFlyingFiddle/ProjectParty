@@ -340,7 +340,7 @@ struct QueueSerializer
 	import util.hash;
 	struct header
 	{
-		uint value;
+		TypeHash value;
 	}
 
 	static header typeHeader(T)()

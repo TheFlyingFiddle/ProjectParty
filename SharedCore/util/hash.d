@@ -1,14 +1,24 @@
 module util.hash;
 
-
-uint typeHash(P...)()
+struct HashID
 {
-	string s;
-	foreach(p; P) {
-		s ~= p.mangleof;
-	}
+	uint value;
+}
 
-	return bytesHash(cast(void*)s.ptr, s.length);
+struct TypeHash
+{
+	uint value;
+}
+
+struct ShortHash
+{
+	ushort value;
+}
+
+template shortHash(T)
+{
+	enum hash = cHash!T;
+	enum shortHash = ShortHash((hash.value & 0xFFFF) ^ ((hash.value >> 16) & 0xFFFF));
 }
 
 ///Gets the hash of the type T (hash on the fully qualified name)
@@ -16,10 +26,10 @@ template cHash(T)
 {
 	import std.traits;
 	enum name = fullyQualifiedName!T;
-	enum cHash = bytesHash(name.ptr, name.length, 0);
+	enum cHash = TypeHash(bytesHash(name.ptr, name.length, 0).value);
 }
 
-uint bytesHash(T)(T[] buffer)
+HashID bytesHash(T)(T[] buffer)
 {
 	return bytesHash(buffer.ptr, buffer.length * T.sizeof);
 }
@@ -27,7 +37,7 @@ uint bytesHash(T)(T[] buffer)
 //Murmur3 hash algorithm by Austin Appleby in public domain.
 //Taken from Dlang/github/druntime
 @trusted pure nothrow
-uint bytesHash(const(void)* buf, size_t len, size_t seed = 0)
+HashID bytesHash(const(void)* buf, size_t len, size_t seed = 0)
 {
     static uint rotl32(uint n)(in uint x) pure nothrow @safe
     {
@@ -110,5 +120,5 @@ uint bytesHash(const(void)* buf, size_t len, size_t seed = 0)
     // finalization
     h1 ^= len;
     h1 = fmix32(h1);
-    return h1;
+    return HashID(h1);
 }

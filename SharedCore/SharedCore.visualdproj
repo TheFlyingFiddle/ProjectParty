@@ -22,7 +22,7 @@
   <isFreeBSD>0</isFreeBSD>
   <isSolaris>0</isSolaris>
   <scheduler>0</scheduler>
-  <useDeprecated>0</useDeprecated>
+  <useDeprecated>1</useDeprecated>
   <errDeprecated>0</errDeprecated>
   <useAssert>0</useAssert>
   <useInvariants>0</useInvariants>
@@ -83,8 +83,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>DerelictUtil.lib DerelictGL3.lib DerelictFI.lib DerelictGLFW3.lib DerelictSDL2.lib DerelictOGG.lib</libfiles>
-  <libpaths>..\lib\win32</libpaths>
+  <libfiles>Derelict.lib</libfiles>
+  <libpaths>..\Derelict\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
@@ -203,7 +203,6 @@
    <File path="collections\blob.d" />
    <File path="collections\grid.d" />
    <File path="collections\list.d" />
-   <File path="collections\map.d" />
    <File path="collections\package.d" />
    <File path="collections\table.d" />
   </Folder>
@@ -253,6 +252,7 @@
    <File path="math\vector.d" />
   </Folder>
   <Folder name="network">
+   <File path="network\luagen.d" />
    <File path="network\message.d" />
    <File path="network\router.d" />
    <File path="network\server.d" />

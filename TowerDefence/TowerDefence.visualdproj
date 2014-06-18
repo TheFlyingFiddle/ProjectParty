@@ -31,7 +31,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>0</useUnitTests>
+  <useUnitTests>1</useUnitTests>
   <useInline>0</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
@@ -83,8 +83,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Graphics.lib Framework.lib</libfiles>
-  <libpaths>../SharedCore/Debug ../Graphics/Debug ../NetworkGame/Debug</libpaths>
+  <libfiles>SharedCore.lib Graphics.lib Framework.lib Derelict.lib</libfiles>
+  <libpaths>../Derelict/Debug ../SharedCore/Debug ../Graphics/Debug ../NetworkGame/Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
@@ -192,7 +192,7 @@
  </Config>
  <Folder name="TowerDefence">
   <File path="config.sdl" />
-  <File path="glue.d" />
   <File path="main.d" />
+  <File path="network_types.d" />
  </Folder>
 </DProject>

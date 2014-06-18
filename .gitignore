@@ -9,6 +9,7 @@ Thumbs.db
 Debug/
 Release/
 logging/
+compiled_resources/
 
 #Binary Visual Studio file
 *.suo

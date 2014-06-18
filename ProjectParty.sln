@@ -33,6 +33,8 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Framework", "NetworkGame\Ne
 		{E640EFC2-88DD-467D-8D2E-0C6C7C5B5AED} = {E640EFC2-88DD-467D-8D2E-0C6C7C5B5AED}
 	EndProjectSection
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Derelict", "Derelict\Derelict.visualdproj", "{796064A9-E6D5-425A-81C3-FB40D681C7D7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -97,6 +99,12 @@ Global
 		{D47811EE-3736-445F-8831-741E9B431DA8}.Release|Win32.ActiveCfg = Release|Win32
 		{D47811EE-3736-445F-8831-741E9B431DA8}.Release|Win32.Build.0 = Release|Win32
 		{D47811EE-3736-445F-8831-741E9B431DA8}.Release|x64.ActiveCfg = Release|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|Win32.Build.0 = Debug|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|x64.ActiveCfg = Debug|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|Win32.ActiveCfg = Release|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|Win32.Build.0 = Release|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

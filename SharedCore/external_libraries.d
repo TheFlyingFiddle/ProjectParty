@@ -16,12 +16,10 @@ import log;
 version(X86) 
 {
 	enum dllPath = "..\\dll\\win32\\";
-	enum libPath = "..\\lib\\win32\\";
 }
 version(X86_64) 
 {
 	enum dllPath = "..\\dll\\win64\\";
-	enum libPath = "..\\lib\\win64\\";
 }
 
 enum GLFW_DLL_PATH          = dllPath ~ "glfw3.dll";

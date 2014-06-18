@@ -3,7 +3,6 @@ import std.traits;
 import network.router;
 import collections.table;
 import allocation;
-import framework.messages;
 
 template isPlayer(T)
 {
@@ -25,7 +24,6 @@ struct PlayerService(P) if(isPlayer!P)
 		router.connections		~= &onConnect;
 		router.reconnections	~= &onConnect;
 		router.disconnections	~= &onDisconnect;
-		router.messageHandlers  ~= &onMessage;
 	}
 
 	void onConnect(ulong id)	 
@@ -42,15 +40,5 @@ struct PlayerService(P) if(isPlayer!P)
 			Mallocator.it.deallocate(cast(void[])player.name);
 
 		players.remove(id);
-	}
-
-	void onMessage(ulong id, ubyte[] msg)
-	{
-		import util.bitmanip;
-		ubyte msgid = msg.read!ubyte;
-		if(msgid == Incoming.alias_.id)
-		{
-			players[id].name = cast(string)msg;
-		}
 	}
 }

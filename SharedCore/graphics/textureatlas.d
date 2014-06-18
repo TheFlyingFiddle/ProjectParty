@@ -5,7 +5,7 @@ import util.hash, collections.table, graphics.frame,
 
 struct SourceRect
 {
-	uint hash;
+	HashID hash;
 	float4 source;
 }
 
@@ -21,7 +21,7 @@ struct TextureAtlas
 
 	float4 opIndex(string name)
 	{
-		uint h = bytesHash(name);
+		auto h = bytesHash(name);
 		auto index = rects.countUntil!(x => x.hash == h);
 		if(index != -1)
 			return rects[index].source;
