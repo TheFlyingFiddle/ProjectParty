@@ -208,6 +208,8 @@ struct AsyncContentLoader
 	private ContentLoader loader;
 	private int numRequests;	
 
+	string resourceFolder() { return loader.resourceFolder; }
+
 	this(A)(ref A allocator, ContentConfig config)
 	{
 		this(allocator, config.maxResources, config.resourceFolder);

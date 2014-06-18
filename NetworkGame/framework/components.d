@@ -66,6 +66,8 @@ class NetworkComponent : IGameComponent
 		import allocation;
 		server = al.allocate!Server(al, config);
 		router = al.allocate!(Router)(al, server);
+	
+		router.connections ~= &onPlayerConnect;
 	}
 
 	override void initialize()
@@ -73,6 +75,52 @@ class NetworkComponent : IGameComponent
 		game.addService(server);
 		game.addService(router);
 	}
+
+	void onPlayerConnect(ulong id)
+	{
+		import network.message, content.content, std.file;
+
+		auto loader = game.locate!AsyncContentLoader;
+		auto dir = loader.resourceFolder;
+
+		@OutMessage static struct FileHeader
+		{
+			string name;
+			ulong size;
+		}
+		
+		@OutMessage static struct GameName
+		{
+			string name;
+		}
+
+		server.sendMessage(id, GameName("TowerDefence"));
+		
+		ubyte[0xFFFF] buffer;
+		foreach(entry; dirEntries(dir, SpanMode.depth))
+		{
+			import std.stdio;
+			auto file = File(entry.name, "rb");
+			
+			FileHeader header = FileHeader(entry.name[dir.length + 1 .. $], file.size);	
+			server.sendMessage(id, header);
+			
+			auto read = 0;
+			while(read < file.size)
+			{
+				auto buf = file.rawRead(buffer[]);
+				server.send(id, buf);
+				read += buf.length;
+			}	
+		}
+
+		@OutMessage static struct AllFilesSent { }
+		server.sendMessage(id, AllFilesSent());
+
+	}
+
+	
+
 
 	override void step(GameTime time)
 	{

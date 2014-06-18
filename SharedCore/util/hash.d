@@ -21,11 +21,18 @@ template shortHash(T)
 	enum shortHash = ShortHash((hash.value & 0xFFFF) ^ ((hash.value >> 16) & 0xFFFF));
 }
 
+template shortHash(string name)
+{
+	enum hash = bytesHash(name.ptr, name.length, 0);
+	enum shortHash = ShortHash((hash.value & 0xFFFF) ^ ((hash.value >> 16) & 0xFFFF));
+}
+
 ///Gets the hash of the type T (hash on the fully qualified name)
 template cHash(T)
 {
 	import std.traits;
 	enum name = fullyQualifiedName!T;
+	pragma(msg, name);
 	enum cHash = TypeHash(bytesHash(name.ptr, name.length, 0).value);
 }
 
