@@ -85,15 +85,13 @@ struct Router
 	
 	void message(ulong id, ubyte[] mess)
 	{
-		//Decode message but not right now. 
 		foreach(handler; messageHandlers)
 			handler(id, mess);
 
-		import util.bitmanip;
-		auto msgid = mess.read!ubyte;
-		if(specificMessageHandlers[msgid] != MessageHandler.init) {
-			specificMessageHandlers[msgid](id, mess);
-		}
+		//auto msgid = mess.read!ushort;
+		//if(specificMessageHandlers[msgid] != MessageHandler.init) {
+		//	specificMessageHandlers[msgid](id, mess);
+		//}
 	}
 
 	void setMessageHandler(T)(void delegate(ulong, T) fun) if(isIncommingMessage!T) 

@@ -1,5 +1,7 @@
 numServices = 100
 numComponents = 100
+name = TowerDefence
+phoneResourceDir = |..\compiled_resources\tower_defence\phone|
 
 contentConfig =
 {

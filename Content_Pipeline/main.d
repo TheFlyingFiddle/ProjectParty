@@ -7,6 +7,7 @@ import util.hash, std.algorithm, std.array, std.string, std.path;
 import compilers;
 import filewatcher;
 import broadcaster;
+import content.file;
 
 void main(string[] argv)
 {
@@ -46,13 +47,6 @@ static ~this()
 {
 	deinitCompilers();
 }
-
-struct FileItem
-{
-	string name;
-	HashID   hash;
-}
-
 struct ItemChanged
 {
 	string name;
@@ -189,7 +183,7 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		auto compiled	= fileCompilers[index].compile(file, entry, context);
 
 		foreach(item; compiled.items) {
-			auto wName	   = to!string(nameHash) ~ item.extension;
+			auto wName	   = to!string(nameHash.value) ~ item.extension;
 			auto writeName = buildPath(outFolder, wName);
 			auto writeFile = File(writeName, "w");
 			writeFile.rawWrite(item.data);
@@ -197,7 +191,7 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 
 		foreach(item; compiled.items)
 		{
-			auto wName	   = to!string(nameHash) ~ item.extension;
+			auto wName	   = to!string(nameHash.value) ~ item.extension;
 			broadcastChange(wName);
 		}
 
@@ -217,7 +211,7 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 	
 	//Solve Map file stuff. --It needs to only include changed items...
 	auto toWrite = buildPath(outFolder, "Map.sdl");
-	toSDL(files.data, sink);
+	toSDL(FileMap(files.data), sink);
 
 	auto file = File(toWrite, "w");
 	file.write(sink.data);

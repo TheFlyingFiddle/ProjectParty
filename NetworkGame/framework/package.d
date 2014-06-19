@@ -19,6 +19,9 @@ import rendering;
 struct PhoneGameConfig
 {
 	size_t numServices, numComponents;
+	string name;
+	string phoneResourceDir;
+
 	WindowConfig windowConfig;
 	ConcurencyConfig concurencyConfig;
 	ServerConfig serverConfig;
@@ -29,14 +32,14 @@ struct PhoneGameConfig
 
 Game* createPhoneGame(A)(ref A al, PhoneGameConfig config)
 {
-	Game* g = al.allocate!Game(al, config.numServices, config.numComponents);
+	Game* g = al.allocate!Game(al, config.numServices, config.numComponents, config.name);
 
 	auto loader  = al.allocate!AsyncContentLoader(al, config.contentConfig);
 	g.addService(loader);
 
 	auto windowComponent  = al.allocate!WindowComponent(config.windowConfig);
 	auto taskComponent    = al.allocate!TaskComponent(al, config.concurencyConfig);
-	auto networkComponent = al.allocate!NetworkComponent(al, config.serverConfig);
+	auto networkComponent = al.allocate!NetworkComponent(al, config.serverConfig, config.phoneResourceDir);
 	auto screenComponent  = al.allocate!ScreenComponent(al, 20);
 	auto renderComponent  = al.allocate!RenderComponent(al, config.renderConfig);
 
@@ -45,6 +48,7 @@ Game* createPhoneGame(A)(ref A al, PhoneGameConfig config)
 	g.addComponent(taskComponent);
 	g.addComponent(networkComponent);
 	g.addComponent(screenComponent);
+	g.addComponent(al.allocate!LuaLogComponent());
 
 	version(RELOADING)
 	{

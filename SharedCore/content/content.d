@@ -155,7 +155,7 @@ struct ContentLoader
 		assert(index != -1, "Can't load the type specified!");
 
 		auto loader = fileLoaders[index];
-		auto file = text1024(resourceFolder, dirSeparator, hash,  loader.extension);
+		auto file = text1024(resourceFolder, dirSeparator, hash.value,  loader.extension);
 		T* loaded   = cast(T*)loader.load(allocator, cast(string)file, false);
 	
 		auto itemIndex = addItem(hash, cHash!T, loaded);
@@ -244,7 +244,7 @@ struct AsyncContentLoader
 			enum maxNameSize = 25; //Assumes 11bytes for hash and 14bytes for extension
 
 			auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
-			auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash, fileLoader.extension);
+			auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash.value, fileLoader.extension);
 
 			taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, &addReloadedAsyncFile);
 			numRequests++;
@@ -267,7 +267,7 @@ struct AsyncContentLoader
 
 		auto fileLoader = loader.fileLoaders.find!(x => x.typeHash == cHash!T)[0];
 		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
-		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, bytesHash(path), fileLoader.extension);
+		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, bytesHash(path).value, fileLoader.extension);
 		
 		auto adder = &addAsyncItem!T;
 		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, bytesHash(path), fileLoader, adder);			   
@@ -284,7 +284,7 @@ struct AsyncContentLoader
 
 		auto fileLoader = loader.fileLoaders.find!(x => x.extension == ext)[0];
 		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
-		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash, ext);
+		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash.value, ext);
 		auto adder = &addAsyncItem!void;
 		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, adder);
 	}

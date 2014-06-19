@@ -32,6 +32,7 @@ struct Game
 	ServiceLocator services;
 	List!IGameComponent components;
 	private bool shouldRun;
+	public const(char)[] name;
 
 	T* locate(T)(string name = "") if(is(T == struct))
 	{
@@ -66,11 +67,12 @@ struct Game
 		components ~= cast(IGameComponent)component;
 	}
 
-	this(A)(ref A al, size_t numServices, size_t numComponents)
+	this(A)(ref A al, size_t numServices, size_t numComponents, const(char)[] name)
 	{		
 		services   = ServiceLocator(al, numServices);
 		components = List!IGameComponent(al, numComponents);
 
+		this.name = name;
 		this.shouldRun = true;
 	}
 

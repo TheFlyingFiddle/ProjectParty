@@ -47,7 +47,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\SharedCore; ..\Derelict; ..\import</imppath>
+  <imppath>..\SharedCore; ..\Derelict; ..\import; ..\ContentCore</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -83,8 +83,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Derelict.lib</libfiles>
-  <libpaths>..\SharedCore\Debug ..\Derelict\Debug</libpaths>
+  <libfiles>SharedCore.lib Derelict.lib ContentCore.lib </libfiles>
+  <libpaths>..\SharedCore\Debug ..\Derelict\Debug ..\ContentCore\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>

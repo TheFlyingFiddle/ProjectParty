@@ -60,14 +60,16 @@ class NetworkComponent : IGameComponent
 {
 	Server* server;
 	Router* router;
+	private string resourceDir;
 
-	this(A)(ref A al, ServerConfig config)
+	this(A)(ref A al, ServerConfig config, string resourceDir)
 	{
 		import allocation;
-		server = al.allocate!Server(al, config);
-		router = al.allocate!(Router)(al, server);
-	
-		router.connections ~= &onPlayerConnect;
+		server   = al.allocate!Server(al, config);
+		router   = al.allocate!Router(al, server);
+		this.resourceDir = resourceDir;
+
+		router.connections ~= &syncFiles;
 	}
 
 	override void initialize()
@@ -76,51 +78,24 @@ class NetworkComponent : IGameComponent
 		game.addService(router);
 	}
 
-	void onPlayerConnect(ulong id)
+	void syncFiles(ulong id)
 	{
-		import network.message, content.content, std.file;
+		import network.message, content.content, network.file;
+		import concurency.task, util.bitmanip;
 
-		auto loader = game.locate!AsyncContentLoader;
-		auto dir = loader.resourceFolder;
+		ubyte[0x100] buffer = void;
+		uint ip = server.listenerAddress.addr;
+		size_t offset = 2;
+		buffer[].write!ushort(0, &offset);
+		buffer[].write!ubyte(0, &offset);
+		buffer[].write!(char[])(cast(char[])game.name, &offset);
+		buffer[].write!(ushort)(13462, &offset);
+		buffer[].write!(uint)(ip, &offset);
+		buffer[].write!(ushort)(cast(ushort)(offset - 2), 0);
+		server.send(id, buffer[0 .. offset]);
 
-		@OutMessage static struct FileHeader
-		{
-			string name;
-			ulong size;
-		}
-		
-		@OutMessage static struct GameName
-		{
-			string name;
-		}
-
-		server.sendMessage(id, GameName("TowerDefence"));
-		
-		ubyte[0xFFFF] buffer;
-		foreach(entry; dirEntries(dir, SpanMode.depth))
-		{
-			import std.stdio;
-			auto file = File(entry.name, "rb");
-			
-			FileHeader header = FileHeader(entry.name[dir.length + 1 .. $], file.size);	
-			server.sendMessage(id, header);
-			
-			auto read = 0;
-			while(read < file.size)
-			{
-				auto buf = file.rawRead(buffer[]);
-				server.send(id, buf);
-				read += buf.length;
-			}	
-		}
-
-		@OutMessage static struct AllFilesSent { }
-		server.sendMessage(id, AllFilesSent());
-
+		taskpool.doTask!(sendFiles)(id, ip, cast(ushort)13462, resourceDir);
 	}
-
-	
-
 
 	override void step(GameTime time)
 	{
@@ -161,6 +136,32 @@ class RenderComponent : IGameComponent
 	}
 }
 
+
+class LuaLogComponent : IGameComponent
+{
+	this()
+	{
+
+	}
+
+	override void initialize()
+	{
+		auto router = game.locate!Router;
+		router.messageHandlers ~= &onMessage;
+	}
+
+	void onMessage(ulong id, ubyte[] msg)
+	{
+		import util.bitmanip;
+		auto m = msg.read!ushort;
+		if(m == 10)
+		{
+			import std.stdio;
+			writeln(msg.read!(char[]));				
+		}
+	}
+
+}
 
 version(RELOADING)
 {

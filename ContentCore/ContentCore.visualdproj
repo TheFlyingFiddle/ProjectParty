@@ -1,5 +1,5 @@
 <DProject>
- <ProjectGuid>{D47811EE-3736-445F-8831-741E9B431DA8}</ProjectGuid>
+ <ProjectGuid>{7C45A70F-7240-4C00-BE21-DED28AE399FC}</ProjectGuid>
  <Config name="Debug" platform="Win32">
   <obj>0</obj>
   <link>0</link>
@@ -47,7 +47,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\import; ..\SharedCore; ..\Graphics; ..\ContentCore;</imppath>
+  <imppath>..\SharedCore</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -61,12 +61,12 @@
   <doHdrGeneration>0</doHdrGeneration>
   <hdrdir />
   <hdrname />
-  <doXGeneration>0</doXGeneration>
+  <doXGeneration>1</doXGeneration>
   <xfilename>$(IntDir)\$(TargetName).json</xfilename>
   <debuglevel>0</debuglevel>
   <debugids />
   <versionlevel>0</versionlevel>
-  <versionids>RELOADING</versionids>
+  <versionids />
   <dump_source>0</dump_source>
   <mapverbosity>0</mapverbosity>
   <createImplib>0</createImplib>
@@ -83,8 +83,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Graphics.lib Derelict.lib ContentConfig.lib</libfiles>
-  <libpaths>..\SharedCore\Debug ..\Graphics\Debug ..\Derelict\Debug  ..\ContentConfig\Debug</libpaths>
+  <libfiles>SharedCore.lib </libfiles>
+  <libpaths>..\SharedCore\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
@@ -98,7 +98,7 @@
  <Config name="Release" platform="Win32">
   <obj>0</obj>
   <link>0</link>
-  <lib>0</lib>
+  <lib>1</lib>
   <subsystem>0</subsystem>
   <multiobj>0</multiobj>
   <singleFileCompilation>0</singleFileCompilation>
@@ -182,7 +182,7 @@
   <libpaths />
   <deffile />
   <resfile />
-  <exefile>$(OutDir)\$(ProjectName).exe</exefile>
+  <exefile>$(OutDir)\$(ProjectName).lib</exefile>
   <useStdLibPath>1</useStdLibPath>
   <cRuntime>1</cRuntime>
   <additionalOptions />
@@ -190,24 +190,7 @@
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
- <Folder name="Framework">
-  <Folder name="entity">
-   <File path="entity\component.d" />
-   <File path="entity\entity.d" />
-   <File path="entity\package.d" />
-   <File path="entity\system.d" />
-   <File path="entity\world.d" />
-  </Folder>
-  <Folder name="framework">
-   <File path="framework\components.d" />
-   <File path="framework\core.d" />
-   <File path="framework\package.d" />
-   <File path="framework\phone.d" />
-   <File path="framework\player.d" />
-   <File path="framework\screen.d" />
-  </Folder>
-  <Folder name="screen">
-   <File path="screen\loading.d" />
-  </Folder>
+ <Folder name="ContentCore">
+  <File path="content_core.d" />
  </Folder>
 </DProject>

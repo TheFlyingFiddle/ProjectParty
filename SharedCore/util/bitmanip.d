@@ -14,9 +14,12 @@ T read(T)(ref ubyte[] range) if(is(T == struct) && !hasIndirections!T)
 
 T read(T)(ref ubyte[] range) if(isArray!T)
 {
+	alias E = typeof(T.init[0]);
+
+
 	ushort length = range.read!ushort;
-	T items = cast(T)range[0 .. length * T.sizeof];
-	range = range[length * T.sizeof .. $];
+	T items = cast(T)range[0 .. length * E.sizeof];
+	range = range[length * E.sizeof .. $];
 	return items;
 }
 
