@@ -23,8 +23,11 @@ enum FREE_IMAGE_DLL_PATH    = dllPath ~ "FreeImage.dll";
 pragma(lib, libPath ~ "DerelictUtil.lib");
 pragma(lib, libPath ~ "DerelictFI.lib");
 
+ubyte[] buffer;
 void initCompilers()
 {
+	buffer = new ubyte[1024 * 1024 * 10];
+
 	DerelictFI.load(FREE_IMAGE_DLL_PATH);
 	FreeImage_Initialise();
 }
@@ -100,6 +103,7 @@ extern(Windows) int tellData(void* handle) nothrow
 	return (cast(ArrayHandle*)handle).position;
 }
 
+
 CompiledFile compileImage(void[] data, DirEntry file, ref Context context)
 {
 	FreeImageIO io;
@@ -125,11 +129,29 @@ CompiledFile compileImage(void[] data, DirEntry file, ref Context context)
 			assert(0, "Don't know how to read image format: " ~ file.name.extension);
 	}
 
-	if(format == FIF_PNG)
-		return CompiledFile([CompiledItem(".png", data)]);
-
 	auto image = FreeImage_LoadFromHandle(format, &io, cast(fi_handle)&handle, 0);
 	scope(exit) FreeImage_Unload(image);
+
+	if(context.platform == Platform.phone)
+	{
+		auto width = FreeImage_GetWidth(image);
+		auto height = FreeImage_GetHeight(image);
+		auto bits = cast(uint[])(FreeImage_GetBits(image)[0 .. width * height * 4]);
+
+		auto tmp = new uint[width];
+
+		foreach(row; 0 .. height / 2)
+		{
+			auto startStart = row * width;
+			auto startEnd   = row * width + width;
+			auto endStart   = (height - row - 1) * width;
+			auto endEnd     = (height - row - 1) * width + width;
+
+			tmp[] = bits[startStart .. startEnd];
+			bits[startStart .. startEnd] = bits[endStart .. endEnd];
+			bits[endStart .. endEnd] = tmp[];
+		}
+	}
 
 	auto saveHandle = ArrayHandle(0, buffer);
 	FreeImage_SaveToHandle(FIF_PNG, image, &io, cast(fi_handle)&saveHandle, 0);

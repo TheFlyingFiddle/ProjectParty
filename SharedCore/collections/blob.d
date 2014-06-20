@@ -1,8 +1,6 @@
 module collections.blob;
 import std.traits, std.range;
 
-@nogc:
-
 struct Blob
 {
 	void* buffer;

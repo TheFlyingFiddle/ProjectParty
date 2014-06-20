@@ -10,8 +10,8 @@ struct FontLoader
 	static Font* load(IAllocator allocator, string path, bool async)
 	{
 		auto file = File(path, "rb");
-		auto data = allocator.allocateRaw(cast(uint)file.size + Texture2D.sizeof, 8);
-		file.rawRead(data[Texture2D.sizeof .. $]);
+		auto data = allocator.allocateRaw(cast(uint)file.size + Texture2D.sizeof + (uint[]).sizeof , 8);
+		file.rawRead(data[Texture2D.sizeof + (uint[]).sizeof .. $]);
 
 
 		auto texPath = text1024(path[0 .. $ - path.extension.length], ".png", "\0");
@@ -19,7 +19,7 @@ struct FontLoader
 
 		auto font    = cast(Font*)data;
 		font.page    = texture;
-		font.chars   = cast(CharInfo[])(data[Texture2D.sizeof + float.sizeof * 3 .. $]);
+		font.chars   = cast(CharInfo[])(data[Texture2D.sizeof + (uint[]).sizeof + float.sizeof * 3 .. $]);
 
 		font.page  = texture;
 		return font;

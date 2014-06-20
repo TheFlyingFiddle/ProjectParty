@@ -5,8 +5,10 @@ import main, compilers;
 import std.file, collections.blob;
 import math;
 
+import std.stdio;
+
 CompiledFile compileFont(void[] data, DirEntry path, ref Context context)
-{
+{		
 	auto blob = Blob(data.ptr, data.length, data.length);
 	//Read first four bytes
 	assert(blob.readBytes(3) == "BMF");
@@ -36,6 +38,7 @@ CompiledFile compileFont(void[] data, DirEntry path, ref Context context)
 				break;
 			case BlockType.pages:			
 				pageName = cast(char[])blob.readBytes(size)[0 .. $ - 1];
+				writeln(pageName);
 				break;
 			case BlockType.chars:
 				rawCharInfo = cast(CharRaw[])blob.readBytes(size);
@@ -53,8 +56,7 @@ CompiledFile compileFont(void[] data, DirEntry path, ref Context context)
 	auto imagePath  = buildPath(path.name.dirName, pageName); 
 	auto imageEntry = DirEntry(imagePath);
 	auto imageData  = read(imageEntry.name);
-	auto image		= compileImage(imageData, imageEntry, context);
-
+	
 	size_t min = size_t.max, max = 0;
 	foreach(ref r; rawCharInfo)
 	{
@@ -90,6 +92,7 @@ CompiledFile compileFont(void[] data, DirEntry path, ref Context context)
 	fontData.write!float(cHeader.lineHeight, &offset);
 	fontData[offset .. $] = cast(ubyte[])(chars);
 
+	auto image		= compileImage(imageData, imageEntry, context);
 	auto dependent = buildPath(path.name.dirName, pageName)[context.inFolder.length + 1 .. $];
 	dependent = setExtension(dependent, image.items[0].extension);
 

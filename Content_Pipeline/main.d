@@ -117,7 +117,7 @@ static this()
 	fileCompilers = 
 	[ 
 		FileCompiler(".psd", 10, &compileImage),
-		FileCompiler(".png", 10, &passThrough),
+		FileCompiler(".png", 10, &compileImage),
 		FileCompiler(".jpg", 10, &compileImage),
 		FileCompiler(".lua", 10, &passThrough),
 		FileCompiler(".sdl", 10, &passThrough),

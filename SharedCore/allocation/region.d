@@ -4,6 +4,8 @@ public import allocation.common;
 
 struct RegionAllocator
 {
+	@nogc:
+
 	IAllocator base;
 
 	void*  _buffer;

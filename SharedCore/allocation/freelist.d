@@ -5,6 +5,8 @@ public import allocation.common;
 
 struct FreeList(T) if(is(T == struct))
 {
+	@nogc:
+	
 	struct Item
 	{
 		union
@@ -111,6 +113,5 @@ struct FreeList(T) if(is(T == class))
 		items[index] = Item.init;
 		items[index].next = free;
 		free = index;
-
 	}
 }

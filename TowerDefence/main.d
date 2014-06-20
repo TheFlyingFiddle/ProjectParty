@@ -33,7 +33,7 @@ void main()
 	exit(0);
 }
 
-void run(PhoneGameConfig config)
+void run(PhoneGameConfig config) 
 {
 	RegionAllocator region = RegionAllocator(Mallocator.cit, 1024 * 1024 * 10);
 	auto stack = ScopeStack(region);

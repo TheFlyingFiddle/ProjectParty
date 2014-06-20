@@ -34,7 +34,7 @@ private {
     import derelict.util.system;
 }
 
-extern( System ) nothrow {
+extern( System ) nothrow @nogc {
     alias da_FreeImage_Initialise = void function( BOOL load_local_plugins_only = FALSE );
     alias da_FreeImage_DeInitialise = void function();
     alias da_FreeImage_GetVersion = const( char )* function();

@@ -155,7 +155,7 @@ auto createAtlas(AtlasConfig config, DirEntry file)
 	io.seek_proc  = &seekData;
 	io.tell_proc  = &tellData;
 
-	ArrayHandle handle = ArrayHandle(0, buffer);
+	ArrayHandle handle = ArrayHandle(0, compilers.buffer);
 	FreeImage_SaveToHandle(FIF_PNG, bitmap, &io, cast(fi_handle)&handle, 0); 
 
 	struct AtlasResult

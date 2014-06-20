@@ -98,6 +98,7 @@ private:
 class SymbolLoadException : DerelictException
 {
 public:
+
     this(string msg)
     {
         super(msg);
@@ -127,23 +128,23 @@ private:
 * the shared library to continue loading. Returning false will cause the exception
 * to be thrown.
 */
+
+
 alias bool function(string libName, string symbolName) MissingSymbolCallbackFunc;
 alias bool delegate(string libName, string symbolName) MissingSymbolCallbackDg;
 
 private MissingSymbolCallbackDg missingSymbolCallback;
+private MissingSymbolCallbackFunc missingSymbolCallbackFunc;
 
-void Derelict_SetMissingSymbolCallbck(MissingSymbolCallbackDg callback)
+
+void Derelict_SetMissingSymbolCallbck(MissingSymbolCallbackDg callback) 
 {
     missingSymbolCallback = callback;
 }
 
-void Derelict_SetMissingSymbolCallback(MissingSymbolCallbackFunc callback)
+void Derelict_SetMissingSymbolCallback(MissingSymbolCallbackFunc callback) 
 {
-    bool thunk(string libName, string symbolName)
-    {
-        return callback(libName, symbolName);
-    }
-    missingSymbolCallback = &thunk;
+    missingSymbolCallbackFunc = callback;
 }
 
 public void Derelict_HandleMissingSymbol(string libName, string symbolName)
@@ -151,6 +152,8 @@ public void Derelict_HandleMissingSymbol(string libName, string symbolName)
     bool result = false;
     if(missingSymbolCallback !is null)
         result = missingSymbolCallback(libName, symbolName);
+	if(missingSymbolCallbackFunc !is null)
+		result = missingSymbolCallbackFunc(libName, symbolName);
     if(!result)
         throw new SymbolLoadException(libName, symbolName);
 }

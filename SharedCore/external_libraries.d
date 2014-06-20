@@ -30,8 +30,6 @@ enum OGG_DLL_PATH			= dllPath ~ "libogg-0.dll";
 enum VORBIS_DLL_PATH		= dllPath ~ "libvorbis-0.dll";
 enum VORBISFILE_DLL_PATH	= dllPath ~ "libvorbisfile-3.dll";
 
-
-
 void init_dlls()
 {	
 	Derelict_SetMissingSymbolCallback(&missingSymFunc);
@@ -51,7 +49,7 @@ void init_dlls()
 	Mix_Init(MIX_INIT_OGG);
 
 	glfwSetErrorCallback(&glfwError);
-	enforce(glfwInit(), "GLFW did not initialize properly!");
+	assert(glfwInit(), "GLFW did not initialize properly!");
 
 	auto logChnl = LogChannel("EXTERNAL_LIBRARIES");
 	logChnl.info("Setup complete");

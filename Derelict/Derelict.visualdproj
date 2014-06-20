@@ -13,7 +13,7 @@
   <verbose>0</verbose>
   <vtls>0</vtls>
   <symdebug>1</symdebug>
-  <optimize>1</optimize>
+  <optimize>0</optimize>
   <cpu>0</cpu>
   <isX86_64>0</isX86_64>
   <isLinux>0</isLinux>
@@ -29,10 +29,10 @@
   <useIn>0</useIn>
   <useOut>0</useOut>
   <useArrayBounds>0</useArrayBounds>
-  <noboundscheck>1</noboundscheck>
+  <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
   <useUnitTests>0</useUnitTests>
-  <useInline>1</useInline>
+  <useInline>0</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
   <warnings>0</warnings>
@@ -191,63 +191,65 @@
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Folder name="Derelict">
-  <Folder name="freeimage">
-   <File path="freeimage\freeimage.d" />
-   <File path="freeimage\functions.d" />
-   <File path="freeimage\types.d" />
-  </Folder>
-  <Folder name="glfw3">
-   <File path="glfw3\functions.d" />
-   <File path="glfw3\glfw3.d" />
-   <File path="glfw3\types.d" />
-  </Folder>
-  <Folder name="ogg">
-   <File path="ogg\ogg.d" />
-   <File path="ogg\oggfunctions.d" />
-   <File path="ogg\oggtypes.d" />
-   <File path="ogg\vorbis.d" />
-   <File path="ogg\vorbisenc.d" />
-   <File path="ogg\vorbisencfunctions.d" />
-   <File path="ogg\vorbisenctypes.d" />
-   <File path="ogg\vorbisfile.d" />
-   <File path="ogg\vorbisfilefunctions.d" />
-   <File path="ogg\vorbisfiletypes.d" />
-   <File path="ogg\vorbisfunctions.d" />
-   <File path="ogg\vorbistypes.d" />
-  </Folder>
-  <Folder name="opengl3">
-   <File path="opengl3\arb.d" />
-   <File path="opengl3\cgl.d" />
-   <File path="opengl3\constants.d" />
-   <File path="opengl3\deprecatedConstants.d" />
-   <File path="opengl3\deprecatedFunctions.d" />
-   <File path="opengl3\ext.d" />
-   <File path="opengl3\functions.d" />
-   <File path="opengl3\gl.d" />
-   <File path="opengl3\gl3.d" />
-   <File path="opengl3\glx.d" />
-   <File path="opengl3\glxext.d" />
-   <File path="opengl3\internal.d" />
-   <File path="opengl3\types.d" />
-   <File path="opengl3\wgl.d" />
-   <File path="opengl3\wglext.d" />
-  </Folder>
-  <Folder name="sdl2">
-   <File path="sdl2\functions.d" />
-   <File path="sdl2\image.d" />
-   <File path="sdl2\mixer.d" />
-   <File path="sdl2\net.d" />
-   <File path="sdl2\sdl.d" />
-   <File path="sdl2\ttf.d" />
-   <File path="sdl2\types.d" />
-  </Folder>
-  <Folder name="util">
-   <File path="util\exception.d" />
-   <File path="util\loader.d" />
-   <File path="util\sharedlib.d" />
-   <File path="util\system.d" />
-   <File path="util\wintypes.d" />
-   <File path="util\xtypes.d" />
+  <Folder name="derelict">
+   <Folder name="freeimage">
+    <File path="derelict\freeimage\freeimage.d" />
+    <File path="derelict\freeimage\functions.d" />
+    <File path="derelict\freeimage\types.d" />
+   </Folder>
+   <Folder name="glfw3">
+    <File path="derelict\glfw3\functions.d" />
+    <File path="derelict\glfw3\glfw3.d" />
+    <File path="derelict\glfw3\types.d" />
+   </Folder>
+   <Folder name="ogg">
+    <File path="derelict\ogg\ogg.d" />
+    <File path="derelict\ogg\oggfunctions.d" />
+    <File path="derelict\ogg\oggtypes.d" />
+    <File path="derelict\ogg\vorbis.d" />
+    <File path="derelict\ogg\vorbisenc.d" />
+    <File path="derelict\ogg\vorbisencfunctions.d" />
+    <File path="derelict\ogg\vorbisenctypes.d" />
+    <File path="derelict\ogg\vorbisfile.d" />
+    <File path="derelict\ogg\vorbisfilefunctions.d" />
+    <File path="derelict\ogg\vorbisfiletypes.d" />
+    <File path="derelict\ogg\vorbisfunctions.d" />
+    <File path="derelict\ogg\vorbistypes.d" />
+   </Folder>
+   <Folder name="opengl3">
+    <File path="derelict\opengl3\arb.d" />
+    <File path="derelict\opengl3\cgl.d" />
+    <File path="derelict\opengl3\constants.d" />
+    <File path="derelict\opengl3\deprecatedConstants.d" />
+    <File path="derelict\opengl3\deprecatedFunctions.d" />
+    <File path="derelict\opengl3\ext.d" />
+    <File path="derelict\opengl3\functions.d" />
+    <File path="derelict\opengl3\gl.d" />
+    <File path="derelict\opengl3\gl3.d" />
+    <File path="derelict\opengl3\glx.d" />
+    <File path="derelict\opengl3\glxext.d" />
+    <File path="derelict\opengl3\internal.d" />
+    <File path="derelict\opengl3\types.d" />
+    <File path="derelict\opengl3\wgl.d" />
+    <File path="derelict\opengl3\wglext.d" />
+   </Folder>
+   <Folder name="sdl2">
+    <File path="derelict\sdl2\functions.d" />
+    <File path="derelict\sdl2\image.d" />
+    <File path="derelict\sdl2\mixer.d" />
+    <File path="derelict\sdl2\net.d" />
+    <File path="derelict\sdl2\sdl.d" />
+    <File path="derelict\sdl2\ttf.d" />
+    <File path="derelict\sdl2\types.d" />
+   </Folder>
+   <Folder name="util">
+    <File path="derelict\util\exception.d" />
+    <File path="derelict\util\loader.d" />
+    <File path="derelict\util\sharedlib.d" />
+    <File path="derelict\util\system.d" />
+    <File path="derelict\util\wintypes.d" />
+    <File path="derelict\util\xtypes.d" />
+   </Folder>
   </Folder>
   <File path="lib.d" />
  </Folder>

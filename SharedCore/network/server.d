@@ -187,6 +187,7 @@ struct Server
 				ulong id = read!ulong(bbb);
 
 				logChnl.info("Id received :  ", id);
+				logChnl.info("ByteID : ", (cast(ubyte*)&id)[0 .. 8]);
 				if(id == con.id)
 				{
 					logChnl.info("onConnect :  ", id);
@@ -243,8 +244,13 @@ struct Server
 		ubyte[8192] buffer = void;
 		while(true)
 		{
-			auto read = udpSocket.receiveFrom(buffer);
+			Address from;
+			auto read = udpSocket.receiveFrom(buffer, from);
 			if(read == 0 || read == Socket.ERROR) break;
+
+			logChnl.info("Received Message From: ", from);
+			continue;
+
 			
 			ubyte[] buf = buffer[0 .. read];
 			read -= ulong.sizeof;
@@ -421,7 +427,11 @@ struct Server
 			 //Send session key.
 			 import util.bitmanip;
 			 auto number = uniqueNumber();
+
+			 logChnl.info("Sending SessionID: ", number);
 			 ubyte[ulong.sizeof] nBuff; ubyte[] bBuff = nBuff;
+
+			 logChnl.info("Sending SessionID: ", (cast(ubyte*)&number)[0 .. 8]);
 			 bBuff.write!ulong(number, 0);
 			 s.send(bBuff);
 			 pendingConnections ~= Connection(s, 0.0f, number);

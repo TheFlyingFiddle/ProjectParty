@@ -1,3 +1,5 @@
+/*
+
 Boost Software License - Version 1.0 - August 17th, 2003
 
 Permission is hereby granted, free of charge, to any person or organization
@@ -21,3 +23,81 @@ SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
 FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
+*/
+module derelict.util.loader;
+
+@system @nogc
+{
+	private
+	{
+		import std.array : split;
+		import std.string : strip;
+	
+		import derelict.util.sharedlib;
+	}
+
+	class SharedLibLoader
+	{
+	public:
+		this(string libNames)
+		{
+			_libNames = libNames;
+		}
+
+		void load()
+		{
+			load(_libNames);
+		}
+
+		void load(string libNameString)
+		{
+			assert(libNameString !is null);
+
+			string[] libNames = libNameString.split(",");
+			foreach(ref string l; libNames)
+				l = l.strip();
+
+			load(libNames);
+		}
+
+		void load(string[] libNames)
+		{
+			_lib.load(libNames);
+			loadSymbols();
+		}
+
+		void unload()
+		{
+			_lib.unload();
+		}
+
+		bool isLoaded() @property
+		{
+			return _lib.isLoaded;
+		}
+
+	protected:
+		abstract void loadSymbols();
+
+		void* loadSymbol(string name)
+		{
+			return _lib.loadSymbol(name);
+		}
+
+		SharedLib lib() @property
+		{
+			return _lib;
+		}
+
+		void bindFunc(void** ptr, string funcName, bool doThrow = true)
+		{
+			void* func = lib.loadSymbol(funcName, doThrow);
+			*ptr = func;
+		}
+
+	private:
+		string _libNames;
+		SharedLib _lib;
+	}
+}

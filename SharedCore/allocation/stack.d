@@ -91,7 +91,7 @@ struct ScopeStack
 				}
 				else 
 				{
-					t.next == err;
+					t.next = err;
 					err = t;
 				}
 			}
