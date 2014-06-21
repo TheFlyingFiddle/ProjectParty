@@ -68,7 +68,7 @@ struct Server
 	Listener listener;
 
 	InternetAddress listenerAddress;
-	string hostName;
+	char[] hostName;
 	string listenerString;
 
 	void delegate(ulong) onConnect;
@@ -97,7 +97,9 @@ struct Server
 		foreach(i; 0 .. config.maxConnections)
 			partialMessages ~= PartialMessage(allocator.allocate!(ubyte[])(config.maxMessageSize), 0, 0);
 	
-		this.hostName = Socket.hostName.idup;
+		string s = Socket.hostName;
+		this.hostName = allocator.allocate!(char[])(s.length);
+		this.hostName[] = s[];
 		auto result = getAddress(hostName);
 		foreach(r; result)
 		{
