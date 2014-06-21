@@ -97,7 +97,7 @@ struct Server
 		foreach(i; 0 .. config.maxConnections)
 			partialMessages ~= PartialMessage(allocator.allocate!(ubyte[])(config.maxMessageSize), 0, 0);
 	
-		this.hostName = Socket.hostName;
+		this.hostName = Socket.hostName.idup;
 		auto result = getAddress(hostName);
 		foreach(r; result)
 		{
