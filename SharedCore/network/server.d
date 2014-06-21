@@ -68,11 +68,8 @@ struct Server
 	Listener listener;
 
 	InternetAddress listenerAddress;
-	InternetAddress broadcastAddress;
-
 	string hostName;
 	string listenerString;
-	float timeSinceLastBroadcast = 0;
 
 	void delegate(ulong) onConnect;
 	void delegate(ulong) onReconnect;
@@ -112,10 +109,7 @@ struct Server
 				InternetAddress udpAddr = allocator.allocate!InternetAddress(stringAddr, cast(ushort)12345);
 				udpSocket.bind(udpAddr);
 
-				listenerAddress = allocator.allocate!InternetAddress(stringAddr, listener.localAddress.toPortString.to!ushort);
-				
-				//This only works on simple networks. 
-				broadcastAddress = allocator.allocate!InternetAddress(listenerAddress.addr | 0xFF, config.broadcastPort);
+				listenerAddress = allocator.allocate!InternetAddress(stringAddr, listener.localAddress.toPortString.to!ushort);		
 			}
 		}
 
@@ -149,12 +143,6 @@ struct Server
 
 	void update(float elapsed)
 	{
-		timeSinceLastBroadcast += elapsed;
-		if(timeSinceLastBroadcast >= config.broadcastInterval) {
-			timeSinceLastBroadcast -= config.broadcastInterval;
-			broadcastServer();
-		}
-
 		acceptIncoming();
 		processPendingConnections(elapsed);
 		processUDPMessages(elapsed);
@@ -245,10 +233,19 @@ struct Server
 		while(true)
 		{
 			Address from;
+
 			auto read = udpSocket.receiveFrom(buffer, from);
 			if(read == 0 || read == Socket.ERROR) break;
 
 			logChnl.info("Received Message From: ", from);
+			logChnl.info("Host Name: ", hostName);
+			size_t offset = 0;
+			buffer[].write!(char[])(cast(char[])hostName, &offset);
+			buffer[].write!(char[])(cast(char[])"TowerDefence",  &offset);
+			buffer[].write!(ushort)(cast(ushort)13462,  &offset);
+			buffer[].write!(ushort)(listenerAddress.port, &offset);
+			buffer[].write!(ushort)(cast(ushort)12345, &offset);
+			udpSocket.sendTo(buffer[0 .. offset], from);
 			continue;
 
 			
@@ -386,25 +383,6 @@ struct Server
 
 			}
 		}
-	}
-
-	void broadcastServer()
-	{
-		ubyte[1024] msgB = void;
-		ubyte[] msg = msgB[0 .. $];
-		msg[0] = 'P'; msg[1] = 'P'; msg[2] = 'S';
-
-
-		import util.bitmanip;
-		size_t index = 3;
-		msg.write!uint(listenerAddress.addr, &index);
-		msg.write!ushort(listenerAddress.port, &index);
-		
-		msg.write!ushort(cast(ushort)hostName.length, &index);
-		foreach(char c; hostName)
-			msg.write!(char)(c, &index);
-
-		connector.sendTo(msg, broadcastAddress);
 	}
 
 	void acceptIncoming()
