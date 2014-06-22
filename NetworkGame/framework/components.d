@@ -68,33 +68,15 @@ class NetworkComponent : IGameComponent
 		server   = al.allocate!Server(al, config);
 		router   = al.allocate!Router(al, server);
 		this.resourceDir = resourceDir;
-
-		router.connections ~= &syncFiles;
 	}
 
 	override void initialize()
 	{
+		import network.file;
 		game.addService(server);
 		game.addService(router);
-	}
-
-	void syncFiles(ulong id)
-	{
-		import network.message, content.content, network.file;
-		import concurency.task, util.bitmanip;
-
-		ubyte[0x100] buffer = void;
-		uint ip = server.listenerAddress.addr;
-		size_t offset = 2;
-		buffer[].write!ushort(0, &offset);
-		buffer[].write!ubyte(0, &offset);
-		buffer[].write!(char[])(cast(char[])game.name, &offset);
-		buffer[].write!(ushort)(13462, &offset);
-		buffer[].write!(uint)(ip, &offset);
-		buffer[].write!(ushort)(cast(ushort)(offset - 2), 0);
-		server.send(id, buffer[0 .. offset]);
-
-		taskpool.doTask!(sendFiles)(id, ip, cast(ushort)13462, resourceDir);
+		auto ip = server.listenerAddress.addr;
+		taskpool.doTask!(listenForFileRequests)(ip, cast(ushort)13462, resourceDir);
 	}
 
 	override void step(GameTime time)
@@ -102,6 +84,8 @@ class NetworkComponent : IGameComponent
 		server.update(time.delta.to!("seconds", float));
 	}
 }
+
+
 
 class RenderComponent : IGameComponent
 {

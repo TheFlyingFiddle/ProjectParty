@@ -44,6 +44,56 @@ void sendFile(Socket socket, const(char)[] entry, const(char)[] folder, ubyte[] 
 	}
 }
 
+void listenForFileRequests(uint ip, ushort port, string resourceFolder)
+{
+	import network.message, content.content, network.file;
+	import concurency.task, util.bitmanip;
+
+	TcpSocket listener = GlobalAllocator.allocate!(TcpSocket)();
+	auto address  = GlobalAllocator.allocate!(InternetAddress)(ip, port);
+	import std.stdio;
+	writeln(cast(void*)ip, " ", port);
+	writeln(address);
+
+	listener.bind(address);
+	listener.blocking = true;
+	listener.listen(1);
+
+	while(true)
+	{
+		Socket socket = listener.accept();
+		taskpool.doTask!(sendFiles)(socket, resourceFolder);
+	}
+}
+
+
+void sendFiles(Socket socket, string resourceFolder)
+{
+	ubyte[0xffff] rec; ubyte[] slice = rec[];
+
+	auto size = socket.receive(slice);
+	assert(size >= 1);
+	if(slice.read!ubyte == 1)
+	{
+		//Read map
+		slice = rec[];
+		size = socket.receive(slice);
+
+		writeln(size);
+		writeln(cast(char[])slice[0 .. size]);
+		FileMap map = fromSDLSource!FileMap(Mallocator.it, cast(string)slice[0 .. size]);
+		sendDiffFiles(socket, resourceFolder, map);
+	}
+	else 
+	{
+		sendAllFiles(socket, resourceFolder);
+	}
+
+	socket.shutdown(SocketShutdown.SEND);
+	socket.close();
+}
+
+
 void sendAllFilesSent(Socket socket)
 {
 	ubyte id = FileMessages.allFilesSent;
@@ -83,40 +133,4 @@ void sendDiffFiles(Socket socket, string folder, FileMap map)
 
 
 	sendAllFilesSent(socket);
-}
-
-void sendFiles(ulong id, uint ip, ushort port, string resourceFolder)
-{
-	TcpSocket listener = GlobalAllocator.allocate!(TcpSocket)();
-	auto address  = GlobalAllocator.allocate!(InternetAddress)(ip, port);
-
-	listener.bind(address);
-	listener.blocking = true;
-	listener.listen(1);
-
-	Socket socket = listener.accept();
-	ubyte[0xffff] rec; ubyte[] slice = rec[];
-
-	auto size = socket.receive(slice);
-	assert(size >= 1);
-	if(slice.read!ubyte == 1)
-	{
-		//Read map
-		slice = rec[];
-		size = socket.receive(slice);
-
-		writeln(size);
-		writeln(cast(char[])slice[0 .. size]);
-		FileMap map = fromSDLSource!FileMap(Mallocator.it, cast(string)slice[0 .. size]);
-		sendDiffFiles(socket, resourceFolder, map);
-	}
-	else 
-	{
-		sendAllFiles(socket, resourceFolder);
-	}
-
-
-	listener.close();
-	socket.shutdown(SocketShutdown.SEND);
-	socket.close();
 }
