@@ -86,7 +86,7 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 		context.usedNames ~= stripExtension(item);
 	}
 
-	auto atlas			= createAtlas(atlasConfig, file);
+	auto atlas			= createAtlas(atlasConfig, file, context.platform);
 
 	import util.bitmanip;
 	if(context.platform == Platform.desktop)
@@ -111,18 +111,26 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 	{
 		auto name = file.name[context.inFolder.length + 1 .. $ - file.name.extension.length];
 
-		string luaCode = "local atlas = { }";
-		luaCode ~= "\natlas.frame  = Loader.loadFrame(\"" ~ name ~ "\")";
-		luaCode ~= "\natlas.width  = " ~ atlasConfig.width.to!string;
-		luaCode ~= "\natlas.height = " ~ atlasConfig.width.to!string;
+		string luaCode = 
+"local atlas = { }
+C.luaLog(\"Gonna load me some atlas\")
+local rHandle = Resources.loadFile(\"" ~ name ~ ".png\")
+atlas.texture = ffi.cast(\"Texture*\", rHandle.item)
+atlas.width  = " ~ atlasConfig.width.to!string ~ "
+atlas.height = " ~ atlasConfig.width.to!string ~ "\n";
 		
 		foreach(r; atlas.rects)
 		{
-			luaCode ~= text("\natlas.", r.name, " = Rect2(", r.bottom, ",", 
-							r.left, ",", r.right, ",", r.top, ")");
+			luaCode ~= text("\n\tatlas.", r.name,
+							" = FrameRef(Frame(atlas.texture[0],",
+							r.left / cast(float)atlasConfig.width, ",",
+							r.bottom / cast(float)atlasConfig.height, ",",
+							(r.right - r.left) / cast(float)atlasConfig.width, ",",
+							(r.top - r.bottom) / cast(float)atlasConfig.height, "))");
 		}
 
-		luaCode ~= "\nreturn atlas";
+		luaCode ~=
+"\nreturn atlas";
 
 		return CompiledFile([CompiledItem(".luac", cast(void[])luaCode),
 							 CompiledItem(".png", atlas.data)],
@@ -131,7 +139,7 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 		assert(0, "Not yet implemented!");
 }	
 
-auto createAtlas(AtlasConfig config, DirEntry file)
+auto createAtlas(AtlasConfig config, DirEntry file, Platform platform)
 {
 	Image[] images;
 	foreach(item; config.items.map!(x => Tuple!(string, string)(stripExtension(x),
@@ -144,6 +152,9 @@ auto createAtlas(AtlasConfig config, DirEntry file)
 
 	auto result = buildAtlas(images, config.width, config.height);
 	freeImages(images);
+
+	if(platform == Platform.phone)
+		flipImage(result.image.data, result.image.width, result.image.height);
 
 	auto bitmap = FreeImage_ConvertFromRawBits(cast(ubyte*)result.image.data.ptr, config.width, config.height,
 											   config.width * 4, 32, 8, 8, 8, false);

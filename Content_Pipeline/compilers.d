@@ -137,24 +137,28 @@ CompiledFile compileImage(void[] data, DirEntry file, ref Context context)
 		auto width = FreeImage_GetWidth(image);
 		auto height = FreeImage_GetHeight(image);
 		auto bits = cast(uint[])(FreeImage_GetBits(image)[0 .. width * height * 4]);
+		flipImage(bits, width, height);
 
-		auto tmp = new uint[width];
-
-		foreach(row; 0 .. height / 2)
-		{
-			auto startStart = row * width;
-			auto startEnd   = row * width + width;
-			auto endStart   = (height - row - 1) * width;
-			auto endEnd     = (height - row - 1) * width + width;
-
-			tmp[] = bits[startStart .. startEnd];
-			bits[startStart .. startEnd] = bits[endStart .. endEnd];
-			bits[endStart .. endEnd] = tmp[];
-		}
 	}
 
 	auto saveHandle = ArrayHandle(0, buffer);
 	FreeImage_SaveToHandle(FIF_PNG, image, &io, cast(fi_handle)&saveHandle, 0);
 
 	return CompiledFile([CompiledItem(".png", buffer[0 .. saveHandle.position])]);
+}
+
+void flipImage(uint[] image, uint width, uint height)
+{
+	auto tmp = new uint[width];
+	foreach(row; 0 .. height / 2)
+	{
+		auto startStart = row * width;
+		auto startEnd   = row * width + width;
+		auto endStart   = (height - row - 1) * width;
+		auto endEnd     = (height - row - 1) * width + width;
+
+		tmp[] = image[startStart .. startEnd];
+		image[startStart .. startEnd] = image[endStart .. endEnd];
+		image[endStart .. endEnd] = tmp[];
+	}
 }
