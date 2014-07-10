@@ -51,8 +51,7 @@ struct WindowManager
 		try {
 			DerelictGL3.reload();
 		} catch (Throwable t) {
-			import std.stdio;
-			writeln(t);
+			logInfo(t);
 		}
 
  

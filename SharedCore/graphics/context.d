@@ -29,22 +29,22 @@ void checkGLError(Args...)(string name, Args args)
 		switch(err)
 		{
 			case GL_INVALID_ENUM: 
-				writeln("Got GL_INVALID_ENUM error when calling " ~ name);
+				logErr("Got GL_INVALID_ENUM error when calling " ~ name);
 				break;
 			case GL_INVALID_VALUE:
-				writeln("Got GL_INVALID_VALUE error when calling " ~ name);
+				logErr("Got GL_INVALID_VALUE error when calling " ~ name);
 				break;
 			case GL_INVALID_OPERATION:
-				writeln("Got GL_INVALID_OPERATION error when calling " ~ name);
+				logErr("Got GL_INVALID_OPERATION error when calling " ~ name);
 				break;
 			case GL_INVALID_FRAMEBUFFER_OPERATION:
-				writeln("Got GL_INVALID_FRAMEBUFFER_OPERATION error when calling " ~ name);
+				logErr("Got GL_INVALID_FRAMEBUFFER_OPERATION error when calling " ~ name);
 				break;
 			case GL_OUT_OF_MEMORY:
-				writeln("Got GL_OUT_OF_MEMORY error when calling " ~ name);
+				logErr("Got GL_OUT_OF_MEMORY error when calling " ~ name);
 				break;
 			default:
-				writeln("IDK");
+				logErr("Got unkown gl error");
 				break;
 		}	
 

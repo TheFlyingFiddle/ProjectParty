@@ -51,9 +51,6 @@ void listenForFileRequests(uint ip, ushort port, string resourceFolder)
 
 	TcpSocket listener = GlobalAllocator.allocate!(TcpSocket)();
 	auto address  = GlobalAllocator.allocate!(InternetAddress)(ip, port);
-	import std.stdio;
-	writeln(cast(void*)ip, " ", port);
-	writeln(address);
 
 	listener.bind(address);
 	listener.blocking = true;
@@ -79,8 +76,6 @@ void sendFiles(Socket socket, string resourceFolder)
 		slice = rec[];
 		size = socket.receive(slice);
 
-		writeln(size);
-		writeln(cast(char[])slice[0 .. size]);
 		FileMap map = fromSDLSource!FileMap(Mallocator.it, cast(string)slice[0 .. size]);
 		sendDiffFiles(socket, resourceFolder, map);
 	}

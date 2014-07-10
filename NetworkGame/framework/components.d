@@ -6,6 +6,7 @@ import window.window;
 import window.keyboard;
 import network.server;
 import network.router; 
+import log;
 
 class WindowComponent : IGameComponent
 {
@@ -141,7 +142,7 @@ class LuaLogComponent : IGameComponent
 		if(m == 10)
 		{
 			import std.stdio;
-			writeln(msg.read!(char[]));				
+			logInfo(msg.read!(char[]));				
 		}
 	}
 

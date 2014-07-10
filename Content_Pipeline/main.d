@@ -8,6 +8,7 @@ import compilers;
 import filewatcher;
 import broadcaster;
 import content.file;
+import log;
 
 void main(string[] argv)
 {
@@ -17,16 +18,18 @@ void main(string[] argv)
 	auto watcher = FileWatcher(inDirectory);
 	setupbroadcast(12345);
 
+	initializeRemoteLogging("Content_Pipeline", 54321);
+	scope (exit) termRemoteLogging();
+
 	while(true)
 	{
 		try
 			build(inDirectory, outDirectory);
 		catch(Throwable t) {
-			writeln(t);
+			logInfo("Crash!\n", t); 
 		}
 		
 		watcher.waitForFileChanges();
-		writeln("A file changed!");
 	}
 }
 
@@ -171,7 +174,8 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		fileCache.itemChanged  ~= ItemChanged(name ~ entry.name.extension,  timeLastModified(entry.name).stdTime);
 	
 		if(context.usedNames.canFind(name)) continue;
-		writeln("Compiling File: ", entry.name);
+		
+		logInfo("Compiling File: ", entry.name);
 
 		context.usedNames ~= name;
 
@@ -232,7 +236,7 @@ FileCache addUnchanged(ref Context context)
 	auto cachePath = buildPath(context.outFolder, "FileCache.sdl");
 	if(!exists(cachePath)) 
 	{
-		writeln("No file cache found!", cachePath);
+		logInfo("No file cache found!", cachePath);
 		return FileCache.init;	
 	}
 
@@ -249,7 +253,7 @@ FileCache addUnchanged(ref Context context)
 		else
 		{
 			cache.itemChanged = cache.itemChanged.remove(i);
-			writeln("File Changed! ", path);
+			logInfo("File Changed! ", path);
 		}
 	}
 

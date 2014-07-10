@@ -16,6 +16,7 @@ struct TextureAtlasLoader
 		auto file = File(path, "rb");
 		auto data = allocator.allocateRaw(cast(uint)file.size + TextureAtlas.sizeof, 8);
 		file.rawRead(data[TextureAtlas.sizeof .. $]);
+		file.close();
 
 		auto texPath = text1024(path[0 .. $ - path.extension.length], ".png", "\0");
 		Texture2D texture = loadTexture(texPath.ptr, 0, false, async);

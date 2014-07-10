@@ -13,6 +13,7 @@ import window.window;
 import window.keyboard;
 
 import external_libraries;
+import log;
 
 void main()
 {
@@ -25,7 +26,7 @@ void main()
 		run(config);
 	}
 	catch(Throwable t) {
-		writeln(t);
+		logInfo("Crash!\n", t);
 		readln;
 	}
 
@@ -38,6 +39,9 @@ void run(PhoneGameConfig config)
 	RegionAllocator region = RegionAllocator(Mallocator.cit, 1024 * 1024 * 10);
 	auto stack = ScopeStack(region);
 
+	initializeRemoteLogging("TowerDefence", 54321);
+	scope(exit) termRemoteLogging();
+
 	auto game = createPhoneGame(stack, config);
 
 	import screen.loading;
@@ -49,6 +53,7 @@ void run(PhoneGameConfig config)
 
 	gl.enable(Capability.blend);
 	gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);
+
 	game.run();
 }
 	
@@ -67,6 +72,7 @@ class Screen1 : Screen
 		font	= loader.load!Font("ComicSans32");
 		atlas	= loader.load!TextureAtlas("Atlas");
 	}
+
 	override void update(GameTime time) 
 	{
 		rotation += time.delta.to!("seconds", float);	
@@ -78,9 +84,13 @@ class Screen1 : Screen
 			owner.push(s);
 		}
 	}
+
 	override void render(GameTime time)
 	{
 		auto renderer = game.locate!Renderer;
+
+		auto chnl = LogChannel("Lame");
+		chnl.info("There is a channel in the ocean!");
 
 		import util.strings;
 		renderer.drawText("Hello, World!", float2(0, 200), font.asset, Color.black);

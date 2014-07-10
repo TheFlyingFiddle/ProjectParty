@@ -4,6 +4,7 @@ import allocation;
 import main, compilers;
 import std.file, collections.blob;
 import math;
+import log;
 
 import std.stdio;
 
@@ -38,7 +39,7 @@ CompiledFile compileFont(void[] data, DirEntry path, ref Context context)
 				break;
 			case BlockType.pages:			
 				pageName = cast(char[])blob.readBytes(size)[0 .. $ - 1];
-				writeln(pageName);
+				logInfo(pageName);
 				break;
 			case BlockType.chars:
 				rawCharInfo = cast(CharRaw[])blob.readBytes(size);

@@ -1,0 +1,23 @@
+Code Journal Number 2. 
+
+What have i done so far? 
+I made a logging application using C# and Winforms.
+The logging application has the following features. 
+
+1. Multiple diffrent tabs with logging information (From diffrent connections)
+2. Ability to save the logged information. 
+3. Ability to close and clear the logging tabs. 
+4. Ability to change the logging font. 
+5. Diffrent colors for diffrent levels of error. Green = Info, Orange = Warn, Red = Error
+6. Line and file information. I guess that is it. 
+7. It currently works for Content Pipeline and TowerDefence (D side)
+
+What is left to do in the context of logging?
+1. Use it on the phone. 
+
+Plan of attack --- 
+
+Run the logging on the main thread. 
+Simply Connect to the UDP service. 
+Log messages features -> File-Line information (This is worthless in lua atm)
+Other then that its just good to go. 

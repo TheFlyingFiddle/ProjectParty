@@ -44,6 +44,7 @@ struct List(T)
 
 	void opOpAssign(string s)(auto ref T value) if(s == "~")
 	{
+		assert(length < capacity, "The list is full can no longer append!");
 		buffer[length++] = value;
 	}
 

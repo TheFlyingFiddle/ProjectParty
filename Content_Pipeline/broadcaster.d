@@ -1,6 +1,7 @@
 module broadcaster;
 import std.socket;
 import std.concurrency;
+import log;
 
 Tid broadcastTid;
 
@@ -27,9 +28,6 @@ void broadcast(ushort port)
 			(string name) 
 			{
 				auto s = socket.sendTo(name, new InternetAddress("192.168.1.255", 21345));			
-				import std.stdio;
-				writeln(s == Socket.ERROR);
-				writeln(s);
 			},
 			(bool shutdown)
 			{

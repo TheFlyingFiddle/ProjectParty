@@ -259,10 +259,12 @@ struct TaskThreadPool
 			}
 			catch(Throwable t)
 			{
-				import std.stdio, std.conv;
-				writeln("There has been a crash!");
-				writeln(t);
-				readln;
+				import log;
+				auto chnl = LogChannel("Thread Crash!");
+				chnl.info("Threre has been a crash in the thread!");
+				chnl.info(t.toString);
+				import std.stdio;
+				writeln(t.toString);
 
 				import std.c.stdlib;
 				exit(-1);

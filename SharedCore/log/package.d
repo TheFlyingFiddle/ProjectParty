@@ -1,16 +1,18 @@
 module log;
 
-enum Verbosity { info, warn, error }
+public import log.remote;
+
+enum Verbosity { info = 0, warn = 1, error = 2 }
 
 alias logger_t = void function(string, Verbosity, const(char)[], string, size_t) nothrow;
-logger_t logger = &writelnLogger;
+__gshared logger_t logger = &writelnLogger;
 
 void writelnLogger(string channel, Verbosity verbosity,const(char)[] msg, string file, size_t line) nothrow 
 {
 	try
 	{
 		import std.stdio;
-		writeln(channel, " ", msg);
+		writeln(channel, " ", msg,"\t",file, "(", line, ")" );
 	}
 	catch(Error e)
 	{
@@ -54,11 +56,27 @@ struct LogChannel
 	}
 }
 
+void logInfo(string file = __FILE__, size_t line = __LINE__, T...)(T t) if(T.length > 0)
+{
+	makeMsg("Default", Verbosity.info, file, line, t);
+}
+
+void logWarn(string file = __FILE__, size_t line = __LINE__,T...)(T t) if(T.length > 0)
+{
+	makeMsg("Default", Verbosity.warn, file, line, t);
+}
+
+void logErr(string file = __FILE__, size_t line = __LINE__,T...)(T t) if(T.length > 0)
+{
+	makeMsg("Default", Verbosity.error, file,line, t);
+}
+
 private void makeMsg(T...)(string channel, Verbosity verbosity, string file, size_t line,  T t) nothrow
 {
 	template staticFormatString(size_t u)
 	{
 		static if(u == 1) enum staticFormatString = "%s";
+
 		else enum staticFormatString = staticFormatString!(u - 1) ~ "%s";
 	}
 
@@ -67,10 +85,9 @@ private void makeMsg(T...)(string channel, Verbosity verbosity, string file, siz
 
 
 
-	char[1024] buffer = void;
+	char[8192] buffer = void;
 	auto list = List!(char)(buffer);
 	auto appender = &list;
-
 
 	formattedWrite(appender, staticFormatString!(T.length), t);
 	logger(channel, verbosity, appender.array, file, line);
@@ -82,7 +99,7 @@ private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, 
 	scope(failure) return; //We were unable to log what to do?
 
 	import std.array;
-	char[1024] buffer = void;
+	char[8192] buffer = void;
 	auto list = List!(char)(buffer);
 	auto appender = &list;
 	formattedWrite(appender, f, t);

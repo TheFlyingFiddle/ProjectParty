@@ -266,11 +266,10 @@ unittest
 	foreach(i; 0 .. values.length) {		
 		table[keys[i]] = values[i];
 
-		writeln(table.keys.array);
-		writeln(table.values.array);
+		logInfo(table.keys.array);
+		logInfo(table.values.array);
 	}
 	
-	readln;
 }
 
 version(benchmark_table)
