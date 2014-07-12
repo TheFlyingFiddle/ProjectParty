@@ -138,8 +138,8 @@ struct NetworkServiceFinder
 			auto buff = buffer[0 .. r];
 			auto serviceID = buff.read!(char[]);
 
-			if(toFind != anyService) 
-				assert(serviceID == toFind, "Service Finder found a bad service!");
+			if(toFind != anyService && serviceID != toFind) 
+				return false; 
 
 			if(foundFunc) foundFunc(serviceID, buff);
 			else foundDel(serviceID, buff);
