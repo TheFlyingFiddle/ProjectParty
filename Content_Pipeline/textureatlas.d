@@ -113,7 +113,7 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 
 		string luaCode = 
 "local atlas = { }
-C.luaLog(\"Gonna load me some atlas\")
+Log.info(\"Gonna load me some atlas\")
 local rHandle = Resources.loadFile(\"" ~ name ~ ".png\")
 atlas.texture = ffi.cast(\"Texture*\", rHandle.item)
 atlas.width  = " ~ atlasConfig.width.to!string ~ "

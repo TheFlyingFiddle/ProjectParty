@@ -5,48 +5,42 @@ import std.socket;
 import util.bitmanip;
 import allocation;
 import network.util;
+import network.service;
 import core.sync.mutex;
 
-__gshared TcpSocket socket;
-__gshared UdpSocket waiter;
-__gshared InternetAddress broadcast, remote;
-__gshared Mutex lock;
 
-__gshared ushort loggingPort;
-__gshared string loggingID;
+__gshared private NetworkServiceFinder finder;
 
-void initializeRemoteLogging(string loggingID, ushort loggingPort)
+__gshared private TcpSocket socket;
+__gshared private InternetAddress remote;
+__gshared private Mutex lock;
+__gshared private string loggingID;
+
+static this()
+{
+	finder = NetworkServiceFinder(GlobalAllocator, servicePort, "LOGGING_SERVICE", &onServiceFound);
+}
+
+void initializeRemoteLogging(string loggingID)
 {
 	socket = GlobalAllocator.allocate!TcpSocket;
-	waiter = GlobalAllocator.allocate!UdpSocket;
-	broadcast = GlobalAllocator.allocate!InternetAddress(localIPString(), loggingPort);
 	lock	= GlobalAllocator.allocate!Mutex();
-	
-	waiter.setOption(SocketOptionLevel.SOCKET, SocketOption.REUSEADDR, 1);
-	waiter.blocking = false;
-	waiter.bind(broadcast);
 
 	.loggingID	 = loggingID;
-	.loggingPort = loggingPort;
-
 	logger = &beforeConnectLogger;
 }
 
 void termRemoteLogging()
 {
 	socket.close();
-	waiter.close();
-
 	GlobalAllocator.deallocate(socket);
-	GlobalAllocator.deallocate(broadcast);
-	GlobalAllocator.deallocate(waiter);
 	GlobalAllocator.deallocate(lock);
 
 	if(remote)
 		GlobalAllocator.deallocate(remote);
 }
 
-private void connect(uint ip, ushort port)
+private bool connect(uint ip, ushort port)
 {
 	import std.stdio;
 	remote = GlobalAllocator.allocate!InternetAddress(ip, port);
@@ -55,6 +49,7 @@ private void connect(uint ip, ushort port)
 		GlobalAllocator.deallocate(remote);
 		remote = null;
 		writeln("Failed to connect to logging application!");
+		return false;
 	}
 	
 	socket.connect(GlobalAllocator.allocate!InternetAddress(ip, port));
@@ -64,6 +59,17 @@ private void connect(uint ip, ushort port)
 	ubyte[64] buffer;
 	buffer[].write!(string)(loggingID, &offset);
 	socket.send(buffer[0 .. offset]);
+	return true;
+}
+
+private void onServiceFound(const(char)[] service, ubyte[] serviceInfo)
+{
+	auto ip		= serviceInfo.read!uint;
+	auto port	= serviceInfo.read!ushort;
+	if(connect(ip, port))
+	{
+		logger = &remoteLogger;
+	}
 }
 
 private void beforeConnectLogger(string channel, Verbosity verbosity,
@@ -74,22 +80,11 @@ private void beforeConnectLogger(string channel, Verbosity verbosity,
 
 	synchronized(lock)
 	{
-		ubyte[6] buffer;
-		auto r = waiter.receive(buffer);
-
-		if(r != Socket.ERROR && r != 0)
-		{
-			ubyte[] buf; buf = buffer[];
-			auto ip = buf.read!uint;
-			auto port = buf.read!ushort;
-			connect(ip, port);
-			logger = &remoteLogger;
-		}
-		else 
-		{
-			writelnLogger(channel, verbosity, msg, file, line);
-		}
+		if(!finder.pollServiceFound())
+			finder.sendServiceQuery();
 	}
+
+	writelnLogger(channel, verbosity, msg, file, line);
 }
 
 private void remoteLogger(string channel, Verbosity verbosity,
@@ -113,7 +108,7 @@ private void remoteLogger(string channel, Verbosity verbosity,
 		
 			if(r == Socket.ERROR) {
 				termRemoteLogging();
-				initializeRemoteLogging(loggingID, loggingPort);
+				initializeRemoteLogging(loggingID);
 			}
 		}
 	}

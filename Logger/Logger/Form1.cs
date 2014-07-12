@@ -42,8 +42,7 @@ namespace Logger
             listener.Start();
 
             LanBroadcaster.BroadcastPresence(((IPEndPoint)listener.LocalEndpoint).Address,
-                                               ((IPEndPoint)listener.LocalEndpoint).Port,
-                                               port, TimeSpan.FromSeconds(0.3));
+                                               ((IPEndPoint)listener.LocalEndpoint).Port);
             
             while (true)
             {
@@ -123,7 +122,7 @@ namespace Logger
 
                 var fileLen = reader.ReadUInt16();
                 reader.Read(buffer, 0, fileLen);
-                
+
                 var file = Encoding.UTF8.GetString(buffer, 0, fileLen);
                 var line = reader.ReadUInt32();
 
@@ -138,7 +137,7 @@ namespace Logger
             {
                 //Not much to do here. I think?
                 LogMessage(tabName, "There was an error in the connection!", Color.Red);
-                                
+
                 return false;
             }
 

@@ -1,13 +1,18 @@
+local renderer
+local atlas
+local position
+
 function Game.start()
 	renderer = CRenderer(128)
 	atlas    = Resources.loadFile("Atlas.luac")
 	position = { x= 100, y= 100 }
 	Screen.setOrientation(Orientation.landscape)
+	Log.info("Start is done!")
 end
 
 function Game.restart()
 	Game.start()
-	C.luaLog("Restarting!")
+	Log.info("Restarting!")
 	position = Resources.loadTable("savestate.luac")
 	Screen.setOrientation(Orientation.landscape)
 end
@@ -17,6 +22,7 @@ function Game.stop()
 end
 
 function Game.step()
+	Log.info("Dance Man 243|")
     gl.glClearColor(0,0.3,0.4,1)
     gl.glClear(gl.GL_COLOR_BUFFER_BIT)
     gl.glViewport(0,0,C.gGame.screen.width,C.gGame.screen.height)

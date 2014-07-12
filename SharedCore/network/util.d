@@ -18,7 +18,7 @@ string localIPString()
 
 InternetAddress lanBroadcastAddress(A)(ref A allocator, ushort port)
 {
-	InternetAddress tmp = GlobalAllocator.allocate!InternetAddress(localIpString, port);
+	InternetAddress tmp = GlobalAllocator.allocate!InternetAddress(localIPString, port);
 	scope(exit) GlobalAllocator.deallocate(tmp);
 
 	auto broadcastIp = tmp.addr | 0xFF;

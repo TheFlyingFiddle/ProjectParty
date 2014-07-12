@@ -31,6 +31,9 @@ namespace Logger
 
     class LanBroadcaster
     {
+        const ushort servicePort = 34299;
+        const string SERVICE_NAME = "LOGGING_SERVICE";
+
         private static IPAddress GetSubnetMask(IPAddress address)
         {
             foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
@@ -73,31 +76,47 @@ namespace Logger
             return GetBroadcastAddress(ip, mask);
         }
 
-        public static void BroadcastPresence(IPAddress listenerAddress, int listenerPort, 
-                                      ushort broadcastPort, TimeSpan interval)
+        public static void BroadcastPresence(IPAddress listenerAddress, int listenerPort)
         {
             var address = BroadcastAddress();
             var thread = new Thread(() =>
             {
                 var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram,
                                         ProtocolType.Udp);
-                IPEndPoint groupEP = new IPEndPoint(address, broadcastPort);
-                socket.EnableBroadcast = true;
 
-                var stream = new MemoryStream(6);
+                var receiveBuffer = new byte[256];
+                var receiveStream = new MemoryStream(receiveBuffer);
+                var reader        = new BinaryReader(receiveStream);
+
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                socket.Bind(new IPEndPoint(IPAddress.Any, servicePort));
+                
+                var stream = new MemoryStream(256);
                 var writer = new BinaryWriter(stream);
+                writer.Write((ushort)SERVICE_NAME.Length);
+                writer.Write(Encoding.UTF8.GetBytes(SERVICE_NAME));
+
                 writer.Write(listenerAddress.GetAddressBytes()[3]);
                 writer.Write(listenerAddress.GetAddressBytes()[2]);
                 writer.Write(listenerAddress.GetAddressBytes()[1]);
                 writer.Write(listenerAddress.GetAddressBytes()[0]);
                 writer.Write((ushort)listenerPort);
-
+                EndPoint ep = new IPEndPoint(0, 0);
                 while (true)
                 {
                     var buf = stream.GetBuffer();
+                    //Receive service request
+                    var received = socket.ReceiveFrom(receiveBuffer, ref ep);
+                    receiveStream.SetLength(received);
+                    var length = reader.ReadUInt16();
+                    string s = Encoding.UTF8.GetString(receiveBuffer, 2, length);
+                    receiveStream.Position = 0;
 
-                    socket.SendTo(stream.GetBuffer(), groupEP);
-                    Thread.Sleep(interval);
+                
+                    if (s == "LOGGING_SERVICE")
+                    {
+                        socket.SendTo(stream.GetBuffer(), (int)stream.Position, SocketFlags.None, ep);
+                    }
                 }
             });
             

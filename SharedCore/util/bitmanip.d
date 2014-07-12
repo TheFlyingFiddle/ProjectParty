@@ -16,12 +16,17 @@ T read(T)(ref ubyte[] range) if(isArray!T)
 {
 	alias E = typeof(T.init[0]);
 
-
 	ushort length = range.read!ushort;
 	T items = cast(T)range[0 .. length * E.sizeof];
 	range = range[length * E.sizeof .. $];
 	return items;
 }
+
+T read(T, R)(ref R range) if(isNumeric!T || isSomeChar!T)
+{
+	return std.bitmanip.read!(T, Endian.littleEndian, R)(range);
+}
+
 
 void write(T)(ubyte[] range, T value, size_t* offset) if(is(T == struct) && !hasIndirections!T)
 {
@@ -37,11 +42,6 @@ void write(T)(ubyte[] range, T arr, size_t* offset) if(isArray!T)
 	range.write!ushort(cast(ushort)arr.length, offset);
 	foreach(elem; arr)
 		range.write(elem, offset);
-}
-
-T read(T, R)(ref R range) if(isNumeric!T || isSomeChar!T)
-{
-	return std.bitmanip.read!(T, Endian.littleEndian, R)(range);
 }
 
 void write(T, R)(R range, T value, size_t offset) if(isNumeric!T || isSomeChar!T)

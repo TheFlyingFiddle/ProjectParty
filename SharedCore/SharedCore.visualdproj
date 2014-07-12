@@ -259,7 +259,11 @@
    <File path="network\message.d" />
    <File path="network\router.d" />
    <File path="network\server.d" />
+   <File path="network\service.d" />
    <File path="network\util.d" />
+  </Folder>
+  <Folder name="serialization">
+   <File path="serialization\base.d" />
   </Folder>
   <Folder name="spatial">
    <File path="spatial\shape.d" />
