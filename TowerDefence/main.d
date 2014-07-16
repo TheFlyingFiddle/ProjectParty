@@ -75,6 +75,7 @@ class Screen1 : Screen
 
 	override void update(GameTime time) 
 	{
+		logInfo("Running in circles");
 		rotation += time.delta.to!("seconds", float);	
 
 		auto keyboard = game.locate!Keyboard;	
@@ -90,7 +91,7 @@ class Screen1 : Screen
 		auto renderer = game.locate!Renderer;
 
 		auto chnl = LogChannel("Lame");
-		chnl.info("There is a channel in the ocean!");
+		//chnl.info("There is a channel in the ocean!");
 
 		import util.strings;
 		renderer.drawText("Hello, World!", float2(0, 200), font.asset, Color.black);

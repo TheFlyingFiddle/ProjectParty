@@ -93,9 +93,9 @@ namespace Logger
                 
                 var stream = new MemoryStream(256);
                 var writer = new BinaryWriter(stream);
-                writer.Write((ushort)SERVICE_NAME.Length);
-                writer.Write(Encoding.UTF8.GetBytes(SERVICE_NAME));
-
+                var utfName = Encoding.UTF8.GetBytes(SERVICE_NAME + '\0');
+                writer.Write((ushort)utfName.Length);
+                writer.Write(utfName);
                 writer.Write(listenerAddress.GetAddressBytes()[3]);
                 writer.Write(listenerAddress.GetAddressBytes()[2]);
                 writer.Write(listenerAddress.GetAddressBytes()[1]);
@@ -108,7 +108,7 @@ namespace Logger
                     //Receive service request
                     var received = socket.ReceiveFrom(receiveBuffer, ref ep);
                     receiveStream.SetLength(received);
-                    var length = reader.ReadUInt16();
+                    var length = reader.ReadUInt16() - 1;
                     string s = Encoding.UTF8.GetString(receiveBuffer, 2, length);
                     receiveStream.Position = 0;
 

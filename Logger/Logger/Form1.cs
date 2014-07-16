@@ -24,9 +24,8 @@ namespace Logger
     public partial class LogMuch : Form
     {
         private TabPage selectedPage;
-        private Color[] colorTable = new[] { Color.FromArgb(0xFF,0, 0xaa, 0), Color.Orange, Color.Red };
-
-
+        private Color[] colorTable = new[] { Color.FromArgb(0xFF, 0, 0xaa, 0), Color.Orange, Color.Red };
+      
         public LogMuch()
         {
             InitializeComponent();
@@ -60,7 +59,8 @@ namespace Logger
 
             var tabNameLength = reader.ReadUInt16();
             reader.Read(buffer, 0, tabNameLength);
-            var tabName = Encoding.UTF8.GetString(buffer, 0, tabNameLength);
+            //Ignore null terminator
+            var tabName = Encoding.UTF8.GetString(buffer, 0, tabNameLength - 1);
             tabName = UniqueName(tabName);
 
             bool shouldProcess = true;
@@ -92,26 +92,39 @@ namespace Logger
             }));
         }
 
-        private string UniqueName(string tabName)
+        private bool canFind(string tabName)
         {
-            int count = 0;
             for (int i = 0; i < tabControl1.TabCount; i++)
             {
                 var tab = tabControl1.TabPages[i];
-                if (tabName == tab.Text || (count > 0 &&
-                    tabName == tab.Text.Substring(0, tab.Text.Length - 1)))
+                if (tabName == tab.Text)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private string UniqueName(string tabName)
+        {
+            string name = tabName;
+            int count = 0;
+            while (true)
+            {
+                if (canFind(name))
                 {
                     count++;
+                    name = tabName + count;
+                }
+                else
+                {
+                    break;
                 }
             }
 
-            if (count > 0)
-            {
-                return tabName + count;
-            }
-
-            return tabName;
+            return name;
         }
+
 
         private bool ProcessMessage(BinaryReader reader, byte[] buffer, string tabName)
         {
@@ -119,18 +132,10 @@ namespace Logger
             {
                 var verbosity = reader.ReadByte();
                 Color color = colorTable[verbosity];
-
-                var fileLen = reader.ReadUInt16();
-                reader.Read(buffer, 0, fileLen);
-
-                var file = Encoding.UTF8.GetString(buffer, 0, fileLen);
-                var line = reader.ReadUInt32();
-
+                
                 var len = reader.ReadUInt16();
                 reader.Read(buffer, 0, len);
                 var message = Encoding.UTF8.GetString(buffer, 0, len);
-                message += "\t" + file + "(" + line + ")";
-
                 LogMessage(tabName, message, color);
             }
             catch (Exception e)
@@ -194,8 +199,6 @@ namespace Logger
                     var rtb = page.Controls[0] as RichTextBox;
                     rtb.ForeColor = colorTable[0];
                     rtb.Font = font;
-                   
-
                 }
             }
         }
@@ -228,12 +231,10 @@ namespace Logger
         private void appendColoredText(RichTextBox box, string s, Color color)
         {
             var len = box.TextLength;
-            box.AppendText(s);
-            
             box.SelectionStart = len;
-            box.SelectionLength = s.Length;
             box.SelectionColor = color;
-
+            box.AppendText(s);
+            box.DeselectAll();
         }
 
         private void TabMouseClick(object sender, MouseEventArgs e)

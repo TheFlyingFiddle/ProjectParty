@@ -36,7 +36,6 @@ struct Game
 
 	T* locate(T)(string name = "") if(is(T == struct))
 	{
-
 		return services.find!(T)(name);
 	}
 	

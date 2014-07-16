@@ -9,16 +9,17 @@ ubyte[] basicSerialize(T)(ref ubyte[] sink, auto ref T t)
 	size_t offset = 0;
 	foreach(i, field; t.tupleof)
 	{
-		sink.write(field, &offset);
+		sink.write(t.tupleof[i], &offset);
 	}
 
 	return sink[0 .. offset];
 }
 
-ubyte[] serializeAllocate(A)(ref A allocator, auto ref T t)
+ubyte[] serializeAllocate(A, T)(ref A allocator, auto ref T t)
 {
-	ubyte[0xFFFF] buffer = void;
-	auto tmp = basicSerialize(buffer[], t);
+	import allocation;
+	ubyte[0xFFFF] buffer = void; ubyte[] buf = buffer[];
+	auto tmp = basicSerialize(buf, t);
 	auto data = allocator.allocate!(ubyte[])(tmp.length);
 	data[] = tmp[];
 	return data;

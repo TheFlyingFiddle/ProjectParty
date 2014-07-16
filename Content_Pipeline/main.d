@@ -18,7 +18,7 @@ void main(string[] argv)
 	auto watcher = FileWatcher(inDirectory);
 	setupbroadcast(12345);
 
-	initializeRemoteLogging("Content_Pipeline", 54321);
+	initializeRemoteLogging("Content_Pipeline");
 	scope (exit) termRemoteLogging();
 
 	while(true)
@@ -158,6 +158,12 @@ struct Context
 	string[] usedNames;
 }
 
+struct ResourceDetails
+{
+	string originalName;
+	string ouputName;
+}
+
 void compileFolder(string inFolder, string outFolder, Platform platform)
 {
 	Context context = Context(inFolder, outFolder, platform);
@@ -174,7 +180,6 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		fileCache.itemChanged  ~= ItemChanged(name ~ entry.name.extension,  timeLastModified(entry.name).stdTime);
 	
 		if(context.usedNames.canFind(name)) continue;
-		
 		logInfo("Compiling File: ", entry.name);
 
 		context.usedNames ~= name;
@@ -186,7 +191,7 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		auto index		= fileCompilers.countUntil!(x => x.ext == entry.name.extension);
 		auto compiled	= fileCompilers[index].compile(file, entry, context);
 
-		foreach(item; compiled.items) {
+		foreach(i, item; compiled.items) {
 			auto wName	   = to!string(nameHash.value) ~ item.extension;
 			auto writeName = buildPath(outFolder, wName);
 			auto writeFile = File(writeName, "w");
@@ -212,21 +217,58 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		files ~= FileItem(file.name.baseName, fileHash);
 	}
 
-	
-	//Solve Map file stuff. --It needs to only include changed items...
-	auto toWrite = buildPath(outFolder, "Map.sdl");
-	toSDL(FileMap(files.data), sink);
 
-	auto file = File(toWrite, "w");
-	file.write(sink.data);
+
+	
+	toSDLFile(outFolder, "Map.sdl", FileMap(files.data));
+	toSDLFile(outFolder, "FileCache.sdl", fileCache);
+
+	
+	//Create a resource folder used in lua.
+	if(platform == Platform.phone)
+	{
+		writeRFile(inFolder, outFolder, "ResourceDetails.sdl");
+	
+	}
 	
 	files.clear(); 
-	sink.clear();
+}
 
-	toWrite = buildPath(outFolder, "FileCache.sdl");
-	toSDL(fileCache, sink);
-	auto fCFile = File(toWrite, "w");
-	fCFile.write(sink.data);
+private void writeRFile(string inFolder, string outFolder, string destFile)
+{
+	auto outputFiles = dirEntries(outFolder, SpanMode.breadth).
+		map!(x => x.name[outFolder.length + 1 .. $]).array;
+
+	ResourceDetails[] details;
+	foreach(entry; dirEntries(inFolder, SpanMode.breadth))
+	{
+		auto name    = entry.name[inFolder.length + 1 .. $];
+		auto hash    = bytesHash(name[0 .. $ - entry.name.extension.length]);
+		import std.stdio;
+		writeln("FILE: ", name, "HASH: ", hash);
+		foreach(of; outputFiles)
+		{
+			import std.ascii;
+			auto hashName = isNumeric(
+
+			HashID outHash = HashID(to!uint(of[0 .. $ - of.extension.length]));
+			if(hash == outHash)
+			{
+				details ~= ResourceDetails(name, of);
+				break;
+			}
+		}
+	}
+
+	toSDLFile(outFolder, destFile, details);
+}
+
+private void toSDLFile(T)(string folder, string name, T data)
+{
+	auto toWrite = buildPath(folder, name);
+	toSDL(data, sink);
+	auto file = File(toWrite, "w");
+	file.write(sink.data);
 	sink.clear();
 }
 

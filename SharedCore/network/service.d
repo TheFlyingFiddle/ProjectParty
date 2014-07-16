@@ -17,7 +17,6 @@ struct NetworkServiceProvider
 
 struct NetworkServices 
 {
-	
 	List!NetworkServiceProvider services; 
 	UdpSocket socket;
 
@@ -27,18 +26,19 @@ struct NetworkServices
 		socket = allocator.allocate!UdpSocket;
 		socket.setOption(SocketOptionLevel.SOCKET, SocketOption.REUSEADDR, 1);
 		socket.blocking = false;
-		socket.bind(allocator.allocate!InternetAddress(InternetAddress.ADDR_ANY, port));
+		socket.bind(allocator.allocate!InternetAddress(localIPString, port));
 	}
 
 	void add(T)(string serviceID, auto ref T t)
 	{
-		auto index = services.countUntil!(x => x.id() == service.id());
+		auto index = services.countUntil!(x => x.id == serviceID);
 		assert(index == -1, "Cannot add two services with the service ID!");
 
 		import serialization.base;
-		this.data = serializeAllocate(allocator, data);
-
-		services ~= NetworkServiceProvider(serviceID, t);
+		NetworkServiceProvider data;
+		data.id = serviceID;
+		data.data = serializeAllocate(Mallocator.it, t);
+		services ~= data;
 	}
 
 	void poll()
@@ -74,10 +74,15 @@ struct NetworkServices
 
 	private void sendService(uint index, Address to)
 	{
-		import serialization.base;
+		import util.bitmanip;
 		ubyte[serviceMessageMax] buffer = void; ubyte[] buf = buffer[];
-		ubyte[] message = basicSerialize(buf, services[index]);
-		socket.sendTo(message, to);
+		auto service = services[index];
+
+		size_t offset = 0;
+		buffer[].write(service.id, &offset);
+		buffer[offset .. offset + service.data.length] = service.data[];
+		offset += service.data.length;
+		socket.sendTo(buffer[0 .. offset], to);
 	}
 }
 

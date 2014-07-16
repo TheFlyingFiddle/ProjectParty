@@ -42,11 +42,9 @@ struct PartialMessage
 
 struct ServerConfig
 {
-	float broadcastInterval;
 	float connectionTimeout;
 	uint maxConnections;
 	uint maxMessageSize;
-	ushort broadcastPort;
 }
 
 //This is a special case message since the server send's it itself
@@ -63,11 +61,12 @@ struct Server
 	List!Connection activeConnections;
 	List!Connection pendingConnections;
 	
-	Socket connector;
 	Socket udpSocket;
 	Listener listener;
 
 	InternetAddress listenerAddress;
+	InternetAddress updAddress;
+
 	char[] hostName;
 	string listenerString;
 
@@ -86,9 +85,6 @@ struct Server
 
 		listener =  allocator.allocate!Listener(allocator, config.maxConnections);
 		listener.blocking = false;
-
-		connector = allocator.allocate!(UdpSocket)();
-		connector.blocking = false;
 		
 		udpSocket = allocator.allocate!(UdpSocket)();
 		udpSocket.blocking = false;
@@ -104,14 +100,13 @@ struct Server
 		foreach(r; result)
 		{
 			if(r.addressFamily == AddressFamily.INET) {
-				string stringAddr = r.toAddrString();
-				connector.bind(r);
-				listener.bind(r);; 
+				listener.bind(r);
 
-				InternetAddress udpAddr = allocator.allocate!InternetAddress(stringAddr, cast(ushort)12345);
+				auto udpAddr = allocator.allocate!InternetAddress(r.toAddrString, cast(ushort)0);
 				udpSocket.bind(udpAddr);
 
-				listenerAddress = allocator.allocate!InternetAddress(stringAddr, listener.localAddress.toPortString.to!ushort);		
+				this.updAddress = cast(InternetAddress)udpSocket.localAddress;
+				this.listenerAddress = cast(InternetAddress)listener.localAddress;
 			}
 		}
 
@@ -123,7 +118,6 @@ struct Server
 	{
 		listener.shutdown(SocketShutdown.SEND);
 		listener.close();
-		connector.close();
 		ubyte[3] shutdownMessage = [1, 0, SHUTDOWN_ID];
 		foreach(ref con; activeConnections) { 
 			
@@ -234,23 +228,9 @@ struct Server
 		ubyte[8192] buffer = void;
 		while(true)
 		{
-			Address from;
-
-			auto read = udpSocket.receiveFrom(buffer, from);
+			auto read = udpSocket.receiveFrom(buffer);
 			if(read == 0 || read == Socket.ERROR) break;
 
-			logChnl.info("Received Message From: ", from);
-			logChnl.info("Host Name: ", hostName);
-			size_t offset = 0;
-			buffer[].write!(char[])(cast(char[])hostName, &offset);
-			buffer[].write!(char[])(cast(char[])"TowerDefence",  &offset);
-			buffer[].write!(ushort)(cast(ushort)13462,  &offset);
-			buffer[].write!(ushort)(listenerAddress.port, &offset);
-			buffer[].write!(ushort)(cast(ushort)12345, &offset);
-			udpSocket.sendTo(buffer[0 .. offset], from);
-			continue;
-
-			
 			ubyte[] buf = buffer[0 .. read];
 			read -= ulong.sizeof;
 			auto sessionID = buf.read!ulong;
@@ -339,12 +319,6 @@ struct Server
 
 	}
 
-	void broadcast(ubyte[] message)
-	{
-		foreach(ref con; activeConnections)
-			con.socket.send(message);
-	}
-
 	void sendMessages(uint listIndex, ulong key, ubyte[] buffer)
 	{
 		import util.bitmanip;
@@ -418,7 +392,6 @@ struct Server
 		}	
 	}
 
-
 	void activateConnection(Socket socket, ulong id, bool isReconnect)
 	{
 		activeConnections ~= Connection(socket, 0.0f, id);
@@ -458,7 +431,6 @@ struct Server
 			onDisconnect(con.id);
 	}
 
-
 	ulong uniqueNumber()
 	{
 		import std.random;
@@ -468,7 +440,7 @@ struct Server
 		return num;
 	}
 
-	 bool unique(ulong num)
+	bool unique(ulong num)
 	{
 		import std.algorithm;
 		return !activeConnections.canFind!(x => x.id == num) &&

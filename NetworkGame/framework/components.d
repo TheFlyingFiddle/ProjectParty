@@ -6,6 +6,8 @@ import window.window;
 import window.keyboard;
 import network.server;
 import network.router; 
+import network.service;
+
 import log;
 
 class WindowComponent : IGameComponent
@@ -61,6 +63,8 @@ class NetworkComponent : IGameComponent
 {
 	Server* server;
 	Router* router;
+	NetworkServices* provider;
+
 	private string resourceDir;
 
 	this(A)(ref A al, ServerConfig config, string resourceDir)
@@ -68,6 +72,24 @@ class NetworkComponent : IGameComponent
 		import allocation;
 		server   = al.allocate!Server(al, config);
 		router   = al.allocate!Router(al, server);
+		provider = al.allocate!NetworkServices(al, servicePort, 100);
+
+
+		struct ServerServiceData
+		{
+			char[] gameName;
+			uint ip;
+			ushort tcpPort, udpPort;
+		}
+		
+		//This should be all that is nessecary to provide the information for the broadcast.
+		ServerServiceData data;
+		data.gameName = cast(char[])"TOWER_DEFENCE"; //This line is wrong!
+		data.ip = server.listenerAddress.addr;
+		data.tcpPort = server.listenerAddress.port;
+		data.udpPort = server.updAddress.port;
+
+		provider.add("SERVER_DISCOVERY_SERVICE", data);
 		this.resourceDir = resourceDir;
 	}
 
@@ -76,6 +98,8 @@ class NetworkComponent : IGameComponent
 		import network.file;
 		game.addService(server);
 		game.addService(router);
+		game.addService(provider);
+
 		auto ip = server.listenerAddress.addr;
 		taskpool.doTask!(listenForFileRequests)(ip, cast(ushort)13462, resourceDir);
 	}
@@ -83,6 +107,7 @@ class NetworkComponent : IGameComponent
 	override void step(GameTime time)
 	{
 		server.update(time.delta.to!("seconds", float));
+		provider.poll();
 	}
 }
 
