@@ -170,10 +170,13 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 	FileCache fileCache = addUnchanged(context);
 	fileCache.itemChanged.length = 0;
 
+	bool hasChanged = false;
+
 	auto entries = dirEntries(inFolder, SpanMode.breadth).
 						 filter!(x => x.isFile && x.name.extension.order != -1).
 						 array.
 						 sort!((a, b) => a.name.extension.order < b.name.extension.order);
+	
 	foreach(entry; entries)
 	{
 		auto name     = entry.name[inFolder.length + 1 .. $ - entry.name.extension.length];
@@ -181,6 +184,7 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 	
 		if(context.usedNames.canFind(name)) continue;
 		logInfo("Compiling File: ", entry.name);
+		hasChanged = true;
 
 		context.usedNames ~= name;
 
@@ -207,7 +211,21 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		fileCache.dependencies ~= Dependencies(name ~ entry.name.extension, compiled.dependencies);
 	}
 
-	foreach(file; dirEntries(outFolder, SpanMode.breadth)) 
+	if(hasChanged)
+	{
+		writeMapFile(outFolder);
+		toSDLFile(outFolder, "FileCache.sdl", fileCache);
+		//Create a resource folder used in lua.
+		if(platform == Platform.phone)
+		{
+			writeResourceFile(inFolder, outFolder, "R.lua");
+		}
+	}
+}
+
+private void writeMapFile(string folder)
+{
+	foreach(file; dirEntries(folder, SpanMode.breadth)) 
 		if(file.name.baseName != "FileCache.sdl" &&
 		   file.name.baseName != "Map.sdl")
 	{
@@ -217,50 +235,49 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		files ~= FileItem(file.name.baseName, fileHash);
 	}
 
-
-
-	
-	toSDLFile(outFolder, "Map.sdl", FileMap(files.data));
-	toSDLFile(outFolder, "FileCache.sdl", fileCache);
-
-	
-	//Create a resource folder used in lua.
-	if(platform == Platform.phone)
-	{
-		writeRFile(inFolder, outFolder, "ResourceDetails.sdl");
-	
-	}
-	
+	toSDLFile(folder, "Map.sdl", FileMap(files.data));
 	files.clear(); 
 }
 
-private void writeRFile(string inFolder, string outFolder, string destFile)
+private void writeResourceFile(string inFolder, string outFolder, string destFile)
 {
-	auto outputFiles = dirEntries(outFolder, SpanMode.breadth).
-		map!(x => x.name[outFolder.length + 1 .. $]).array;
+	auto outputFiles = dirEntries(outFolder, SpanMode.breadth).map!(x => x.name[outFolder.length + 1 .. $]).array;
 
-	ResourceDetails[] details;
+	sink.put("global.R = \n{\n\n\t");
 	foreach(entry; dirEntries(inFolder, SpanMode.breadth))
 	{
 		auto name    = entry.name[inFolder.length + 1 .. $];
-		auto hash    = bytesHash(name[0 .. $ - entry.name.extension.length]);
+		auto hash    = bytesHash(name.stripExtension());
 		import std.stdio;
-		writeln("FILE: ", name, "HASH: ", hash);
+		
 		foreach(of; outputFiles)
 		{
 			import std.ascii;
-			auto hashName = isNumeric(
-
-			HashID outHash = HashID(to!uint(of[0 .. $ - of.extension.length]));
-			if(hash == outHash)
+			if(isNumeric(stripExtension(of)) && of.extension != ".lua")
 			{
-				details ~= ResourceDetails(name, of);
-				break;
+				auto outHash = HashID(to!uint(stripExtension(of)));
+				if(hash == outHash)
+				{
+					auto goodName = stripExtension(name).replace("\\", "_");
+					sink.put(goodName);
+					sink.put(" = { path = \"");
+					sink.put(of);
+					sink.put("\", hash = ");
+					sink.put(to!string(outHash.value));
+					sink.put(", type = \"");
+					sink.put(of.extension[1 .. $]);
+					sink.put("\" },\n\t");
+					break;
+				}
 			}
 		}
 	}
 
-	toSDLFile(outFolder, destFile, details);
+	sink.put("\n}");
+
+	auto file = File(buildPath(outFolder, destFile), "w");
+	file.write(sink.data);
+	sink.clear();
 }
 
 private void toSDLFile(T)(string folder, string name, T data)
