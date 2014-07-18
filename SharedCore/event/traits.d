@@ -47,7 +47,7 @@ bool hashCollision(U, T...)()
 	U[] hashes = new U[T.length];
 	foreach(i,t;T)
 	{
-		enum thash = typeHash!t;
+		enum thash = cHash!t;
 		if(hashes.find!("a == b")(thash).length != 0) 
 			return true;
 	}

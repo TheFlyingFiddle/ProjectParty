@@ -62,13 +62,13 @@ struct EventRange(T, Integer)
 	void popFront()
 	{
 		bool noEvent = true;
-		enum typeID = typeHash!(T);
+		enum typeID = cHash!(T);
 
 		while(!blob.empty)
 		{
 			auto id  = blob.read!Integer;
 			auto len = blob.read!Integer;
-			if(id == typeID) {
+			if(id == typeID.value) {
 				front = blob.readAligned!(T, EventStreamN!(Integer).alignment)();		
 				noEvent = false;
 				break;

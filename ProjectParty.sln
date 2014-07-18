@@ -7,6 +7,9 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Content_Pipeline", "Content
 	EndProjectSection
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "SharedCore", "SharedCore\SharedCore.visualdproj", "{E640EFC2-88DD-467D-8D2E-0C6C7C5B5AED}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9C751846-D2AD-424E-935A-5126724E8070} = {9C751846-D2AD-424E-935A-5126724E8070}
+	EndProjectSection
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Graphics", "Graphics\Graphics.visualdproj", "{222D6F7D-3A0D-4316-8408-67A41AB2CAF7}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -26,6 +29,8 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Framework", "NetworkGame\Ne
 	EndProjectSection
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Derelict", "Derelict\Derelict.visualdproj", "{796064A9-E6D5-425A-81C3-FB40D681C7D7}"
+EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "dunit", "dunit\dunit.visualdproj", "{9C751846-D2AD-424E-935A-5126724E8070}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,12 +76,12 @@ Global
 		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|Win32.ActiveCfg = Release|Win32
 		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|Win32.Build.0 = Release|Win32
 		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|x64.ActiveCfg = Release|Win32
-		{D6A6278B-2D71-4DBC-9FB5-32AE95F3DC7A}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D6A6278B-2D71-4DBC-9FB5-32AE95F3DC7A}.Debug|Win32.Build.0 = Debug|Win32
-		{D6A6278B-2D71-4DBC-9FB5-32AE95F3DC7A}.Debug|x64.ActiveCfg = Debug|Win32
-		{D6A6278B-2D71-4DBC-9FB5-32AE95F3DC7A}.Release|Win32.ActiveCfg = Release|Win32
-		{D6A6278B-2D71-4DBC-9FB5-32AE95F3DC7A}.Release|Win32.Build.0 = Release|Win32
-		{D6A6278B-2D71-4DBC-9FB5-32AE95F3DC7A}.Release|x64.ActiveCfg = Release|Win32
+		{9C751846-D2AD-424E-935A-5126724E8070}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9C751846-D2AD-424E-935A-5126724E8070}.Debug|Win32.Build.0 = Debug|Win32
+		{9C751846-D2AD-424E-935A-5126724E8070}.Debug|x64.ActiveCfg = Debug|Win32
+		{9C751846-D2AD-424E-935A-5126724E8070}.Release|Win32.ActiveCfg = Release|Win32
+		{9C751846-D2AD-424E-935A-5126724E8070}.Release|Win32.Build.0 = Release|Win32
+		{9C751846-D2AD-424E-935A-5126724E8070}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
