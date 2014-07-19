@@ -119,10 +119,11 @@ void sendFiles(Socket socket, string resourceFolder)
 	assert(size >= 1);
 	if(slice.read!ubyte == 1)
 	{
-		logInfo("Received map file!");
+		logInfo("Receiving map file!");
 		//Read map
 		slice = rec[];
 		size = socket.receive(slice);
+		logInfo("Received map file!");
 
 		FileMap map = fromSDLSource!FileMap(Mallocator.it, cast(string)slice[0 .. size]);
 		sendDiffFiles(socket, resourceFolder, map);

@@ -3,6 +3,7 @@ import std.traits;
 import util.bitmanip;
 import network.server;
 import util.hash;
+import log;
 
 struct InMessage { }
 struct OutMessage { }
@@ -37,7 +38,7 @@ template isIndirectMessage(T)
 size_t writeMessage(T)(ubyte[] buf, T message)
 {
 	size_t offset = 2;
-	buf.write!ushort(shortHash!(T.stringof).value, &offset);
+	buf.write!ushort(shortHash!(T).value, &offset);
 	foreach(i, field; message.tupleof)
 	{
 		alias type = typeof(field);
@@ -71,8 +72,8 @@ void sendMessage(T)(Server* server, ulong id, T message)
 void sendMessage(T)(Server* server, ulong id, T message) 
 	if (isOutMessage!T && !hasIndirections!T)
 {
-	ubyte[T.sizeof + ubyte.sizeof + ushort.sizeof] buf = void;
-	auto length = buf.writeMessage(message);
+	ubyte[T.sizeof + ushort.sizeof + ushort.sizeof] buf = void;
+	auto length = buf[].writeMessage(message);
 	
 	server.send(id, buf[0..length]);
 }

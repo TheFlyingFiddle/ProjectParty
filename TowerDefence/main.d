@@ -59,6 +59,11 @@ void run(PhoneGameConfig config)
 	
 class Screen1 : Screen
 {
+	import network.server;
+	import network.router;
+	import network.message;
+	import network_types;
+
 	FontHandle font;
 	AtlasHandle atlas;
 
@@ -71,6 +76,14 @@ class Screen1 : Screen
 
 		font	= loader.load!Font("ComicSans32");
 		atlas	= loader.load!TextureAtlas("Atlas");
+
+		auto router = game.locate!Router;
+		router.setMessageHandler(&handleTestMessageA);	
+	}
+
+	void handleTestMessageA(ulong id, TestMessageA message)
+	{
+		logInfo("Received message: ", message);
 	}
 
 	override void update(GameTime time) 
@@ -84,6 +97,13 @@ class Screen1 : Screen
 			auto s = Mallocator.it.allocate!(Screen2)();
 			owner.push(s);
 		}
+
+		auto server = game.locate!Server;
+		if(server.activeConnections.length > 0)
+		{
+			server.sendMessage(server.activeConnections[0].id, TestMessageB(10, 100.0));
+		}
+	
 	}
 
 	override void render(GameTime time)

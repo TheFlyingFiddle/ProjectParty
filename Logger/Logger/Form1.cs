@@ -57,22 +57,27 @@ namespace Logger
             var reader = new BinaryReader(socket.GetStream());
             byte[] buffer = new byte[ushort.MaxValue];
 
-            var tabNameLength = reader.ReadUInt16();
-            reader.Read(buffer, 0, tabNameLength);
-            //Ignore null terminator
-            var tabName = Encoding.UTF8.GetString(buffer, 0, tabNameLength - 1);
-            tabName = UniqueName(tabName);
-
-            bool shouldProcess = true;
-            while (shouldProcess)
+            try
             {
-                shouldProcess = ProcessMessage(reader, buffer, tabName);
+                var tabNameLength = reader.ReadUInt16();
+                reader.Read(buffer, 0, tabNameLength);
+                //Ignore null terminator
+                var tabName = Encoding.UTF8.GetString(buffer, 0, tabNameLength - 1);
+                tabName = UniqueName(tabName);
+
+                bool shouldProcess = true;
+                while (shouldProcess)
+                {
+                    shouldProcess = ProcessMessage(reader, buffer, tabName);
+                }
+
+                LogMessage(tabName, "Logging Finished!", Color.Gold);
+                StopLogging(tabName);
             }
-
-            LogMessage(tabName, "Logging Finished!", Color.Gold);
-            StopLogging(tabName);
-
-            socket.Close();
+            finally
+            {
+                socket.Close();
+            }
         }
 
         private void StopLogging(string tabName)
@@ -131,18 +136,28 @@ namespace Logger
             try
             {
                 var verbosity = reader.ReadByte();
+                if (verbosity > colorTable.Length)
+                {
+                    throw new Exception("Invalid verbosity! verb= " + verbosity);
+                }
                 Color color = colorTable[verbosity];
                 
-                var len = reader.ReadUInt16();
-                reader.Read(buffer, 0, len);
-                var message = Encoding.UTF8.GetString(buffer, 0, len);
+                int len = reader.ReadUInt16();
+                var read = 0;
+                while (len != 0)
+                {
+                    var r = reader.Read(buffer, read, len);
+                    read += r;
+                    len  -= r;
+                }
+                
+                var message = Encoding.UTF8.GetString(buffer, 0, read);
                 LogMessage(tabName, message, color);
             }
             catch (Exception e)
             {
                 //Not much to do here. I think?
-                LogMessage(tabName, "There was an error in the connection!", Color.Red);
-
+                LogMessage(tabName, "There was an error in the connection! " + e.Message, Color.Red);
                 return false;
             }
 

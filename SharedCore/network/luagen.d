@@ -4,11 +4,12 @@ import network.message;
 import math;
 import util.hash;
 import std.conv;
+import std.conv, std.string;
 
 string generateLuaCode(alias module_)()
 {
-	string readers   = "";
-	string writers   = "";
+	string readers   = "local in_ = networkReaders\n";
+	string writers   = "local out = networkWriters\n";
 	string incomming = "";
 	string outgoing  = "";
 
@@ -38,7 +39,6 @@ string generateLuaCode(alias module_)()
 
 string luaInMessage(T)()
 {
-	import std.conv, std.string;
 	enum id = shortHash!T;
 	enum name = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
 	return "NetIn." ~ name ~  " = " ~ id.value.to!string ~ "\n";
@@ -54,7 +54,8 @@ string luaOutMessage(T)()
 
 string luaReadMessage(T)()
 {
-	string code = "in_[NetIn." ~ T.stringof ~ "] = function (buf)\n\t";
+	enum tName = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
+	string code = "in_[NetIn." ~ tName ~ "] = function (buf)\n\t";
 	code ~= "local t = { }\n\t";
 	foreach(i, field; T.init.tupleof)
 	{
@@ -92,12 +93,12 @@ string luaWriteDebug(T)(string name, string table, string msgName) if(!isBaseTyp
 	return code;
 }
 
-
 string luaWriteMessage(T)()
 {
 	import std.conv, network.message;
 
-	string code = "out[NetOut." ~ T.stringof  ~ "] = function(buf, t)\n\t";
+	enum tName = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
+	string code = "out[NetOut." ~ tName  ~ "] = function(buf, t)\n\t";
 
 	debug
 	{
@@ -115,7 +116,7 @@ string luaWriteMessage(T)()
 	else 
 		code ~= "C.bufferWriteShort(buf, " ~ messageLength!T.to!string ~ ")\n\t";
 
-	code ~= "C.bufferWriteShort(" ~ shortHash!T.value.to!string ~ ")\n\t";
+	code ~= "C.bufferWriteShort(buf," ~ shortHash!T.value.to!string ~ ")\n\t";
 	foreach(i, field; T.init.tupleof)
 	{
 		alias type  = typeof(field);
@@ -200,21 +201,22 @@ string luaIndirectCalculateLength(T)()
 	string code = "";
 	foreach(i, field; T.init.tupleof)
 	{
+		
 		alias type = typeof(field);
 		enum  name = T.tupleof[i].stringof;
-		static if(is(type == string) || is(type == ubyte[]))
+		static if(isSomeString!type || is(type == ubyte[]))
 		{
 			size += 2;
-			code ~= "size = size + #t." ~ name ~ "\n\t";
+			code ~= text("size = size + #t.",name,"\n\t");
 		} else static if(isIndirectMessage!type) {
 			code ~= luaIndirectCalculateLength!type(size, "t."~name);
 		} else {
-			code ~= type.sizeof;
+			size += type.sizeof;
 		}
 	}
 
 	code ~= "C.bufferWriteShort(buf, size)\n\t";
-	return "local size = " ~ size.to!string ~ "\n\t" ~ code;
+	return text("local size = ", size,"\n\t",code);
 }
 
 string luaIndirectCalculateLength(T)(ref size_t size, string table)
@@ -224,14 +226,14 @@ string luaIndirectCalculateLength(T)(ref size_t size, string table)
 	{
 		alias type = typeof(field);
 		enum  name = T.tupleof[i].stringof;
-		static if(is(type == string) || is(type == ubyte[]))
+		static if(isSomeString!type || is(type == ubyte[]))
 		{
 			size += 2;
 			code ~= "size = size + #" ~ table ~ "." ~ name ~ "\n\t";
 		} else static if(isIndirectMessage!type) {
 			code ~= luaIndirectCalculateLength!type(size, table~"."~name);
 		} else {
-			code ~= type.sizeof;
+			size += type.sizeof;
 		}
 	}
 	return code;

@@ -68,10 +68,9 @@ struct TestB
 	uint frame;
 }
 
-static this()
+shared static this()
 {
-	static luaCode = generateLuaCode!(network_types);
-
+	auto luaCode = generateLuaCode!(network_types);
 	import network.file;
-	//addGeneratedFile("tower_defence_network_types.lua", luaCode);
+	addGeneratedFile("tower_defence_network_types.luag", cast(void[])luaCode);
 }

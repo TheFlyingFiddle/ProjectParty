@@ -306,6 +306,8 @@ struct Server
 
 	int send(ref Connection con, ubyte[] data)
 	{
+		con.timeSinceLastMessage = 0;
+
 		auto sent = con.socket.send(data);
 		if(sent > 0) 
 		{
@@ -411,6 +413,13 @@ struct Server
 	void activateConnection(Socket socket, ulong id, bool isReconnect)
 	{
 		Connection connection = Connection(socket, 0.0f, id);
+		connection.inBuffer   = GlobalAllocator.allocate!(ubyte[])(config.maxMessageSize);
+		connection.outBuffer  = GlobalAllocator.allocate!(ubyte[])(config.maxMessageSize);
+
+		connection.inBuffer.length = 0;
+		connection.outBuffer.length = 0;
+
+
 		activeConnections ~= connection;
 		auto fun = isReconnect ? onReconnect : onConnect;
 		if(fun)

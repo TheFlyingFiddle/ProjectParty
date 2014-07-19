@@ -1,5 +1,6 @@
 module network.router;
 
+import collections.table;
 import collections.list;
 import network.server;
 import network.message;
@@ -26,6 +27,8 @@ struct MessageHandler
 	}
 }
 
+alias HandlerTable = Table!(ushort, MessageHandler, SortStrategy.sorted);
+
 struct Router
 {
 	List!ConnectionHandler connectionHandlers;
@@ -33,7 +36,7 @@ struct Router
 	List!DisconnectonHandler disconnectionHandlers;
 	List!RawMessageHandler messageHandlers;
 
-	MessageHandler[ubyte.max] specificMessageHandlers;
+	HandlerTable specificHandlers;
 
 	this(A)(ref A allocator, Server* server)
 	{
@@ -48,6 +51,8 @@ struct Router
 		reconnectionHandlers  = List!ReconnectionHandler(allocator, maxHandlers);
 		disconnectionHandlers = List!DisconnectonHandler(allocator, maxHandlers);
 		messageHandlers       = List!RawMessageHandler(allocator, maxHandlers);
+
+		specificHandlers = HandlerTable(allocator, maxHandlers);
 	}
 
 	ref List!ConnectionHandler connections() 
@@ -83,18 +88,21 @@ struct Router
 			handler(id);
 	}
 	
-	void message(ulong id, ubyte[] mess)
+	void message(ulong id, ubyte[] mess) 
 	{
 		foreach(handler; messageHandlers)
 			handler(id, mess);
 
-		//auto msgid = mess.read!ushort;
-		//if(specificMessageHandlers[msgid] != MessageHandler.init) {
-		//	specificMessageHandlers[msgid](id, mess);
-		//}
+		import util.bitmanip;
+		auto msgid = mess.read!ushort;
+		auto sHandler = msgid in specificHandlers;
+		if(sHandler)
+		{
+			(*sHandler)(id, mess);
+		}
 	}
 
-	void setMessageHandler(T)(void delegate(ulong, T) fun) if(isIncommingMessage!T) 
+	void setMessageHandler(T)(void delegate(ulong, T) fun) if(isInMessage!T) 
 	{
 		import std.traits;
 		static void func(void delegate() d, ulong id, ubyte[] data)
@@ -106,12 +114,13 @@ struct Router
 			del(id, t);
 		}
 		
-		auto messageID = messageID!T;
-		specificMessageHandlers[messageID] = MessageHandler(cast(void delegate())fun, &func);
+		import util.hash;
+		auto mesID = shortHash!(T).value;
+		specificHandlers[mesID] = MessageHandler(cast(void delegate())fun, &func);
 	}
 
 	void removeMessageHandler(T)() if(isIncommingMessage!T)
 	{
-		specifcMessageHandler[messageID!T] = MessageHandler.init;
+		specificHandlers.remove(shortHash!(T).value);
 	}
 }
