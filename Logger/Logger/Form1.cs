@@ -296,6 +296,26 @@ namespace Logger
             }
         }
 
+        private void closeAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tabControl1.TabPages.Clear();
+        }
+
+        private void closeAllButThisToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (selectedPage != null)
+            {
+                for (int i = tabControl1.TabCount - 1; i >= 0; i--)
+                {
+                    if (tabControl1.TabPages[i] != selectedPage)
+                    {
+                        tabControl1.TabPages.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+
         private void ChangeTabColor(DrawItemEventArgs e)
         {
             Font TabFont;
@@ -368,7 +388,5 @@ namespace Logger
 
             sf.Dispose();
         }
-
-        
     }
 }

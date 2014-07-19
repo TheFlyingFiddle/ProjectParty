@@ -20,9 +20,6 @@ version(X86_64)
 enum FREE_IMAGE_DLL_PATH    = dllPath ~ "FreeImage.dll"; 
 
 
-pragma(lib, libPath ~ "DerelictUtil.lib");
-pragma(lib, libPath ~ "DerelictFI.lib");
-
 ubyte[] buffer;
 void initCompilers()
 {

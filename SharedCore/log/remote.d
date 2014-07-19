@@ -72,9 +72,7 @@ private void onServiceFound(const(char)[] service, ubyte[] serviceInfo)
 	}
 }
 
-private void beforeConnectLogger(string channel, Verbosity verbosity,
-						 const(char)[] msg, string file, 
-						 size_t line) nothrow 
+private void beforeConnectLogger(string channel, Verbosity verbosity, const(char)[] msg) nothrow 
 {
 	scope(failure) return;
 
@@ -84,21 +82,16 @@ private void beforeConnectLogger(string channel, Verbosity verbosity,
 			finder.sendServiceQuery();
 	}
 
-	writelnLogger(channel, verbosity, msg, file, line);
+	writelnLogger(channel, verbosity, msg);
 }
 
-private void remoteLogger(string channel, Verbosity verbosity,
-				  const(char)[] msg, string file, 
-				  size_t line) nothrow 
+private void remoteLogger(string channel, Verbosity verbosity, const(char)[] msg) nothrow 
 {
 	try
 	{
-		
 		ubyte[256] buffer;
 		size_t offset = 0;
 		buffer[].write!(ubyte)(cast(ubyte)verbosity, &offset);
-		buffer[].write!string(file, &offset);
-		buffer[].write!uint(cast(uint)line, &offset);
 		buffer[].write!(ushort)(cast(ushort)msg.length, &offset);
 		
 		synchronized(lock)
@@ -118,6 +111,6 @@ private void remoteLogger(string channel, Verbosity verbosity,
 	}
 	catch 
 	{
-		writelnLogger(channel, verbosity, msg, file, line);
+		writelnLogger(channel, verbosity, msg);
 	}
 }

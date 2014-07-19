@@ -8,7 +8,6 @@ import collections;
 import log;
 
 auto chan = LogChannel("Event Stream");
-
 struct EventStreamN(Integer) if(isIntegral!Integer)
 {
 	enum alignment = Integer.sizeof * 2;

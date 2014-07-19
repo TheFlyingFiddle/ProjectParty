@@ -32,7 +32,6 @@ template cHash(T)
 {
 	import std.traits;
 	enum name = fullyQualifiedName!T;
-	pragma(msg, name);
 	enum cHash = TypeHash(bytesHash(name.ptr, name.length, 0).value);
 }
 

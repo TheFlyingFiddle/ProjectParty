@@ -75,7 +75,7 @@ class Screen1 : Screen
 
 	override void update(GameTime time) 
 	{
-		logInfo("Running in circles");
+		//logInfo("Running in circles");
 		rotation += time.delta.to!("seconds", float);	
 
 		auto keyboard = game.locate!Keyboard;	

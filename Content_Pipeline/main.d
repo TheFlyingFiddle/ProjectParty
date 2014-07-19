@@ -9,6 +9,7 @@ import filewatcher;
 import broadcaster;
 import content.file;
 import log;
+import network.service;
 
 void main(string[] argv)
 {
@@ -16,7 +17,7 @@ void main(string[] argv)
 	string outDirectory = argv[2];
 	
 	auto watcher = FileWatcher(inDirectory);
-	setupbroadcast(12345);
+	spawnReloadingService();
 
 	initializeRemoteLogging("Content_Pipeline");
 	scope (exit) termRemoteLogging();
@@ -33,12 +34,11 @@ void main(string[] argv)
 	}
 }
 
-
 ubyte[] buffer; 
 Appender!(char[]) sink;
 Appender!(FileItem[]) files; 
 
-static this()
+shared static this()
 {
 	initCompilers();
 	buffer = new ubyte[1024 * 1024 * 10];
@@ -202,12 +202,7 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 			writeFile.rawWrite(item.data);
 		}
 
-		foreach(item; compiled.items)
-		{
-			auto wName	   = to!string(nameHash.value) ~ item.extension;
-			broadcastChange(wName);
-		}
-
+		reloadChanged(compiled.items, nameHash);
 		fileCache.dependencies ~= Dependencies(name ~ entry.name.extension, compiled.dependencies);
 	}
 
@@ -243,6 +238,8 @@ private void writeResourceFile(string inFolder, string outFolder, string destFil
 {
 	auto outputFiles = dirEntries(outFolder, SpanMode.breadth).map!(x => x.name[outFolder.length + 1 .. $]).array;
 
+	auto resourceDir = outFolder.dirName.baseName.replace("\\", "/");
+
 	sink.put("global.R = \n{\n\n\t");
 	foreach(entry; dirEntries(inFolder, SpanMode.breadth))
 	{
@@ -261,6 +258,8 @@ private void writeResourceFile(string inFolder, string outFolder, string destFil
 					auto goodName = stripExtension(name).replace("\\", "_");
 					sink.put(goodName);
 					sink.put(" = { path = \"");
+					sink.put(resourceDir);
+					sink.put("/");
 					sink.put(of);
 					sink.put("\", hash = ");
 					sink.put(to!string(outHash.value));

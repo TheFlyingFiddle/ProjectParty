@@ -3,11 +3,12 @@ module network.luagen;
 import network.message;
 import math;
 import util.hash;
+import std.conv;
+
 string generateLuaCode(alias module_)()
 {
 	string readers   = "";
 	string writers   = "";
-	string decoders  = "";
 	string incomming = "";
 	string outgoing  = "";
 
@@ -20,7 +21,6 @@ string generateLuaCode(alias module_)()
 			{
 				readers ~= luaReadMessage!type;
 				incomming ~= luaInMessage!type;
-				decoders ~= luaDecoder!type;
 			} 
 			static if(is(type == struct) && isInMessage!type)
 			{
@@ -33,8 +33,7 @@ string generateLuaCode(alias module_)()
 	return incomming ~ 
 		outgoing  ~ 
 		readers   ~ 
-		writers   ~
-		decoders; 
+		writers; 
 }
 
 string luaInMessage(T)()
@@ -42,7 +41,7 @@ string luaInMessage(T)()
 	import std.conv, std.string;
 	enum id = shortHash!T;
 	enum name = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
-	return "Network.incomming." ~ name ~  " = " ~ id.to!string ~ "\n";
+	return "NetIn." ~ name ~  " = " ~ id.value.to!string ~ "\n";
 }
 
 string luaOutMessage(T)()
@@ -50,17 +49,12 @@ string luaOutMessage(T)()
 	import std.conv, std.string;
 	enum id = shortHash!T;
 	enum name = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
-	return "Network.outgoing." ~ name ~ " = " ~ id.to!string ~ "\n";
-}
-
-string luaDecoder(T)()
-{
-	return "Network.decoders[Network.incoming." ~ T.stringof ~ "] = read" ~ T.stringof ~ "\n";
+	return "NetOut." ~ name ~ " = " ~ id.value.to!string ~ "\n";
 }
 
 string luaReadMessage(T)()
 {
-	string code = "function read" ~ T.stringof ~ "()\n\t";
+	string code = "in_[NetIn." ~ T.stringof ~ "] = function (buf)\n\t";
 	code ~= "local t = { }\n\t";
 	foreach(i, field; T.init.tupleof)
 	{
@@ -73,18 +67,55 @@ string luaReadMessage(T)()
 	return code;
 }
 
+string luaWriteDebug(T)(string name, string table, string msgName) if(isBaseType!T)
+{
+	return text("if not ", table, "." , name, " then\n\t\t",
+				"error(\"Bad message for network message ", msgName,
+				" : ", table, ".", name, " of type ", T.stringof,
+				" should be present\")\n\tend\n\n\t");
+}
+
+string luaWriteDebug(T)(string name, string table, string msgName) if(!isBaseType!T)
+{
+	string code = text("if not ", table, "." , name, " then\n\t\t",
+				       "error(\"Bad message for network message ", msgName,
+				        " : ", table, ".", name, " of type ", T.stringof,
+				        " should be present\")\n\tend\n\n\t");
+
+	foreach(i, field; T.init.tupleof)
+	{
+		alias type  = typeof(field);
+		enum  fName  = T.tupleof[i].stringof;
+		code ~= luaWriteDebug!type(fName, table ~ "." ~ name, msgName);
+	}
+
+	return code;
+}
+
+
 string luaWriteMessage(T)()
 {
 	import std.conv, network.message;
 
-	string code = "function send" ~ T.stringof ~ "(t)\n\t";
+	string code = "out[NetOut." ~ T.stringof  ~ "] = function(buf, t)\n\t";
+
+	debug
+	{
+		foreach(i, field; T.init.tupleof)
+		{
+			alias type  = typeof(field);
+			enum  name  = T.tupleof[i].stringof;
+			code ~= luaWriteDebug!type(name, "t", T.stringof);
+		}
+	}
+
 
 	static if(isIndirectMessage!T)
 		code ~= luaIndirectCalculateLength!T;
 	else 
-		code ~= "Out.writeShort(" ~ messageLength!T.to!string ~ ")\n\t";
+		code ~= "C.bufferWriteShort(buf, " ~ messageLength!T.to!string ~ ")\n\t";
 
-	code ~= "Out.writeShort(" ~ shortHash!T.to!string ~ ")\n\t";
+	code ~= "C.bufferWriteShort(" ~ shortHash!T.value.to!string ~ ")\n\t";
 	foreach(i, field; T.init.tupleof)
 	{
 		alias type  = typeof(field);
@@ -99,28 +130,33 @@ import math;
 alias basic_types = TypeTuple!(byte, ubyte, short, ushort,
 							   int, uint, long, ulong, 
 							   float, double,
-							   string, ubyte[],
-							   float2, float3, float4,
+							   ubyte[], string, float2, float3, float4,
 							   uint2, uint3, uint4,
 							   ushort2, ushort3, ushort4);
 
 enum names  = 
 ["Byte", "Byte",  "Short", "Short",
-"Int",  "Int",   "Long",  "Long",
-"Float","Double","UTF8","ByteArray",
-"Float2", "Float3", "Float4",
-"Int2", "Int3", "Int4",
-"Short2", "Short3", "Short4"];
+ "Int",  "Int",   "Long",  "Long",
+ "Float","Double","UTF8","ByteArray",
+ "Float2", "Float3", "Float4",
+ "Int2", "Int3", "Int4",
+ "Short2", "Short3", "Short4"];
 
 import std.traits, std.typetuple;
 
 enum isBaseType(T) = staticIndexOf!(T, basic_types) != -1;
 
-string luaReadType(T)(string name, string table) if (isBaseType!T)
+
+string luaReadType(T)(string name, string table) if(is(T == string))
+{
+	return text(table, ".", name, " = ffi.string(C.bufferReadTempUTF8(buf))\n\t");
+}
+
+string luaReadType(T)(string name, string table) if (isBaseType!T && !is(T == string))
 {
 	enum index = staticIndexOf!(T, basic_types);
 	static assert(index != -1);
-	return table~"."~name~" = In.read" ~ names[index] ~ "()\n\t";
+	return text(table,".",name," = C.bufferRead", names[index], "(buf)\n\t");
 }
 
 string luaReadType(T)(string name, string table) if (!isBaseType!T && is(T == struct))
@@ -133,6 +169,7 @@ string luaReadType(T)(string name, string table) if (!isBaseType!T && is(T == st
 		enum varName = T.tupleof[i].stringof;
 		s ~= luaReadType!Type(varName, table~"."~name);
 	}
+
 	return s;
 }
 
@@ -140,7 +177,7 @@ string luaWriteType(T)(string variable, string table) if (isBaseType!T)
 {
 	enum index = staticIndexOf!(T, basic_types);
 	static assert(index != -1);
-	return "Out.write" ~ names[index] ~ "(" ~ table ~ "." ~ variable ~ ")\n\t"; 
+	return "C.bufferWrite" ~ names[index] ~ "(buf, " ~ table ~ "." ~ variable ~ ")\n\t"; 
 }
 
 string luaWriteType(T)(string name, string table) if (!isBaseType!T && is(T == struct))
@@ -176,7 +213,7 @@ string luaIndirectCalculateLength(T)()
 		}
 	}
 
-	code ~= "Out.writeShort(size)\n\t";
+	code ~= "C.bufferWriteShort(buf, size)\n\t";
 	return "local size = " ~ size.to!string ~ "\n\t" ~ code;
 }
 

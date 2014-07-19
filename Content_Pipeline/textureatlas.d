@@ -1,6 +1,7 @@
 module textureatlas;
 
 import derelict.freeimage.freeimage;
+import log;
 import content.sdl, 
 	   util.hash, 
 	   allocation, 
@@ -111,33 +112,37 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 	{
 		auto name = file.name[context.inFolder.length + 1 .. $ - file.name.extension.length];
 
-		string luaCode = 
-"local atlas = { }
-Log.info(\"Gonna load me some atlas\")
-local rHandle = Resources.loadFile(\"" ~ name ~ ".png\")
-atlas.texture = ffi.cast(\"Texture*\", rHandle.item)
-atlas.width  = " ~ atlasConfig.width.to!string ~ "
-atlas.height = " ~ atlasConfig.width.to!string ~ "\n";
-		
+		auto h = to!string(bytesHash(name).value);
+
+		string luaCode = "local atlas = { }\n";
 		foreach(r; atlas.rects)
 		{
-			luaCode ~= text("\n\tatlas.", r.name,
-							" = FrameRef(Frame(atlas.texture[0],",
+			luaCode ~= text("atlas.", r.name,
+							" = {",
 							r.left / cast(float)atlasConfig.width, ",",
 							r.bottom / cast(float)atlasConfig.height, ",",
 							(r.right - r.left) / cast(float)atlasConfig.width, ",",
-							(r.top - r.bottom) / cast(float)atlasConfig.height, "))");
+							(r.top - r.bottom) / cast(float)atlasConfig.height, "}\n");
 		}
 
-		luaCode ~=
-"\nreturn atlas";
+		luaCode ~= "return atlas";
 
-		return CompiledFile([CompiledItem(".luac", cast(void[])luaCode),
+		return CompiledFile([CompiledItem(".atl", cast(void[])luaCode),
 							 CompiledItem(".png", atlas.data)],
 							itemIDs);
 	} else 
 		assert(0, "Not yet implemented!");
 }	
+
+
+auto atlasLuaLoading()
+{
+	return 
+"
+	
+
+";
+}
 
 auto createAtlas(AtlasConfig config, DirEntry file, Platform platform)
 {
@@ -145,6 +150,8 @@ auto createAtlas(AtlasConfig config, DirEntry file, Platform platform)
 	foreach(item; config.items.map!(x => Tuple!(string, string)(stripExtension(x),
 															  buildPath(dirName(file.name), x ~ "\0"))))
 	{
+//		logInfo("Item[0] = ", item[0], "Item[1] = ", item[1]);
+
 		Image image = loadImage(item[1]);
 		image.name  = item[0];
 		images ~= image;

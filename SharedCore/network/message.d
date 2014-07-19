@@ -29,8 +29,6 @@ template isInMessage(T)
 
 template isIndirectMessage(T)
 {
-	pragma(msg, T);
-	pragma(msg, hasIndirections!T);
 	enum isIndirectMessage = hasIndirections!T;
 }
 
@@ -38,9 +36,6 @@ template isIndirectMessage(T)
 
 size_t writeMessage(T)(ubyte[] buf, T message)
 {
-	pragma(msg, T);
-	pragma(msg, shortHash!(T.stringof).value);
-
 	size_t offset = 2;
 	buf.write!ushort(shortHash!(T.stringof).value, &offset);
 	foreach(i, field; message.tupleof)

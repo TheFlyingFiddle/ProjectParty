@@ -1,0 +1,22 @@
+Logging now works on the phone but the debugging process has been painfull.
+What have i learned in the process? 
+Do not program on the surface it fucking sucks as. 
+I need to buy an usb hub. 
+
+In C things have a tendency to work when they should not work. ( This is confusing :( )
+
+
+What have i done since the last journal entry? 
+
+UDP service system. 
+
+How does it work?
+
+1. Send a broadcast message to servicePort. (There is only one service port ATM)
+2. When a service provider gets the message it sends back a message containing all 
+relevant service information.
+
+Message Example: 
+
+Client A: Sends message -> [ LOGGING_SERVICE ] to servicePort broadcasted.
+LOGGING Service: Gets message sends back -> [LOGGING_SERVICE, IP, PORT] (Specific Message for logging service)

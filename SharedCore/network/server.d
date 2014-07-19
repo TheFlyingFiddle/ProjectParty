@@ -9,6 +9,9 @@ struct Connection
 	Socket socket;
 	float timeSinceLastMessage;
 	ulong id;
+	
+	ubyte[] inBuffer;
+	ubyte[] outBuffer;
 }
 
 //This is not how i want to do things but i am forced by phobos.
@@ -33,13 +36,6 @@ class Listener : TcpSocket
 	}
 }
 
-struct PartialMessage
-{
-	ubyte[] data;
-	uint length;
-	ulong id;
-}
-
 struct ServerConfig
 {
 	float connectionTimeout;
@@ -57,7 +53,6 @@ struct Server
 	ulong bytesProcessed;
 
 	List!ulong lostConnections;
-	List!PartialMessage partialMessages;
 	List!Connection activeConnections;
 	List!Connection pendingConnections;
 	
@@ -89,10 +84,6 @@ struct Server
 		udpSocket = allocator.allocate!(UdpSocket)();
 		udpSocket.blocking = false;
 
-		partialMessages	   = List!PartialMessage(allocator, config.maxConnections);
-		foreach(i; 0 .. config.maxConnections)
-			partialMessages ~= PartialMessage(allocator.allocate!(ubyte[])(config.maxMessageSize), 0, 0);
-	
 		string s = Socket.hostName;
 		this.hostName = allocator.allocate!(char[])(s.length);
 		this.hostName[] = s[];
@@ -139,10 +130,27 @@ struct Server
 
 	void update(float elapsed)
 	{
+		sendLeftovers();
 		acceptIncoming();
 		processPendingConnections(elapsed);
 		processUDPMessages(elapsed);
 		processMessages(elapsed);
+	}
+
+	private void sendLeftovers()
+	{
+		for(int i = activeConnections.length - 1; i >= 0; i--)
+		{
+			auto con = activeConnections[i];
+			if(con.outBuffer.length > 0)
+			{
+				auto sent = send(con, con.outBuffer);
+				if(sent > 0)
+				{
+					con.outBuffer[0 .. con.outBuffer.length - sent] = con.outBuffer[sent .. $];
+				}
+			}
+		}
 	}
 
 	void processPendingConnections(float elapsed)
@@ -171,7 +179,6 @@ struct Server
 				ulong id = read!ulong(bbb);
 
 				logChnl.info("Id received :  ", id);
-				logChnl.info("ByteID : ", (cast(ubyte*)&id)[0 .. 8]);
 				if(id == con.id)
 				{
 					logChnl.info("onConnect :  ", id);
@@ -257,11 +264,10 @@ struct Server
 
 
 			//Partial messages must be checked since the last frame.
-			const pIndex = partialMessages.countUntil!(x => x.id == con.id);
-			const len    = partialMessages[pIndex].length;
+			const len    = con.inBuffer.length;
 
 			if(len != 0) 
-				buffer[0 .. len] = partialMessages[pIndex].data[0 .. len];
+				buffer[0 .. len] = con.inBuffer[];
 			
 			auto read = con.socket.receive(buffer[len .. $]);
 			if(Socket.ERROR == read)
@@ -292,11 +298,37 @@ struct Server
 			{			
 				bytesProcessed += read;
 				con.timeSinceLastMessage = 0.0f;
-				partialMessages[pIndex].length = 0;
-				sendMessages(i, con.id, buffer[0 .. read + len]);
+				con.inBuffer.length = 0;
+				forwardMessages(i, *con, buffer[0 .. read + len]);
 			}
 		}
 	}
+
+	int send(ref Connection con, ubyte[] data)
+	{
+		auto sent = con.socket.send(data);
+		if(sent > 0) 
+		{
+			return sent;
+		}
+		else if(sent == Socket.ERROR)
+		{
+			if(wouldHaveBlocked()) 
+			{
+				return 0;
+			}
+			else 
+			{
+				logChnl.warn("Failed to send data to connection! ", con.id);
+				auto index = activeConnections.countUntil!(x => x.id == con.id);
+				closeConnection(activeConnections, index, true, true);
+				return -1;
+			}
+		}
+
+		return sent;
+	}
+
 
 	void send(ulong id, ubyte[] message)
 	{
@@ -306,20 +338,10 @@ struct Server
 			return;
 		}
 
-
-		while(true) {
-			int sent = activeConnections[index].socket.send(message);
-
-			if(sent != -1)
-				message = message[sent .. $];
-
-			if(message.length == 0)
-				break;
-		}
-
+		send(activeConnections[index], message);
 	}
 
-	void sendMessages(uint listIndex, ulong key, ubyte[] buffer)
+	private void forwardMessages(uint listIndex, ref Connection con, ubyte[] buffer)
 	{
 		import util.bitmanip;
 		while(buffer.length)
@@ -338,25 +360,19 @@ struct Server
 
 				if(len > buffer.length)
 				{
-					auto index = partialMessages.countUntil!(x => x.id == key);
-					partialMessages[index].data[0 .. tmp.length] = tmp;
-					partialMessages[index].length = tmp.length;
+					con.inBuffer.ptr[0 .. tmp.length] = tmp;
 					break;
 				}
 
 				ubyte[] message = buffer[0 .. len];
 				buffer = buffer[len .. $];
-				onMessage(key, message);
+				onMessage(con.id, message);
 			} 
 			else
 			{
-				auto index = partialMessages.countUntil!(x => x.id == key);
-				partialMessages[index].data[0 .. tmp.length] = tmp;
-				partialMessages[index].length = tmp.length;
-
+				con.inBuffer.ptr[0 .. tmp.length] = tmp;
 				logChnl.info("Got a one byte partial message!");
 				break;
-
 			}
 		}
 	}
@@ -394,11 +410,8 @@ struct Server
 
 	void activateConnection(Socket socket, ulong id, bool isReconnect)
 	{
-		activeConnections ~= Connection(socket, 0.0f, id);
-
-		auto index = partialMessages.countUntil!(x => x.id == 0);
-		partialMessages[index].id = id;
-
+		Connection connection = Connection(socket, 0.0f, id);
+		activeConnections ~= connection;
 		auto fun = isReconnect ? onReconnect : onConnect;
 		if(fun)
 			fun(id);
@@ -413,12 +426,6 @@ struct Server
 		con.socket.close();
 		listener.deallocate(con.socket);
 
-		auto index = partialMessages.countUntil!(x => x.id == con.id);
-		if(index != -1) {
-			partialMessages[index].id = 0;
-			partialMessages[index].length = 0;
-		}
-
 		if(addToLost)
 		{
 			if(lostConnections.length == lostConnections.capacity)
@@ -428,10 +435,14 @@ struct Server
 		}
 
 		if(wasConnected && onDisconnect)
+		{
+			GlobalAllocator.deallocate(con.inBuffer.ptr[0 .. config.maxMessageSize]);
+			GlobalAllocator.deallocate(con.outBuffer.ptr[0 .. config.maxMessageSize]);
 			onDisconnect(con.id);
+		}
 	}
 
-	ulong uniqueNumber()
+	private ulong uniqueNumber()
 	{
 		import std.random;
 
@@ -440,7 +451,7 @@ struct Server
 		return num;
 	}
 
-	bool unique(ulong num)
+	private bool unique(ulong num)
 	{
 		import std.algorithm;
 		return !activeConnections.canFind!(x => x.id == num) &&

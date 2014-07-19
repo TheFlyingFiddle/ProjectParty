@@ -192,7 +192,7 @@
  </Config>
  <Folder name="Content_Pipeline">
   <File path="animation.d" />
-  <File path="broadcaster.d" />
+  <File path="reloader.d" />
   <File path="compilers.d" />
   <File path="filewatcher.d" />
   <File path="font.d" />

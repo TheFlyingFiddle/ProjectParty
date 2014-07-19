@@ -3,12 +3,53 @@ module network.file;
 import allocation, util.bitmanip, content.sdl;
 import content.file, util.strings;
 import std.stdio, std.algorithm, std.file, std.path, std.socket; 
+import log;
+import collections;
 
 enum FileMessages
 {
 	sentFile = 0,
 	removeFiles = 1,
 	allFilesSent = 2
+}
+
+
+private struct GeneratedFile
+{
+	//Includes extension
+	string name; 
+	void[] data;
+}
+
+//Need something here that will make generated stuff send
+__gshared List!GeneratedFile generatedFiles;
+void addGeneratedFile(string name, void[] data)
+{
+	if(generatedFiles.capacity == 0)
+		generatedFiles = List!GeneratedFile(GlobalAllocator, 10);
+
+	generatedFiles ~= GeneratedFile(name, data);
+}
+
+size_t writeFileMetadata(ubyte[] buffer, const(char)[] fileName, size_t fileSize)
+{
+	size_t offset = 0;
+
+	buffer.write!ubyte(FileMessages.sentFile, &offset);
+	buffer.write!(char[])(cast(char[])fileName, &offset);
+	buffer.write!uint(fileSize, &offset);
+
+	return offset;
+}
+
+void sendGeneratedFiles(Socket socket, ubyte[] buffer)
+{
+	foreach(file; generatedFiles)
+	{
+		size_t offset = writeFileMetadata(buffer, file.name, file.data.length);
+		socket.send(buffer[0 .. offset]);
+		socket.send(file.data);
+	}
 }
 
 void sendAllFiles(Socket socket, string folder)
@@ -22,17 +63,22 @@ void sendAllFiles(Socket socket, string folder)
 	{
 		sendFile(socket, entry.name, folder, buffer);
 	}
+
+	sendGeneratedFiles(socket, buffer);
+	sendAllFilesSent(socket);
 }
 
 void sendFile(Socket socket, const(char)[] entry, const(char)[] folder, ubyte[] buffer)
 {
+	//Hack...
+	if(entry.baseName == "Thumbs.db") return;
+
+	logInfo("Sending file ", entry);
+
 	auto file = File(cast(string)entry, "rb");	
 	auto fileName = entry[folder.length + 1 .. $];
 
-	size_t offset = 0;
-	buffer.write!(ubyte)(FileMessages.sentFile, &offset); 
-	buffer.write!(char[])(cast(char[])fileName, &offset);
-	buffer.write!(uint)(cast(uint)file.size, &offset);
+	size_t offset = writeFileMetadata(buffer, fileName, cast(uint)file.size);
 	socket.send(buffer[0 .. offset]);
 
 	uint sent = 0;
@@ -42,6 +88,8 @@ void sendFile(Socket socket, const(char)[] entry, const(char)[] folder, ubyte[] 
 		socket.send(data);
 		sent += data.length;
 	}
+
+	logInfo("File sent ", entry);
 }
 
 void listenForFileRequests(uint ip, ushort port, string resourceFolder)
@@ -49,8 +97,8 @@ void listenForFileRequests(uint ip, ushort port, string resourceFolder)
 	import network.message, content.content, network.file;
 	import concurency.task, util.bitmanip;
 
-	TcpSocket listener = GlobalAllocator.allocate!(TcpSocket)();
-	auto address  = GlobalAllocator.allocate!(InternetAddress)(ip, port);
+	TcpSocket listener  = GlobalAllocator.allocate!(TcpSocket)();
+	auto address		= GlobalAllocator.allocate!(InternetAddress)(ip, port);
 
 	listener.bind(address);
 	listener.blocking = true;
@@ -63,7 +111,6 @@ void listenForFileRequests(uint ip, ushort port, string resourceFolder)
 	}
 }
 
-
 void sendFiles(Socket socket, string resourceFolder)
 {
 	ubyte[0xffff] rec; ubyte[] slice = rec[];
@@ -72,6 +119,7 @@ void sendFiles(Socket socket, string resourceFolder)
 	assert(size >= 1);
 	if(slice.read!ubyte == 1)
 	{
+		logInfo("Received map file!");
 		//Read map
 		slice = rec[];
 		size = socket.receive(slice);
@@ -88,9 +136,10 @@ void sendFiles(Socket socket, string resourceFolder)
 	socket.close();
 }
 
-
 void sendAllFilesSent(Socket socket)
 {
+	logInfo("All files sent");
+
 	ubyte id = FileMessages.allFilesSent;
 	socket.send((&id)[0 .. 1]);
 }
@@ -126,6 +175,7 @@ void sendDiffFiles(Socket socket, string folder, FileMap map)
 	}
 	socket.send(buffer[0 .. offset]);
 
-
+	
+	sendGeneratedFiles(socket, buffer);
 	sendAllFilesSent(socket);
 }

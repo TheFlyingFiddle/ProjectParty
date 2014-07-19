@@ -20,4 +20,4 @@ Plan of attack ---
 Run the logging on the main thread. 
 Simply Connect to the UDP service. 
 Log messages features -> File-Line information (This is worthless in lua atm)
-Other then that its just good to go. 
+Other then that its just good to go. bnjkgl;

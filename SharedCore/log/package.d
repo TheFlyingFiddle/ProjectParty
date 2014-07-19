@@ -4,15 +4,15 @@ public import log.remote;
 
 enum Verbosity { info = 0, warn = 1, error = 2 }
 
-alias logger_t = void function(string, Verbosity, const(char)[], string, size_t) nothrow;
+alias logger_t = void function(string, Verbosity, const(char)[]) nothrow;
 __gshared logger_t logger = &writelnLogger;
 
-void writelnLogger(string channel, Verbosity verbosity,const(char)[] msg, string file, size_t line) nothrow 
+void writelnLogger(string channel, Verbosity verbosity, const(char)[] msg) nothrow 
 {
 	try
 	{
 		import std.stdio;
-		writeln(channel, " ", msg,"\t",file, "(", line, ")" );
+		writeln(channel, " ", msg);
 	}
 	catch(Error e)
 	{
@@ -75,9 +75,9 @@ private void makeMsg(T...)(string channel, Verbosity verbosity, string file, siz
 {
 	template staticFormatString(size_t u)
 	{
-		static if(u == 1) enum staticFormatString = "%s";
+		static if(u == 1) enum staticFormatString = "%s\t%s(%s)";
 
-		else enum staticFormatString = staticFormatString!(u - 1) ~ "%s";
+		else enum staticFormatString = "%s" ~ staticFormatString!(u - 1) ;
 	}
 
 	import std.format, collections.list;
@@ -89,8 +89,8 @@ private void makeMsg(T...)(string channel, Verbosity verbosity, string file, siz
 	auto list = List!(char)(buffer);
 	auto appender = &list;
 
-	formattedWrite(appender, staticFormatString!(T.length), t);
-	logger(channel, verbosity, appender.array, file, line);
+	formattedWrite(appender, staticFormatString!(T.length), t, file, line);
+	logger(channel, verbosity, appender.array);
 }
 
 private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, const(char)[] file, size_t line, T t) nothrow
@@ -103,6 +103,7 @@ private void makeFormatMsg(T...)(string channel, string f, Verbosity verbosity, 
 	auto list = List!(char)(buffer);
 	auto appender = &list;
 	formattedWrite(appender, f, t);
+	formattedWrite(appender, "\t%s(%s)", file, line);
 
-	logger(channel, verbosity, appender.array, file, line);
+	logger(channel, verbosity, appender.array);
 }

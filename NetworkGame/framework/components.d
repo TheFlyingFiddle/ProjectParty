@@ -80,14 +80,16 @@ class NetworkComponent : IGameComponent
 			char[] gameName;
 			uint ip;
 			ushort tcpPort, udpPort;
+			ushort contentPort;
 		}
 		
 		//This should be all that is nessecary to provide the information for the broadcast.
 		ServerServiceData data;
-		data.gameName = cast(char[])"TOWER_DEFENCE"; //This line is wrong!
+		data.gameName = cast(char[])"tower_defence"; //This line is wrong!
 		data.ip = server.listenerAddress.addr;
 		data.tcpPort = server.listenerAddress.port;
 		data.udpPort = server.updAddress.port;
+		data.contentPort = 13462; //BAD BAD BAD
 
 		provider.add("SERVER_DISCOVERY_SERVICE", data);
 		this.resourceDir = resourceDir;

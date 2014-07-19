@@ -40,7 +40,8 @@ template areEventHandlers(T...)
 }
 
 
-bool hashCollision(U, T...)() if(isIntegral!U)
+bool hashCollision(U, T...)() 
+	if(isIntegral!U)
 {
 	import std.algorithm, util.hash;
 	U[] hashes = new U[T.length];

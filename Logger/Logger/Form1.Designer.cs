@@ -39,6 +39,8 @@
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.textContextStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.changeFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeAllButThisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.textContextStrip.SuspendLayout();
             this.SuspendLayout();
@@ -65,29 +67,31 @@
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.saveToolStripMenuItem,
+            this.clearToolStripMenuItem,
             this.closeToolStripMenuItem,
-            this.clearToolStripMenuItem});
+            this.closeAllToolStripMenuItem,
+            this.closeAllButThisToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(104, 70);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(167, 136);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.closeToolStripMenuItem.Text = "Close";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
             // clearToolStripMenuItem
             // 
             this.clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-            this.clearToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.clearToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.clearToolStripMenuItem.Text = "Clear";
             this.clearToolStripMenuItem.Click += new System.EventHandler(this.clearToolStripMenuItem_Click);
             // 
@@ -123,6 +127,20 @@
             this.changeFontToolStripMenuItem.Text = "Change Font";
             this.changeFontToolStripMenuItem.Click += new System.EventHandler(this.changeFontToolStripMenuItem_Click);
             // 
+            // closeAllToolStripMenuItem
+            // 
+            this.closeAllToolStripMenuItem.Name = "closeAllToolStripMenuItem";
+            this.closeAllToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.closeAllToolStripMenuItem.Text = "Close All";
+            this.closeAllToolStripMenuItem.Click += new System.EventHandler(this.closeAllToolStripMenuItem_Click);
+            // 
+            // closeAllButThisToolStripMenuItem
+            // 
+            this.closeAllButThisToolStripMenuItem.Name = "closeAllButThisToolStripMenuItem";
+            this.closeAllButThisToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.closeAllButThisToolStripMenuItem.Text = "Close All But This";
+            this.closeAllButThisToolStripMenuItem.Click += new System.EventHandler(this.closeAllButThisToolStripMenuItem_Click);
+            // 
             // LogMuch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -154,6 +172,8 @@
         private System.Windows.Forms.FontDialog fontDialog1;
         private System.Windows.Forms.ContextMenuStrip textContextStrip;
         private System.Windows.Forms.ToolStripMenuItem changeFontToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeAllToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeAllButThisToolStripMenuItem;
     }
 }
 

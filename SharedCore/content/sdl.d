@@ -11,7 +11,6 @@ import std.range : repeat;
 import collections.list;
 import allocation;
 
-
 alias TypeID = SDLObject.Type;
 
 enum stringSeperator	= '|';
@@ -20,7 +19,6 @@ enum arrayCloser 		= ']';
 enum arraySeparator 	= ',';
 enum objectOpener 		= '{';
 enum objectCloser 		= '}';
-
 
 struct SDLObject
 {
@@ -414,6 +412,7 @@ struct SDLIterator
 			// We want to search the whole object for every name.
 			currentIndex = firstIndex;
 		}
+
         return toReturn;
 	}
 
@@ -541,7 +540,6 @@ struct SDLContainer
 
 }
 
-
 void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(is(T == struct))
 {
 	if(level != 0) {
@@ -607,7 +605,6 @@ void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isArray!T && !is(T
 	}
 	sink.put(arrayCloser);
 }
-
 
 struct ForwardRange
 {
@@ -1033,7 +1030,6 @@ long parseHex(ForwardRange saved, ForwardRange range)
 	return acc;
 }
 
-
 T fromSDLSource(T, A)(ref A allocator, string source)
 {
 	import allocation.native;
@@ -1049,7 +1045,6 @@ T fromSDLSource(T, A)(ref A allocator, string source)
     auto cont = fromSDL(app, source);
     return cont.as!T(allocator);
 }
-
 
 T fromSDLFile(T, A)(ref A allocator, string filePath)
 {
@@ -1092,7 +1087,6 @@ SDLContainer fromSDL(Sink)(ref Sink sink, string source)
     container.root = list.buffer;
     return container;
 }
-
 
 //Only used to build the tree of SDLObjects from the file.
 private void readObject(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacantIndex)
@@ -1260,7 +1254,6 @@ size_t getLineNumber(ref ForwardRange currentPos)
 {
 	return count(currentPos.over[0..currentPos.position], "\n") + 1;
 }
-
 
 version(unittest) {	
 
