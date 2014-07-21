@@ -48,8 +48,9 @@ bool hashCollision(U, T...)()
 	foreach(i,t;T)
 	{
 		enum thash = cHash!t;
-		if(hashes.find!("a == b")(thash).length != 0) 
+		if(hashes.find!("a == b")(thash.value).length != 0) 
 			return true;
+		hashes[i] = cast(U)thash.value;
 	}
 
 	return false;

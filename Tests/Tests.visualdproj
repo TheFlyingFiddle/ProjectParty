@@ -1,9 +1,9 @@
 <DProject>
- <ProjectGuid>{E640EFC2-88DD-467D-8D2E-0C6C7C5B5AED}</ProjectGuid>
+ <ProjectGuid>{7B202911-24A9-4401-B06A-FFCA6958BFA0}</ProjectGuid>
  <Config name="Debug" platform="Win32">
   <obj>0</obj>
   <link>0</link>
-  <lib>1</lib>
+  <lib>0</lib>
   <subsystem>0</subsystem>
   <multiobj>0</multiobj>
   <singleFileCompilation>0</singleFileCompilation>
@@ -22,7 +22,7 @@
   <isFreeBSD>0</isFreeBSD>
   <isSolaris>0</isSolaris>
   <scheduler>0</scheduler>
-  <useDeprecated>1</useDeprecated>
+  <useDeprecated>0</useDeprecated>
   <errDeprecated>0</errDeprecated>
   <useAssert>0</useAssert>
   <useInvariants>0</useInvariants>
@@ -47,7 +47,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\Derelict</imppath>
+  <imppath>..\SharedCore; ..\dunit; ..\Derelict</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -61,12 +61,12 @@
   <doHdrGeneration>0</doHdrGeneration>
   <hdrdir />
   <hdrname />
-  <doXGeneration>0</doXGeneration>
+  <doXGeneration>1</doXGeneration>
   <xfilename>$(IntDir)\$(TargetName).json</xfilename>
   <debuglevel>0</debuglevel>
   <debugids />
   <versionlevel>0</versionlevel>
-  <versionids>RELOADING</versionids>
+  <versionids />
   <dump_source>0</dump_source>
   <mapverbosity>0</mapverbosity>
   <createImplib>0</createImplib>
@@ -83,11 +83,11 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>Derelict.lib</libfiles>
-  <libpaths>..\Derelict\Debug </libpaths>
+  <libfiles>SharedCore.lib</libfiles>
+  <libpaths>..\SharedCore\Debug</libpaths>
   <deffile />
   <resfile />
-  <exefile>$(OutDir)\$(ProjectName).lib</exefile>
+  <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
   <cRuntime>2</cRuntime>
   <additionalOptions />
@@ -98,7 +98,7 @@
  <Config name="Release" platform="Win32">
   <obj>0</obj>
   <link>0</link>
-  <lib>1</lib>
+  <lib>0</lib>
   <subsystem>0</subsystem>
   <multiobj>0</multiobj>
   <singleFileCompilation>0</singleFileCompilation>
@@ -182,7 +182,7 @@
   <libpaths />
   <deffile />
   <resfile />
-  <exefile>$(OutDir)\$(ProjectName).lib</exefile>
+  <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
   <cRuntime>1</cRuntime>
   <additionalOptions />
@@ -190,95 +190,9 @@
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
- <Folder name="SharedCore">
-  <Folder name="allocation">
-   <File path="allocation\common.d" />
-   <File path="allocation\freelist.d" />
-   <File path="allocation\native.d" />
-   <File path="allocation\package.d" />
-   <File path="allocation\region.d" />
-   <File path="allocation\stack.d" />
-  </Folder>
-  <Folder name="collections">
-   <File path="collections\blob.d" />
-   <File path="collections\grid.d" />
-   <File path="collections\list.d" />
-   <File path="collections\package.d" />
-   <File path="collections\table.d" />
-  </Folder>
-  <Folder name="concurency">
-   <File path="concurency\messagepassing.d" />
-   <File path="concurency\task.d" />
-   <File path="concurency\threadpool.d" />
-  </Folder>
-  <Folder name="content">
-   <File path="content\content.d" />
-   <File path="content\file.d" />
-   <File path="content\font.d" />
-   <File path="content\package.d" />
-   <File path="content\reloading.d" />
-   <File path="content\sdl.d" />
-   <File path="content\texture.d" />
-   <File path="content\textureatlas.d" />
-  </Folder>
-  <Folder name="event">
-   <File path="event\package.d" />
-   <File path="event\stream.d" />
-   <File path="event\traits.d" />
-  </Folder>
-  <Folder name="graphics">
-   <File path="graphics\buffer.d" />
-   <File path="graphics\color.d" />
-   <File path="graphics\common.d" />
-   <File path="graphics\context.d" />
-   <File path="graphics\convinience.d" />
-   <File path="graphics\enums.d" />
-   <File path="graphics\font.d" />
-   <File path="graphics\frame.d" />
-   <File path="graphics\framebuffer.d" />
-   <File path="graphics\package.d" />
-   <File path="graphics\program.d" />
-   <File path="graphics\shader.d" />
-   <File path="graphics\texture.d" />
-   <File path="graphics\textureatlas.d" />
-  </Folder>
-  <Folder name="log">
-   <File path="log\package.d" />
-   <File path="log\remote.d" />
-  </Folder>
-  <Folder name="math">
-   <File path="math\matrix.d" />
-   <File path="math\package.d" />
-   <File path="math\polar.d" />
-   <File path="math\traits.d" />
-   <File path="math\vector.d" />
-  </Folder>
-  <Folder name="network">
-   <File path="network\file.d" />
-   <File path="network\luagen.d" />
-   <File path="network\message.d" />
-   <File path="network\router.d" />
-   <File path="network\server.d" />
-   <File path="network\service.d" />
-   <File path="network\util.d" />
-  </Folder>
-  <Folder name="serialization">
-   <File path="serialization\base.d" />
-  </Folder>
-  <Folder name="spatial">
-   <File path="spatial\shape.d" />
-   <File path="spatial\transform.d" />
-  </Folder>
-  <Folder name="util">
-   <File path="util\bitmanip.d" />
-   <File path="util\hash.d" />
-   <File path="util\servicelocator.d" />
-   <File path="util\strings.d" />
-  </Folder>
-  <Folder name="window">
-   <File path="window\keyboard.d" />
-   <File path="window\window.d" />
-  </Folder>
-  <File path="external_libraries.d" />
+ <Folder name="Tests">
+  <File path="main.d" />
+  <File path="sdltest.d" />
+  <File path="test.sdl" />
  </Folder>
 </DProject>

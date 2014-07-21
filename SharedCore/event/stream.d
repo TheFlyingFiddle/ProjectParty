@@ -21,7 +21,7 @@ struct EventStreamN(Integer) if(isIntegral!Integer)
 	void push(T)(T item) if(isEvent!T)
 	{
 		static assert(alignment >= T.alignof);
-		enum typeID = typeHash!T % (Integer.max);
+		enum typeID = cHash!T.value % (Integer.max);
 		enum alignedOffset = (T.sizeof + alignment - 1) & ~(alignment - 1);
 
 		blob.put!Integer(typeID);
@@ -225,7 +225,7 @@ string cases(Integer, T...)()
 	foreach(i, t; T)
 	{
 		alias EventType = ParameterTypeTuple!(t)[0];
-		s ~= "case " ~ (typeHash!EventType % Integer.max).to!string ~ ":
+		s ~= "case " ~ (cHash!EventType.value % Integer.max).to!string ~ ":
 			auto evnt = cast(" ~ EventType.stringof ~ "*)e.data;
 			T[" ~ i.to!string ~ "](*evnt);
 			break;\n";
