@@ -257,11 +257,11 @@ auto rotate(T)(Vector!(2, T) toRotate, float angle)
 	return result;
 }
 
-template staticIota(size_t s, size_t e)
+template staticIota(size_t s, size_t e, size_t step = 1)
 {
 	import std.typetuple : TypeTuple;
 	static if(s < e)
-		alias staticIota = TypeTuple!(s, staticIota!(s + 1, e));
+		alias staticIota = TypeTuple!(s, staticIota!(s + step, e));
 	else 
 		alias staticIota = TypeTuple!();
 }

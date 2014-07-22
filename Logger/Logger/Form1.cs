@@ -26,58 +26,23 @@ namespace Logger
         private TabPage selectedPage;
         private Color[] colorTable = new[] { Color.FromArgb(0xFF, 0, 0xaa, 0), Color.Orange, Color.Red };
       
+        private class LoggerImpl : ILogger
+        {
+            public LogMuch much;
+
+            public void logMessage(Color color, string id, string channel, string message)
+            {
+                much.LogMessage(id, message, color);
+            }
+        }
+
         public LogMuch()
         {
             InitializeComponent();
-            
-            var thread = new Thread(() => ListenOnCllients(54321));
-            thread.IsBackground = true;
-            thread.Start();
-        }
 
-        private void ListenOnCllients(ushort port)
-        {
-            TcpListener listener = new TcpListener(new System.Net.IPEndPoint(IPExtensions.LocalIPAddress(), 0));
-            listener.Start();
-
-            LanBroadcaster.BroadcastPresence(((IPEndPoint)listener.LocalEndpoint).Address,
-                                               ((IPEndPoint)listener.LocalEndpoint).Port);
-            
-            while (true)
-            {
-                var socket = listener.AcceptTcpClient();
-                var thread = new Thread(() => ProcessLoggingMessages(socket));
-                thread.IsBackground = true;
-                thread.Start();
-            }
-        }
-
-        private void ProcessLoggingMessages(TcpClient socket)
-        {
-            var reader = new BinaryReader(socket.GetStream());
-            byte[] buffer = new byte[ushort.MaxValue];
-
-            try
-            {
-                var tabNameLength = reader.ReadUInt16();
-                reader.Read(buffer, 0, tabNameLength);
-                //Ignore null terminator
-                var tabName = Encoding.UTF8.GetString(buffer, 0, tabNameLength - 1);
-                tabName = UniqueName(tabName);
-
-                bool shouldProcess = true;
-                while (shouldProcess)
-                {
-                    shouldProcess = ProcessMessage(reader, buffer, tabName);
-                }
-
-                LogMessage(tabName, "Logging Finished!", Color.Gold);
-                StopLogging(tabName);
-            }
-            finally
-            {
-                socket.Close();
-            }
+            var logImpl = new LoggerImpl();
+            logImpl.much = this;
+            new NetworkReceiver(logImpl);
         }
 
         private void StopLogging(string tabName)
@@ -95,73 +60,6 @@ namespace Logger
 
                 tabControl1.Invalidate();
             }));
-        }
-
-        private bool canFind(string tabName)
-        {
-            for (int i = 0; i < tabControl1.TabCount; i++)
-            {
-                var tab = tabControl1.TabPages[i];
-                if (tabName == tab.Text)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private string UniqueName(string tabName)
-        {
-            string name = tabName;
-            int count = 0;
-            while (true)
-            {
-                if (canFind(name))
-                {
-                    count++;
-                    name = tabName + count;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return name;
-        }
-
-
-        private bool ProcessMessage(BinaryReader reader, byte[] buffer, string tabName)
-        {
-            try
-            {
-                var verbosity = reader.ReadByte();
-                if (verbosity > colorTable.Length)
-                {
-                    throw new Exception("Invalid verbosity! verb= " + verbosity);
-                }
-                Color color = colorTable[verbosity];
-                
-                int len = reader.ReadUInt16();
-                var read = 0;
-                while (len != 0)
-                {
-                    var r = reader.Read(buffer, read, len);
-                    read += r;
-                    len  -= r;
-                }
-                
-                var message = Encoding.UTF8.GetString(buffer, 0, read);
-                LogMessage(tabName, message, color);
-            }
-            catch (Exception e)
-            {
-                //Not much to do here. I think?
-                LogMessage(tabName, "There was an error in the connection! " + e.Message, Color.Red);
-                return false;
-            }
-
-            return true;
         }
 
         private void CreateTextTab(string tabName)

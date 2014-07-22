@@ -263,14 +263,12 @@ struct TaskThreadPool
 				auto chnl = LogChannel("Thread Crash!");
 				chnl.info("Threre has been a crash in the thread!");
 				chnl.info(t.toString);
+
 				import std.stdio;
 				writeln(t.toString);
-
-				import std.c.stdlib;
-				exit(-1);
+				throw t;
 			}
-			
-			messageAllocator.deallocate(del.ptr[0 .. 1]);
+				messageAllocator.deallocate(del.ptr[0 .. 1]);
 		}
 
 		inbox.receive(&taskfun);

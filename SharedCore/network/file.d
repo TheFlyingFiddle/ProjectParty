@@ -31,6 +31,14 @@ void addGeneratedFile(string name, void[] data)
 	generatedFiles ~= GeneratedFile(name, data);
 }
 
+private void throwingSend(Socket socket, void[] buffer)
+{
+	int sent = socket.send(buffer);
+	if(sent == Socket.ERROR)
+		throw new Exception("Failed to send data!");
+}
+
+
 size_t writeFileMetadata(ubyte[] buffer, const(char)[] fileName, size_t fileSize)
 {
 	size_t offset = 0;
@@ -47,8 +55,8 @@ void sendGeneratedFiles(Socket socket, ubyte[] buffer)
 	foreach(file; generatedFiles)
 	{
 		size_t offset = writeFileMetadata(buffer, file.name, file.data.length);
-		socket.send(buffer[0 .. offset]);
-		socket.send(file.data);
+		socket.throwingSend(buffer[0 .. offset]);
+		socket.throwingSend(file.data);
 	}
 }
 
@@ -79,13 +87,13 @@ void sendFile(Socket socket, const(char)[] entry, const(char)[] folder, ubyte[] 
 	auto fileName = entry[folder.length + 1 .. $];
 
 	size_t offset = writeFileMetadata(buffer, fileName, cast(uint)file.size);
-	socket.send(buffer[0 .. offset]);
+	socket.throwingSend(buffer[0 .. offset]);
 
 	uint sent = 0;
 	while(sent != file.size())
 	{
 		auto data = file.rawRead(buffer);
-		socket.send(data);
+		socket.throwingSend(data);
 		sent += data.length;
 	}
 
@@ -114,23 +122,30 @@ void listenForFileRequests(uint ip, ushort port, string resourceFolder)
 void sendFiles(Socket socket, string resourceFolder)
 {
 	ubyte[0xffff] rec; ubyte[] slice = rec[];
-
-	auto size = socket.receive(slice);
-	assert(size >= 1);
-	if(slice.read!ubyte == 1)
+	
+	try
 	{
-		logInfo("Receiving map file!");
-		//Read map
-		slice = rec[];
-		size = socket.receive(slice);
-		logInfo("Received map file!");
+		auto size = socket.receive(slice);
+		assert(size >= 1);
+		if(slice.read!ubyte == 1)
+		{
+			logInfo("Receiving map file!");
+			//Read map
+			slice = rec[];
+			size = socket.receive(slice);
+			logInfo("Received map file!");
 
-		FileMap map = fromSDLSource!FileMap(Mallocator.it, cast(string)slice[0 .. size]);
-		sendDiffFiles(socket, resourceFolder, map);
+			FileMap map = fromSDLSource!FileMap(Mallocator.it, cast(string)slice[0 .. size]);
+			sendDiffFiles(socket, resourceFolder, map);
+		}
+		else 
+		{
+			sendAllFiles(socket, resourceFolder);
+		}
 	}
-	else 
+	catch(Exception e)
 	{
-		sendAllFiles(socket, resourceFolder);
+		logErr("Failed to send all files!: ", e);
 	}
 
 	socket.shutdown(SocketShutdown.SEND);
@@ -142,7 +157,7 @@ void sendAllFilesSent(Socket socket)
 	logInfo("All files sent");
 
 	ubyte id = FileMessages.allFilesSent;
-	socket.send((&id)[0 .. 1]);
+	socket.throwingSend((&id)[0 .. 1]);
 }
 
 void sendDiffFiles(Socket socket, string folder, FileMap map)
@@ -174,7 +189,8 @@ void sendDiffFiles(Socket socket, string folder, FileMap map)
 	{
 		buffer.write!(char[])(cast(char[])item.name, &offset);
 	}
-	socket.send(buffer[0 .. offset]);
+
+	socket.throwingSend(buffer[0 .. offset]);
 
 	
 	sendGeneratedFiles(socket, buffer);

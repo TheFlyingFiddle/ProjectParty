@@ -358,6 +358,11 @@ struct Server
 					logChnl.error("Recived a message who's length is greater then the maximum size of our messages!");
 					closeConnection(activeConnections, listIndex, true, true);
 					return;
+				} else if(len < 2)
+				{
+					logChnl.error("Received a message who's length is less then the minimum size 2!", len);
+					closeConnection(activeConnections, listIndex, true, true);
+					return;
 				}
 
 				if(len > buffer.length)

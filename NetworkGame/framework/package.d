@@ -39,7 +39,7 @@ Game* createPhoneGame(A)(ref A al, PhoneGameConfig config)
 
 	auto windowComponent  = al.allocate!WindowComponent(config.windowConfig);
 	auto taskComponent    = al.allocate!TaskComponent(al, config.concurencyConfig);
-	auto networkComponent = new NetworkComponent(al, config.serverConfig, config.phoneResourceDir);
+	auto networkComponent = al.allocate!NetworkComponent(al, config.serverConfig, config.phoneResourceDir);
 	auto screenComponent  = al.allocate!ScreenComponent(al, 20);
 	auto renderComponent  = al.allocate!RenderComponent(al, config.renderConfig);
 
@@ -48,7 +48,6 @@ Game* createPhoneGame(A)(ref A al, PhoneGameConfig config)
 	g.addComponent(taskComponent);
 	g.addComponent(networkComponent);
 	g.addComponent(screenComponent);
-	g.addComponent(al.allocate!LuaLogComponent());
 
 	version(RELOADING)
 	{

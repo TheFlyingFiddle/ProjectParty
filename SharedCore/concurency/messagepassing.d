@@ -123,7 +123,15 @@ struct SPMCQueue(Serializer)
 			while(atomicLoad(items) == 0) {
 				if(shouldStop) return;
 
-				cond.wait();
+				try
+				{
+					cond.wait();
+				}
+				catch(Exception e)
+				{
+					import log;
+					logErr(e);
+				}
 			}
 
 			atomicOp!"-="(items, 1);

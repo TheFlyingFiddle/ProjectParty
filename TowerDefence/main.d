@@ -20,27 +20,28 @@ void main()
 	import std.stdio;
 
 	init_dlls();
+	initializeRemoteLogging("TowerDefence");
+	scope(exit) termRemoteLogging();
+
 	try
 	{
 		auto config = fromSDLFile!PhoneGameConfig(Mallocator.it, "config.sdl");
 		run(config);
 	}
 	catch(Throwable t) {
-		logInfo("Crash!\n", t);
-		readln;
-	}
+		logErr("Crash!\n", t);
+		while(t.next) {
+			t = t.next;
+			logErr(t);
+		}
 
-	import std.c.stdlib;
-	exit(0);
+	}
 }
 
 void run(PhoneGameConfig config) 
 {
 	RegionAllocator region = RegionAllocator(Mallocator.cit, 1024 * 1024 * 10);
 	auto stack = ScopeStack(region);
-
-	initializeRemoteLogging("TowerDefence");
-	scope(exit) termRemoteLogging();
 
 	auto game = createPhoneGame(stack, config);
 
@@ -54,7 +55,17 @@ void run(PhoneGameConfig config)
 	gl.enable(Capability.blend);
 	gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);
 
-	game.run();
+	try
+	{
+		game.run();
+	}
+	catch(Throwable t) {
+		logErr("Crash!\n", t);
+		while(t.next) {
+			t = t.next;
+			logErr(t);
+		}
+	}
 }
 	
 class Screen1 : Screen
@@ -87,8 +98,7 @@ class Screen1 : Screen
 	}
 
 	override void update(GameTime time) 
-	{
-		//logInfo("Running in circles");
+	{	
 		rotation += time.delta.to!("seconds", float);	
 
 		auto keyboard = game.locate!Keyboard;	

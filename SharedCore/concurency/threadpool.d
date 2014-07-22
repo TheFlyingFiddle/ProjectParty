@@ -2,6 +2,7 @@ module concurency.threadpool;
 import allocation;
 import concurency.messagepassing;
 import core.thread;
+import log;
 
 alias Inbox  = SPMCQueue!(QueueSerializer);
 struct WorkerPool
@@ -71,14 +72,8 @@ struct WorkerPool
 			}
 			catch(Throwable t)
 			{
-				import std.stdio, std.datetime, std.conv;
-				{
-					auto file = File("CRASH_" ~ Clock.currTime.to!string ~ ".txt", "+w");
-					file.writeln(t);
-				}
-				import std.c.stdlib;
-
-				exit(-1);
+				logErr("Thread crashed!", t);	
+				return;
 			}	
 		}
 	}

@@ -13,6 +13,10 @@ import allocation;
 
 shared int reloaderCount = 0;
 
+enum fileService = "FILE_RELOADING_SERVICE";
+
+
+
 struct ReloadItem
 {
 	string name;
@@ -67,7 +71,7 @@ private void reloadingService()
 	}
 	auto addr = cast(InternetAddress)listener.localAddress;
 	ReloadingData data = ReloadingData(addr.addr, addr.port);
-	services.add("FILE_RELOADING_SERVICE", data);
+	services.add(fileService, data);
 
 
 	Tid[] reloaders;
@@ -112,13 +116,15 @@ private void reloadingService()
 	}
 }
 
-void sendItems(immutable ReloadingInfo info, Socket socket)
+bool sendItems(immutable ReloadingInfo info, Socket socket)
 {
 	import util.bitmanip;
 	ubyte[128] buffer;
 
 	buffer[].write!ushort(cast(ushort)info.items.length, 0);
-	socket.send(buffer[0 .. 2]);
+	int err = socket.send(buffer[0 .. 2]);
+	if(err == Socket.ERROR) return false; 
+
 
 	logInfo("Sending files: ", info.items.length);
 	foreach(item; info.items)
@@ -126,9 +132,14 @@ void sendItems(immutable ReloadingInfo info, Socket socket)
 		size_t offset = 0;
 		buffer[].write!string(item.name, &offset);
 		buffer[].write!uint(item.data.length, &offset);
-		socket.send(buffer[0 .. offset]);
-		socket.send(item.data);
+		
+		err = socket.send(buffer[0 .. offset]);	
+		if(err == Socket.ERROR) return false; 
+		err = socket.send(item.data);	
+		if(err == Socket.ERROR) return false; 
 	}
+
+	return true;
 }
 
 void reloader(immutable Socket im_socket)
@@ -145,7 +156,9 @@ void reloader(immutable Socket im_socket)
 		{
 			receive((immutable ReloadingInfo info) 
 			{
-				sendItems(info, socket);
+				done = !sendItems(info, socket);
+				if(!done) 
+					logErr("Failed to send item to connection: ", socket.remoteAddress);
 			},
 			(bool shutdown)
 			{

@@ -141,13 +141,13 @@ function netMT:receive()
 	self.tcp:receive()
 	self.udp:receive()
 
-	readTcpMessages(self, self.tcp.inStream, self.messageHandler)
-	readUdpMessages(self, self.udp.inBuffer, self.messageHandler)
+	--readTcpMessages(self, self.tcp.inStream, self.messageHandler)
+	--readUdpMessages(self, self.udp.inBuffer, self.messageHandler)
 end
 
 function netMT:send()
-	self.tcp.outStream:flush()
-	self.udp:send(self.udp.ip, self.udp.port)
+	--self.tcp.outStream:flush()
+	--self.udp:send(self.udp.ip, self.udp.port)
 end
 
 function netMT:addListener(id, listener)

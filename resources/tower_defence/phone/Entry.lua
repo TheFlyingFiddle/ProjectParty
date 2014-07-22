@@ -7,7 +7,6 @@ local network
 local bolder;
 
 local function onMsg(msg)
-	Log.infof("Received message! %d %f", msg.a, msg.b)
 end
 
 
@@ -24,7 +23,6 @@ function Game.start()
 
 	network   = Network(0xFFFF, 0xFFFF)
 	network:connect(Game.server.ip, Game.server.tcpPort, Game.server.udpPort, 1000)	
-
 	network:addListener(NetIn.testMessageB, onMsg)
 end
 
@@ -42,6 +40,7 @@ function Game.stop()
 end
 
 function Game.step()
+	C.remoteDebugUpdate()	
 	network:receive()
 	updateReloading()
 

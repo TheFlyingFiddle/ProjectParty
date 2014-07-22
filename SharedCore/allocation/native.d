@@ -158,6 +158,11 @@ struct MallocAppender(T)
 	{
         return List!T(_buffer[0.._offset]);
 	}
+
+	List!T take()
+	{
+		return List!T(_buffer, _offset, _capacity);
+	}
     
     @disable this(this);
 

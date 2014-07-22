@@ -154,7 +154,6 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 				mid   = keys.length / 2,
 				last  = keys.length - 1;
 
-
 			while(first <= last)
 			{
 				K other = ptr[mid];
@@ -169,6 +168,7 @@ struct Table(K, V, SortStrategy s = SortStrategy.sorted)
 					first = mid + 1;
 
 				mid = (first + last) / 2;
+
 			}
 			
 			index = first;

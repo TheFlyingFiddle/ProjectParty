@@ -148,33 +148,6 @@ class RenderComponent : IGameComponent
 	}
 }
 
-
-class LuaLogComponent : IGameComponent
-{
-	this()
-	{
-
-	}
-
-	override void initialize()
-	{
-		auto router = game.locate!Router;
-		router.messageHandlers ~= &onMessage;
-	}
-
-	void onMessage(ulong id, ubyte[] msg)
-	{
-		import util.bitmanip;
-		auto m = msg.read!ushort;
-		if(m == 10)
-		{
-			import std.stdio;
-			logInfo(msg.read!(char[]));				
-		}
-	}
-
-}
-
 version(RELOADING)
 {
 	class ReloadingComponent : IGameComponent

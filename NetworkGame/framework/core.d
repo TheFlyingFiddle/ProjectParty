@@ -29,10 +29,24 @@ class IGameComponent
 
 struct Game
 {
+	//Max 3 msecs of GC per frame (Should pref be lower!)
+	enum max_gc_time_msecs = 3;
+
 	ServiceLocator services;
 	List!IGameComponent components;
 	private bool shouldRun;
-	public const(char)[] name;
+	public string name;
+
+
+	this(A)(ref A al, size_t numServices, size_t numComponents, string name)
+	{		
+		services   = ServiceLocator(al, numServices);
+		components = List!IGameComponent(al, numComponents);
+
+		this.name = name;
+		this.shouldRun = true;
+	}
+
 
 	T* locate(T)(string name = "") if(is(T == struct))
 	{
@@ -66,15 +80,6 @@ struct Game
 		components ~= cast(IGameComponent)component;
 	}
 
-	this(A)(ref A al, size_t numServices, size_t numComponents, const(char)[] name)
-	{		
-		services   = ServiceLocator(al, numServices);
-		components = List!IGameComponent(al, numComponents);
-
-		this.name = name;
-		this.shouldRun = true;
-	}
-
 	void stop()
 	{
 		this.shouldRun = false;
@@ -100,7 +105,16 @@ struct Game
 				component.step(GameTime(total, delta));
 			foreach(component; components)
 				component.postStep(GameTime(total, delta));
-				
+	
+
+			import core.memory, log;
+			auto collectBegin = Clock.currSystemTick;
+			GC.collect();
+			auto collectEnd   = Clock.currSystemTick;
+
+			auto collectDelta = collectEnd - collectBegin;
+			logCondErr(collectDelta.msecs > max_gc_time_msecs, "GC overshot max limit in a collection!!!");
+
 			if(timestep == TimeStep.fixed)
 			{
 				waitUntilNextFrame(watch, cast(Duration)(watch.peek - last), frameDur);

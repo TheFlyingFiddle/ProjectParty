@@ -56,6 +56,25 @@ struct LogChannel
 	}
 }
 
+void logCondInfo(string file = __FILE__, size_t line = __LINE__, T...)(bool cond, T t) if(T.length > 0)
+{
+	if(cond)
+		logInfo!(file, line, T)(t);
+}
+
+void logCondWarn(string file = __FILE__, size_t line = __LINE__, T...)(bool cond, T t) if(T.length > 0)
+{
+	if(cond)
+		logWarn!(file, line, T)(t);
+}
+
+
+void logCondErr(string file = __FILE__, size_t line = __LINE__, T...)(bool cond, T t) if(T.length > 0)
+{
+	if(cond)
+		logErr!(file, line, T)(t);
+}
+
 void logInfo(string file = __FILE__, size_t line = __LINE__, T...)(T t) if(T.length > 0)
 {
 	makeMsg("Default", Verbosity.info, file, line, t);
