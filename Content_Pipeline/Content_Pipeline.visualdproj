@@ -192,11 +192,13 @@
  </Config>
  <Folder name="Content_Pipeline">
   <File path="animation.d" />
-  <File path="reloader.d" />
+  <File path="binpacking.d" />
   <File path="compilers.d" />
+  <File path="distancefont.d" />
   <File path="filewatcher.d" />
   <File path="font.d" />
   <File path="main.d" />
+  <File path="reloader.d" />
   <File path="textureatlas.d" />
  </Folder>
 </DProject>

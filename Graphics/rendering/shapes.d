@@ -7,9 +7,11 @@ public import
 	graphics.frame,
 	graphics.font;
 
-void drawText(R)(ref R renderer, string text, float2 pos, ref Font font, Color color)
+void drawText(R)(ref R renderer, string text, float2 pos, float size, ref Font font, 
+				 Color color, float3 thresholds)
 {
-	float2 scale = float2.one;
+	float2 scale = float2(size / font.base, size / font.base);
+
 	CharInfo spaceInfo = font[' '];
 
 	float2 cursor = float2(0,0);
@@ -33,26 +35,46 @@ void drawText(R)(ref R renderer, string text, float2 pos, ref Font font, Color c
 		}
 		CharInfo info = font[c];
 
-		float2 position = cursor + pos + float2(info.offset.x * scale.x,
-												info.offset.y * scale.y);
 
-		renderer.drawQuad(float4(position.x,
+
+		float2 off = float2(0, font.base * scale.y);
+		float2 position = cursor - off + pos + float2(info.offset.x * scale.x,
+											    info.offset.y * scale.y);
+
+		renderer.drawDistQuad(float4(position.x,
 								 position.y,
-								 position.x + info.srcRect.z,
-								 position.y + info.srcRect.w),
-						  Frame(font.page, info.srcRect), 
+								 position.x + info.srcRect.z * scale.x,
+								 position.y + info.srcRect.w * scale.y),
+								 Frame(font.page, info.srcRect), 
+								 thresholds,
 								 color);
 
 		cursor.x += info.advance * scale.x;
 	}
 }
 
+void drawDistQuad(R)(ref R renderer, float4 quad, Frame frame, float3 thresh, Color color)
+{
+	import rendering.renderer;
+
+	static uint[6] indecies = [ 0, 1, 2, 0, 2, 3 ]; 
+
+	float4 coords = frame.coords;
+
+	DistVertex[4] vertices;
+	vertices[0] = DistVertex(quad.xy, coords.xy, thresh, color);
+	vertices[1] = DistVertex(quad.zy, coords.zy, thresh, color);
+	vertices[2] = DistVertex(quad.zw, coords.zw, thresh, color);
+	vertices[3] = DistVertex(quad.xw, coords.xw, thresh, color);
+
+	renderer.addItems(vertices, indecies, frame.texture);
+}
 
 void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color)
 {
+	import rendering.renderer;
 	static uint[6] indecies = [ 0, 1, 2, 0, 2, 3 ]; 
 
-	alias Vertex = R.Vertex;
 
 	float4 coords = frame.coords;
 
@@ -175,7 +197,6 @@ void drawNGon(size_t N, R)(ref R renderer, float2 origin,
 	renderer.addItems(verts, indecies, texture);
 }
 
-
 uint[N * 12] makeNGonOutlineIndices(size_t N)()
 {
 	uint[N * 12] indices;
@@ -221,8 +242,6 @@ void drawNGonOutline(size_t N, R)(ref R renderer, float2 origin,
 	renderer.addItems(verts, indecies, texture);
 }
 
-
-
 uint[N * 3] makeCircleSectionIndices(size_t N)()
 {
 	uint[N * 3] indices;
@@ -234,6 +253,7 @@ uint[N * 3] makeCircleSectionIndices(size_t N)()
 	}
 	return indices;
 }
+
 void drawCircleSection(size_t N, R)(ref R renderer, float2 origin, 
 									float radius, float startAngle,
 									float endAngle, Texture2D texture, 
@@ -260,7 +280,6 @@ void drawCircleSection(size_t N, R)(ref R renderer, float2 origin,
 	}
 	renderer.addItems(vertices, indices, texture);
 }
-
 
 T quadraticBezier(T)(float t, T a, T b, T c)
 {

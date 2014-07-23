@@ -197,6 +197,11 @@
     <File path="derelict\freeimage\functions.d" />
     <File path="derelict\freeimage\types.d" />
    </Folder>
+   <Folder name="freetype">
+    <File path="derelict\freetype\ft.d" />
+    <File path="derelict\freetype\functions.d" />
+    <File path="derelict\freetype\types.d" />
+   </Folder>
    <Folder name="glfw3">
     <File path="derelict\glfw3\functions.d" />
     <File path="derelict\glfw3\glfw3.d" />

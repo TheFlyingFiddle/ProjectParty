@@ -9,18 +9,31 @@ struct RenderConfig
 	size_t batchCount;
 }
 
-//Supports sorting on texture?
-struct Renderer
+struct Vertex
 {
-	struct Vertex
-	{
-		float2 position;
-		float2 coords;
+	float2 position;
+	float2 coords;
 
-		@Normalized
-			Color  color;
-	}
+	@Normalized
+		Color  color;
+}
 
+struct DistVertex
+{
+	float2 position;
+	float2 coords;
+	float3 thresholds;
+
+	@Normalized Color color;
+}
+
+alias SpriteRenderer = Renderer!Vertex;
+alias FontRenderer	 = Renderer!DistVertex;
+
+
+//Supports sorting on texture?
+struct Renderer(V)
+{
 	struct Uniform
 	{
 		float2 invViewport;
@@ -32,20 +45,21 @@ struct Renderer
 		uint count;
 		Texture2D texture;
 	}
-	private AsyncRenderBuffer!Vertex renderBuffer;
-	private Program!(Uniform, Vertex) program;
+
+	private AsyncRenderBuffer!V renderBuffer;
+	private Program!(Uniform, V) program;
 	private List!RenderData renderData;
 
-	this(A)(ref A allocator, RenderConfig config)
+	this(A)(ref A allocator, RenderConfig config, string vSource, string fSource)
 	{
 		this.renderData	  = List!RenderData(allocator, config.maxBatchSize / 6);
 		Shader vShader = Shader(ShaderType.vertex, vSource),
 			   fShader = Shader(ShaderType.fragment, fSource);
 
-		program = Program!(Uniform, Vertex)(vShader, fShader);
+		program = Program!(Uniform, V)(vShader, fShader);
 		program.uniforms.sampler = 0;
 
-		renderBuffer = AsyncRenderBuffer!Vertex(config.maxBatchSize, config.batchCount, program);
+		renderBuffer = AsyncRenderBuffer!V(config.maxBatchSize, config.batchCount, program);
 	}
 
 	void viewport(float2 viewport)
@@ -54,7 +68,7 @@ struct Renderer
 		program.uniforms.invViewport = invViewport;
 	}
 
-	void addItems(Vertex[] vertices, uint[] indecies, ref Texture2D texture)
+	void addItems(V[] vertices, uint[] indecies, ref Texture2D texture)
 	{
 		renderBuffer.addItems(vertices, indecies);
 		if(renderData.back.texture == texture)
@@ -86,7 +100,7 @@ struct Renderer
 	}
 }
 
-enum vSource =  q{
+enum v_Source =  q{
 	#version 330
 	in vec2 position;
 	in vec2 coords;
@@ -107,8 +121,7 @@ enum vSource =  q{
 		gl_Position    = vec4(position * invViewport * 2 - vec2(1, 1), 0.0, 1.0);
 	}
 };
-
-enum fSource = q{
+enum f_Source = q{
 	#version 330
 	uniform sampler2D sampler;
 	in vertAttrib 
@@ -121,9 +134,53 @@ enum fSource = q{
 
 	void main()
 	{
-		vec4 color = texture2D(sampler, vertIn.coords) * vertIn.color;
-		if(color.a < 0.01) discard;
+		fragColor = texture2D(sampler, vertIn.coords) * vertIn.color;
+	}
+};
 
-		fragColor = color;
+
+enum vd_Source =  q{
+	#version 330
+	in vec2 position;
+	in vec3 thresholds;
+	in vec2 coords;
+	in vec4 color;
+
+	uniform vec2 invViewport;
+
+	out vertAttrib 
+	{
+		vec2 coords;
+		vec4 color;
+		vec3 thresholds;
+	} vertOut;
+
+	void main()
+	{
+		vertOut.color  = color;
+		vertOut.coords = coords;
+		vertOut.thresholds = thresholds;
+		gl_Position    = vec4(position * invViewport * 2 - vec2(1, 1), 0.0, 1.0);
+	}
+};
+enum fd_Source = q{
+	#version 330
+	uniform sampler2D sampler;
+	in vertAttrib 
+	{
+		vec2 coords;
+		vec4 color;
+		vec3 thresholds;
+	} vertIn;
+
+	out vec4 fragColor;
+
+	void main()
+	{
+		vec4 color = texture2D(sampler, vertIn.coords);
+		if(color.a < vertIn.thresholds.y) discard;
+		
+		fragColor = vertIn.color;
+		fragColor.a = smoothstep(vertIn.thresholds.y, vertIn.thresholds.z, color.a);
 	}
 };

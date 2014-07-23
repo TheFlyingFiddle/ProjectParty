@@ -118,10 +118,10 @@ class NetworkComponent : IGameComponent
 class RenderComponent : IGameComponent
 {
 	import rendering.renderer;
-	Renderer* renderer;
+	SpriteRenderer* renderer;
 	this(A)(ref A al, RenderConfig config)
 	{
-		renderer = al.allocate!Renderer(al, config);
+		renderer = al.allocate!SpriteRenderer(al, config, v_Source, f_Source);
 	}
 
 	override void initialize()
@@ -135,6 +135,7 @@ class RenderComponent : IGameComponent
 		renderer.viewport = w.size;
 
 		import graphics;
+
 		gl.viewport(0,0, cast(uint)w.size.x, cast(uint)w.size.y);
 		gl.clearColor(1,0,1,1);
 		gl.clear(ClearFlags.color);

@@ -77,6 +77,7 @@ class Screen1 : Screen
 
 	FontHandle font;
 	AtlasHandle atlas;
+	FontRenderer* renderer;
 
 	this() { super(false, false); }
 
@@ -85,11 +86,13 @@ class Screen1 : Screen
 	{
 		auto loader = game.locate!AsyncContentLoader;
 
-		font	= loader.load!Font("ComicSans32");
-		atlas	= loader.load!TextureAtlas("Atlas");
+		font	= loader.load!Font("DejaVuSansMono");
+		//atlas	= loader.load!TextureAtlas("Atlas");
 
 		auto router = game.locate!Router;
 		router.setMessageHandler(&handleTestMessageA);	
+
+		renderer = Mallocator.it.allocate!FontRenderer(Mallocator.it, RenderConfig(0xFFFF, 3), vd_Source, fd_Source);
 	}
 
 	void handleTestMessageA(ulong id, TestMessageA message)
@@ -107,29 +110,69 @@ class Screen1 : Screen
 			auto s = Mallocator.it.allocate!(Screen2)();
 			owner.push(s);
 		}
+		else if(keyboard.isDown(Key.q))
+			thresh.x += 0.01;
+		else if(keyboard.isDown(Key.w))
+			thresh.x -= 0.01;
+		else if(keyboard.isDown(Key.a))
+			thresh.y += 0.01;
+		else if(keyboard.isDown(Key.s))
+			thresh.y -= 0.01;
+		else if(keyboard.isDown(Key.z))
+			thresh.z += 0.01;
+		else if(keyboard.isDown(Key.x))
+			thresh.z -= 0.01;
+
+		import std.algorithm;
+
+		
+
+
+		thresh.x = clamp(thresh.x,0,1);
+		thresh.y = clamp(thresh.y,0,1);
+		thresh.z = clamp(thresh.z,0,1);
 
 		auto server = game.locate!Server;
 		if(server.activeConnections.length > 0)
 		{
 			server.sendMessage(server.activeConnections[0].id, TestMessageB(10, 100.0));
 		}
-	
 	}
 
+	float3 thresh = float3(0,0,1);
 	override void render(GameTime time)
 	{
-		auto renderer = game.locate!Renderer;
 
+		
 		auto chnl = LogChannel("Lame");
-		//chnl.info("There is a channel in the ocean!");
+		chnl.info("Cutout: ", thresh.x, "Smoothstep EP1: ", thresh.y, "EP2: ", thresh.z);
+
+		auto screen = game.locate!Window;
+		renderer.viewport(float2(screen.size));
+
+
+		renderer.begin();
 
 		import util.strings;
-		renderer.drawText("Hello, World!", float2(0, 200), font.asset, Color.black);
-		renderer.drawText(cast(string)text1024(time.delta.to!("seconds", float)), float2(0, 400), font.asset, Color.black);
-		foreach(i, item; atlas.asset())
+		int y = 45;
+		foreach(i; 1 .. 30)
 		{
-			renderer.drawQuad(float4(100 * i + 50, 50, 100 * i + 150, 150), rotation, item, Color.white);
+			Color c;
+			//c.r = i * 0.1;
+			//c.b = i * 0.1;
+			c.g = i * (1 / 30.0);
+			c.b = 0.5  + i * (1 / 60.0);
+			c.a = 1;
+
+
+			renderer.drawText("The quick brown fox jumped over the lazy dog[p]'\\\";ö'äöå¨p!#¤%&/()=QWERTYUIOPASDFGHJKLÖÄ>ZXCVBNM;:", float2(0,  screen.size.y - 10 - y), i * 2, font.asset, Color.black,thresh);
+			y += i * 2;
 		}
+
+		renderer.end();
+
+		auto rend = game.locate!SpriteRenderer;
+		//rend.drawQuad(float4(0,0,100,100), Frame(font.asset.page), Color.black);
 	}
 }
 

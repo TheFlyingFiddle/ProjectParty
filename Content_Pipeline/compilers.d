@@ -1,6 +1,9 @@
 module compilers;
 
 import derelict.freeimage.freeimage;
+import derelict.freetype.ft;
+import derelict.util.exception;
+
 import main;
 import std.stdio;
 import content.sdl, util.hash, allocation, std.path, std.array;
@@ -17,22 +20,52 @@ version(X86_64)
 	enum libPath = "..\\lib\\win64\\";
 }
 
-enum FREE_IMAGE_DLL_PATH    = dllPath ~ "FreeImage.dll"; 
+enum FREE_IMAGE_DLL_PATH  = dllPath ~ "FreeImage.dll"; 
+enum FREE_TYPE_DLL_PATH   = dllPath  ~ "freetype.dll"; 
+
+
+bool missingSymFunc(string libName, string symName)
+{
+	import log;
+	auto logChnl = LogChannel("MISSING SYMBOLS");
+	logChnl.warn(libName,"   ", symName);
+	return true;
+}
+
+extern(C) static nothrow void glfwError(int type, const(char)* msg)
+{
+	import log;
+	auto logChnl = LogChannel("GLFW");
+	logChnl.error("Got error from GLFW : Type", type, " MSG: ", msg);
+}
+
 
 
 ubyte[] buffer;
+FT_Library ft_lib;
+
+
 void initCompilers()
 {
+
+	Derelict_SetMissingSymbolCallback(&missingSymFunc);
 	buffer = new ubyte[1024 * 1024 * 10];
 
 	DerelictFI.load(FREE_IMAGE_DLL_PATH);
 	FreeImage_Initialise();
+
+	DerelictFT.load(FREE_TYPE_DLL_PATH);
+
+	FT_Init_FreeType(&ft_lib);
 }
 
 void deinitCompilers()
 {
 	FreeImage_DeInitialise();
+	FT_Done_FreeType(ft_lib);
+
 	DerelictFI.unload();
+	DerelictFT.unload();
 }
 
 struct CompiledItem

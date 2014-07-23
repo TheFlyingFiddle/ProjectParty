@@ -245,9 +245,9 @@ struct AsyncContentLoader
 
 			auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
 			auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash.value, fileLoader.extension);
-
-			taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, &addReloadedAsyncFile);
 			numRequests++;
+
+			taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, &addReloadedAsyncFile);	
 		}
 	}
 
@@ -261,6 +261,7 @@ struct AsyncContentLoader
 	{
 		if(loader.isLoaded(path)) return;
 
+
 		import std.algorithm, util.strings;
 		import concurency.threadpool;
 		import concurency.task;
@@ -270,8 +271,10 @@ struct AsyncContentLoader
 		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, bytesHash(path).value, fileLoader.extension);
 		
 		auto adder = &addAsyncItem!T;
-		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, bytesHash(path), fileLoader, adder);			   
+
 		numRequests++;
+		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, bytesHash(path), fileLoader, adder);			   
+		
 	}
 
 	void asyncLoad(string path)
@@ -286,6 +289,8 @@ struct AsyncContentLoader
 		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
 		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash.value, ext);
 		auto adder = &addAsyncItem!void;
+
+		numRequests++;
 		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, adder);
 	}
 

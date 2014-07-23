@@ -10,6 +10,7 @@ import broadcaster;
 import content.file;
 import log;
 import network.service;
+import distancefont;
 
 void main(string[] argv)
 {
@@ -126,8 +127,8 @@ static this()
 		FileCompiler(".sdl", 10, &passThrough),
 		FileCompiler(".wav", 10, &passThrough),
 		FileCompiler(".ogg", 10, &passThrough),
-		FileCompiler(".scon", 10, &passThrough),
 		FileCompiler(".luac", 10, &passThrough),
+		FileCompiler(".ttf", 2, &compileDistFont),
 		FileCompiler(".fnt", 2, &compileFont),
 		FileCompiler(".atl", 1, &compileAtlas)
 	];

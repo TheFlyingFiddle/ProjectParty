@@ -49,8 +49,8 @@ class LoadingScreen : Screen
 		import std.range, util.strings;
 
 		frame++;
-		auto renderer = game.locate!Renderer;
+		auto renderer = game.locate!(Renderer!Vertex);
 		string msg = cast(string)text1024("Loading", '.'.repeat(frame % 20));		
-		renderer.drawText(msg, float2(0,0), font.asset(), Color.white);
+		//renderer.drawText(msg, float2(0,0),50, font.asset(), Color.white);
 	}
 }
