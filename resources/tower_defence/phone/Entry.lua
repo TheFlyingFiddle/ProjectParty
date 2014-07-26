@@ -3,18 +3,18 @@ local atlas
 local position
 local rotation
 local network
-
+local font
 local bolder;
 
 local function onMsg(msg)
 end
-
 
 function Game.start()
 	Log.info("Starting!")
 
 	renderer  = CRenderer(128)
 	atlas     = resources:load(R.Atlas)
+	font	  = resources:load(R.consola)
 	bolder    = atlas.boulder;
 	position  = { x= 100, y= 100 }
 	rotation  = 0
@@ -31,6 +31,8 @@ function Game.restart()
 	Log.info("Restarting!")
 	position = File.loadTable("savestate.luac")
 	Screen.setOrientation(Orientation.landscape)
+
+	Log.info("restarted!")
 end
 
 function Game.stop()
@@ -40,7 +42,10 @@ function Game.stop()
 end
 
 function Game.step()
-	C.remoteDebugUpdate()	
+	if C.remoteDebugUpdate() then 
+        return
+    end
+
 	network:receive()
 	updateReloading()
 
@@ -53,7 +58,6 @@ function Game.step()
    	renderer:addFrame(atlas.pixel,   vec2(100, 100), vec2(256,256) , 0xaaFFFF00)
 	renderer:addFrame(atlas.orange,  vec2(100, 100), vec2(128,128) , 0xFF000000)
    	renderer:addFrame(atlas.banana2, vec2(200, 100), vec2(128,128) , 0xFFFFFFFF)
-
    	rotation = rotation - 0.1
 
     renderer:addFrameTransform(atlas.orange, 
@@ -63,8 +67,24 @@ function Game.step()
     					       vec2(128, 128), 
     					       rotation, 
     					       true)
-    renderer:draw()
 
+    renderer:addText(font.font, 
+    				 "Hello there young padowan!",
+    				 vec2(0,-100),
+    				 0xFFAAFFAA, 
+    				 100, 
+    				 vec2(0.2,0.45))
+
+     renderer:addText(font.font, 
+    				 "Hello there young padowan!",
+    				 vec2(0,0),
+    				 0xFFAAFFAA, 
+    				 200, 
+    				 vec2(0,0.5))
+
+    renderer:draw()
+ 
+ 
 
     network:sendMessage(NetOut.testMessageA, { a = 5, b = 103})
 	network:send()

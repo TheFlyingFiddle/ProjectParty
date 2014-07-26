@@ -17,9 +17,9 @@ struct SensorService
 	{
 		phones = Table!(ulong, Sensor)(al, capacity);
 
-		router.connectionHandlers    ~= (id) { onConnection(id); };
-		router.reconnectionHandlers  ~= (id) { onConnection(id); };
-		router.disconnectionHandlers ~= (id) { onDisconnect(id); };
+		router.connectionHandlers    ~= &onConnection;
+		router.reconnectionHandlers  ~= &onConnection;
+		router.disconnectionHandlers ~= &onDisconnect;
 	}
 	
 	bool exists(ulong id)

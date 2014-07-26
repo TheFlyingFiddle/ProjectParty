@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Logger
+namespace Lua_Console
 {
     class IPExtensions
     {
@@ -31,8 +31,8 @@ namespace Logger
 
     class LanBroadcaster
     {
-        const ushort servicePort = 34299;
-        const string SERVICE_NAME = "LOGGING_SERVICE";
+        const ushort servicePort = 23451;
+        const string SERVICE_NAME = "DEBUG_SERVICE";
 
         private static IPAddress GetSubnetMask(IPAddress address)
         {
@@ -86,11 +86,10 @@ namespace Logger
 
                 var receiveBuffer = new byte[256];
                 var receiveStream = new MemoryStream(receiveBuffer);
-                var reader        = new BinaryReader(receiveStream);
+                var reader = new BinaryReader(receiveStream);
 
-                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 socket.Bind(new IPEndPoint(IPAddress.Any, servicePort));
-                
+
                 var stream = new MemoryStream(256);
                 var writer = new BinaryWriter(stream);
                 var utfName = Encoding.UTF8.GetBytes(SERVICE_NAME + '\0');
@@ -112,14 +111,14 @@ namespace Logger
                     string s = Encoding.UTF8.GetString(receiveBuffer, 2, length);
                     receiveStream.Position = 0;
 
-                
-                    if (s == "LOGGING_SERVICE")
+
+                    if (s == SERVICE_NAME)
                     {
                         socket.SendTo(stream.GetBuffer(), (int)stream.Position, SocketFlags.None, ep);
                     }
                 }
             });
-            
+
             thread.IsBackground = true;
             thread.Start();
         }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Logger
+namespace Lua_Console
 {
     static class Program
     {
@@ -16,7 +16,9 @@ namespace Logger
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LogMuch());
+            Application.Run(new Form1());
+
+           
         }
     }
 }

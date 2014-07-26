@@ -10,7 +10,7 @@ public import
 void drawText(R)(ref R renderer, string text, float2 pos, float size, ref Font font, 
 				 Color color, float3 thresholds)
 {
-	float2 scale = float2(size / font.base, size / font.base);
+	float2 scale = float2(1.7 * size / font.base,  size / font.base);
 
 	CharInfo spaceInfo = font[' '];
 

@@ -4,12 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{EA1C1EF5-3948-4EBF-9694-3B9394ECBBBA}</ProjectGuid>
+    <ProjectGuid>{88692D6A-C6B0-4FB5-B6A1-6A207BBE22AD}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Logger</RootNamespace>
-    <AssemblyName>Logger</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <RootNamespace>Lua_Console</RootNamespace>
+    <AssemblyName>Lua Console</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,12 +53,29 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="LanBroadcaster.cs" />
-    <Compile Include="Logger.cs" />
+    <Compile Include="LanService.cs" />
+    <Compile Include="LoggingControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="LoggingControl.Designer.cs">
+      <DependentUpon>LoggingControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LuaConsole.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="LuaConsole.Designer.cs">
+      <DependentUpon>LuaConsole.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LoggingControl.resx">
+      <DependentUpon>LoggingControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LuaConsole.resx">
+      <DependentUpon>LuaConsole.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

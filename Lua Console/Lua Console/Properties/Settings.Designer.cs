@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Logger.Properties
+namespace Lua_Console.Properties
 {
 
 

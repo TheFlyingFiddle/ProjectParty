@@ -34,16 +34,22 @@ struct Data
 
 CompiledFile compileDistFont(void[] input, DirEntry path, ref Context context)
 {
+	int imageWidth = 256, imageHeight = 256;
+
 	auto typed = cast(ubyte[])input;
 
 	sdf_glyph[] all_glyphs;
 	int fontSize;
-	auto data = render_signed_distance_font(ft_lib, 
+	auto imageData = render_signed_distance_font(ft_lib, 
 											all_glyphs,
 											fontSize,
 											path.name.toStringz(),
-											256,
+											imageWidth,
 											256);
+
+
+	if(context.platform == Platform.phone)
+		flipImage(cast(uint[])imageData, imageWidth, imageHeight);
 
 	CharInfo[] infos = new CharInfo[256];
 	foreach(i, r; all_glyphs)
@@ -51,17 +57,18 @@ CompiledFile compileDistFont(void[] input, DirEntry path, ref Context context)
 
 		CharInfo info;
 		info.advance  = r.xadv;
-		info.srcRect  = float4(r.x, 256 - r.y - r.height, r.width, r.height);
+		info.srcRect  = float4(r.x, imageHeight - r.y - r.height, r.width, r.height);
 		info.offset   = float2(r.xoff, fontSize - info.srcRect.w + r.yoff);
-		info.textureCoords = float4(info.srcRect.x / 256,
-									info.srcRect.y / 256,
-									(info.srcRect.z + info.srcRect.x) / 256,
-									(info.srcRect.w + info.srcRect.y) / 256);
+		info.textureCoords = float4(info.srcRect.x / imageWidth,
+									info.srcRect.y / imageHeight,
+									(info.srcRect.z + info.srcRect.x) / imageWidth,
+									(info.srcRect.w + info.srcRect.y) / imageHeight);
 
 		infos[r.ID] = info;
 	}
 
 	auto fontData = new ubyte[float.sizeof * 3 + CharInfo.sizeof * infos.length];
+
 
 	size_t offset = 0;
 
@@ -79,7 +86,7 @@ CompiledFile compileDistFont(void[] input, DirEntry path, ref Context context)
 
 	auto saveHandle = ArrayHandle(0, compilers.buffer);
 
-	auto image = FreeImage_ConvertFromRawBits(data.ptr, 256, 256, ((32 * 256 + 31) / 32) * 4, 32, 8, 8, 8, true);
+	auto image = FreeImage_ConvertFromRawBits(imageData.ptr, 256, 256, ((32 * 256 + 31) / 32) * 4, 32, 8, 8, 8, true);
 	scope(exit) FreeImage_Unload(image);
 
 	FreeImage_SaveToHandle(FIF_PNG, image, &io, cast(fi_handle)&saveHandle, 0);
@@ -189,10 +196,6 @@ ubyte[] render_signed_distance_font(ref FT_Library ft_lib,
 				foreach(i; 0 .. sdlGlyph.width)
 				{
 					int pd_idx = (i + sdlGlyph.x + (j + sdlGlyph.y) * texture_size) * 4;
-					if(pd_idx < 0 || pd_idx > 4 * texture_size * texture_size)
-					{
-						int d = 0;
-					}
 					pdata[pd_idx] = get_SDF_radial(
 										smooth_buf, sw, sh,
 										i * scaler + (scaler / 2), 
@@ -405,11 +408,11 @@ bool gen_pack_list(ref FT_Face ft_face,
 bool packData(sdf_glyph[] glyphs, int texSize)
 {
 	import std.algorithm, binpacking, std.range, std.array;
-	MaxRectsBinPack binPack = MaxRectsBinPack(texSize, texSize);
+	auto binPack = RectPacker(texSize, texSize);
 
 	foreach(i, ref glyph; glyphs)
 	{
-		auto rect =	binPack.Insert(glyph.width, glyph.height, FreeRectChoiceHeuristic.RectBestAreaFit);
+		auto rect =	binPack.Insert(glyph.width, glyph.height);
 		if(rect.height == 0) return false;
 		
 		glyph.x = rect.x;

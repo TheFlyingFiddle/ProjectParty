@@ -1,23 +1,10 @@
 local netMT = { }
 netMT.__index = netMT
 
-local msgMT = {}
-msgMT.__newindex = function (t, key, value)
-	if t[key] then 
-		error(string.format("Already defined! %s ", key))
-	end
-
-	if type(value) ~= "function" then
-		error("Can only instert function into network io tables")
-	end
-
-	rawset(t, key, value)
-end
-
-global.networkReaders = { }
-global.networkWriters = { }
-global.NetIn  = { }
-global.NetOut = { }
+global.networkReaders = global.networkReaders or { }
+global.networkWriters = global.networkWriters or { }
+global.NetIn  		  = global.NetIn  or { }
+global.NetOut 		  = global.NetOut or { }
 
 function global.Network(bufSize, messageHandler, sessionID)
 	local t = { }

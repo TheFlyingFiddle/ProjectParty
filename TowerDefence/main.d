@@ -47,7 +47,7 @@ void run(PhoneGameConfig config)
 
 	import screen.loading;
 	auto endScreen     = stack.allocate!(Screen1)();
-	auto loadingScreen = stack.allocate!(LoadingScreen)(LoadingConfig(["Atlas.atlas", "ComicSans32.fnt"], "ComicSans32"), endScreen);
+	auto loadingScreen = stack.allocate!(LoadingScreen)(LoadingConfig(["ComicSans32.fnt"], "ComicSans32"), endScreen);
 	
 	auto s = game.locate!ScreenComponent;
 	s.push(loadingScreen);
@@ -86,8 +86,8 @@ class Screen1 : Screen
 	{
 		auto loader = game.locate!AsyncContentLoader;
 
-		font	= loader.load!Font("DejaVuSansMono");
-		//atlas	= loader.load!TextureAtlas("Atlas");
+		font	= loader.load!Font("consola");
+		atlas	= loader.load!TextureAtlas("Atlas");
 
 		auto router = game.locate!Router;
 		router.setMessageHandler(&handleTestMessageA);	
@@ -145,8 +145,7 @@ class Screen1 : Screen
 
 		
 		auto chnl = LogChannel("Lame");
-		chnl.info("Cutout: ", thresh.x, "Smoothstep EP1: ", thresh.y, "EP2: ", thresh.z);
-
+	
 		auto screen = game.locate!Window;
 		renderer.viewport(float2(screen.size));
 
@@ -154,7 +153,7 @@ class Screen1 : Screen
 		renderer.begin();
 
 		import util.strings;
-		int y = 45;
+		int y = 10;
 		foreach(i; 1 .. 30)
 		{
 			Color c;
@@ -165,14 +164,14 @@ class Screen1 : Screen
 			c.a = 1;
 
 
-			renderer.drawText("The quick brown fox jumped over the lazy dog[p]'\\\";ö'äöå¨p!#¤%&/()=QWERTYUIOPASDFGHJKLÖÄ>ZXCVBNM;:", float2(0,  screen.size.y - 10 - y), i * 2, font.asset, Color.black,thresh);
-			y += i * 2;
+			renderer.drawText("The quick brown fox jumped over the lazy dog[p]'\\\";ö'äöå¨p!#¤%&/()=QWERTYUIOPASDFGHJKLÖÄ>ZXCVBNM;:", float2(0,  screen.size.y - 10 - y), i * 5, font.asset, Color.black,thresh);
+			y += 5 + i * 5;
 		}
 
 		renderer.end();
 
 		auto rend = game.locate!SpriteRenderer;
-		//rend.drawQuad(float4(0,0,100,100), Frame(font.asset.page), Color.black);
+		//rend.drawQuad(float4(100,100,500,500), atlas.asset.orange, Color.white);
 	}
 }
 

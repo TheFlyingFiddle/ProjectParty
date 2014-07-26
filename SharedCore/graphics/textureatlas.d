@@ -30,6 +30,11 @@ struct TextureAtlas
 		assert(0, text1024("Frame not present in atlas : ", name));
 	}
 
+	Frame opDispatch(string s)()
+	{
+		return frame(s);
+	}
+
 	Frame frame(string index)
 	{
 		return Frame(texture, this[index]);
