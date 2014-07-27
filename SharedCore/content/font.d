@@ -4,6 +4,7 @@ import allocation, graphics, math, content.texture;
 import util.strings;
 import content.texture;
 import std.path, std.stdio;
+import util.hash;
 
 struct FontLoader
 {
@@ -11,7 +12,7 @@ struct FontLoader
 	{
 		float size, lineHeight;
 		uint  dataOffset, dataLength;
-		uint layer;
+		uint layer, hashID;
 	}
 
 	static FontHeader[] loadHeader(ref File file, ubyte[] store)
@@ -50,6 +51,7 @@ struct FontLoader
 			font.size		= header[i].size;
 			font.lineHeight = header[i].lineHeight;
 			font.page       = atlas.page;
+			font.hashID		= HashID(header[i].hashID);
 			
 			int start = dataSize + header[i].dataOffset;
 			int end   = start + header[i].dataLength * CharInfo.sizeof;

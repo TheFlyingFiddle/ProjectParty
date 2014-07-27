@@ -1,0 +1,11 @@
+fonts = 
+	[ 
+		|consola.ttf|,
+		|DejaVuSansMono.ttf|,
+		|comic.ttf|,
+		|impact.ttf|,
+		|consola.ttf|,
+		|FINALNEW.ttf|
+	]
+size  = 256
+maxChar = 256

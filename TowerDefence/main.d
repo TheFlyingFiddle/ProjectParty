@@ -166,7 +166,7 @@ class Screen1 : Screen
 		//    y += 5 + i * 5;
 		//}
 
-		renderer.drawText("This is consolas!", float2(0, screen.size.y - 100), y, font.asset.fonts[0], Color.black, thresh); 
+		renderer.drawText("This is consolas!", float2(0, screen.size.y - 100), y, font.asset["consola.ttf"], Color.black, thresh); 
 		renderer.drawText("This is DejaVuSansMono!", float2(0, screen.size.y - 200), y, font.asset.fonts[1], Color.black, thresh);
 		renderer.drawText("This is comic!", float2(0, screen.size.y - 300), y, font.asset.fonts[2], Color.black, thresh);
 		renderer.drawText("This is impact!", float2(0, screen.size.y - 400), y, font.asset.fonts[3], Color.black, thresh);

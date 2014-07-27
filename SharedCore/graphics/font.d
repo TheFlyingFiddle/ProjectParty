@@ -2,6 +2,8 @@ module graphics.font;
 
 import math;
 import graphics.texture;
+import util.hash;
+import std.algorithm;
 
 
 struct CharInfo
@@ -17,6 +19,18 @@ struct FontAtlas
 {
 	Texture2D page;
 	Font[] fonts;
+
+	ref opIndex(string s)
+	{
+		auto id = bytesHash(s);
+		auto index = fonts.countUntil!(x => x.hashID == id);
+		if(index != -1)
+		{
+			return fonts[index];
+		}
+
+		assert(false, "Failed to find font! " ~ s);
+	}
 }
 
 struct Font
@@ -30,6 +44,7 @@ struct Font
 
 	Texture2D page;
 	uint layer;
+	HashID hashID;
 
 	ref CharInfo opIndex(dchar c)
 	{

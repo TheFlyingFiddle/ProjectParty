@@ -15,6 +15,7 @@ import main;
 import math;
 import std.string;
 import std.parallelism, std.range;
+import util.hash;
 
 struct CharInfo
 {
@@ -48,13 +49,14 @@ struct FontData
 	sdf_glyph[] glyphs;
 	ubyte[]		image;
 	int size;
+	HashID hashID;
 }	
 
 struct FontOutput
 {
 	float size, lineHeight;
 	uint dataOffset, dataCount;
-	ubyte imageLayer;
+	uint imageLayer;
 }
 
 void splitIntoRows(uint[] output, uint[] input, int bigWidth, int smallWidth, int offset)
@@ -150,6 +152,7 @@ ubyte[] composeFontData(FontData[] data, int maxChar, int baseDim, int imageWidt
 		output.write!uint(dataOffset, &offset);
 		output.write!uint(dataCount, &offset);
 		output.write!uint(cast(ubyte)(i % 4), &offset);
+		output.write!uint(font.hashID.value, &offset);
 	}
 
 
@@ -201,7 +204,9 @@ CompiledFile compileDistFont(void[] input, DirEntry path, ref Context context)
 			
 		
 		auto fontPath = buildPath(path.dirName, atlasData.fonts[i]);
+		auto name	  = baseName(atlasData.fonts[i]).stripExtension;
 
+		data[i].hashID = bytesHash(name);
 		data[i].image = renderSignedFont(fontLib, 
 										 data[i].glyphs,
 										 data[i].size,
