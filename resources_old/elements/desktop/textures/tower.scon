@@ -1,0 +1,439 @@
+{
+  "entity": [
+    {
+      "animation": [
+        {
+          "id": 0,
+          "length": 1000,
+          "mainline": {
+            "key": [
+              {
+                "bone_ref": [],
+                "id": 0,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 1,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ]
+              },
+              {
+                "bone_ref": [],
+                "id": 1,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 3,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 344
+              },
+              {
+                "bone_ref": [],
+                "id": 2,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 4,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 750
+              }
+            ]
+          },
+          "name": "idle",
+          "soundline": [],
+          "timeline": [
+            {
+              "id": 0,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5212090338777097,
+                    "pivot_y": 0.5060784098461224,
+                    "scale_x": 1.1160730773712948,
+                    "scale_y": 1.219437222816943,
+                    "x": 0.7873082438769736,
+                    "y": -3.1573264313491873
+                  },
+                  "spin": -1
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.4962406015037595,
+                    "pivot_y": 0.5206611570247934,
+                    "scale_x": 1.1160730773712948,
+                    "scale_y": 1.219437222816943,
+                    "x": -0.996153846153852,
+                    "y": -2.01923076923077
+                  },
+                  "spin": -1
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "angle": 212.3398863196851,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.4962406015037595,
+                    "pivot_y": 0.5206611570247934,
+                    "x": 2.828094451609442,
+                    "y": -0.939533198379636
+                  },
+                  "spin": -1,
+                  "time": 344
+                },
+                {
+                  "id": 3,
+                  "object": {
+                    "angle": 212.3398863196851,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5212090338777097,
+                    "pivot_y": 0.5060784098461224,
+                    "x": 0.9787201119754629,
+                    "y": -1.005825508556889
+                  },
+                  "spin": -1,
+                  "time": 344
+                },
+                {
+                  "id": 4,
+                  "object": {
+                    "angle": 111.74990611116783,
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.5212090338777097,
+                    "pivot_y": 0.5060784098461224,
+                    "scale_y": 1.0000000000000002,
+                    "x": 1.335197361534208,
+                    "y": -0.6341106917808947
+                  },
+                  "spin": -1,
+                  "time": 750
+                }
+              ],
+              "name": "tower_cone"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "length": 20,
+          "mainline": {
+            "key": [
+              {
+                "bone_ref": [],
+                "id": 0,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 0,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ]
+              },
+              {
+                "bone_ref": [],
+                "id": 1,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 1,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 3
+              },
+              {
+                "bone_ref": [],
+                "id": 2,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 2,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 10
+              },
+              {
+                "bone_ref": [],
+                "id": 3,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 3,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 14
+              },
+              {
+                "bone_ref": [],
+                "id": 4,
+                "object_ref": [
+                  {
+                    "id": 0,
+                    "key": 4,
+                    "timeline": 0,
+                    "z_index": "0"
+                  }
+                ],
+                "time": 15
+              }
+            ]
+          },
+          "name": "broken",
+          "soundline": [],
+          "timeline": [
+            {
+              "id": 0,
+              "key": [
+                {
+                  "id": 0,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.4962406015037595,
+                    "pivot_y": 0.5206611570247934,
+                    "scale_x": 1.1160730773712948,
+                    "scale_y": 1.219437222816943,
+                    "x": -0.996153846153852,
+                    "y": -2.01923076923077
+                  },
+                  "spin": 0
+                },
+                {
+                  "id": 1,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.4962406015037595,
+                    "pivot_y": 0.5206611570247934,
+                    "scale_x": 1.1160730773712948,
+                    "scale_y": 1.219437222816943,
+                    "x": -0.058653846153847944,
+                    "y": -6.617445054945058
+                  },
+                  "spin": 0,
+                  "time": 3
+                },
+                {
+                  "id": 2,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.4962406015037595,
+                    "pivot_y": 0.5206611570247934,
+                    "scale_x": 1.1160730773712948,
+                    "scale_y": 1.219437222816943,
+                    "x": 6.593131868131861,
+                    "y": -2.465659340659343
+                  },
+                  "spin": 0,
+                  "time": 10
+                },
+                {
+                  "id": 3,
+                  "object": {
+                    "file": 1,
+                    "folder": 0,
+                    "pivot_x": 0.4962406015037595,
+                    "pivot_y": 0.5206611570247934,
+                    "scale_x": 1.1160730773712948,
+                    "scale_y": 1.219437222816943,
+                    "x": 1.771703296703289,
+                    "y": -2.287087912087914
+                  },
+                  "time": 14
+                },
+                {
+                  "id": 4,
+                  "object": {
+                    "angle": 0.005351675883105145,
+                    "file": 5,
+                    "folder": 0,
+                    "pivot_x": 0.4962406015037595,
+                    "pivot_y": 0.5206611570247934,
+                    "scale_x": 1.1160730773712948,
+                    "scale_y": 1.219437222816943,
+                    "x": 1.3103937728937656,
+                    "y": -2.242445054945057
+                  },
+                  "spin": -1,
+                  "time": 15
+                }
+              ],
+              "name": "tower_cone"
+            }
+          ]
+        }
+      ],
+      "character_map": [],
+      "id": 0,
+      "name": "entity_000",
+      "obj_info": []
+    }
+  ],
+  "folder": [
+    {
+      "file": [
+        {
+          "height": 32,
+          "id": 0,
+          "name": "tower.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 32
+        },
+        {
+          "height": 64,
+          "id": 1,
+          "name": "tower_cone.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 960,
+          "id": 2,
+          "name": "map3_beta.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 1824
+        },
+        {
+          "height": 10,
+          "id": 3,
+          "name": "map3_beta_tiletype.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 19
+        },
+        {
+          "height": 128,
+          "id": 4,
+          "name": "nature_icon.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 128
+        },
+        {
+          "height": 64,
+          "id": 5,
+          "name": "orange.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 256,
+          "id": 6,
+          "name": "ring.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 256
+        },
+        {
+          "height": 64,
+          "id": 7,
+          "name": "road0.jpg",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 32,
+          "id": 8,
+          "name": "rocket.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 32
+        },
+        {
+          "height": 64,
+          "id": 9,
+          "name": "rocket_big.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        },
+        {
+          "height": 128,
+          "id": 10,
+          "name": "rocket_icon.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 128
+        },
+        {
+          "height": 256,
+          "id": 11,
+          "name": "rusty_iron_cog.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 256
+        },
+        {
+          "height": 10,
+          "id": 12,
+          "name": "projectile.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 10
+        },
+        {
+          "height": 32,
+          "id": 13,
+          "name": "pixel.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 32
+        },
+        {
+          "height": 64,
+          "id": 14,
+          "name": "particle.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 64
+        }
+      ],
+      "id": 0
+    },
+    {
+      "file": [
+        {
+          "height": 0,
+          "id": 0,
+          "name": "C:/Users/Gustav/Documents/GitHub/ProjectParty/resources/elements/textures/tower_cone.png",
+          "pivot_x": 0,
+          "pivot_y": 1,
+          "width": 0
+        }
+      ],
+      "id": 1,
+      "name": "C:/Users/Gustav/Documents/GitHub/ProjectParty/resources/elements/textures"
+    }
+  ],
+  "generator": "BrashMonkey Spriter",
+  "generator_version": "b6.1",
+  "scon_version": "1.0"
+}
