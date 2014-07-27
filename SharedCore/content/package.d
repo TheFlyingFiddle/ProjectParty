@@ -7,7 +7,7 @@ public import content.font;
 
 import allocation, graphics.font, graphics.textureatlas;
 
-alias FontHandle  = ContentHandle!Font;
+alias FontHandle  = ContentHandle!FontAtlas;
 alias AtlasHandle = ContentHandle!TextureAtlas;
 
 ContentLoader createStandardLoader(A)(ref A allocator, IAllocator itemAllocator,

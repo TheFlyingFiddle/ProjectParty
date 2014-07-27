@@ -14,8 +14,8 @@ import distancefont;
 
 void main(string[] argv)
 {
-	string inDirectory  = argv[1];
-	string outDirectory = argv[2];
+	string inDirectory  = "..\\resources"; //argv[1];
+	string outDirectory = "..\\compiled_resources"; //argv[2];
 	
 	auto watcher = FileWatcher(inDirectory);
 	spawnReloadingService();
@@ -128,7 +128,7 @@ static this()
 		FileCompiler(".wav", 10, &passThrough),
 		FileCompiler(".ogg", 10, &passThrough),
 		FileCompiler(".luac", 10, &passThrough),
-		FileCompiler(".ttf", 2, &compileDistFont),
+		FileCompiler(".fontatl", 2, &compileDistFont),
 		FileCompiler(".fnt", 2, &compileFont),
 		FileCompiler(".atl", 1, &compileAtlas)
 	];
@@ -184,6 +184,11 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 		fileCache.itemChanged  ~= ItemChanged(name ~ entry.name.extension,  timeLastModified(entry.name).stdTime);
 	
 		if(context.usedNames.canFind(name)) continue;
+		import std.datetime;
+		StopWatch watch;
+		watch.start();
+
+
 		logInfo("Compiling File: ", entry.name);
 		hasChanged = true;
 
@@ -205,6 +210,9 @@ void compileFolder(string inFolder, string outFolder, Platform platform)
 
 		reloadChanged(compiled.items, nameHash);
 		fileCache.dependencies ~= Dependencies(name ~ entry.name.extension, compiled.dependencies);
+
+		watch.stop();
+		logInfo("Took ", watch.peek().msecs, " msecs.");
 	}
 
 	if(hasChanged)

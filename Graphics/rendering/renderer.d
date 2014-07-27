@@ -178,9 +178,10 @@ enum fd_Source = q{
 	void main()
 	{
 		vec4 color = texture2D(sampler, vertIn.coords);
-		if(color.a < vertIn.thresholds.y) discard;
+		float sample = color[int(vertIn.thresholds.x)];
+		if(sample < vertIn.thresholds.y) discard;
 		
 		fragColor = vertIn.color;
-		fragColor.a = smoothstep(vertIn.thresholds.y, vertIn.thresholds.z, color.a);
+		fragColor.a = smoothstep(vertIn.thresholds.y, vertIn.thresholds.z, sample);
 	}
 };

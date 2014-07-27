@@ -47,10 +47,10 @@ void run(PhoneGameConfig config)
 
 	import screen.loading;
 	auto endScreen     = stack.allocate!(Screen1)();
-	auto loadingScreen = stack.allocate!(LoadingScreen)(LoadingConfig(["ComicSans32.fnt"], "ComicSans32"), endScreen);
+	//auto loadingScreen = stack.allocate!(LoadingScreen)(LoadingConfig(["ComicSans32.fnt"], "ComicSans32"), endScreen);
 	
 	auto s = game.locate!ScreenComponent;
-	s.push(loadingScreen);
+	s.push(endScreen);
 
 	gl.enable(Capability.blend);
 	gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);
@@ -86,7 +86,7 @@ class Screen1 : Screen
 	{
 		auto loader = game.locate!AsyncContentLoader;
 
-		font	= loader.load!Font("consola");
+		font	= loader.load!FontAtlas("Fonts");
 		atlas	= loader.load!TextureAtlas("Atlas");
 
 		auto router = game.locate!Router;
@@ -110,18 +110,15 @@ class Screen1 : Screen
 			auto s = Mallocator.it.allocate!(Screen2)();
 			owner.push(s);
 		}
-		else if(keyboard.isDown(Key.q))
+		
+		if(keyboard.isDown(Key.a))
 			thresh.x += 0.01;
-		else if(keyboard.isDown(Key.w))
-			thresh.x -= 0.01;
-		else if(keyboard.isDown(Key.a))
-			thresh.y += 0.01;
 		else if(keyboard.isDown(Key.s))
-			thresh.y -= 0.01;
+			thresh.x -= 0.01;
 		else if(keyboard.isDown(Key.z))
-			thresh.z += 0.01;
+			thresh.y += 0.01;
 		else if(keyboard.isDown(Key.x))
-			thresh.z -= 0.01;
+			thresh.y -= 0.01;
 
 		import std.algorithm;
 
@@ -130,7 +127,6 @@ class Screen1 : Screen
 
 		thresh.x = clamp(thresh.x,0,1);
 		thresh.y = clamp(thresh.y,0,1);
-		thresh.z = clamp(thresh.z,0,1);
 
 		auto server = game.locate!Server;
 		if(server.activeConnections.length > 0)
@@ -139,7 +135,7 @@ class Screen1 : Screen
 		}
 	}
 
-	float3 thresh = float3(0,0,1);
+	float2 thresh = float2(0,1);
 	override void render(GameTime time)
 	{
 
@@ -153,20 +149,28 @@ class Screen1 : Screen
 		renderer.begin();
 
 		import util.strings;
-		int y = 10;
-		foreach(i; 1 .. 30)
-		{
-			Color c;
-			//c.r = i * 0.1;
-			//c.b = i * 0.1;
-			c.g = i * (1 / 30.0);
-			c.b = 0.5  + i * (1 / 60.0);
-			c.a = 1;
+		int y = 40;
+		//foreach(i; 1 .. 30)
+		//{
+		//    Color c;
+		//    //c.r = i * 0.1;
+		//    //c.b = i * 0.1;
+		//    c.g = i * (1 / 30.0);
+		//    c.b = 0.5  + i * (1 / 60.0);
+		//    c.a = 1;
+		//
+		//
+		//    renderer.drawText("The quick brown fox jumped over the lazy dog[p]'\\\";ö'äöå¨p!#¤%&/()=QWERTYUIOPASDFGHJKLÖÄ>ZXCVBNM;:",
+		//                      float2(0,  screen.size.y - 10 - y), i * 5, 
+		//                      font.asset.fonts[2], Color.black,thresh);
+		//    y += 5 + i * 5;
+		//}
 
-
-			renderer.drawText("The quick brown fox jumped over the lazy dog[p]'\\\";ö'äöå¨p!#¤%&/()=QWERTYUIOPASDFGHJKLÖÄ>ZXCVBNM;:", float2(0,  screen.size.y - 10 - y), i * 5, font.asset, Color.black,thresh);
-			y += 5 + i * 5;
-		}
+		renderer.drawText("This is consolas!", float2(0, screen.size.y - 100), y, font.asset.fonts[0], Color.black, thresh); 
+		renderer.drawText("This is DejaVuSansMono!", float2(0, screen.size.y - 200), y, font.asset.fonts[1], Color.black, thresh);
+		renderer.drawText("This is comic!", float2(0, screen.size.y - 300), y, font.asset.fonts[2], Color.black, thresh);
+		renderer.drawText("This is impact!", float2(0, screen.size.y - 400), y, font.asset.fonts[3], Color.black, thresh);
+		renderer.drawText("This is FINAL STUFF!", float2(0, screen.size.y - 500), y, font.asset.fonts[4], Color.black, thresh);
 
 		renderer.end();
 

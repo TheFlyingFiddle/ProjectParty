@@ -12,16 +12,24 @@ struct CharInfo
 	float  advance;
 }
 
+
+struct FontAtlas
+{
+	Texture2D page;
+	Font[] fonts;
+}
+
 struct Font
 {
 	enum wchar unkownCharValue = '\u002F';
 	enum tabSpaceCount = 4;
 
-	Texture2D page;
-	CharInfo[] chars;
 	float size;
-	float base;
 	float lineHeight;
+	CharInfo[] chars;
+
+	Texture2D page;
+	uint layer;
 
 	ref CharInfo opIndex(dchar c)
 	{
@@ -63,7 +71,7 @@ struct Font
 		}
 
 		width = fmax(width, cursor);
-		height += base;
+		height += size;
 		return float2(width, height);
 	}
 }

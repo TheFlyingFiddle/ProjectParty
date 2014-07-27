@@ -5,7 +5,8 @@ import derelict.freeimage.freeimage;
 import concurency.task;
 
 package Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0, 
-							  bool flag = false, bool async = false)
+							  bool flag = false, bool async = false,
+							  ColorFormat cFormat = ColorFormat.bgra)
 {
 	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(c_path);
 	if(format == FIF_UNKNOWN)
@@ -22,7 +23,6 @@ package Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0,
 
 	void* bits  = FreeImage_GetBits(bitmap);
 
-	ColorFormat cFormat    = ColorFormat.bgra;
 	ColorType   cType	   = ColorType.ubyte_;
 	InternalFormat iFormat = InternalFormat.rgba8;
 

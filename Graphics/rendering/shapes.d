@@ -8,9 +8,9 @@ public import
 	graphics.font;
 
 void drawText(R)(ref R renderer, string text, float2 pos, float size, ref Font font, 
-				 Color color, float3 thresholds)
+				 Color color, float2 thresholds)
 {
-	float2 scale = float2(1.7 * size / font.base,  size / font.base);
+	float2 scale = float2(1.7 * size / font.size,  size / font.size);
 
 	CharInfo spaceInfo = font[' '];
 
@@ -37,7 +37,7 @@ void drawText(R)(ref R renderer, string text, float2 pos, float size, ref Font f
 
 
 
-		float2 off = float2(0, font.base * scale.y);
+		float2 off = float2(0, font.size * scale.y);
 		float2 position = cursor - off + pos + float2(info.offset.x * scale.x,
 											    info.offset.y * scale.y);
 
@@ -46,7 +46,7 @@ void drawText(R)(ref R renderer, string text, float2 pos, float size, ref Font f
 								 position.x + info.srcRect.z * scale.x,
 								 position.y + info.srcRect.w * scale.y),
 								 Frame(font.page, info.srcRect), 
-								 thresholds,
+								 float3(font.layer, thresholds.x, thresholds.y),
 								 color);
 
 		cursor.x += info.advance * scale.x;

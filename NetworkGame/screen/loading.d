@@ -28,7 +28,7 @@ class LoadingScreen : Screen
 		import content;
 		loader = game.locate!AsyncContentLoader;
 
-		font = loader.load!Font(config.font);
+		font = loader.load!FontAtlas(config.font);
 
 		foreach(item; config.toLoad)
 			loader.asyncLoad(item);

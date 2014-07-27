@@ -4,6 +4,9 @@ import derelict.freetype.ft;
 import derelict.freetype.types;
 import derelict.freeimage.freeimage;
 
+import content.sdl;
+import allocation;
+
 import std.file;
 import std.path;
 import compilers;
@@ -11,6 +14,7 @@ import util.bitmanip;
 import main;
 import math;
 import std.string;
+import std.parallelism, std.range;
 
 struct CharInfo
 {
@@ -32,61 +36,198 @@ struct Data
 	RawCharInfo[] chars;	
 }
 
+struct FontInputData
+{
+	string[] fonts;
+	uint size;
+	uint maxChar;
+}
+
+struct FontData
+{
+	sdf_glyph[] glyphs;
+	ubyte[]		image;
+	int size;
+}	
+
+struct FontOutput
+{
+	float size, lineHeight;
+	uint dataOffset, dataCount;
+	ubyte imageLayer;
+}
+
+void splitIntoRows(uint[] output, uint[] input, int bigWidth, int smallWidth, int offset)
+{
+	foreach(row; 0 .. input.length / smallWidth)
+	{
+		int start = offset + bigWidth * row;
+		int end   = start + smallWidth;
+
+		output[start .. end] = input[row * smallWidth .. row * smallWidth + smallWidth];
+	}
+}
+
+void combineImages(uint[] output, uint[] images, int imageCount, int imageSize, int width, int height)
+{
+	foreach(i; taskPool.parallel(iota(0, imageCount), 1))
+	{
+		int row    = i % (height / imageSize);
+		int column = i / (height / imageSize);
+		int pixelStart = column * imageSize + (row * width) * imageSize;
+		
+		int start  = i * imageSize * imageSize;
+		int end	   = start + imageSize * imageSize;
+
+		splitIntoRows(output, images[start .. end],
+					  width, imageSize, pixelStart);
+	}
+}
+
+void writeData(FontData[] datas, ubyte[] data)
+{
+	foreach(i; 0 .. datas[0].image.length)
+	{
+		int index = i * 4;
+		import log;
+		logCondInfo(index >= data.length, "Index: ", index, "Data: ", data.length);
+
+		data[index + 0] = datas[0].image[i];
+		if(datas.length > 1)
+			data[index + 1] = datas[1].image[i];
+		if(datas.length > 2)
+			data[index + 2] = datas[2].image[i];
+		if(datas.length > 3)
+			data[index + 3] = datas[3].image[i];
+	}
+}
+
+ubyte[] composeImage(FontData[] datas, int baseSize, out int width, out int height)
+{
+	if(datas.length <= 4)
+	{
+		width = height = baseSize;
+	}
+	else if(datas.length <= 8)
+	{
+		width  = baseSize * 2;
+		height = baseSize; 
+	}
+	else if(datas.length <= 16)
+	{
+		width = height = baseSize * 2;
+	}
+
+	auto output = new ubyte[ width * height * 4];
+	auto temp   = new ubyte[ width * height * 4];
+
+	foreach(i; taskPool.parallel(iota(0, (datas.length - 1) / 4 + 1)))
+	{
+		int index = i * 4;
+		int offset = i * baseSize * baseSize * 4;
+		writeData(datas[index .. min(index + 4, datas.length)], temp[offset .. offset + baseSize * baseSize * 4]);
+	}
+
+	combineImages(cast(uint[])output, cast(uint[])temp, (datas.length  - 1) / 4 + 1, baseSize, width, height);
+	return output;
+}
+
+ubyte[] composeFontData(FontData[] data, int maxChar, int baseDim, int imageWidth, int imageHeight)
+{
+	uint length = ushort.sizeof + data.length * (FontOutput.sizeof + CharInfo.sizeof * (maxChar + 1));
+	ubyte[] output = new ubyte[length];
+	size_t offset = 0;
+
+	import util.bitmanip;
+	output.write!(ushort)(cast(ushort)data.length, &offset);
+	foreach(i, ref font; data)
+	{
+		int dataOffset = CharInfo.sizeof * (maxChar + 1) * i;
+		int dataCount  = maxChar + 1;
+
+		output.write!float(font.size, &offset);
+		output.write!float(font.size * 1.2f, &offset);
+		output.write!uint(dataOffset, &offset);
+		output.write!uint(dataCount, &offset);
+		output.write!uint(cast(ubyte)(i % 4), &offset);
+	}
+
+
+	CharInfo[] infos = new CharInfo[maxChar + 1];
+	foreach(i, ref font; data)
+	{
+		int s		= i / 4;
+		int xoff    = s / (imageHeight / baseDim) * baseDim;
+		int yoff    = s % (imageHeight / baseDim) * baseDim;
+
+		foreach(r; font.glyphs)
+		{
+			CharInfo info;
+			info.advance  = r.xadv;
+			info.srcRect  = float4(xoff + r.x, yoff + baseDim - r.y - r.height, r.width, r.height);
+			info.offset   = float2(r.xoff, font.size - info.srcRect.w + r.yoff);
+			info.textureCoords = float4(info.srcRect.x / imageWidth,
+										info.srcRect.y / imageHeight,
+										(info.srcRect.z + info.srcRect.x) / imageWidth,
+										(info.srcRect.w + info.srcRect.y) / imageHeight);
+
+			infos[r.ID] = info;
+		}
+
+		int charLen = CharInfo.sizeof * infos.length;
+		output[offset .. offset + charLen] = cast(ubyte[])infos;
+		offset += charLen;
+
+		infos[] = CharInfo.init;
+	}
+
+	return output;
+}
+
+
+
+
 CompiledFile compileDistFont(void[] input, DirEntry path, ref Context context)
 {
-	int imageWidth = 256, imageHeight = 256;
+	auto atlasData = fromSDLSource!(FontInputData)(Mallocator.it, cast(string)(input));
 
-	auto typed = cast(ubyte[])input;
 
-	sdf_glyph[] all_glyphs;
-	int fontSize;
-	auto imageData = render_signed_distance_font(ft_lib, 
-											all_glyphs,
-											fontSize,
-											path.name.toStringz(),
-											imageWidth,
-											256);
+	FontData[] data = new FontData[atlasData.fonts.length];
+	foreach(i; taskPool.parallel(iota(0, data.length), 1))
+	{
+		FT_Library fontLib;
+		FT_Init_FreeType(&fontLib);
+		scope(exit) FT_Done_FreeType(fontLib);
+			
+		
+		auto fontPath = buildPath(path.dirName, atlasData.fonts[i]);
 
+		data[i].image = renderSignedFont(fontLib, 
+										 data[i].glyphs,
+										 data[i].size,
+										 fontPath.toStringz(),
+										 atlasData.size,
+										 atlasData.maxChar);
+	}
+
+	int imageWidth, imageHeight;
+	auto imageData = composeImage(data, atlasData.size, imageWidth, imageHeight);
 
 	if(context.platform == Platform.phone)
 		flipImage(cast(uint[])imageData, imageWidth, imageHeight);
 
-	CharInfo[] infos = new CharInfo[256];
-	foreach(i, r; all_glyphs)
-	{
-
-		CharInfo info;
-		info.advance  = r.xadv;
-		info.srcRect  = float4(r.x, imageHeight - r.y - r.height, r.width, r.height);
-		info.offset   = float2(r.xoff, fontSize - info.srcRect.w + r.yoff);
-		info.textureCoords = float4(info.srcRect.x / imageWidth,
-									info.srcRect.y / imageHeight,
-									(info.srcRect.z + info.srcRect.x) / imageWidth,
-									(info.srcRect.w + info.srcRect.y) / imageHeight);
-
-		infos[r.ID] = info;
-	}
-
-	auto fontData = new ubyte[float.sizeof * 3 + CharInfo.sizeof * infos.length];
-
-
-	size_t offset = 0;
-
-	fontData.write!float(fontSize, &offset);
-	fontData.write!float(fontSize, &offset);
-	fontData.write!float(fontSize * 1.2, &offset);
-	fontData[offset .. $] = cast(ubyte[])(infos);
+	auto fontData = composeFontData(data, atlasData.maxChar, atlasData.size, imageWidth, imageHeight);
 
 
 	FreeImageIO io;
 	io.read_proc  = &readData;
-	io.write_proc = &writeData;
+	io.write_proc = &compilers.writeData;
 	io.seek_proc  = &seekData;
 	io.tell_proc  = &tellData;
 
 	auto saveHandle = ArrayHandle(0, compilers.buffer);
 
-	auto image = FreeImage_ConvertFromRawBits(imageData.ptr, 256, 256, ((32 * 256 + 31) / 32) * 4, 32, 8, 8, 8, true);
+	auto image = FreeImage_ConvertFromRawBits(imageData.ptr, imageWidth, imageHeight, ((32 * imageWidth + 31) / 32) * 4, 32, 8, 8, 8, true);
 	scope(exit) FreeImage_Unload(image);
 
 	FreeImage_SaveToHandle(FIF_PNG, image, &io, cast(fi_handle)&saveHandle, 0);
@@ -106,12 +247,12 @@ struct sdf_glyph
 
 enum scaler = 16;
 
-ubyte[] render_signed_distance_font(ref FT_Library ft_lib,
-									ref sdf_glyph[] all_glyphs,
-									ref int fontSize,
-								    const char* font_file,
-								    int texture_size,
-								    int max_unicode_char) 
+ubyte[] renderSignedFont(ref FT_Library ft_lib,
+						 ref sdf_glyph[] all_glyphs,
+						 ref int fontSize,
+						 const char* font_file,
+						 int texture_size,
+						 int max_unicode_char) 
 {
 
 	import std.range, std.algorithm;
@@ -122,8 +263,7 @@ ubyte[] render_signed_distance_font(ref FT_Library ft_lib,
 	
 	auto render_list = iota(0, max_unicode_char).array;
 
-
-	fontSize = 4;
+	fontSize = 16;
 	bool keep_going = true;
 	while(keep_going)
 	{
@@ -153,13 +293,11 @@ ubyte[] render_signed_distance_font(ref FT_Library ft_lib,
 			}
 		}
 	}
-
-
 	assert(!keep_going, "Failed to fit font in texture!");
 
 
 	FT_Set_Pixel_Sizes(ft_face, fontSize * scaler, 0);
-	auto pdata = new ubyte[ 4 * texture_size * texture_size];
+	auto pdata = new ubyte[texture_size * texture_size];
 	int packed_glyph_index = 0;
 	foreach(sdlGlyph; all_glyphs)
 	{
@@ -191,27 +329,22 @@ ubyte[] render_signed_distance_font(ref FT_Library ft_lib,
 				}
 			}
 
-			foreach(j; 0 .. sdlGlyph.height)
+			foreach(j; taskPool.parallel(iota(0, sdlGlyph.height)))
 			{
 				foreach(i; 0 .. sdlGlyph.width)
 				{
-					int pd_idx = (i + sdlGlyph.x + (j + sdlGlyph.y) * texture_size) * 4;
+					int pd_idx = (i + sdlGlyph.x + (j + sdlGlyph.y) * texture_size);
 					pdata[pd_idx] = get_SDF_radial(
 										smooth_buf, sw, sh,
 										i * scaler + (scaler / 2), 
 										j * scaler + (scaler / 2),
 										2 * scaler);
-
-					pdata[pd_idx + 1] = pdata[pd_idx];
-					pdata[pd_idx + 2] = pdata[pd_idx];
-					pdata[pd_idx + 3] = pdata[pd_idx];
 				}
 			}
 		}
 	}
 
 	FT_Done_Face( ft_face );
-
 	return pdata;
 }
 
