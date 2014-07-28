@@ -135,8 +135,7 @@ struct Texture2D
 							bool flag = false) 	
 	{
 		auto texture = Texture2D(createTexture(), width, height);
-		gl.activeTexture(TextureUnit.zero);
-		gl.bindTexture(TextureTarget.texture2D, texture.glName);
+		context[TextureUnit.zero] = texture;
 		gl.texImage2D(TextureTarget.texture2D, 0, internalFormat, width, height, 0, format, type, data.ptr);
 		gl.texParameteri(TextureTarget.texture2D, TextureParameter.baseLevel, 0);
 

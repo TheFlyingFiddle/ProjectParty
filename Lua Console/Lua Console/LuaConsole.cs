@@ -37,9 +37,11 @@ namespace Lua_Console
 
             logBox = initTextBox();
             logBox.Visible = false;
+            logBox.ContextMenuStrip = contextStrip;
 
             consoleBox = initTextBox();
             consoleBox.Visible = true;
+            consoleBox.ContextMenuStrip = contextStrip;
 
             this.Controls.Add(consoleBox);
             this.Controls.Add(logBox);

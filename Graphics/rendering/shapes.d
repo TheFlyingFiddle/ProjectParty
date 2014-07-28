@@ -7,10 +7,10 @@ public import
 	graphics.frame,
 	graphics.font;
 
-void drawText(R)(ref R renderer, string text, float2 pos, float size, ref Font font, 
+void drawText(R)(ref R renderer, string text, float2 pos, float2 size, ref Font font, 
 				 Color color, float2 thresholds)
 {
-	float2 scale = float2(1.7 * size / font.size,  size / font.size);
+	float2 scale = float2(size.x / font.size,  size.y / font.size);
 
 	CharInfo spaceInfo = font[' '];
 

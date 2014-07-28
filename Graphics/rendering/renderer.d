@@ -138,7 +138,6 @@ enum f_Source = q{
 	}
 };
 
-
 enum vd_Source =  q{
 	#version 330
 	in vec2 position;

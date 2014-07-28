@@ -157,8 +157,10 @@ void reloader(immutable Socket im_socket)
 			receive((immutable ReloadingInfo info) 
 			{
 				done = !sendItems(info, socket);
-				if(!done) 
+				if(done) 
 					logErr("Failed to send item to connection: ", socket.remoteAddress);
+				else 
+					logInfo("Sen files to connection: ", socket.remoteAddress);
 			},
 			(bool shutdown)
 			{

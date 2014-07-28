@@ -6,6 +6,7 @@ local network
 local font
 local bolder;
 
+
 local function onMsg(msg)
 end
 
@@ -14,12 +15,11 @@ function Game.start()
 
 	renderer  = CRenderer(128)
 	atlas     = resources:load(R.Atlas)
-	font	  = resources:load(R.consola)
+	font	  = resources:load(R.Fonts)
 	bolder    = atlas.boulder;
 	position  = { x= 100, y= 100 }
 	rotation  = 0
 	Screen.setOrientation(Orientation.landscape)
-
 
 	network   = Network(0xFFFF, 0xFFFF)
 	network:connect(Game.server.ip, Game.server.tcpPort, Game.server.udpPort, 1000)	
@@ -28,7 +28,6 @@ end
 
 function Game.restart()
 	Game.start()
-	Log.info("Restarting!")
 	position = File.loadTable("savestate.luac")
 	Screen.setOrientation(Orientation.landscape)
 
@@ -38,29 +37,34 @@ end
 function Game.stop()
 	File.saveTable( { x =position.x, y =position.y }, "savestate.luac")
 	resources:unloadAll()
+    Log.info("Disconnecting network")
 	network:disconnect()
+    Log.info("Disconnected network")
 end
 
 function Game.step()
-	if C.remoteDebugUpdate() then 
+    if updateReloading() then 
         return
     end
 
-	network:receive()
-	updateReloading()
-
-    gl.glClearColor(0,0,0,0)
+    gl.glClearColor(1,0.7,1,0)
     gl.glClear(gl.GL_COLOR_BUFFER_BIT)
     gl.glViewport(0,0,C.gGame.screen.width,C.gGame.screen.height)
     gl.glEnable(gl.GL_BLEND)
     gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+
+    if Game.paused then 
+        return;
+    end
+
+	network:receive()
 
    	renderer:addFrame(atlas.pixel,   vec2(100, 100), vec2(256,256) , 0xaaFFFF00)
 	renderer:addFrame(atlas.orange,  vec2(100, 100), vec2(128,128) , 0xFF000000)
    	renderer:addFrame(atlas.banana2, vec2(200, 100), vec2(128,128) , 0xFFFFFFFF)
    	rotation = rotation - 0.1
 
-    renderer:addFrameTransform(atlas.orange, 
+    renderer:addFrameTransform(atlas.banana2, 
     						   vec2(position.x, position.y), 
     						   vec2(256, 256), 
     						   0xFFFFFFFF,
@@ -68,22 +72,21 @@ function Game.step()
     					       rotation, 
     					       true)
 
-    renderer:addText(font.font, 
-    				 "Hello there young padowan!",
-    				 vec2(0,-100),
-    				 0xFFAAFFAA, 
-    				 100, 
-    				 vec2(0.2,0.45))
+    local msg = "Hello there young padowan!\n  --Dance\n\t  --Dance"
 
-     renderer:addText(font.font, 
-    				 "Hello there young padowan!",
-    				 vec2(0,0),
-    				 0xFFAAFFAA, 
-    				 200, 
-    				 vec2(0,0.5))
+    local consola = font:find("consola")
+    local size    = vec2(50,50) * consola:measure(msg);
+    local pos     = vec2( (Screen.width - size.x) / 2, Screen.height - size.y)
+
+
+    renderer:addText(consola, 
+    				 msg,
+                     pos,
+    				 0xFFAA2266, 
+    				 vec2(50, 50), 
+    				 vec2(0.25, 0.6))
 
     renderer:draw()
- 
  
 
     network:sendMessage(NetOut.testMessageA, { a = 5, b = 103})

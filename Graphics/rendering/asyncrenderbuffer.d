@@ -31,6 +31,8 @@ struct AsyncRenderBuffer(Vertex)
 
 		this.vao = VAO!Vertex.create();
 		setupVertexBindings(vao, program, vbo, &ibo);
+
+		vao.unbind();
 	}
 
 	void addItems(Vertex[] vertices, uint[] indecies)

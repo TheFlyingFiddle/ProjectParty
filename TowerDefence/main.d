@@ -47,10 +47,14 @@ void run(PhoneGameConfig config)
 
 	import screen.loading;
 	auto endScreen     = stack.allocate!(Screen1)();
-	//auto loadingScreen = stack.allocate!(LoadingScreen)(LoadingConfig(["ComicSans32.fnt"], "ComicSans32"), endScreen);
-	
+	auto loadingScreen = stack.allocate!(LoadingScreen)(LoadingConfig(["Fonts.fnt", "Atlas.atlas"], "Fonts"), endScreen);
+
+
+	FontRenderer renderer = FontRenderer(region, RenderConfig(0xFFFF, 3), vd_Source, fd_Source);
+	game.addService(&renderer);
+
 	auto s = game.locate!ScreenComponent;
-	s.push(endScreen);
+	s.push(loadingScreen);
 
 	gl.enable(Capability.blend);
 	gl.BlendFunc(BlendFactor.srcAlpha, BlendFactor.oneMinusSourceAlpha);
@@ -146,6 +150,10 @@ class Screen1 : Screen
 		renderer.viewport(float2(screen.size));
 
 
+
+		auto rend = game.locate!SpriteRenderer;
+		rend.drawQuad(float4(500,100,1000,500), atlas.asset.orange, Color.white);
+
 		renderer.begin();
 
 		import util.strings;
@@ -166,16 +174,16 @@ class Screen1 : Screen
 		//    y += 5 + i * 5;
 		//}
 
-		renderer.drawText("This is consolas!", float2(0, screen.size.y - 100), y, font.asset["consola.ttf"], Color.black, thresh); 
-		renderer.drawText("This is DejaVuSansMono!", float2(0, screen.size.y - 200), y, font.asset.fonts[1], Color.black, thresh);
-		renderer.drawText("This is comic!", float2(0, screen.size.y - 300), y, font.asset.fonts[2], Color.black, thresh);
-		renderer.drawText("This is impact!", float2(0, screen.size.y - 400), y, font.asset.fonts[3], Color.black, thresh);
-		renderer.drawText("This is FINAL STUFF!", float2(0, screen.size.y - 500), y, font.asset.fonts[4], Color.black, thresh);
+		renderer.drawText("This is consolas!", float2(0, screen.size.y - 100), float2(y), font.asset["consola"], Color.black, thresh); 
+		renderer.drawText("This is DejaVuSansMono!", float2(0, screen.size.y - 200), float2(y), font.asset.fonts[1], Color.black, thresh);
+		renderer.drawText("This is comic!", float2(0, screen.size.y - 300), float2(y), font.asset.fonts[2], Color.black, thresh);
+		renderer.drawText("This is impact!", float2(0, screen.size.y - 400), float2(y), font.asset.fonts[3], Color.black, thresh);
+		renderer.drawText("This is FINAL STUFF!", float2(0, screen.size.y - 500), float2(y), font.asset.fonts[4], Color.black, thresh);
+		renderer.drawText("This is FINAL STUFF!", float2(0, screen.size.y - 600), float2(y), font.asset.fonts[5], Color.black, thresh);
 
 		renderer.end();
 
-		auto rend = game.locate!SpriteRenderer;
-		//rend.drawQuad(float4(100,100,500,500), atlas.asset.orange, Color.white);
+		
 	}
 }
 

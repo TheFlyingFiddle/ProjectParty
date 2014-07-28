@@ -46,11 +46,18 @@ class LoadingScreen : Screen
 	uint frame = 0;
 	override void render(GameTime time)
 	{
-		import std.range, util.strings;
+		import std.range, util.strings, window.window;
 
+		auto screen  = game.locate!Window;
+		auto renderer = game.locate!FontRenderer;
+		renderer.viewport(float2(screen.size));
+		renderer.begin();
+		
 		frame++;
-		auto renderer = game.locate!(Renderer!Vertex);
+
 		string msg = cast(string)text1024("Loading", '.'.repeat(frame % 20));		
-		//renderer.drawText(msg, float2(0,0),50, font.asset(), Color.white);
+		renderer.drawText(msg, float2(0,0),float2(50,50), font.asset.fonts[0], Color.white, float2(0.4, 0.5));
+		
+		renderer.end();
 	}
 }

@@ -303,6 +303,8 @@ void drawElements(T, V, U)(ref VAO!V vao,
 	else 
 		static assert(0, "Must be uint or ushort!");
 
+	vao.unbind();
+
 }
 
 private void flushUniform(int loc, int value)

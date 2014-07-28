@@ -76,6 +76,8 @@ struct ContentLoader
 	string resourceFolder;
 	Handle[] items;
 
+	int resourceCount;
+
 	this(A)(ref A allocator, IAllocator itemAllocator, 
 			size_t maxResources, string resourceFolder)
 	{
@@ -87,6 +89,7 @@ struct ContentLoader
 		
 		//We will not have more the 100 file formats.
 		this.fileLoaders   = List!(FileLoader)(allocator, 100);
+		this.resourceCount = 0;
 	}
 
 	void addFileLoader(FileLoader fileLoader)
@@ -111,6 +114,7 @@ struct ContentLoader
 		{
 			if(handle.item is null) {
 				items[i] = Handle(hash, typeHash, item);
+				resourceCount++;
 				return i;
 			}
 		}
@@ -145,6 +149,8 @@ struct ContentLoader
 		if(isLoaded(path)) 
 		{
 			auto item = items[indexOf(hash)];
+			import log;
+			logInfo(cHash!T, " it ", item.typeHash);
 			assert(item.typeHash == cHash!T);
 			return getItem!T(hash);
 		}
@@ -179,15 +185,19 @@ struct ContentLoader
 		loader.unload(allocator, item.item);
 		items[index] = Handle.init;
 
+		resourceCount--;
 		return true;
 	}
 
-	private void change(HashID hash, void* item)
+	private void change(HashID hash, TypeHash typeHash, void* item)
 	{
 		auto handle = items[indexOf(hash)];
 		auto fileLoader = fileLoaders.find!(x => x.typeHash == handle.typeHash)[0];
 		fileLoader.unload(allocator, handle.item);
-		items[indexOf(hash)].item = item;
+
+		auto loaded = &items[indexOf(hash)];
+		assert(loaded.typeHash == typeHash);
+		loaded.item = item;
 	}	
 
 	@disable this(this);
@@ -251,12 +261,6 @@ struct AsyncContentLoader
 		}
 	}
 
-	private void addReloadedAsyncFile(HashID hash, void* item)
-	{
-		numRequests--;
-		loader.change(hash, item);
-	}
-
 	void asyncLoad(T)(string path)
 	{
 		if(loader.isLoaded(path)) return;
@@ -270,7 +274,7 @@ struct AsyncContentLoader
 		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
 		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, bytesHash(path).value, fileLoader.extension);
 		
-		auto adder = &addAsyncItem!T;
+		auto adder = &addAsyncItem;
 
 		numRequests++;
 		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, bytesHash(path), fileLoader, adder);			   
@@ -279,6 +283,8 @@ struct AsyncContentLoader
 
 	void asyncLoad(string path)
 	{
+		if(loader.isLoaded(path)) return;
+
 		import std.path, util.strings;
 		auto ext = path.extension;
 		auto hash = bytesHash(path[0 .. $ - ext.length]);
@@ -288,16 +294,23 @@ struct AsyncContentLoader
 		auto fileLoader = loader.fileLoaders.find!(x => x.extension == ext)[0];
 		auto buffer = Mallocator.it.allocate!(char[])(loader.resourceFolder.length + maxNameSize);
 		auto absPath = text(buffer, loader.resourceFolder, dirSeparator, hash.value, ext);
-		auto adder = &addAsyncItem!void;
+		auto adder = &addAsyncItem;
 
 		numRequests++;
 		taskpool.doTask!(asyncLoadFile)(cast(string)absPath, hash, fileLoader, adder);
 	}
 
-	private void addAsyncItem(T)(HashID hash, void* item)
+	private void addAsyncItem(HashID hash, TypeHash typeHash, void* item)
 	{
+		loader.addItem(hash, typeHash, item);
 		numRequests--;
-		loader.addItem(hash, cast(T*)item);
+	}
+
+
+	private void addReloadedAsyncFile(HashID hash, TypeHash typeHash, void* item)
+	{
+		loader.change(hash, typeHash, item);
+		numRequests--;
 	}
 
 	bool isLoaded(string path)
@@ -316,11 +329,11 @@ struct AsyncContentLoader
 	}
 }
 
-void asyncLoadFile(string path, HashID hash, FileLoader loader, void delegate(HashID, void*) adder) 
+void asyncLoadFile(string path, HashID hash, FileLoader loader, void delegate(HashID, TypeHash, void*) adder) 
 {
 	import concurency.task;
 	auto item = loader.load(Mallocator.cit, path, true);
-	auto t = task(adder, hash, item);
+	auto t = task(adder, hash, loader.typeHash, item);
 	doTaskOnMain(t);
 	Mallocator.it.deallocate(cast(void[])path);
 }

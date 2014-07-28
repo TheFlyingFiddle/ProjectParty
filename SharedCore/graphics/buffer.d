@@ -134,8 +134,8 @@ struct TextureBuffer
 
 	void bind()
 	{
-		if(context.texbo == glName)
-			return;
+		//if(context.texbo == glName)
+		//	return;
 
 		context.texbo = glName;
 		gl.bindBuffer(target, glName);
@@ -149,8 +149,8 @@ struct PixelPackBuffer
 
 	void bind()
 	{
-		if(context.pixbo == glName)
-			return;
+		//if(context.pixbo == glName)
+		//	return;
 
 		context.pixbo = glName;
 		gl.bindBuffer(target, glName);
@@ -165,8 +165,8 @@ struct PixelUnpackBuffer
 
 	void bind()
 	{
-		if(context.pixubo == glName)
-			return;
+		//if(context.pixubo == glName)
+		//	return;
 
 		context.pixubo = glName;
 		gl.bindBuffer(target, glName);
@@ -181,8 +181,8 @@ struct VertexBuffer
 
 	void bind()
 	{
-		if(context.vbo == glName)
-			return;
+		//if(context.vbo == glName)
+		//	return;
 
 		context.vbo = glName;
 		gl.bindBuffer(target, glName);
@@ -196,8 +196,8 @@ struct IndexBuffer
 
 	void bind()
 	{
-		if(context.ibo == glName)
-			return;
+		//if(context.ibo == glName)
+		//	return;
 
 		context.ibo = glName;
 		gl.bindBuffer(target, glName);
