@@ -1,6 +1,10 @@
 fonts = 
 	[ 
-		|consola.ttf|
+		|consola.ttf|,
+		|DejaVuSansMono.ttf|,
+		|comic.ttf|,
+		|impact.ttf|,
+		|FINALNEW.ttf|
 	]
 size  = 256
 maxChar = 256

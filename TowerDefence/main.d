@@ -157,7 +157,7 @@ class Screen1 : Screen
 		renderer.begin();
 
 		import util.strings;
-		int y = 40;
+		int y = 200;
 		//foreach(i; 1 .. 30)
 		//{
 		//    Color c;

@@ -70,7 +70,7 @@ struct TestB
 
 shared static this()
 {
-	auto luaCode = generateLuaCode!(network_types);
+	enum luaCode = generateLuaCode!(network_types);
 	import network.file;
 	addGeneratedFile("tower_defence_network_types.luag", cast(void[])luaCode);
 }
