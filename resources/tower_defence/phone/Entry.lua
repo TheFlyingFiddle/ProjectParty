@@ -1,4 +1,5 @@
-local renderer
+--Game.renderer
+
 local atlas
 local position
 local rotation
@@ -6,14 +7,33 @@ local network
 local font
 local bolder;
 
-
 local function onMsg(msg)
 end
 
-function Game.start()
+local function onConnect()
+    config.msg = "Connected!"
+end
+
+local function onDisconnect()
+    config.msg = "Disconnected!"
+end
+
+local Entry = { }
+
+function Entry:start(restart)
 	Log.info("Starting!")
 
-	renderer  = CRenderer(128)
+    if restart then 
+        global.stack   = Type.restart("ScreenStack")
+    else
+        global.stack    = ScreenStack()
+        stack:push(Test({x = 100, y = 100}, "This is \nsome text!"))
+        stack:push(Test({x = 100, y = 100}, "This is \nother text!"))
+    end
+
+    Log.info("Got here")
+
+	global.renderer = CRenderer(128)
 	atlas     = resources:load(R.Atlas)
 	font	  = resources:load(R.Fonts)
 	bolder    = atlas.boulder;
@@ -21,28 +41,26 @@ function Game.start()
 	rotation  = 0
 	Screen.setOrientation(Orientation.landscape)
 
-	network   = Network(0xFFFF, 0xFFFF)
-	network:connect(Game.server.ip, Game.server.tcpPort, Game.server.udpPort, 1000)	
-	network:addListener(NetIn.testMessageB, onMsg)
+	network   = Network(0xFFFF, Game.server, onConnect, onDisconnect)
+    network:asyncConnect(onConnect)
 end
 
-function Game.restart()
-	Game.start()
+function Entry:restart()
+	Game:start(true)
 	position = File.loadTable("savestate.luac")
 	Screen.setOrientation(Orientation.landscape)
-
-	Log.info("restarted!")
 end
 
-function Game.stop()
+function Entry:stop()
 	File.saveTable( { x =position.x, y =position.y }, "savestate.luac")
 	resources:unloadAll()
-    Log.info("Disconnecting network")
 	network:disconnect()
-    Log.info("Disconnected network")
+    stack:stop()
+    Log.info("Stopped!")
 end
 
-function Game.step()
+function Entry:step()
+    updateTime()
     if updateReloading() then 
         return
     end
@@ -59,40 +77,68 @@ function Game.step()
 
 	network:receive()
 
-   	renderer:addFrame(atlas.pixel,   vec2(100, 100), vec2(256,256) , 0xaaFFFF00)
-	renderer:addFrame(atlas.orange,  vec2(100, 100), vec2(128,128) , 0xFF000000)
-   	renderer:addFrame(atlas.banana2, vec2(200, 100), vec2(128,128) , 0xFFFFFFFF)
-   	rotation = rotation - 0.1
-
-    renderer:addFrameTransform(atlas.banana2, 
-    						   vec2(position.x, position.y), 
-    						   vec2(256, 256), 
-    						   0xFFFFFFFF,
-    					       vec2(128, 128), 
-    					       rotation, 
-    					       true)
-
-    local msg = "Hello there young padowan!\n  --Dance\n\t  --Dance"
-
-    local consola = font:find("consola")
-    local size    = vec2(50,50) * consola:measure(msg);
+    local consola = font:find(config.name)
+    local size    = vec2(config.size, config.size) * consola:measure(config.msg);
     local pos     = vec2( (Screen.width - size.x) / 2, Screen.height - size.y)
 
 
     renderer:addText(consola, 
-    				 msg,
+    				 config.msg,
                      pos,
-    				 0xFFAA2266, 
-    				 vec2(50, 50), 
-    				 vec2(0.25, 0.6))
+    				 config.color, 
+    				 vec2(config.size, config.size), 
+    				 config.tresh)
+
+    stack:update()
+    stack:render()
+
 
     renderer:draw()
  
-
     network:sendMessage(NetOut.testMessageA, { a = 5, b = 103})
+
+
 	network:send()
+
+    if #callbacks > 0 then 
+        for i, v in ipairs(callbacks) do
+            v()
+        end
+        callbacks = { }
+    end
 end
 
-function Input.onDown(id, x, y)
-	position = vec2(x, y)
+global.callbacks = { }
+
+Type.define(Entry, "Entry")
+Log.infof("Type = %s", Type.Entry)
+setmetatable(Game, Type.Entry) -- Simple isntit?
+
+global.config = 
+{ 
+    name = "consola", 
+    color = 0xFF000000, 
+    size = 50, 
+    tresh = vec2(0.2, 0.65), 
+    msg = "Hello there young padowan!\n  --Dance\n\t  --Dance" 
+}
+
+function Input.onMenuButton()
+    stack:onMenuButton()
+end
+
+function Input.onUp( ... )
+    stack:onUp(...)
+end
+
+function Input.onDown( ... )
+    stack:onDown(...)
+end
+
+function Input.onCancel( ... )
+    stack:onCancel(...)
+end
+
+function Input.onMove( ... )
+    stack:onMove(...)
 end

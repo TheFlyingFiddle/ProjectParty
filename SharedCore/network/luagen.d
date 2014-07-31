@@ -99,6 +99,7 @@ string luaWriteMessage(T)()
 
 	enum tName = T.stringof[0 .. 1].toLower() ~ T.stringof[1 .. $];
 	string code = "out[NetOut." ~ tName  ~ "] = function(buf, t)\n\t";
+	
 
 	debug
 	{
@@ -114,9 +115,9 @@ string luaWriteMessage(T)()
 	static if(isIndirectMessage!T)
 		code ~= luaIndirectCalculateLength!T;
 	else 
-		code ~= "C.bufferWriteShort(buf, " ~ messageLength!T.to!string ~ ")\n\t";
+		code ~= "buf:writeShort(" ~ messageLength!T.to!string ~ ")\n\t";
 
-	code ~= "C.bufferWriteShort(buf," ~ shortHash!T.value.to!string ~ ")\n\t";
+	code ~= "buf:writeShort(" ~ shortHash!T.value.to!string ~ ")\n\t";
 	foreach(i, field; T.init.tupleof)
 	{
 		alias type  = typeof(field);
@@ -150,14 +151,14 @@ enum isBaseType(T) = staticIndexOf!(T, basic_types) != -1;
 
 string luaReadType(T)(string name, string table) if(is(T == string))
 {
-	return text(table, ".", name, " = ffi.string(C.bufferReadTempUTF8(buf))\n\t");
+	return text(table, ".", name, " = buf:readString()\n\t");
 }
 
 string luaReadType(T)(string name, string table) if (isBaseType!T && !is(T == string))
 {
 	enum index = staticIndexOf!(T, basic_types);
 	static assert(index != -1);
-	return text(table,".",name," = C.bufferRead", names[index], "(buf)\n\t");
+	return text(table,".",name," = buf:read", names[index], "()\n\t");
 }
 
 string luaReadType(T)(string name, string table) if (!isBaseType!T && is(T == struct))
@@ -178,7 +179,7 @@ string luaWriteType(T)(string variable, string table) if (isBaseType!T)
 {
 	enum index = staticIndexOf!(T, basic_types);
 	static assert(index != -1);
-	return "C.bufferWrite" ~ names[index] ~ "(buf, " ~ table ~ "." ~ variable ~ ")\n\t"; 
+	return "buf:write" ~ names[index] ~ "(" ~ table ~ "." ~ variable ~ ")\n\t"; 
 }
 
 string luaWriteType(T)(string name, string table) if (!isBaseType!T && is(T == struct))
@@ -215,7 +216,7 @@ string luaIndirectCalculateLength(T)()
 		}
 	}
 
-	code ~= "C.bufferWriteShort(buf, size)\n\t";
+	code ~= "buf:writeShort( size)\n\t";
 	return text("local size = ", size,"\n\t",code);
 }
 

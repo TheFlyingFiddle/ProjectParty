@@ -268,7 +268,7 @@ ubyte[] renderSignedFont(ref FT_Library ft_lib,
 	
 	auto render_list = iota(0, max_unicode_char).array;
 
-	fontSize = 16;
+	fontSize = 4;
 	bool keep_going = true;
 	while(keep_going)
 	{

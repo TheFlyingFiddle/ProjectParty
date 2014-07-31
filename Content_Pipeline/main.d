@@ -259,7 +259,7 @@ private void writeResourceFile(string inFolder, string outFolder, string destFil
 		foreach(of; outputFiles)
 		{
 			import std.ascii;
-			if(isNumeric(stripExtension(of)) && of.extension != ".lua")
+			if(isNumeric(stripExtension(of)))
 			{
 				auto outHash = HashID(to!uint(stripExtension(of)));
 				if(hash == outHash)
