@@ -712,6 +712,50 @@ freeColor=0"; // Significant whitespace.
 						   "}\n"~
 						   "return sdlObject", cast(string)read("luaTest.lua"));
 		}
+
+		@Test public void testIssue85() {
+			struct Padding 
+			{
+				float left, top, right, bottom;
+			}
+
+			struct AtlasItem
+			{
+				string name;
+				@Optional(Padding(0,0,0,0)) Padding padding;
+			}
+
+			struct AtlasConfig
+			{
+				AtlasItem[] items;
+				int width, height;
+			}
+
+			auto sdlSource = "items = "
+			~"["
+			~"	{ name = |banana.png| },"
+			~"	{ name = |banana2.png| },"
+			~"	{ name = |base_tower.png| },"
+			~"	{ name = |baws.png| },"
+			~"	{ name = |boulder.png| },"
+			~"	{ name = |clock_base.png| },"
+			~"	{ name = |orange.png| },"
+			~"	{ name = |teddy.png| },"
+			~"	{ "
+			~"		name = |pixel.psd| "
+			~"		padding = { left = 2 top = 2 right = 2 bottom = 2 }"
+			~"	},"
+			~"	{ name = |banana.png| },"
+			~"]"
+			~"width = 256"
+			~"height = 128";
+			
+
+			auto buf = new void[1024];
+			auto alloc = RegionAllocator(buf);
+			auto test = fromSDLSource!AtlasConfig(alloc, sdlSource);
+		}
+
 	}
 
 	struct TestStruct2

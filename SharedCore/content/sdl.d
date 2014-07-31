@@ -1389,10 +1389,14 @@ void readArray(Sink)(ref Sink sink, ref ForwardRange range, ref ushort nextVacan
 		range.popFront();
 		return;
 	}
-
 	if (range.front == arraySeparator) {
 		range.popFront();
 	}
+	if(range.front == arrayCloser) {
+		range.popFront();
+		return;
+	}
+	range.skipWhitespace();
 	sink[objIndex].nextIndex = nextVacantIndex;
 	readArray(sink, range, nextVacantIndex);
 	if (sink[objIndex].nextIndex == nextVacantIndex) {
