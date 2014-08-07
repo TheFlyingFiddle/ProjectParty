@@ -59,7 +59,7 @@ end
 local function renderTextBox(item, renderer, pos, dim, text, hint)
 	local color
 	local tex
-	if text then 
+	if text and #text > 0 then 
 		color = item.fgColor
 		tex   = text 
 	else 
@@ -117,6 +117,12 @@ function GUI:button(pos, dim, text)
 end
 
 function GUI:textBox(pos, dim, text, hint)
+	--Focus is hard so i skip it for now!
+	if Input.string then 
+		if not text then text = "" end
+		text = text .. Input.string
+	end
+
 	--Do text input logic
 	self.textBoxRenderer:render(self.renderer, pos, dim, text, hint)
 end

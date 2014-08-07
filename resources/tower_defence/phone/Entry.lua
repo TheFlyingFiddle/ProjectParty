@@ -145,12 +145,7 @@ function Entry:step()
         callbacks = { }
     end
 
-    Input.released = { }
-
-    local ib = C.platformGetInputBuffer()
-    local ffiStr = ffi.string(ib)
-    Log.infof("Platform buffer string is %s", ffiStr)
-
+    Input.clear()
 end
 
 global.callbacks = { }
