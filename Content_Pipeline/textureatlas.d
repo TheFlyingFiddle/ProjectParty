@@ -78,6 +78,7 @@ struct AtlasConfig
 
 CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 {
+
 	auto atlasConfig = fromSDLSource!AtlasConfig(Mallocator.it, cast(string)data);
 
 	auto root = file.name[context.inFolder.length + 1 .. $ - baseName(file.name).length];

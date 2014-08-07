@@ -30,21 +30,17 @@ end
 
 function Test:render()
 	local consola = self.font:find("consola")
-	local frame	  = resources:load(R.Atlas).pixel;
-	renderer:addFrame(frame, vec2(-100, -100), vec2(Screen.width + 200,Screen.height + 200) , 0x44000000)
-
 	renderer:addText(consola, 
     				 self.text .. string.format("FPS %d", self.fps),
                      self.pos,
     				 0xFFFFFF00, 
     				 vec2(80,40), 
     				 vec2(0.4, 0.6))
-
-
 end
 
 function Test:onDown(id, x, y)
 	self.pos = vec2(x, y)
+	return true
 end
 
 Type.define(Test, "Test")
