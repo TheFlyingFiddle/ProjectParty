@@ -7,6 +7,7 @@ function Test:init(pos, text)
 	self.fps     = 0
 	self.count   = 0
 	self.elapsed = 0
+
 end
 
 function Test:restart(fileName)
@@ -15,7 +16,7 @@ function Test:restart(fileName)
 end
 
 function Test:stop()
-	return File.saveRandomTable({ self.pos, self.text })
+	return File.saveTempTable({ self.pos, self.text })
 end
 
 function Test:update( ... )
@@ -30,8 +31,9 @@ end
 
 function Test:render()
 	local consola = self.font:find("consola")
+	local frame	  = resources:load(R.Atlas).pixel
 	renderer:addText(consola, 
-    				 self.text .. string.format("FPS %d", self.fps),
+    				 string.format("FPS %d", self.fps),
                      self.pos,
     				 0xFFFFFF00, 
     				 vec2(80,40), 
