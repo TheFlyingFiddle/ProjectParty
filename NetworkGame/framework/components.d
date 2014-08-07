@@ -137,7 +137,7 @@ class RenderComponent : IGameComponent
 		import graphics;
 
 		gl.viewport(0,0, cast(uint)w.size.x, cast(uint)w.size.y);
-		gl.clearColor(1,0,1,1);
+		gl.clearColor(1,1,1,1);
 		gl.clear(ClearFlags.color);
 
 		renderer.begin();

@@ -101,7 +101,6 @@ class Screen1 : Screen
 
 	void handleTestMessageA(ulong id, TestMessageA message)
 	{
-		logInfo("Received message: ", message);
 	}
 
 	override void update(GameTime time) 
@@ -152,12 +151,12 @@ class Screen1 : Screen
 
 
 		auto rend = game.locate!SpriteRenderer;
-		rend.drawQuad(float4(500,100,1000,500), atlas.asset.orange, Color.white);
+		rend.drawQuad(float4(500,100,550,150), atlas.asset.orange, Color.white);
 
 		renderer.begin();
 
 		import util.strings;
-		int y = 200;
+		int y = 40;
 		//foreach(i; 1 .. 30)
 		//{
 		//    Color c;

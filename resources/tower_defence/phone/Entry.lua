@@ -5,7 +5,8 @@ local position
 local rotation
 local network
 local font
-local bolder;
+local bolder
+local gui
 
 local function onMsg(msg)
 end
@@ -28,18 +29,22 @@ function Entry:start(restart)
     else
         global.stack    = ScreenStack()
         stack:push(Test({x = 100, y = 100}, "This is \nsome text!"))
-        stack:push(Test({x = 100, y = 100}, "This is \nother text!"))
     end
 
     Log.info("Got here")
 
-	global.renderer = CRenderer(128)
+
+	global.renderer = CRenderer(1024)
 	atlas     = resources:load(R.Atlas)
 	font	  = resources:load(R.Fonts)
+
+    gui = GUI(renderer, font, atlas.pixel)
+
+
 	bolder    = atlas.boulder;
 	position  = { x= 100, y= 100 }
 	rotation  = 0
-	Screen.setOrientation(Orientation.landscape)
+	Screen.setOrientation(ORIENTATION_LANDSCAPE)
 
 	network   = Network(0xFFFF, Game.server, onConnect, onDisconnect)
     network:asyncConnect(onConnect)
@@ -48,7 +53,6 @@ end
 function Entry:restart()
 	Game:start(true)
 	position = File.loadTable("savestate.luac")
-	Screen.setOrientation(Orientation.landscape)
 end
 
 function Entry:stop()
@@ -59,6 +63,10 @@ function Entry:stop()
     Log.info("Stopped!")
 end
 
+local toggled = false
+local vslideval = 50
+
+
 function Entry:step()
     updateTime()
     if updateReloading() then 
@@ -67,7 +75,7 @@ function Entry:step()
 
     gl.glClearColor(1,0.7,1,0)
     gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-    gl.glViewport(0,0,C.gGame.screen.width,C.gGame.screen.height)
+    gl.glViewport(0,0,Screen.width,Screen.height)
     gl.glEnable(gl.GL_BLEND)
     gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
@@ -89,8 +97,38 @@ function Entry:step()
     				 vec2(config.size, config.size), 
     				 config.tresh)
 
+    renderer:addFrame(atlas.banana, vec2(0,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.banana2, vec2(100,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.base_tower, vec2(200,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.orange, vec2(300,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.teddy, vec2(400,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.baws, vec2(500,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.clock_base, vec2(600,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.pixel, vec2(700,0),vec2(100,100), 0xFFFFFFFF)
+    renderer:addFrame(atlas.boulder, vec2(0,100),vec2(100,100), 0xFFFFFFFF)
+
+    gui:button(vec2(200, 300), vec2(120, 64), "Hello\nthar")
+    gui:textBox(vec2(400, 300), vec2(120, 30), nil, "Name here")
+    gui:textBox(vec2(400, 250), vec2(120, 30), "text here", "Name here")
+
+    local vval = gui:slider(vec2(200, 400), vec2(300,32), vslideval)
+    if vval ~= vslideval then 
+        vslideval = vval
+        Log.infof("Slider value changed! %f", vval)
+    end
+
+    gui:slider(vec2(720, 200), vec2(35, 300), vslideval)
+
+    local res = gui:toggle(vec2(0,250), vec2(64,64), toggled)
+    if res ~= toggled then 
+        toggled = res
+        Log.info("Toggle state changed!")
+        Input.showKeyboard()
+    end
+
     stack:update()
     stack:render()
+
 
 
     renderer:draw()
@@ -106,6 +144,13 @@ function Entry:step()
         end
         callbacks = { }
     end
+
+    Input.released = { }
+
+    local ib = C.platformGetInputBuffer()
+    local ffiStr = ffi.string(ib)
+    Log.infof("Platform buffer string is %s", ffiStr)
+
 end
 
 global.callbacks = { }
@@ -116,10 +161,10 @@ setmetatable(Game, Type.Entry) -- Simple isntit?
 
 global.config = 
 { 
-    name = "consola", 
+    name = "impact", 
     color = 0xFF000000, 
     size = 50, 
-    tresh = vec2(0.2, 0.65), 
+    tresh = vec2(0.35, 0.65), 
     msg = "Hello there young padowan!\n  --Dance\n\t  --Dance" 
 }
 
@@ -141,4 +186,13 @@ end
 
 function Input.onMove( ... )
     stack:onMove(...)
+end
+
+function Input.onBackButton( ... )
+    if Input.keyboardVisible then 
+        Log.info("Hiding keyboard!")
+        Input.hideKeyboard()
+    end
+
+    return true
 end
