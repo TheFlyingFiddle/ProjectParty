@@ -133,7 +133,7 @@ function Entry:step()
 
     renderer:draw()
  
-    network:sendMessage(NetOut.testMessageA, { a = 5, b = 103})
+    network:sendMessage(NetOut.testMessageA, { a = 5, b = 103, d = 4})
 
 
 	network:send()

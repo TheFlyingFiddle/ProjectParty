@@ -8,6 +8,7 @@ import math;
 {
 	int a;
 	float b;
+	long d;
 }
 
 @OutMessage struct TestMessageB

@@ -123,6 +123,10 @@ function GUI:textBox(pos, dim, text, hint)
 		text = text .. Input.string
 	end
 
+	if pressed(pos, dim) then 
+		Input.showKeyboard()
+	end
+
 	--Do text input logic
 	self.textBoxRenderer:render(self.renderer, pos, dim, text, hint)
 end

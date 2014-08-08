@@ -133,8 +133,6 @@ local function readErrorReport(id)
 		end
 	end				
 
-	Log.infof("Key: ", key)
-
 	if key then 
 		Log.warnf("No reader for message! %s", key)
 	else 
@@ -171,8 +169,17 @@ local function readTcpMessages(self, stream, handler)
 end
 
 local function readUdpMessages(self, buffer)
+	Log.info("Gathering res")
+	local res = 0
+	for i=1, 10000,1 do
+		local rem = buffer:remaining()
+		res = res + rem
+	end
+	Log.infof("Res is %s", res)
+
 	local rem = buffer:remaining()
 	while rem > 2 do
+		Log.info("Rem is %d", rem)
 		local length = buffer:readShort()
 		if length == 0 then 
 			error("Corrupted connection!");
@@ -198,29 +205,22 @@ local function readUdpMessages(self, buffer)
 	end
 end
 
+local function recv(self)
+	self.tcp:receive()
+	self.udp:receive()
+	readTcpMessages(self, self.tcp.inStream, self.messageHandler)
+	readUdpMessages(self, self.udp.inBuffer, self.messageHandler)
+end
+
 function netMT:receive()
 	if not self.connected then return end
-
-	if not pcall(function()
-		self.tcp:receive()
-		self.udp:receive()
-		readTcpMessages(self, self.tcp.inStream, self.messageHandler)
-		readUdpMessages(self, self.udp.inBuffer, self.messageHandler)
-	end) then 
-		self:disconnect();
-	end
+	recv(self)
 end
 
 function netMT:send()
 	if not self.connected then return end
-
-	if not pcall(function()
-		self.tcp.outStream:flush()
-		self.udp:send(self.udp.ip, self.udp.port)
-	end) then 
-
-		self:disconnect();
-	end
+	self.tcp.outStream:flush()
+	self.udp:send(self.udp.ip, self.udp.port)
 end
 
 function netMT:addListener(id, listener)
@@ -241,11 +241,11 @@ function netMT:removeListener(id, listener)
 end
 
 function netMT:sendMessage(id, msg)
-	if not self.connected then return end
-
-	local func = networkWriters[id]
-	if func then 
-		local buf = self.tcp.outStream:buffer();
-		func(buf, msg)
-	end				
-end
+	--if not self.connected then return end
+--
+	--local func = networkWriters[id]
+	--if func then 
+	--	local buf = self.tcp.outStream:buffer();
+	--	func(buf, msg)
+	--end				
+end--
