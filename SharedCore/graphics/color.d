@@ -93,3 +93,25 @@ struct Color
 	enum Color green = Color(0xFF00FF00);
 	enum Color red = Color(0xFF0000FF);
 }
+
+enum Metro : Color
+{
+	lightGreen  = Color(0xFF33b499),
+	green       = Color(0xFF00a300),
+	darkGreen   = Color(0xFF1e7145), 
+	magenta     = Color(0xFF9700ff),
+	lightPurple = Color(0xFFa70097),
+	purple		= Color(0xFF78387e),
+	darkPurple  = Color(0xFFba3c60),
+	darken		= Color(0xFF1d1d1d),
+	teal		= Color(0xFFa9ab00),
+	lightBlue	= Color(0xFFfff4ef),
+	blue		= Color(0xFFef892d),
+	darkBlue	= Color(0xFF97572b),
+	yellow		= Color(0xFF0dc4ff),
+	orange		= Color(0xFF1aa2e3),
+	darkOrange	= Color(0xFF2c53da),
+	red			= Color(0xFF1111ee),
+	darkRed		= Color(0xFF471db9),
+	white		= Color(0xFFFFFFFF)
+}

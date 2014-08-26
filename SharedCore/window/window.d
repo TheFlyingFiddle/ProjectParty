@@ -8,21 +8,20 @@ import collections;
 import math;
 import util.strings;
 import std.exception;
+import window.keyboard;
 
 private auto logChnl = LogChannel("WINDOW");
 
 struct WindowManager
 {
 	private static bool inUse;
-	static Window window;
-	static WindowCallbacks callbacks;
 
 	static Window create(WindowConfig config)
 	{	
 		if(config.fullScreen) 
-			return create(config.size, null, Monitor.primary, config.blocking, config.decorated, config.numSamples);
+			return create(config.size, config.title, Monitor.primary, config.blocking, config.decorated, config.numSamples);
 		else
-			return create(config.size, null, config.blocking, config.decorated, config.numSamples);
+			return create(config.size, config.title, config.blocking, config.decorated, config.numSamples);
 	}
 
 	static Window create(float2 size, const(char)[] title, bool blocking, bool decorated, int samples)
@@ -39,7 +38,10 @@ struct WindowManager
 		glfwWindowHint(GLFW_DECORATED, decorated);
 
 		auto glfwWindow = glfwCreateWindow(cast(int)size.x, cast(int)size.y, title.toCString(), monitor._monitor, null);
-		window = Window(glfwWindow, blocking);
+
+		import allocation; //Need to allocate the WindowCallbacks
+		glfwSetWindowUserPointer(glfwWindow, Mallocator.it.allocate!WindowState());
+	
 
 		assert(glfwWindow, "Failed to create window");
 
@@ -54,7 +56,6 @@ struct WindowManager
 			logInfo(t);
 		}
 
- 
 		glfwSetWindowPosCallback(glfwWindow, &positionChanged);
 		glfwSetWindowSizeCallback(glfwWindow, &sizeChanged);
 		glfwSetFramebufferSizeCallback(glfwWindow, &fboSizeChanged);
@@ -62,23 +63,38 @@ struct WindowManager
 		glfwSetWindowFocusCallback(glfwWindow, &focus);
 		glfwSetWindowRefreshCallback(glfwWindow, &refresh);
 		glfwSetWindowIconifyCallback(glfwWindow, &iconify);
+		glfwSetCharCallback(glfwWindow, &unicode);
+		glfwSetKeyCallback(glfwWindow, &key);
+		glfwSetScrollCallback(glfwWindow, &scroll);
 
 		//Move window to center of screen. (If it's not a fullscreen window!)
 		if(monitor._monitor is null)
 		{
 			float2 msize = Monitor.primary.mode.size;
-			window.position = (msize / 2 - size / 2);
+			glfwSetWindowPos(glfwWindow, 
+							 cast(int)(msize.x / 2 - size.x / 2),
+							 cast(int)(msize.x / 2 - size.x / 2));
 		}
 
-		return window;
+		return 	Window(glfwWindow, blocking);;
+	}
+
+	static void obliterate(Window window)
+	{
+		import allocation;
+		auto state = cast(WindowState*)glfwGetWindowUserPointer(window._windowHandle);
+		Mallocator.it.deallocate(state);
+
+		glfwDestroyWindow(window._windowHandle);
 	}
 
 	extern(C) static nothrow void positionChanged(GLFWwindow* window, int x, int y)
 	{
 		try
 		{
-			if(callbacks.posCB !is null)
-				callbacks.posCB(x, y);
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.posCB !is null)
+				state.posCB(x, y);
 		}
 		catch(Throwable t)
 		{
@@ -90,8 +106,9 @@ struct WindowManager
 	{
 		try
 		{
-			if(callbacks.sizeCB !is null)
-				callbacks.sizeCB(x, y);
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.sizeCB !is null)
+				state.sizeCB(x, y);
 		}
 		catch(Throwable t)
 		{
@@ -103,8 +120,9 @@ struct WindowManager
 	{
 		try
 		{
-			if(callbacks.fboSizeCB !is null)
-				callbacks.fboSizeCB(x, y);
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.fboSizeCB !is null)
+				state.fboSizeCB(x, y);
 		}
 		catch(Throwable t)
 		{
@@ -116,8 +134,9 @@ struct WindowManager
 	{
 		try
 		{
-			if(callbacks.closeCB !is null)
-				callbacks.closeCB();
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.closeCB !is null)
+				state.closeCB();
 		}
 		catch(Throwable t)
 		{
@@ -129,8 +148,9 @@ struct WindowManager
 	{
 		try
 		{
-			if(callbacks.refreshCB !is null)
-				callbacks.refreshCB();
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.refreshCB !is null)
+				state.refreshCB();
 		}
 		catch(Throwable t)
 		{
@@ -142,8 +162,9 @@ struct WindowManager
 	{
 		try
 		{
-			if(callbacks.iconifyCB !is null)
-				callbacks.iconifyCB(b == 1);
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.iconifyCB !is null)
+				state.iconifyCB(b == 1);
 		}
 		catch(Throwable t)
 		{
@@ -155,8 +176,60 @@ struct WindowManager
 	{
 		try
 		{
-			if(callbacks.focusCB !is null)
-				callbacks.focusCB(b == 1);
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.focusCB !is null)
+				state.focusCB(b == 1);
+		}
+		catch(Throwable t)
+		{
+			logChnl.error(t);
+		}
+	}
+
+	extern(C) static nothrow void unicode(GLFWwindow* window, uint codepoint)
+	{
+		try
+		{
+			//Transform into unicode
+			import std.utf;
+
+			import log;
+
+			char[4] buf;
+			size_t s = encode(buf, cast(dchar)codepoint);
+			logInfo("Unicode char: ", codepoint, "=" , buf[0 .. s]);
+
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.unicodeCB !is null)
+				state.unicodeCB(buf[0 .. s]);
+		}
+		catch(Throwable t)
+		{
+			logChnl.error(t);
+		}
+	}	
+	
+	extern(C) static nothrow void key(GLFWwindow* window, int key, int scancode, int action, int mods)
+	{
+		try
+		{
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.keyCB !is null)
+				state.keyCB(cast(Key)key, cast(KeyEventAction)action, cast(KeyModifiers)mods);
+		}
+		catch(Throwable t)
+		{
+			logChnl.error(t);
+		}
+	}
+
+	extern(C) static nothrow void scroll(GLFWwindow* window, double x, double y)
+	{
+		try
+		{
+			auto state = cast(WindowState*)glfwGetWindowUserPointer(window);
+			if(state.scrollCB !is null)
+				state.scrollCB(x, y);
 		}
 		catch(Throwable t)
 		{
@@ -188,8 +261,11 @@ alias CloseCallback    = void delegate();
 alias RefreshCallback  = void delegate();
 alias FocusCallback    = void delegate(bool);
 alias IconifyCallback  = void delegate(bool);
+alias UnicodeCallback  = void delegate(char[]);
+alias KeyCallback      = void delegate(Key, KeyEventAction, KeyModifiers);
+alias ScrollCalback    = void delegate(double, double);
 
-struct WindowCallbacks
+struct WindowState
 {
 	PositionCallback posCB;
 	SizeCallback     sizeCB;
@@ -198,6 +274,9 @@ struct WindowCallbacks
 	FocusCallback    focusCB;
 	IconifyCallback  iconifyCB;
 	FboSizeCallback  fboSizeCB;
+	UnicodeCallback  unicodeCB;
+	KeyCallback      keyCB;
+	ScrollCalback    scrollCB;
 }
 
 struct VideoMode
@@ -289,39 +368,65 @@ struct Window
 	package GLFWwindow* _windowHandle;
 	private bool blocking;
 
+	@property void* nativeHandle()
+	{
+		return glfwGetWin32Window(_windowHandle);
+	}
+
+	@property WindowState* state()
+	{
+		return cast(WindowState*)glfwGetWindowUserPointer(this._windowHandle);
+	}	
+
+
+	@property void onScrollChanged(ScrollCalback cb)
+	{
+		state.scrollCB = cb;
+	}
+
 	@property void onPositionChanged(PositionCallback cb)
 	{
-		WindowManager.callbacks.posCB = cb;
+		state.posCB = cb;
 	}
 
 	@property void onSizeChanged(SizeCallback cb)
 	{
-		WindowManager.callbacks.sizeCB = cb;
+		state.sizeCB = cb;
 	}
 
 	@property void onFboSizeChanged(FboSizeCallback cb)
 	{
-		WindowManager.callbacks.posCB = cb;
+		state.posCB = cb;
 	}
 
 	@property void onFocusChanged(FocusCallback cb)
 	{
-		WindowManager.callbacks.focusCB = cb;
+		state.focusCB = cb;
 	}
 
 	@property void onClose(CloseCallback cb)
 	{
-		WindowManager.callbacks.closeCB = cb;
+		state.closeCB = cb;
 	}
 
 	@property void onRefresh(RefreshCallback cb)
 	{
-		WindowManager.callbacks.refreshCB = cb;
+		state.refreshCB = cb;
 	}
 
 	@property void onInotifyChanged(IconifyCallback cb)
 	{
-		WindowManager.callbacks.iconifyCB = cb;
+		state.iconifyCB = cb;
+	}
+
+	@property void onUnicode(UnicodeCallback cb)
+	{
+		state.unicodeCB = cb;
+	}
+
+	@property void onKey(KeyCallback cb)
+	{
+		state.keyCB = cb;
 	}
 
 	@property float2 size()
@@ -348,12 +453,14 @@ struct Window
 	{
 		int2 p;
 		glfwGetWindowPos(_windowHandle,&p.x, &p.y);
-		return float2(p);
+		return float2(p.x, size.y - p.y);
 	}
 
 	@property void position(float2 value)
 	{
 		int2 val = int2(value);
+		val.y    = cast(int)(size.y - value.y);
+
 		glfwSetWindowPos(_windowHandle, val.x, val.y);
 	}
 
@@ -419,8 +526,7 @@ struct Window
 
 	void obliterate()
 	{
-		glfwDestroyWindow(_windowHandle);
-		WindowManager.inUse = false;
+		WindowManager.obliterate(this);
 	}
 
 	void update()

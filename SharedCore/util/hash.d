@@ -1,8 +1,44 @@
 module util.hash;
 
+import std.traits;
+
 struct HashID
 {
+	@safe nothrow pure:
+
 	uint value;
+	alias value this;
+
+	this(uint value)
+	{
+		this.value = value;
+	}
+
+	this(T)(auto ref T t)
+	{
+		value = bytesHash(t).value;
+	}
+
+	this(T...)(auto ref T t)
+	{
+		uint value = 0;
+		foreach(item; t)
+		{
+			value = bytesHash(item, value).value;
+		}
+
+		this.value = value;
+	}
+
+	void opAssign(HashID id)
+	{
+		this.value = id.value;
+	}
+
+	void opAssign(T)(auto ref T t)
+	{
+		this.value = bytesHash(t).value;
+	}
 }
 
 struct TypeHash
@@ -14,6 +50,8 @@ struct ShortHash
 {
 	ushort value;
 }
+
+@trusted nothrow pure:
 
 template shortHash(T)
 {
@@ -35,10 +73,17 @@ template cHash(T)
 	enum cHash = TypeHash(bytesHash(name.ptr, name.length, 0).value);
 }
 
-HashID bytesHash(T)(T[] buffer)
+HashID bytesHash(T)(T[] buffer, uint seed = 0)
 {
-	return bytesHash(buffer.ptr, buffer.length * T.sizeof);
+	return bytesHash(buffer.ptr, buffer.length * T.sizeof, seed);
 }
+
+HashID bytesHash(T)(T item, uint seed = 0) if(!hasIndirections!T)
+{
+	auto ptr = (&item);
+	return bytesHash(ptr, T.sizeof, seed);
+}
+
 
 //Murmur3 hash algorithm by Austin Appleby in public domain.
 //Taken from Dlang/github/druntime

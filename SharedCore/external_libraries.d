@@ -81,6 +81,7 @@ bool missingSymFunc(string libName, string symName)
 
 extern(C) static nothrow void glfwError(int type, const(char)* msg)
 {
+	import std.conv;
 	auto logChnl = LogChannel("GLFW");
-	logChnl.error("Got error from GLFW : Type", type, " MSG: ", msg);
+	logChnl.error("Got error from GLFW : Type", type, " MSG: ", msg.to!string);
 }

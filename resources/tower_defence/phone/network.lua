@@ -169,13 +169,6 @@ local function readTcpMessages(self, stream, handler)
 end
 
 local function readUdpMessages(self, buffer)
-	Log.info("Gathering res")
-	local res = 0
-	for i=1, 10000,1 do
-		local rem = buffer:remaining()
-		res = res + rem
-	end
-	Log.infof("Res is %s", res)
 
 	local rem = buffer:remaining()
 	while rem > 2 do

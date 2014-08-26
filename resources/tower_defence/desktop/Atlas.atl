@@ -1,13 +1,21 @@
 items = 
 [
-	|banana.png|,
-	|base_tower.png|,
-	|baws.png|,
-	|boulder.png|,
-	|clock_base.png|,
-	|orange.png|,
-	|teddy.png|
+	{ name = |banana.png| },
+	{ name = |banana2.png| },
+	{ name = |base_tower.png| },
+	{ name = |baws.png| },
+	{ name = |boulder.png| },
+	{ name = |clock_base.png| },
+	{ 
+		name = |orange.png| 
+		padding = { left = 1 top = 0 right = 1 bottom = 0 }
+	},
+	{ name = |teddy.png| },
+	{ name = |banana.png| },
+	{ 
+		name = |pixel.psd| 
+		padding = { left = 2 top = 2 right = 2 bottom = 2 }
+	}
 ]
-
 width = 256
 height = 128

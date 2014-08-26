@@ -443,7 +443,8 @@ struct SDLIterator
 				static if(NeedsAllocator!fieldType) {
 					toReturn.tupleof[i] = as!(fieldType, Allocator)(a);
 				} else {
-					toReturn.tupleof[i] = as!fieldType;
+					auto value_ = as!fieldType;
+					toReturn.tupleof[i] = value_;
 				}
 			}
 			// We want to search the whole object for every name.

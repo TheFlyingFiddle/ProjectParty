@@ -3,17 +3,145 @@ module window.keyboard;
 import derelict.glfw3.glfw3;
 import window.window;
 
+enum KeyState : ubyte
+{
+	pressed  = GLFW_PRESS,
+	released = GLFW_RELEASE 
+}
+
+enum KeyEventAction : ubyte
+{
+	pressed  = GLFW_PRESS,
+	released = GLFW_RELEASE,
+	repeat   = GLFW_REPEAT
+}
+
+enum KeyModifiers : ubyte
+{
+	none	= 0x00,
+	shift   = 0x01,
+	control = 0x02,
+	alt	    = 0x04,
+	super_  = 0x08
+}
+
 struct Keyboard
 {
 	private Window* _handle;
+	KeyState[cast(uint)Key.last_key] keystates;
+	bool[cast(uint)Key.last_key]	 changed;
+
+	char[32] charInput;
+	size_t inputSize;
+
+	Key repeatKey;
+
 	this(Window* _handle) 
 	{
 		this._handle = _handle;
+		this._handle.onUnicode  = &onCharInput;
+		this._handle.onKey = &onKeyInput; 
+		keystates[] = KeyState.released;
+	}
+
+	void onCharInput(char[] input)
+	{
+		import log;
+		logInfo(input);
+
+		charInput[inputSize .. inputSize + input.length] = input;
+		inputSize += input.length;
+	}
+
+	void onKeyInput(Key key, KeyEventAction action, KeyModifiers modifiers)
+	{
+		if(action == KeyEventAction.repeat)
+			repeatKey = key;
+	}
+
+	char[] unicodeInput()
+	{
+		return charInput[0 .. inputSize];
+	}
+
+	void update()
+	{
+		changed[] = false;
+		foreach(i; 0 .. cast(uint)Key.last_key)
+		{
+			int state = glfwGetKey(_handle._windowHandle, i);
+			if(state == GLFW_PRESS)
+			{
+				if(keystates[i] == KeyState.released)
+					changed[i] = true;
+
+				keystates[i] = KeyState.pressed;
+			}
+			else if(state == GLFW_RELEASE)
+			{
+				if(keystates[i] == KeyState.pressed)
+					changed[i] = true;
+
+				keystates[i] = KeyState.released;
+			}
+			else if(state == GLFW_REPEAT)
+			{
+				import log;
+				logInfo("repeat state");
+			}
+		}
+	}
+
+	void postUpdate()
+	{
+		inputSize = 0;
+		repeatKey = Key.last_key;
 	}
 
 	bool isDown(Key key)
 	{
-		return glfwGetKey(_handle._windowHandle, key) == GLFW_PRESS;
+		return keystates[key] == KeyState.pressed;
+	}
+
+	bool isModifiersDown(KeyModifiers modifiers)
+	{
+		KeyModifiers modifier;
+		if(isDown(Key.leftAlt) || isDown(Key.rightAlt))
+			modifier |= KeyModifiers.alt;
+		if(isDown(Key.leftShift) || isDown(Key.rightShift))
+			modifier |= KeyModifiers.shift;
+		if(isDown(Key.leftControl) || isDown(Key.leftControl))
+			modifier |= KeyModifiers.control;
+		if(isDown(Key.leftSuper) || isDown(Key.rightSuper))
+			modifier |= KeyModifiers.super_;
+
+		return modifiers == modifier;
+	}
+
+	bool isUp(Key key)
+	{
+		return keystates[key] == KeyState.released;
+	}
+
+	bool wasPressed(Key key)
+	{
+		return isDown(key) && changed[key];
+	}
+
+	bool wasRepeated(Key key)
+	{
+		return key == repeatKey;
+	}
+
+	//Pressed or repeated!
+	bool wasInput(Key key)
+	{
+		return wasPressed(key) || wasRepeated(key);
+	}
+
+	bool wasReleased(Key key)
+	{
+		return isUp(key) && changed[key];
 	}
 }
 

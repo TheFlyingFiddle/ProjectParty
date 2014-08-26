@@ -19,7 +19,7 @@ struct Image
 	uint[] data;
 	FIBITMAP* bitmap;
 	string name;
-
+	Padding padding;
 	uint area() { return width * height; }
 }
 
@@ -70,10 +70,21 @@ void freeImages(Image[] images)
 	foreach(image; images) FreeImage_Unload(image.bitmap);
 }
 
+struct Padding 
+{
+	int left, top, right, bottom;
+}
+
+struct AtlasItem
+{
+	string name;
+	@Optional(Padding(0,0,0,0)) Padding padding;
+}
+
 struct AtlasConfig
 {
-	string[] items;
-	uint width, height;
+	AtlasItem[] items;
+	int width, height;
 }
 
 CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
@@ -82,7 +93,7 @@ CompiledFile compileAtlas(void[] data, DirEntry file, ref Context context)
 	auto atlasConfig = fromSDLSource!AtlasConfig(Mallocator.it, cast(string)data);
 
 	auto root = file.name[context.inFolder.length + 1 .. $ - baseName(file.name).length];
-	auto itemIDs = atlasConfig.items.map!(x => buildPath(root, x)).array;
+	auto itemIDs = atlasConfig.items.map!(x => buildPath(root, x.name)).array;
 	foreach(item; itemIDs)
 	{
 		context.usedNames ~= stripExtension(item);
@@ -147,14 +158,17 @@ auto atlasLuaLoading()
 
 auto createAtlas(AtlasConfig config, DirEntry file, Platform platform)
 {
+	
+
 	Image[] images;
-	foreach(item; config.items.map!(x => Tuple!(string, string)(stripExtension(x),
-															  buildPath(dirName(file.name), x ~ "\0"))))
+	foreach(item; config.items.map!(x => Tuple!(string, string, Padding)(stripExtension(x.name),
+						buildPath(dirName(file.name), x.name ~ "\0"), x.padding)))
 	{
 //		logInfo("Item[0] = ", item[0], "Item[1] = ", item[1]);
 
 		Image image = loadImage(item[1]);
 		image.name  = item[0];
+		image.padding = item[2];
 		images ~= image;
 	}
 
@@ -222,7 +236,10 @@ struct AtlasNode
 		if(image.width == this.width && image.height == this.height)
 		{
 			copySubImage(atlas.image, image, bottom, left);
-			atlas.rects ~= SourceRect(image.name, this.bottom, this.left, this.right, this.top);
+			atlas.rects ~= SourceRect(image.name, this.bottom + image.padding.bottom, 
+												  this.left + image.padding.left, 
+									              this.right - image.padding.right, 
+									              this.top - image.padding.top);
 
 			type = 1;
 			return &this;

@@ -88,6 +88,7 @@ extern(C)
     alias nothrow void function() da_glfwPollEvents;
     alias nothrow void function() da_glfwWaitEvents;
 
+    alias nothrow void* function(GLFWwindow*) da_glfwGetWin32Window;
     alias nothrow int function(GLFWwindow*, int) da_glfwGetInputMode;
     alias nothrow void function(GLFWwindow*, int, int) da_glfwSetInputMode;
     alias nothrow int function(GLFWwindow*, int) da_glfwGetKey;
@@ -193,4 +194,5 @@ __gshared
     da_glfwSwapInterval glfwSwapInterval;
     da_glfwExtensionSupported glfwExtensionSupported;
     da_glfwGetProcAddress glfwGetProcAddress;
+	da_glfwGetWin32Window glfwGetWin32Window;
 }

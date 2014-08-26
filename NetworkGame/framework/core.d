@@ -11,29 +11,29 @@ enum TimeStep
 	variable
 }
 
-struct GameTime
+struct Time
 {
 	TickDuration total;
 	TickDuration delta;
 }
 
-class IGameComponent
+class IApplicationComponent
 {
-	Game* game;
+	Application* app;
 
 	void initialize() { }
-	void preStep(GameTime time) { }
-	void step(GameTime time) { }
-	void postStep(GameTime time) { }
+	void preStep(Time time) { }
+	void step(Time time) { }
+	void postStep(Time time) { }
 }
 
-struct Game
+struct Application
 {
 	//Max 3 msecs of GC per frame (Should pref be lower!)
 	enum max_gc_time_msecs = 3;
 
 	ServiceLocator services;
-	List!IGameComponent components;
+	List!IApplicationComponent components;
 	private bool shouldRun;
 	public string name;
 
@@ -41,7 +41,7 @@ struct Game
 	this(A)(ref A al, size_t numServices, size_t numComponents, string name)
 	{		
 		services   = ServiceLocator(al, numServices);
-		components = List!IGameComponent(al, numComponents);
+		components = List!IApplicationComponent(al, numComponents);
 
 		this.name = name;
 		this.shouldRun = true;
@@ -73,11 +73,11 @@ struct Game
 		services.add(service);
 	}
 
-	void addComponent(T)(T component) if(is(T : IGameComponent))
+	void addComponent(T)(T component) if(is(T : IApplicationComponent))
 	{
-		component.game = &this;
+		component.app = &this;
 		component.initialize();
-		components ~= cast(IGameComponent)component;
+		components ~= cast(IApplicationComponent)component;
 	}
 
 	void stop()
@@ -100,11 +100,11 @@ struct Game
 			last = curr;
 
 			foreach(component; components)
-				component.preStep(GameTime(total, delta));
+				component.preStep(Time(total, delta));
 			foreach(component; components)
-				component.step(GameTime(total, delta));
+				component.step(Time(total, delta));
 			foreach(component; components)
-				component.postStep(GameTime(total, delta));
+				component.postStep(Time(total, delta));
 	
 
 			import core.memory, log;

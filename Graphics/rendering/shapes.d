@@ -7,14 +7,17 @@ public import
 	graphics.frame,
 	graphics.font;
 
-void drawText(R)(ref R renderer, string text, float2 pos, float2 size, ref Font font, 
-				 Color color, float2 thresholds)
+
+void drawText(R)(ref R renderer, const(char)[] text, float2 pos, float2 size, ref Font font, Color color, float2 thresholds, float4 bounds = float4.zero)
 {
+	import std.algorithm;
+	auto lines = text.count("\n");
+	
 	float2 scale = float2(size.x / font.size,  size.y / font.size);
 
 	CharInfo spaceInfo = font[' '];
-
 	float2 cursor = float2(0,0);
+	cursor.y = lines * font.lineHeight * scale.y;
 	foreach(dchar c; text)
 	{
 		if(c == ' ') 
@@ -35,25 +38,26 @@ void drawText(R)(ref R renderer, string text, float2 pos, float2 size, ref Font 
 		}
 		CharInfo info = font[c];
 
-
-
 		float2 off = float2(0, font.size * scale.y);
 		float2 position = cursor - off + pos + float2(info.offset.x * scale.x,
 											    info.offset.y * scale.y);
 
-		renderer.drawDistQuad(float4(position.x,
-								 position.y,
-								 position.x + info.srcRect.z * scale.x,
-								 position.y + info.srcRect.w * scale.y),
-								 Frame(font.page, info.srcRect), 
-								 float3(font.layer, thresholds.x, thresholds.y),
-								 color);
+		float4 distPos = float4(position.x,
+								position.y,
+								position.x + info.srcRect.z * scale.x,
+								position.y + info.srcRect.w * scale.y);
+
+		Frame page    = Frame(font.page, info.srcRect);
+		float3 thresh = float3(font.layer, thresholds.x, thresholds.y);
+
+		renderer.drawDistQuad(distPos, bounds, page, thresh, color);
 
 		cursor.x += info.advance * scale.x;
 	}
 }
 
-void drawDistQuad(R)(ref R renderer, float4 quad, Frame frame, float3 thresh, Color color)
+
+void drawDistQuad(R)(ref R renderer, ref float4 quad, ref Frame frame, ref float3 thresh, Color color)
 {
 	import rendering.renderer;
 
@@ -70,11 +74,71 @@ void drawDistQuad(R)(ref R renderer, float4 quad, Frame frame, float3 thresh, Co
 	renderer.addItems(vertices, indecies, frame.texture);
 }
 
-void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color)
+void drawDistQuad(R)(ref R renderer, 
+					 ref float4 quad, 
+					 ref float4 bounds, 
+					 ref Frame frame, 
+					 ref float3 thresh,
+					 Color color)
+{	
+	if(quad.x > bounds.z ||
+	   quad.y > bounds.w ||
+	   quad.z < bounds.x || 
+	   quad.w < bounds.y)
+	return;
+
+	if(quad.x >= bounds.x &&
+	   quad.y >= bounds.y &&
+	   quad.z <= bounds.z &&
+	   quad.w <= bounds.w)
+	{
+		drawDistQuad(renderer, quad, frame, thresh, color);
+	}
+	else 
+	{
+		fixQuad(quad, frame.coords, bounds);
+		drawDistQuad(renderer, quad, frame, thresh, color);
+	}
+}
+
+
+void fixQuad(ref float4 quad, ref float4 coords, ref float4 bounds)
+{
+	import std.algorithm, std.math;
+	float4 fixed;
+
+	fixed.x = max(quad.x, bounds.x);
+	fixed.y = max(quad.y, bounds.y);
+	fixed.z = min(quad.z, bounds.z);
+	fixed.w = min(quad.w, bounds.w);
+
+	float width = abs(quad.z - quad.x);
+	float height = abs(quad.w - quad.y);
+
+	float cwidth  = coords.z - coords.x;
+	float cheight = coords.w - coords.y;
+
+	coords.x += ((fixed.x - quad.x) / width) * cwidth;
+	coords.y += ((fixed.y - quad.y) / height) * cheight;
+	coords.z += ((fixed.z - quad.z) / width) * cwidth;
+	coords.w += ((fixed.w - quad.w) / height) * cheight;
+
+	quad = fixed;
+}
+
+
+void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color, float4 bounds)
 {
 	import rendering.renderer;
 	static uint[6] indecies = [ 0, 1, 2, 0, 2, 3 ]; 
 
+	if(quad.x > bounds.z ||
+	   quad.y > bounds.w ||
+	   quad.z < bounds.x || 
+	   quad.w < bounds.y)
+		return;
+
+	fixQuad(quad, frame.coords, bounds);
 
 	float4 coords = frame.coords;
 
@@ -86,6 +150,11 @@ void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color)
 
 	renderer.addItems(vertices, indecies, frame.texture);
 }
+
+void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color)
+{
+	drawQuad(renderer, quad, frame, color, quad);
+}	
 
 void drawQuad(R)(ref R renderer, float4 quad, float rotation, Frame frame, Color color)
 {
@@ -123,20 +192,58 @@ void drawTriangle(R)(ref R renderer, float2 a, float2 b, float2 c, Texture2D tex
 	renderer.addItems(vertices, indices, texture);
 }
 
-void drawLine(R)(ref R renderer, float2 start, float2 end, float width, Texture2D texture, Color color)
+void drawQuadOutline(R)(ref R renderer, float4 rect, float width, Frame frame, Color color)
 {
-	alias Vertex = R.Vertex;
+	import rendering.renderer;
+	if(rect.x == rect.z || rect.y == rect.w) return;
+
+
+	static uint[24] indices =
+	[	
+		0, 3, 1,
+		3, 2, 1,
+		3, 5, 2,
+		5, 4, 2,
+
+		5, 7, 4,
+		7, 6, 4,
+		7, 0, 6,
+		0, 1, 6
+	];
+
+	float2 center = (frame.coords.xy + frame.coords.zw) / 2;
+
+	Vertex[8] vertices;
+	vertices[0] = Vertex(rect.xy, center, color);
+	vertices[1] = Vertex(rect.xy + float2(width), center, color);
+
+	vertices[2] = Vertex(rect.zy + float2(-width, width), center, color);
+	vertices[3] = Vertex(rect.zy, center, color);
+
+
+	vertices[4] = Vertex(rect.zw + float2(-width), center, color);
+	vertices[5] = Vertex(rect.zw, center, color);
+
+	vertices[6] = Vertex(rect.xw + float2(width,-width), center, color);
+	vertices[7] = Vertex(rect.xw, center, color);
+
+	renderer.addItems(vertices, indices, frame.texture);
+}
+
+void drawLine(R)(ref R renderer, float2 start, float2 end, float width, Frame frame, Color color)
+{
+	import rendering.renderer;
 	static uint[6] indices = [0, 1, 2,  0, 2, 3];
 	Vertex[4] vertices;
 
 	float2 perp = float2((end - start).y, -(end - start).x).normalized;
 
-	vertices[0] = Vertex(start - perp * width / 2, float2.zero, color);
-	vertices[1] = Vertex(end - perp * width / 2, float2(1,0), color);
-	vertices[2] = Vertex(end + perp * width / 2, float2.one, color);
-	vertices[3] = Vertex(start + perp * width / 2, float2(0, 1), color);
+	vertices[0] = Vertex(start - perp * width / 2,	frame.coords.xy, color);
+	vertices[1] = Vertex(end - perp * width / 2,    frame.coords.zy, color);
+	vertices[2] = Vertex(end + perp * width / 2,	frame.coords.zw, color);
+	vertices[3] = Vertex(start + perp * width / 2,  frame.coords.xw, color);
 
-	renderer.addItems(vertices, indices, texture);
+	renderer.addItems(vertices, indices, frame.texture);
 }
 
 uint[N * 3] makeNGonIndices(size_t N)()

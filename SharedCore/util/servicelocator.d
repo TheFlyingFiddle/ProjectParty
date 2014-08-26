@@ -21,8 +21,7 @@ struct ServiceLocator
 
 	private HashID hashOf(T)(string name)
 	{
-		auto buffer = text1024(T.stringof, name);
-		auto hash = bytesHash(buffer);
+		auto hash = bytesHash(T.stringof, bytesHash(name));
 		return hash;
 	}
 

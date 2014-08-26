@@ -2,23 +2,31 @@ module framework.components;
 
 import framework;
 import concurency.task;
-import window.window;
-import window.keyboard;
 import network.server;
 import network.router; 
 import network.service;
+import window.window;
+import window.keyboard;
+import window.mouse;
+import window.clipboard;
 
 import log;
 
-class WindowComponent : IGameComponent
+class WindowComponent : IApplicationComponent
 {
+
+
 	private Window _window;
 	private Keyboard _keyboard;
+	private Mouse _mouse;
+	private Clipboard _clipboard;
 
 	this(WindowConfig config)
 	{
-		_window = WindowManager.create(config);
-		_keyboard = Keyboard(&_window);
+		_window    = WindowManager.create(config);
+		_keyboard  = Keyboard(&_window);
+		_mouse	   = Mouse(&_window);
+		_clipboard = Clipboard(&_window);
 	}
 
 	~this()
@@ -28,38 +36,45 @@ class WindowComponent : IGameComponent
 
 	override void initialize()
 	{
-		game.addService(&_window);
-		game.addService(&_keyboard);
+		app.addService(&_window);
+		app.addService(&_keyboard);
+		app.addService(&_mouse);
+		app.addService(&_clipboard);
 	}
 
-	override void step(GameTime time)
+	override void step(Time time)
 	{
 		_window.update();
 		if(_window.shouldClose)
-			game.stop();
+			app.stop();
+
+		_mouse.update();
+		_keyboard.update();
 	}
 
-	override void postStep(GameTime time)
+	override void postStep(Time time)
 	{
+		_mouse.postUpdate();
+		_keyboard.postUpdate();
 		_window.swapBuffer();
 	}
 }
 
-class TaskComponent : IGameComponent
+class TaskComponent : IApplicationComponent
 {
 	this(A)(ref A al, ConcurencyConfig config)
 	{
-		concurency.task.initialize(al, config);
+		concurency.task.initialize(al, config);	
 	}
 
-	override void step(GameTime time)
+	override void step(Time time)
 	{
 		import concurency.task;
 		consumeTasks();
 	}
 }
 
-class NetworkComponent : IGameComponent
+class NetworkComponent : IApplicationComponent
 {
 	Server* server;
 	Router* router;
@@ -98,15 +113,15 @@ class NetworkComponent : IGameComponent
 	override void initialize()
 	{
 		import network.file;
-		game.addService(server);
-		game.addService(router);
-		game.addService(provider);
+		app.addService(server);
+		app.addService(router);
+		app.addService(provider);
 
 		auto ip = server.listenerAddress.addr;
 		taskpool.doTask!(listenForFileRequests)(ip, cast(ushort)13462, resourceDir);
 	}
 
-	override void step(GameTime time)
+	override void step(Time time)
 	{
 		server.update(time.delta.to!("seconds", float));
 		provider.poll();
@@ -115,7 +130,7 @@ class NetworkComponent : IGameComponent
 
 
 
-class RenderComponent : IGameComponent
+class RenderComponent : IApplicationComponent
 {
 	import rendering.renderer;
 	SpriteRenderer* renderer;
@@ -126,12 +141,12 @@ class RenderComponent : IGameComponent
 
 	override void initialize()
 	{
-		game.addService(renderer);
+		app.addService(renderer);
 	}
 
-	override void preStep(GameTime time)
+	override void preStep(Time time)
 	{
-		auto w = game.locate!Window;
+		auto w = app.locate!Window;
 		renderer.viewport = w.size;
 
 		import graphics;
@@ -143,7 +158,7 @@ class RenderComponent : IGameComponent
 		renderer.begin();
 	}
 
-	override void postStep(GameTime time)
+	override void postStep(Time time)
 	{
 		renderer.end();
 	}
@@ -151,12 +166,12 @@ class RenderComponent : IGameComponent
 
 version(RELOADING)
 {
-	class ReloadingComponent : IGameComponent
+	class ReloadingComponent : IApplicationComponent
 	{
 		override void initialize()
 		{
 			import content.content, content.reloading;
-			auto loader = game.locate!AsyncContentLoader;
+			auto loader = app.locate!AsyncContentLoader;
 			setupReloader(12345, loader);
 		}
 	}

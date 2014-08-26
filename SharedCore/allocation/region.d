@@ -53,11 +53,6 @@ struct RegionAllocator
 		assert(bytesAllocated <= _capacity, "Out of memory");
 		return alignedOffset[0 .. size];
 	}
-
-	void deallocate_impl(void[] mem)
-	{
-		rewind(mem.ptr);
-	}
 	
 	void rewind(void* rewindPos)
 	{

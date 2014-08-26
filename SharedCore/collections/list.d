@@ -6,6 +6,13 @@ import std.conv;
 
 struct List(T)
 {
+	import std.range : isInputRange, isForwardRange, isBidirectionalRange, isRandomAccessRange;
+	
+	static assert(isInputRange!(List!T));
+	static assert(isForwardRange!(List!T));
+	static assert(isBidirectionalRange!(List!T));
+	static assert(isRandomAccessRange!(List!T));
+	
 	//This could potentially length + capacity at the begining of the buffer
 	//instead. This would lead to reference like behaviour.
 	T* buffer;
@@ -36,16 +43,28 @@ struct List(T)
 		this.capacity = capacity; 
 	}
 
+	void deallocate(A)(ref A allocator)
+	{
+		//This is ofc only valid if allocated through a allocator
+		//That accepts deallocate!
+		allocator.deallocate(buffer[0 .. capacity]);
+	}
+
 	ref T opIndex(size_t index)
 	{
 		assert(index < length, text("A list was indexed outsize of it's bounds! Length: ", length, " Index: ", index));
 		return buffer[index];
 	}
 
-	void opOpAssign(string s)(auto ref T value) if(s == "~")
+	void opOpAssign(string s : "~")(auto ref T value)
 	{
 		assert(length < capacity, "The list is full can no longer append!");
 		buffer[length++] = value;
+	}
+
+	void opOpAssign(string s : "~", Range)(Range range)
+	{
+		put(range);
 	}
 
 	void opIndexAssign(ref T value, size_t index)
@@ -74,7 +93,7 @@ struct List(T)
 	}
 
 
-	uint opDollar()
+	uint opDollar(size_t pos)()
 	{
 		return length;
 	}
@@ -91,10 +110,15 @@ struct List(T)
 		return true;
 	}
 
+	List!T opSlice()
+	{
+		return List!T(buffer, length, capacity);
+	}
+
 	List!T opSlice(size_t x, size_t y)
 	{
-		assert(x <= y && x <= length && y <= length);
-		T* b = cast(T*)(cast(size_t)buffer + x * T.sizeof);
+		assert(x <= y && x <= length && y <= length, text("[", x, " .. ", y, "] Length: ", length));
+		T* b = &buffer[x];
 		uint length = cast(uint)(y - x);
 		return List!T(b, length, length);
 	}	
@@ -138,11 +162,23 @@ struct List(T)
 		length++;
 	}
 
+	void insert(size_t index, const(T)[] range)
+	{
+		assert(length + range.length <= capacity, text("Cannot insert outside of bounds! Length: ", length, " Index: ", index));
+
+		foreach_reverse(i; index .. length + range.length)
+			buffer[i + range.length] = buffer[i];
+
+		buffer[index .. index + range.length] = cast(T[])range;
+		length += range.length;
+	}
+
 	//Range interface
-	List!T save() { return this; }
-	ref T front() { return *buffer; }
-	ref T back()  { return buffer[length - 1]; }
-	bool empty() { return length == 0; }
+	@property List!T save() { return this; }
+	@property bool empty() { return length == 0; }
+
+	@property ref T front() { return *buffer; }
+	@property ref T back()  { return buffer[length - 1]; }
 	void popFront() {
 		length--;
 		buffer++;
@@ -206,6 +242,14 @@ bool removeAt(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t i
 
 		list.length--;
 	}
+	return true;
+}
+
+bool removeSection(SwapStrategy s = SwapStrategy.stable, T)(ref List!T list, size_t start, size_t end)
+{
+	foreach(i; start .. end)
+		removeAt(list, start);
+
 	return true;
 }
 

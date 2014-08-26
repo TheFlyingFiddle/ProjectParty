@@ -26,7 +26,7 @@ class LoadingScreen : Screen
 	override void initialize()
 	{
 		import content;
-		loader = game.locate!AsyncContentLoader;
+		loader = app.locate!AsyncContentLoader;
 
 		font = loader.load!FontAtlas(config.font);
 
@@ -34,7 +34,7 @@ class LoadingScreen : Screen
 			loader.asyncLoad(item);
 	}
 
-	override void update(GameTime time)
+	override void update(Time time)
 	{
 		if(loader.areAllLoaded)
 		{
@@ -44,12 +44,12 @@ class LoadingScreen : Screen
 	}
 
 	uint frame = 0;
-	override void render(GameTime time)
+	override void render(Time time)
 	{
 		import std.range, util.strings, window.window;
 
-		auto screen  = game.locate!Window;
-		auto renderer = game.locate!FontRenderer;
+		auto screen   = app.locate!Window;
+		auto renderer = app.locate!FontRenderer;
 		renderer.viewport(float2(screen.size));
 		renderer.begin();
 		

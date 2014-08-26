@@ -6,13 +6,13 @@ import collections.list;
 
 abstract class Screen
 {
-	private Game* _game; //Gives access to game. 
-	Game* game() { return _game; }
+	private Application* _app; //Gives access to game. 
+	@property Application* app() { return _app; }
 	bool blockUpdate, blockRender;
 
 	ScreenComponent owner() 
 	{
-		return game.locate!ScreenComponent;
+		return app.locate!ScreenComponent;
 	}
 
 
@@ -23,11 +23,11 @@ abstract class Screen
 	}	
 
 	void initialize() { }
-	void update(GameTime time) { }
-	void render(GameTime time) { }
+	void update(Time time) { }
+	void render(Time time) { }
 }
 
-final class ScreenComponent : IGameComponent
+final class ScreenComponent : IApplicationComponent
 {
 	private List!Screen screens;
 
@@ -38,7 +38,7 @@ final class ScreenComponent : IGameComponent
 
 	void push(Screen screen)
 	{
-		screen._game = game;
+		screen._app = app;
 		screen.initialize();
 		screens ~= screen;
 	}
@@ -51,7 +51,7 @@ final class ScreenComponent : IGameComponent
 		return r;
 	}
 
-	override void step(GameTime time)
+	override void step(Time time)
 	{
 		int uIndex = screens.countUntil!(x => x.blockUpdate);
 		int rIndex = screens.countUntil!(x => x.blockRender);

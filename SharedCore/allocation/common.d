@@ -132,6 +132,21 @@ void deallocate(T,A)(ref A allocator, T item) if(is(T == class))
 	allocator.deallocate_impl(toDealloc);
 }
 
+void deallocate(T,A)(ref A allocator, T* item) if(is(T == struct))
+{
+	static if(hasMember!(T, "deallocate"))
+		item.deallocate(allocator);
+
+	void* ptr = cast(void*)item;
+	void[] toDealloc = ptr[0 .. T.sizeof];
+	allocator.deallocate_impl(toDealloc);
+}
+
+void deallocate(T, A)(ref A allocator, T[] item) if(!is(T == void))
+{
+	allocator.deallocate_impl(cast(void[])item);
+}
+
 //Test if out of memory assertion works.
 unittest
 {

@@ -14,8 +14,7 @@ struct Vertex
 	float2 position;
 	float2 coords;
 
-	@Normalized
-		Color  color;
+	@Normalized Color  color;
 }
 
 struct DistVertex
@@ -50,6 +49,8 @@ struct Renderer(V)
 	private Program!(Uniform, V) program;
 	private List!RenderData renderData;
 
+	private Sampler sampler;
+
 	this(A)(ref A allocator, RenderConfig config, string vSource, string fSource)
 	{
 		this.renderData	  = List!RenderData(allocator, config.maxBatchSize / 6);
@@ -58,6 +59,10 @@ struct Renderer(V)
 
 		program = Program!(Uniform, V)(vShader, fShader);
 		program.uniforms.sampler = 0;
+
+		sampler = Sampler.create();
+		sampler.minFilter(TextureMinFilter.linear);
+		sampler.magFilter(TextureMagFilter.linear);
 
 		renderBuffer = AsyncRenderBuffer!V(config.maxBatchSize, config.batchCount, program);
 	}
@@ -84,6 +89,7 @@ struct Renderer(V)
 
 	private void draw(int start)
 	{
+		context[TextureUnit.zero] = sampler;
 		foreach(data; renderData)
 		{
 			context[TextureUnit.zero] = data.texture;

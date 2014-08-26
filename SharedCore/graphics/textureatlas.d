@@ -19,25 +19,26 @@ struct TextureAtlas
 		return _texture;
 	}
 
-	float4 opIndex(string name)
+	Frame opIndex(HashID id)
 	{
-		auto h = bytesHash(name);
-		auto index = rects.countUntil!(x => x.hash == h);
+		import std.algorithm;
+		auto index = rects.countUntil!(x => x.hash == id.value);
 		if(index != -1)
-			return rects[index].source;
+			return Frame(texture, rects[index].source);
 
 		import util.strings;
-		assert(0, text1024("Frame not present in atlas : ", name));
+		assert(0, text1024("Frame not present in atlas : ", id));
+	}
+
+	Frame opIndex(string name)
+	{
+		auto h = bytesHash(name);
+		return this[h];
 	}
 
 	Frame opDispatch(string s)()
 	{
-		return frame(s);
-	}
-
-	Frame frame(string index)
-	{
-		return Frame(texture, this[index]);
+		return this[s];
 	}
 
 	int opApply(int delegate(uint, Frame) dg)

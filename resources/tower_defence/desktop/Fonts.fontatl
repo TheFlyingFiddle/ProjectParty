@@ -4,8 +4,10 @@ fonts =
 		|DejaVuSansMono.ttf|,
 		|comic.ttf|,
 		|impact.ttf|,
-		|consola.ttf|,
-		|FINALNEW.ttf|
+		|segoeui.ttf|,
+		|seguisli.ttf|,
+		|FINALNEW.ttf|,
+		|calibri.ttf|
 	]
 size  = 256
 maxChar = 256

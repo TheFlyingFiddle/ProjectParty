@@ -16,7 +16,7 @@ import concurency.task;
 import allocation;
 import rendering;
 
-struct PhoneGameConfig
+struct PhoneAppConfig
 {
 	size_t numServices, numComponents;
 	string name;
@@ -30,9 +30,9 @@ struct PhoneGameConfig
 }
 
 
-Game* createPhoneGame(A)(ref A al, PhoneGameConfig config)
+Application* createPhoneApp(A)(ref A al, PhoneAppConfig config)
 {
-	Game* g = al.allocate!Game(al, config.numServices, config.numComponents, config.name);
+	Application* g = al.allocate!Application(al, config.numServices, config.numComponents, config.name);
 
 	auto loader  = al.allocate!AsyncContentLoader(al, config.contentConfig);
 	g.addService(loader);
