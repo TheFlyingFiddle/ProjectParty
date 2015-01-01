@@ -31,7 +31,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>0</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>1</useUnitTests>
+  <useUnitTests>0</useUnitTests>
   <useInline>0</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
@@ -44,10 +44,12 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\SharedCore; ..\Derelict; ..\Graphics; ..\NetworkGame; ..\ContentCore;</imppath>
+  <imppath>..\SharedCore; ..\Derelict; ..\Graphics; ..\NetworkGame; ..\ContentCore; ..\Gui</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -83,8 +85,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Graphics.lib Framework.lib Derelict.lib ContentCore.lib</libfiles>
-  <libpaths>../Derelict/Debug ../SharedCore/Debug ../Graphics/Debug ../NetworkGame/Debug ../ContentCore/Debug</libpaths>
+  <libfiles>SharedCore.lib Graphics.lib Framework.lib Derelict.lib ContentCore.lib Gui.lib</libfiles>
+  <libpaths>../Derelict/Debug ../SharedCore/Debug ../Graphics/Debug ../NetworkGame/Debug ../ContentCore/Debug ../Gui/Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
@@ -139,6 +141,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -234,6 +238,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -329,6 +335,8 @@
   <nofloat>0</nofloat>
   <Dversion>2.043</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -384,10 +392,5 @@
   <File path="config.sdl" />
   <File path="main.d" />
   <File path="network_types.d" />
-  <File path="ui.d" />
-  <File path="ui_controls.d" />
-  <File path="ui_tabcontrol.d" />
-  <File path="ui_textfield.d" />
-  <File path="ui_window.d" />
  </Folder>
 </DProject>

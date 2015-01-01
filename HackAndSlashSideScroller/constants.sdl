@@ -1,0 +1,5 @@
+playerSpeedMultiplier = 5
+gravity				  = 2000
+jump				  = 5
+worldScale			  = 64
+maxFallSpeed		  = 700

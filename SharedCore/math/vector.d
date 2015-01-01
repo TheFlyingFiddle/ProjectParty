@@ -19,10 +19,38 @@ alias float4  = Vector!(4, float);
 alias int4    = Vector!(4, int);
 alias uint4   = Vector!(4, uint);
 alias ushort4 = Vector!(4, ushort);
+alias ubyte4  = Vector!(4, ubyte);
 
 struct Vector(size_t size, T) 
 {
-	private T[size] data;
+	union
+	{
+		T[size] data;	
+		struct 
+		{
+			static if(size > 0)
+				T x;
+			static if(size > 1)
+				T y;
+			static if(size > 2)
+				T z; 
+			static if(size > 3)
+				T w;
+		}
+	}
+
+	const void toString(scope void delegate(in char[]) sink)
+	{
+		import util.strings;
+		char[100] buffer;
+		sink(text(buffer, "X: ", x, " Y: ", y));
+	}	
+
+	string toString()
+	{
+		import std.conv;
+		return text("X:", x, " Y:", y);
+	}	
 
 	this(U)(U u) if (isNumeric!U)
 	{
@@ -106,14 +134,6 @@ struct Vector(size_t size, T)
 			return this;
 		}
 
-	ref T opDispatch(string s, U)(U t) @property
-		if(s.length == 1 && is(U : T))
-		{
-			enum offset = swizzleTable[s[0]];
-			data[offset] = t;
-			return data[offset];
-		}
-
 	void opDispatch(string s, Vec)(ref Vec vec) 
 		if(is(Vec v == Vector!Args, Args...)
 		   && s.length == Args[0] 
@@ -123,13 +143,6 @@ struct Vector(size_t size, T)
 				enum offset = swizzleTable[s[i]];
 				data[offset] = vec.data[i];
 			}
-		}
-
-	auto ref opDispatch(string s)()
-		if(s.length == 1LU)
-		{
-			enum offset = swizzleTable[s[0]];
-			return data[offset];
 		}
 
 	Vector!(s.length, T) opDispatch(string s)()
@@ -186,8 +199,8 @@ Vector!(N, T) normalized(size_t N, T)(auto ref Vector!(N,T) vec)
 void normalize(size_t N, T)(ref Vector!(N,T) vec)
 {
 	auto m = vec.magnitude();
-	foreach(i; staticIota!(0, size))
-		this.data[i] /= m;
+	foreach(i; staticIota!(0, N))
+		vec.data[i] /= m;
 }
 
 auto dot(size_t N, T, U)(auto ref Vector!(N, T) vec0, 
@@ -247,6 +260,7 @@ auto cross(T, U)(auto ref Vector!(3, T) vec0,
 auto rotate(T)(Vector!(2, T) toRotate, float angle)
 {
 	import std.math;
+
 	auto s = sin(angle), 
 		 c = cos(angle);
 
@@ -264,31 +278,4 @@ template staticIota(size_t s, size_t e, size_t step = 1)
 		alias staticIota = TypeTuple!(s, staticIota!(s + step, e));
 	else 
 		alias staticIota = TypeTuple!();
-}
-
-unittest
-{
-	float2 a = float2(1), b = float2(2);
-
-	a.x = 2;
-	a.y = 3;
-	assert(a.opDispatch!("x") == 2 && a.y == 3);
-
-	b.opDispatch!("xy")(a);
-	assert(b.x == 2 && b.y == 3);
-
-	auto aa = a.yy;
-	b += a.yy;
-	assert(b.x == 5 && b.y == 6);
-
-	float3 c;
-	c.x = 1;
-	c.y = 2;
-	c.z = 3;
-
-	float4 f;
-	f.x = 1;
-	f.y = 2;
-	f.z = 3;
-	f.w = 4;
 }

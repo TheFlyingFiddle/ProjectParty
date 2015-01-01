@@ -95,6 +95,11 @@ struct VariantTable(size_t size)
 		enum id  = bytesHash(name);
 		_rep[id] = VariantN!size(t);
 	}
+
+	void add(T)(string name, auto ref T t)
+	{
+		_rep[bytesHash(name)] = VariantN!size(t);
+	}
 }
 
 unittest

@@ -27,7 +27,7 @@ class Listener : TcpSocket
 
 	override Socket accepting()
 	{
-	  return freeList.allocate();
+		return freeList.pureAllocate();
 	}
 
 	void deallocate(Socket toFree)

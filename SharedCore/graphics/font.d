@@ -72,6 +72,7 @@ struct Font
 	float2 measure(const(char)[] text)
 	{
 		import std.math;
+		float charHeight = 0;
 		float width = 0, height = 0, cursor = 0;
 
 		foreach(dchar c; text)
@@ -95,11 +96,15 @@ struct Font
 
 			CharInfo info = this[c];
 			cursor += (info.advance);
+			charHeight = max(charHeight, info.srcRect.w);
 		}
 
 		width = fmax(width, cursor);
-		height += size;
-		return float2(width, height) / size;
+
+		if(height == 0)
+			return float2(width, charHeight) / size;
+		else
+			return float2(width, height + size) / size;
 	}
 
 }

@@ -18,15 +18,32 @@ import log;
 import core.sys.windows.windows;
 import core.runtime;
 
-void main()
+extern(C) void _d_assert_msg(string msg, string file, uint line)
+{
+	import core.exception;
+	Exception t = new Exception(msg, file, line);
+	import std.stdio;
+	writeln(t);
+	readln;
+}
+
+extern(C) void _d_assert(string file, uint line) 
 {
 	import std.stdio;
 
+	Exception t = new Exception("Assertion Failiure: ", file, line);
+	writeln(t);
+	readln;
+}
+
+
+void main()
+{
+	import std.stdio;
 	initializeRemoteLogging("TowerDefence");
 	scope(exit) termRemoteLogging();
 
 	init_dlls();
-
 	try
 	{
 		auto config = fromSDLFile!PhoneAppConfig(Mallocator.it, "config.sdl");
@@ -78,8 +95,8 @@ void run(PhoneAppConfig config)
 	
 class Screen1 : Screen
 {
-	import rendering.gui_renderer;
-	import ui, ui_textfield, ui_controls, ui_tabcontrol;
+	import rendering.combined;
+	import ui, ui.controls;
 	import network.server;
 	import network.router;
 	import network.message;
@@ -87,8 +104,11 @@ class Screen1 : Screen
 
 	FontHandle font;
 	AtlasHandle atlas;
-	GuiRenderer* renderer;
+	Renderer2D* renderer;
+	
 	Gui gui;
+	SuperMenu sm;
+	Menu m;
 	
 	EditText text;
 	float number = 0;
@@ -111,6 +131,8 @@ class Screen1 : Screen
 		text = EditText(Mallocator.it, 128);
 		text ~= "Hello World";
 
+
+
 		buildGUI();
 	}
 
@@ -118,7 +140,7 @@ class Screen1 : Screen
 	{
 		auto all = Mallocator.it;
 
-		renderer = all.allocate!GuiRenderer(all, RenderConfig(0xFFFF, 3));
+		renderer = all.allocate!Renderer2D(all, RenderConfig(0xFFFF, 3));
 		
 		renderer.viewport(float2(app.locate!(Window).size));
 
@@ -129,7 +151,8 @@ class Screen1 : Screen
 		style.down		= GuiFrame("pixel", Metro.darkPurple);
 		style.highlight = GuiFrame("pixel", Metro.lightPurple);
 		style.downHl	= GuiFrame("pixel",	Metro.blue);
-		style.font		= GuiFont("segoeui", Metro.lightBlue, float2(15, 15), float2(0.12, 0.55));
+		style.font		= GuiFont("segoeui", Metro.lightBlue, 
+								  float2(15, 15), float2(0.12, 0.55));
 		style.vertical  = VerticalAlignment.center;
 		style.horizontal = HorizontalAlignment.center;
 
@@ -166,7 +189,7 @@ class Screen1 : Screen
 		textfield.cursorColor		= Metro.darken;
 		textfield.selectionColor	= Color(0xaa83aa32);
 		textfield.flashSpeed		= 1.0f; //In seconds i guess;
-		textfield.font				= GuiFont("calibri", Color(0xFF000000), float2(20, 20), float2(0.12, 0.7));
+		textfield.font				= GuiFont("segoeuil", Color(0xFFFFFFFF), float2(15, 15), float2(0.1, 0.7));
 		textfield.padding			= float2(4, 5);
 		textfield.errorColor		= Metro.darkPurple;
 		skin.textfield = textfield;
@@ -199,13 +222,73 @@ class Screen1 : Screen
 		image.bg = GuiFrame("pixel", Metro.white);
 		skin.image = image;
 
+
+		GuiEnum.Style enum_;
+		enum_.bg   = GuiFrame("pixel", Color(0xFFbbbbbb));
+		enum_.font = GuiFont("segoeui", Metro.darken, float2(15, 15), float2(0.12, 0.7));
+		enum_.highlight = GuiFrame("pixel", Color(0xFFcccccc));
+		enum_.padding   = float2(4, 4);
+		enum_.spacing   = 2;
+		skin.enumfield = enum_;
+
 		GuiWindow.Style guiwindow;
 		guiwindow.focusColor    = Metro.darken;
 		guiwindow.nonFocusColor = Color(0xFF544554);
-		guiwindow.bg			= GuiFrame("pixel", Metro.magenta);
-		guiwindow.dragHeight = 15;
+		guiwindow.bg			= GuiFrame("pixel", Metro.orange);
+		guiwindow.closeButton   = "button";
+		guiwindow.padding       = ubyte4(4, 4, 4, 4);
+		guiwindow.titleHeight   = 32;
+		guiwindow.font			= GuiFont("segoeui", Color(0xFF000000), float2(15, 15), float2(0.12, 0.7));
 
 		skin.guiwindow = guiwindow;
+
+		GuiWindow.Style guiwindow2;
+		guiwindow2.focusColor    = Metro.darken;
+		guiwindow2.nonFocusColor = Color(0xFF544554);
+		guiwindow2.bg			= GuiFrame("pixel", Metro.blue);
+		guiwindow2.closeButton   = "button";
+		guiwindow2.padding       = ubyte4(4, 4, 4, 4);
+		guiwindow2.titleHeight   = 32;
+		guiwindow2.font			= GuiFont("segoeui", Color(0xFF000000), float2(15, 15), float2(0.12, 0.7));
+
+		skin.bluewindow = guiwindow2;
+
+		GuiWindow.Style guiwindow3;
+		guiwindow3.focusColor    = Metro.darken;
+		guiwindow3.nonFocusColor = Color(0xFF544554);
+		guiwindow3.bg			= GuiFrame("pixel", Metro.green);
+		guiwindow3.closeButton   = "button";
+		guiwindow3.padding       = ubyte4(4, 4, 4, 4);
+		guiwindow3.titleHeight   = 32;
+		guiwindow3.font			= GuiFont("segoeui", Color(0xFF000000), float2(15, 15), float2(0.12, 0.7));
+
+		skin.greenwindow = guiwindow3;
+
+		GuiWindow.Style menuwindow;
+		menuwindow.focusColor    = Metro.darken;
+		menuwindow.nonFocusColor = Color(0xFF544554);
+		menuwindow.bg			 = GuiFrame("pixel", Color(0xFF666666));
+		menuwindow.closeButton   = "button";
+		menuwindow.padding       = ubyte4(4, 4, 4, 4);
+		menuwindow.titleHeight   = 0;
+		menuwindow.font			 = GuiFont("segoeui", Color(0xFF000000), float2(15, 15), float2(0.12, 0.7));
+
+		skin.menuwindow = menuwindow;
+
+		GuiMenu.Style gmenu;
+		gmenu.font  = GuiFont("segoeuil", Color(0xFF000000), float2(15, 15), float2(0.12, 0.7));
+		gmenu.size  = 25;
+		gmenu.width = 100;
+		gmenu.iconSpace = 25;
+		gmenu.padding = ubyte4(4, 0, 4, 4);
+		gmenu.windowID = "menuwindow";
+		gmenu.submenuIcon = "baws";
+
+		gmenu.focus		 = GuiFrame("pixel", Color(0xFF666666));
+		gmenu.highlight  = GuiFrame("pixel", Color(0xFFcccccc));
+		gmenu.idle		 = GuiFrame("pixel", Color(0xFFaaaaaa));
+
+		skin.menu   = gmenu;
 
 		auto window = app.locate!Window;
 		gui = Gui(all, atlas, font, skin, renderer, 
@@ -213,10 +296,24 @@ class Screen1 : Screen
 				  app.locate!Mouse,
 				  app.locate!Clipboard,
 				  Rect(0,0, window.size.x, window.size.y));
+
+
+		m = Menu(all, &sm, 200);
+
+		foreach(item; m.items)
+		{
+			logInfo(item.name);
+		}	
+	}
+
+	void handleMenu()
+	{
+		logInfo("A menuItem was clicked!");
 	}
 
 	void handleTestMessageA(ulong id, TestMessageA message)
 	{
+
 	}
 
 	override void update(Time time) 
@@ -245,59 +342,36 @@ class Screen1 : Screen
 			server.sendMessage(server.activeConnections[0].id, TestMessageB(10, 100.0));
 		}
 	}
+	
+	enum TestEnum { Once, Upon, A, Time, Hue, Hua, Huer, Garht, Garther, Mastor,
+					Life, Is, But, Two, Thriefelr, Ing, Ar, Thingr, Burbur, Murcar,
+					Little, Burdoodle, In, Garlg, Garmn, Garthir, aweqq, adwat,
+					Awdpok, awenqi, ascopi, qweiuh, qweawreq, jkahweqe, qpweidad}
+	
+	
+	TestEnum tEnum;
 
 	float2 thresh = float2(0,1);
 	override void render(Time time)
 	{
 		auto chnl = LogChannel("Lame");
 	
-		/* auto screen = game.locate!Window;
-		renderer.viewport(float2(screen.size));
-
-		renderer.begin();
-
-		import util.strings;
-		int y = 40;
-		//foreach(i; 1 .. 30)
-		//{
-		//    Color c;
-		//    //c.r = i * 0.1;
-		//    //c.b = i * 0.1;
-		//    c.g = i * (1 / 30.0);
-		//    c.b = 0.5  + i * (1 / 60.0);
-		//    c.a = 1;
-		//
-		//
-		//    renderer.drawText("The quick brown fox jumped over the lazy dog[p]'\\\";ö'äöå¨p!#¤%&/()=QWERTYUIOPASDFGHJKLÖÄ>ZXCVBNM;:",
-		//                      float2(0,  screen.size.y - 10 - y), i * 5, 
-		//                      font.asset.fonts[2], Color.black,thresh);
-		//    y += 5 + i * 5;
-		//}
-
-		renderer.drawQuad(float4(500,64,564,128), atlas.asset.orange, Color.white);
-		renderer.drawText("This is consolas!", float2(0, screen.size.y - 100), float2(y), font.asset["consola"], Color.black, thresh); 
-		renderer.drawText("This is DejaVuSansMono!", float2(0, screen.size.y - 200), float2(y), font.asset.fonts[1], Color.black, thresh);
-		renderer.drawText("This is comic!", float2(0, screen.size.y - 300), float2(y), font.asset.fonts[2], Color.black, thresh);
-		renderer.drawText("This is impact!", float2(0, screen.size.y - 400), float2(y), font.asset.fonts[3], Color.black, thresh);
-		renderer.drawText("This is FINAL STUFF!", float2(0, screen.size.y - 500), float2(y), font.asset.fonts[4], Color.black, thresh);
-		renderer.drawText("This is FINAL STUFF!", float2(0, screen.size.y - 600), float2(y), font.asset.fonts[5], Color.black, thresh);
-
-		renderer.end(); */
-		
 		auto window = app.locate!Window;
 		renderer.viewport(float2(window.size));
 
 
 		gl.viewport(0,0, cast(int)window.size.x, cast(int)window.size.y);
 
-		gui.guiState.area = Rect(0,0, window.size.x, window.size.y);
+		gui.area = Rect(100,100, window.size.x - 200, window.size.y - 200);
 		gui.begin();
+
+		gui.menu(m);
+		gui.enumField(Rect(100, 600, 200, 30), tEnum);
 
 		Rect mainWindow = Rect(0,0, window.size.x, window.size.y);
 		scrollgui(mainWindow, gui);
 
 		gui.end();
-		
 
 	}
 
@@ -336,18 +410,29 @@ class Screen1 : Screen
 		gui.label(Rect(1000, 150, 200, 100), "This is a label!");
 		gui.image(Rect(1000, 50, 100, 100), atlas.asset.orange);
 
-		gui.scrollarea(Rect(500, 100, 400, 500), scroll2, &scrollgui2);
-		gui.guiwindow(1, -1, window1, &scrollgui3);
-		gui.guiwindow(2, -1, window0, &winGui2);
-		gui.guiwindow(4, -1, window3, &scrollgui3);
-		gui.guiwindow(5, 2, window6, &scrollgui3);
+
+		//gui.scrollarea(Rect(500, 100, 400, 500), scroll2, &scrollgui2);
+		
+		foreach(ref w; wind)
+		{
+			if(w.active)
+				gui.guiwindow(w.id, w.area, &scrollgui3, w.style);
+		}
 	}
 
-	Rect window0 = Rect(150, 100, 400, 300);
-	Rect window1 = Rect(50, 100, 400, 300);
-	Rect window2 = Rect(50, 100, 400, 300);
-	Rect window3 = Rect(50, 100, 50, 50);
-	Rect window6 = Rect(50, 100, 200, 150);
+	struct Wind
+	{
+		int id;
+		Rect area;
+		bool active;
+		HashID style;
+	}
+
+	Wind[2] wind =
+	[
+		Wind(2, Rect(500, 100, 400, 300), true, HashID("greenwindow")),
+		Wind(3, Rect(500, 500, 400, 300), true, HashID("bluewindow")),
+	];
 
 	void winGui2(Rect client, ref Gui g)
 	{
@@ -366,15 +451,25 @@ class Screen1 : Screen
 		g.button(Rect(270, 220, 250, 50), "D");
 	}
 	
-
-	void scrollgui3(Rect client, ref Gui g)
+	void scrollgui3(ref Gui g, ref GuiWindow window)
 	{
 		g.button(Rect(20, 20, 50, 50), "A");
 		g.button(Rect(120, 120, 50, 50), "B");
 		g.button(Rect(220, 170, 50, 50), "C");
 		g.button(Rect(270, 220, 250, 50), "D");
-	}
 
+
+		g.windowContent("This be a window man!", GuiFrame("baws", Color.white));
+		if(g.closeWindow())
+		{
+			auto windowID = g.activeWindowID();
+			auto index = wind[].countUntil!(x => x.id == windowID);
+			wind[index].active = false;
+		}
+
+		g.resizeWindow();
+		g.dragWindow();
+	}
 
 	void nothing(ref Gui gui) 
 	{
@@ -404,4 +499,44 @@ class Screen1 : Screen
 
 	float slid = 0;
 	int sel = 0;
+}
+
+struct SuperMenu
+{
+	void Edit()
+	{
+
+	}
+
+	FileMenu File;
+
+}
+
+struct FileMenu 
+{
+	NewMenu New;
+	void Save()		{ }
+	void SaveAs()	{ } 
+
+	void Exit()
+	{
+		import std.c.stdlib;
+		exit(-1);
+	}
+}
+
+struct NewMenu
+{
+	void Txt() { } 
+	void Png() { }
+	void Project() { }
+
+	TestMenu Test;
+}
+
+struct TestMenu
+{
+	void DoSomething() { }
+	void DoSomethingElse() { }
+	void DoSomethingDiffrent() { }
 }

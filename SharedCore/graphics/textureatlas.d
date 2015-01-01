@@ -18,6 +18,11 @@ struct TextureAtlas
 	{
 		return _texture;
 	}
+	
+	size_t length()
+	{
+		return rects.length;
+	}	
 
 	Frame opIndex(HashID id)
 	{
@@ -34,6 +39,11 @@ struct TextureAtlas
 	{
 		auto h = bytesHash(name);
 		return this[h];
+	}
+
+	Frame opIndex(size_t index)
+	{
+		return Frame(_texture, rects[index].source);
 	}
 
 	Frame opDispatch(string s)()

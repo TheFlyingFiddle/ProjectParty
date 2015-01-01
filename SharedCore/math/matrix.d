@@ -19,8 +19,8 @@ struct Matrix2
 	this(float f00, float f01, float f10, float f11)
 	{
 		this._rep[0] = f00;
-		this._rep[2] = f01;
-		this._rep[1] = f10;
+		this._rep[1] = f01;
+		this._rep[2] = f10;
 		this._rep[3] = f11;
 	}
 
@@ -32,7 +32,7 @@ struct Matrix2
 
 	Matrix2 transpose() @property
 	{
-		return Matrix2(_rep[0], _rep[1], _rep[2], _rep[3]);
+		return Matrix2(_rep[0], _rep[2], _rep[1], _rep[3]);
 	}
 
 	float determinant() @property

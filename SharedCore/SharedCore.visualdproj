@@ -32,7 +32,7 @@
   <noboundscheck>1</noboundscheck>
   <useSwitchError>0</useSwitchError>
   <useUnitTests>0</useUnitTests>
-  <useInline>0</useInline>
+  <useInline>1</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
   <warnings>0</warnings>
@@ -44,6 +44,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -83,8 +85,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>Derelict.lib</libfiles>
-  <libpaths>..\Derelict\Debug </libpaths>
+  <libfiles>Derelict.lib Xinput9_1_0.lib</libfiles>
+  <libpaths>..\Derelict\Debug ..\lib\win32</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
@@ -139,6 +141,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -234,6 +238,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -329,6 +335,8 @@
   <nofloat>0</nofloat>
   <Dversion>2.043</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -470,8 +478,10 @@
   </Folder>
   <Folder name="window">
    <File path="window\clipboard.d" />
+   <File path="window\gamepad.d" />
    <File path="window\keyboard.d" />
    <File path="window\mouse.d" />
+   <File path="window\package.d" />
    <File path="window\window.d" />
   </Folder>
   <File path="external_libraries.d" />

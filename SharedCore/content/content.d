@@ -29,20 +29,7 @@ struct ContentHandle(T)
 		auto item = cast(T*)(handle.item);
 		return *item;
 	}
-
-	auto ref opDispatch(string s)()
-	{
-		assert(handle.typeHash == cHash!T);
-		auto item = cast(T*)(handle.item);
-		mixin("return item." ~ s ~ ";");
-	}
-
-	auto ref opDispatch(string s, Args...)(Args args)
-	{
-		assert(handle.typeHash == cHash!T);
-		auto item = cast(T*)(handle.item);
-		mixin("return item." ~ s ~ "(args);");
-	}
+	alias asset this;
 }
 
 struct FileLoader
@@ -149,8 +136,6 @@ struct ContentLoader
 		if(isLoaded(path)) 
 		{
 			auto item = items[indexOf(hash)];
-			import log;
-			logInfo(cHash!T, " it ", item.typeHash);
 			assert(item.typeHash == cHash!T);
 			return getItem!T(hash);
 		}

@@ -193,6 +193,12 @@ struct List(T)
 		this ~= data;
 	}
 
+	void put(T[] data)
+	{
+		foreach(ref d; data)
+			put(d);
+	}
+
 	//Need to work around strings. (They are annoying)
 	static if(is(T == char))
 	{

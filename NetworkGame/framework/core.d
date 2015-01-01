@@ -15,6 +15,11 @@ struct Time
 {
 	TickDuration total;
 	TickDuration delta;
+
+	float deltaSec()
+	{
+		return delta.msecs / 1000.0f;
+	}
 }
 
 class IApplicationComponent
@@ -107,13 +112,7 @@ struct Application
 				component.postStep(Time(total, delta));
 	
 
-			import core.memory, log;
-			auto collectBegin = Clock.currSystemTick;
-			GC.collect();
-			auto collectEnd   = Clock.currSystemTick;
-
-			auto collectDelta = collectEnd - collectBegin;
-			logCondErr(collectDelta.msecs > max_gc_time_msecs, "GC overshot max limit in a collection!!!");
+			//runGC(); 
 
 			if(timestep == TimeStep.fixed)
 			{
@@ -122,10 +121,22 @@ struct Application
 		}
 	}
 
+	private void runGC()
+	{
+		import core.memory, log;
+		auto collectBegin = Clock.currSystemTick;
+		GC.collect();
+		auto collectEnd   = Clock.currSystemTick;
+
+		auto collectDelta = collectEnd - collectBegin;
+		logCondErr(collectDelta.msecs > max_gc_time_msecs, "GC overshot max limit in a collection!!!");
+	}
+
 	private void waitUntilNextFrame(ref StopWatch watch, 
 									Duration frametime, 
 									Duration target)
 	{
+
 		import std.algorithm : max;
 
 		auto sleeptime = max(0.msecs, target - frametime);

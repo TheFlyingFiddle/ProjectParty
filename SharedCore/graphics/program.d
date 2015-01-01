@@ -100,7 +100,11 @@ struct Program(U, V)
 			gl.useProgram(glName);
 
 		context.program = glName;
+		flushUniforms();
+	}
 
+	void flushUniforms()
+	{
 		foreach(int i, dummy; U.init.tupleof)
 		{
 			flushUniform(uniformLocs[i], uniforms.tupleof[i]);	

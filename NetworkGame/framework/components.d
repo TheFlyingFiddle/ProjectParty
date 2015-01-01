@@ -9,16 +9,17 @@ import window.window;
 import window.keyboard;
 import window.mouse;
 import window.clipboard;
+import window.gamepad;
 
 import log;
 
 class WindowComponent : IApplicationComponent
 {
-
-
 	private Window _window;
 	private Keyboard _keyboard;
 	private Mouse _mouse;
+	private GamePad _gamePad;
+
 	private Clipboard _clipboard;
 
 	this(WindowConfig config)
@@ -26,12 +27,14 @@ class WindowComponent : IApplicationComponent
 		_window    = WindowManager.create(config);
 		_keyboard  = Keyboard(&_window);
 		_mouse	   = Mouse(&_window);
+		_gamePad   = GamePad.init;
 		_clipboard = Clipboard(&_window);
 	}
 
 	~this()
 	{
 		_window.obliterate();
+		_gamePad.disable();
 	}
 
 	override void initialize()
@@ -40,6 +43,9 @@ class WindowComponent : IApplicationComponent
 		app.addService(&_keyboard);
 		app.addService(&_mouse);
 		app.addService(&_clipboard);
+		app.addService(&_gamePad);
+
+		_gamePad.enable();
 	}
 
 	override void step(Time time)
@@ -50,6 +56,7 @@ class WindowComponent : IApplicationComponent
 
 		_mouse.update();
 		_keyboard.update();
+		_gamePad.update();
 	}
 
 	override void postStep(Time time)
@@ -128,15 +135,14 @@ class NetworkComponent : IApplicationComponent
 	}
 }
 
-
-
 class RenderComponent : IApplicationComponent
 {
-	import rendering.renderer;
-	SpriteRenderer* renderer;
+	import rendering.renderer, rendering.combined;
+
+	Renderer2D* renderer;
 	this(A)(ref A al, RenderConfig config)
 	{
-		renderer = al.allocate!SpriteRenderer(al, config, v_Source, f_Source);
+		renderer = al.allocate!Renderer2D(al, config);
 	}
 
 	override void initialize()
@@ -146,21 +152,15 @@ class RenderComponent : IApplicationComponent
 
 	override void preStep(Time time)
 	{
+		import math.vector;
+
 		auto w = app.locate!Window;
-		renderer.viewport = w.size;
+		renderer.viewport = float2(w.size);
 
 		import graphics;
-
 		gl.viewport(0,0, cast(uint)w.size.x, cast(uint)w.size.y);
 		gl.clearColor(1,1,1,1);
 		gl.clear(ClearFlags.color);
-
-		renderer.begin();
-	}
-
-	override void postStep(Time time)
-	{
-		renderer.end();
 	}
 }
 

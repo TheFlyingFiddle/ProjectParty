@@ -29,7 +29,6 @@ struct DistVertex
 alias SpriteRenderer = Renderer!Vertex;
 alias FontRenderer	 = Renderer!DistVertex;
 
-
 //Supports sorting on texture?
 struct Renderer(V)
 {
@@ -61,8 +60,8 @@ struct Renderer(V)
 		program.uniforms.sampler = 0;
 
 		sampler = Sampler.create();
-		sampler.minFilter(TextureMinFilter.linear);
-		sampler.magFilter(TextureMagFilter.linear);
+		sampler.minFilter(TextureMinFilter.nearest);
+		sampler.magFilter(TextureMagFilter.nearest);
 
 		renderBuffer = AsyncRenderBuffer!V(config.maxBatchSize, config.batchCount, program);
 	}
@@ -143,7 +142,6 @@ enum f_Source = q{
 		fragColor = texture2D(sampler, vertIn.coords) * vertIn.color;
 	}
 };
-
 enum vd_Source =  q{
 	#version 330
 	in vec2 position;

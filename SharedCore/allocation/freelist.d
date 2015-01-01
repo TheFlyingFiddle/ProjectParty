@@ -89,12 +89,32 @@ struct FreeList(T) if(is(T == class))
 		}
 	}
 
-	auto allocate(Args...)(Args args)
+	auto pureAllocate(Args...)(Args args) @trusted
 	{
+		static auto assumePureNothrowSafe(T)(T t)
+		{
+			import std.traits;
+			enum attrs = functionAttributes!T | FunctionAttribute.pure_ | FunctionAttribute.nothrow_;
+			return cast(SetFunctionAttributes!(T, functionLinkage!T, attrs))t;
+		}
+
+		auto all = assumePureNothrowSafe(&allocate!Args);
+		return all(args);
+	}
+
+	auto allocate(Args...)(Args args) 
+	{
+		static auto assumePureNothrowSafe(T)(T t)
+		{
+			import std.traits;
+			enum attrs = functionAttributes!T | FunctionAttribute.pure_ | FunctionAttribute.nothrow_ | FunctionAttribute.safe;
+			return cast(SetFunctionAttributes!(T, functionLinkage!T, attrs))t;
+		}
+	
 		assert(free != uint.max);
 
 		uint newFree = items[free].next; 
-		auto t = emplace!(T, Args)(items[free].value[]);
+		auto t = emplace!(T, Args)(items[free].value[], args);
 		free = newFree;
 		return t;
 	}

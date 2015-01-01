@@ -1,0 +1,96 @@
+images  = |Atlas|
+fonts   = |Fonts|
+tooltip	= { id = segoeui color = 0xFF00FFEF size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+	
+buttons = 
+[ 
+	{	
+		name		= button
+		up			= { id = |pixel| color = 0xFF53FF3F }
+		down		= { id = |pixel| color = 0xFF53321F }
+		hl			= { id = |pixel| color = 0xFF53F232 }
+		downHl		= { id = |pixel| color = 0xFF53aaaF }
+		font		= { id = segoeui color = 0xFFFFF4EF size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
+	}
+	{	
+		name		= button2
+		up			= { id = |pixel| color = 0xFF53AA3F }
+		down		= { id = |pixel| color = 0xFF53321F }
+		hl			= { id = |pixel| color = 0xFF53F232 }
+		downHl		= { id = |pixel| color = 0xFF53aaaF }
+		font		= { id = segoeui color = 0xFFFFF4EF size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
+	}
+]
+
+toggles = 
+[
+	{
+		name = toggle
+		toggled		= |button|
+		untoggled	= |button2|
+	}
+]
+
+toolbars = 
+[
+	{
+		name	= toolbar
+		id		= toggle
+		padding = 5
+	}
+]
+
+sliders =
+[
+	{
+		name	= scrollbar
+		bg		= { id = |pixel| color = 0xFFaa35aa }
+		fg		= { id = |pixel| color = 0xffa3ea34 }
+	}
+]
+
+scrollareas = 
+[
+	{ 
+		name		= scrollarea
+		bg			= { id = |pixel| color = 0xFFFFFFFF } 
+		scrollID	= |scrollbar|
+		scrollWidth = 15
+	}
+
+]
+
+menus = 
+[
+	{
+		name  = |menu|
+		size  = 25
+		width = 100
+		iconSpace = 25
+		padding = { x = 4 y = 0 z = 4 w = 4 }
+		windowID = |menuwindow|
+		submenuIcon = |baws|
+		font		= { id = segoeuil color = 0xFF000000 size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.7 } }
+		focus		= { id = pixel color = 0xFF666666 }
+		highlight	= { id = pixel color = 0xFFcccccc }
+		idle		= { id = pixel color = 0xFFaaaaaa }
+	}
+]
+
+windows =
+[
+	{
+		name = menuwindow
+		focusColor	  = 0xFF1d1d1d
+		nonFocusColor = 0xFF544554
+		bg			  = { id = |pixel| color = 0xFF666666 }
+		closeButton   = |button|
+		padding       = { x = 4 y = 4 z = 4 w = 4 }
+		titleHeight   = 0
+		font		  = { id = |segoeuil| color = 0xFF000000 size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.7 } } 
+	}
+]

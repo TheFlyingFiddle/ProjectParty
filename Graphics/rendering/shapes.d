@@ -1,15 +1,18 @@
 module rendering.shapes;
 
-public import  
-	math.vector, 
+public import   
+	math,
 	graphics.color, 
 	graphics.texture, 
 	graphics.frame,
 	graphics.font;
 
 
-void drawText(R)(ref R renderer, const(char)[] text, float2 pos, float2 size, ref Font font, Color color, float2 thresholds, float4 bounds = float4.zero)
+void drawText(R)(ref R renderer, const(char)[] text, float2 pos, float2 size, ref Font font, Color color, float2 thresholds, float4 bounds = float4(0,0,0,0))
 {
+	if(bounds == float4(0,0,0,0)) 
+		bounds = float4(-100000, -10000000, 1000000000000, 10000000000000);
+
 	import std.algorithm;
 	auto lines = text.count("\n");
 	
@@ -148,7 +151,7 @@ void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color, float4 b
 	vertices[2] = Vertex(quad.zw, coords.zw, color);
 	vertices[3] = Vertex(quad.xw, coords.xw, color);
 
-	renderer.addItems(vertices, indecies, frame.texture);
+	renderer.addItems(vertices[], indecies[], frame.texture);
 }
 
 void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color)
@@ -158,9 +161,10 @@ void drawQuad(R)(ref R renderer, float4 quad, Frame frame, Color color)
 
 void drawQuad(R)(ref R renderer, float4 quad, float rotation, Frame frame, Color color)
 {
+	import rendering.renderer;
+
 	static uint[6] indecies = [0, 1, 2, 0, 2, 3];
 
-	alias Vertex = R.Vertex;
 	float4 coords = frame.coords;
 
 	Vertex[4] vertices;
@@ -227,7 +231,7 @@ void drawQuadOutline(R)(ref R renderer, float4 rect, float width, Frame frame, C
 	vertices[6] = Vertex(rect.xw + float2(width,-width), center, color);
 	vertices[7] = Vertex(rect.xw, center, color);
 
-	renderer.addItems(vertices, indices, frame.texture);
+	renderer.addItems(vertices[], indices[], frame.texture);
 }
 
 void drawLine(R)(ref R renderer, float2 start, float2 end, float width, Frame frame, Color color)
@@ -265,6 +269,20 @@ uint[N * 3] makeNGonIndices(size_t N)()
 
 Vertex[N] makeNGonVertices(size_t N, Vertex)()
 {
+
+}
+
+import rendering.combined;
+void drawNGon(size_t N, R)(ref R renderer, float2 origin, 
+						   float radius, Frame frame,
+						   Color color)
+{
+	enum N = 50;
+
+
+	import rendering.renderer;
+	static uint[N * 3]   indecies   = makeNGonIndices!N;
+
 	Vertex[N] vertices;
 	foreach(i; 0 .. N)
 	{
@@ -274,20 +292,10 @@ Vertex[N] makeNGonVertices(size_t N, Vertex)()
 
 		vertices[i] = Vertex(pos, coord, Color.white);
 	}
-	return vertices;
-}
 
-void drawNGon(size_t N, R)(ref R renderer, float2 origin, 
-						   float radius, Texture2D texture,
-						   Color color)
-{
-	alias Vertex = R.Vertex;
-	static uint[N * 3]   indecies   = makeNGonIndices!N;
-	static Vertex[N]	 vertices = makeNGonVertices!(N, Vertex); 
 
 	Vertex[N + 1] verts;
-
-	float4 coords = float4(0,0 ,1,1);
+	float4 coords = frame.coords;
 	float2 center	  = float2((coords.z - coords.x) / 2 + coords.x,
 							   (coords.w - coords.y) / 2 + coords.y);
 	float2 coordScale = float2((coords.z - coords.x) / 2,
@@ -300,9 +308,9 @@ void drawNGon(size_t N, R)(ref R renderer, float2 origin,
 						      vertices[i].coords * coordScale + center, 
 							  color);
 	}
-
-	renderer.addItems(verts, indecies, texture);
+	renderer.addItems(verts, indecies, frame.texture);
 }
+
 
 uint[N * 12] makeNGonOutlineIndices(size_t N)()
 {
@@ -322,15 +330,24 @@ uint[N * 12] makeNGonOutlineIndices(size_t N)()
 
 void drawNGonOutline(size_t N, R)(ref R renderer, float2 origin,
 								  float innerRadius, float outerRadius,
-								  Texture2D texture, Color color)
+								  Frame frame, Color color)
 {
-	alias Vertex = R.Vertex;
+	import rendering.renderer;
 	static uint[N * 12]   indecies   = makeNGonOutlineIndices!N;
-	static Vertex[N]	 vertices   = makeNGonVertices!(N, Vertex); 
+
+	Vertex[N] vertices;
+	foreach(i; 0 .. N)
+	{
+		float angle	  = (1.0f / N) * i * TAU + TAU / 4;
+		float2 pos	  = Polar!(float)(angle, 1).toCartesian;
+		float2 coord  = Polar!(float)(angle, 1).toCartesian;
+
+		vertices[i] = Vertex(pos, coord, Color.white);
+	}
 
 	Vertex[N * 2] verts;
 
-	float4 coords = float4(0,0 ,1,1);
+	float4 coords = frame.coords;
 	float2 center	  = float2((coords.z - coords.x) / 2 + coords.x,
 							   (coords.w - coords.y) / 2 + coords.y);
 	float2 coordScale = float2((coords.z - coords.x) / 2,
@@ -346,7 +363,7 @@ void drawNGonOutline(size_t N, R)(ref R renderer, float2 origin,
 								  color);
 	}
 
-	renderer.addItems(verts, indecies, texture);
+	renderer.addItems(verts, indecies, frame.texture);
 }
 
 uint[N * 3] makeCircleSectionIndices(size_t N)()

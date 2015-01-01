@@ -44,6 +44,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -83,8 +85,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Graphics.lib Derelict.lib ContentConfig.lib</libfiles>
-  <libpaths>..\SharedCore\Release ..\Graphics\Release ..\Derelict\Release  ..\ContentConfig\Release</libpaths>
+  <libfiles>SharedCore.lib Graphics.lib Derelict.lib ContentConfig.lib Framework.lib</libfiles>
+  <libpaths>..\SharedCore\Debug ..\Graphics\Debug ..\Derelict\Debug  ..\ContentConfig\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).lib</exefile>
@@ -139,6 +141,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -234,6 +238,8 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -329,6 +335,8 @@
   <nofloat>0</nofloat>
   <Dversion>2.043</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
+  <allinst>0</allinst>
+  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -381,19 +389,11 @@
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Folder name="Framework">
-  <Folder name="entity">
-   <Folder name="basic">
-    <File path="entity\basic\timer.d" />
-   </Folder>
-   <File path="entity\component.d" />
-   <File path="entity\entity.d" />
-   <File path="entity\package.d" />
-   <File path="entity\system.d" />
-   <File path="entity\world.d" />
-  </Folder>
   <Folder name="framework">
    <File path="framework\components.d" />
    <File path="framework\core.d" />
+   <File path="framework\entity.d" />
+   <File path="framework\factories.d" />
    <File path="framework\package.d" />
    <File path="framework\phone.d" />
    <File path="framework\player.d" />
