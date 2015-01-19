@@ -85,7 +85,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Graphics.lib Derelict.lib ContentConfig.lib</libfiles>
+  <libfiles>SharedCore.lib Graphics.lib Derelict.lib </libfiles>
   <libpaths>..\SharedCore\Debug ..\Graphics\Debug ..\Derelict\Debug  ..\ContentConfig\Debug</libpaths>
   <deffile />
   <resfile />
@@ -197,10 +197,12 @@
  <Folder name="Gui">
   <Folder name="ui">
    <File path="ui\base.d" />
+   <File path="ui\containers.d" />
    <File path="ui\controls.d" />
-   <File path="ui\enumfield.d" />
+   <File path="ui\enumfields.d" />
    <File path="ui\menu.d" />
    <File path="ui\package.d" />
+   <File path="ui\reflection.d" />
    <File path="ui\tabcontrol.d" />
    <File path="ui\textfield.d" />
    <File path="ui\window.d" />

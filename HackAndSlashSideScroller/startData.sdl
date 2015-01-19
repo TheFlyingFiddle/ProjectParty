@@ -1,0 +1,29 @@
+startEntries = 
+[
+	{
+		arch = staticBox
+		transforms =
+		[
+			{ position = { x = 2 y = 3 } },
+			{ position = { x = 3 y = 3 } },
+			{ position = { x = 4 y = 3 } },
+			{ position = { x = 5 y = 3 } },
+			{ position = { x = 6 y = 3 } },
+			{ position = { x = 7 y = 3 } },
+			{ position = { x = 8 y = 3 } },
+			{ position = { x = 9 y = 3 } }
+		]
+	},
+	{
+		arch = player
+		transforms  = [ { position = { x = 5 y = 5 } }	]
+	},
+	{
+		arch = elevator
+		transforms = [ { position = { x = 4 y = 6 } } ]
+	},
+	{
+		arch = elevatorTrigger
+		transforms = [ { position = { x = 12 y = 2 } } ]
+	}
+]

@@ -53,6 +53,11 @@ struct RegionAllocator
 		assert(bytesAllocated <= _capacity, "Out of memory");
 		return alignedOffset[0 .. size];
 	}
+
+	void deallocate_impl(void[] dealloc)
+	{
+		assert(0, "Should never call this");
+	}
 	
 	void rewind(void* rewindPos)
 	{

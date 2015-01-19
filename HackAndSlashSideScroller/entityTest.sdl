@@ -1,0 +1,26 @@
+groups = 0
+components = 
+{
+	Input = 
+	{
+		index = zero
+		direction = { x = 1 y = 0 }
+	}
+
+	Sprite = 
+	{
+		tint = 0xFFFFFFFF
+		name = baws
+	}
+
+	Emitter =
+	{
+		effectID = 0
+	}
+
+	Box2DConfig = 
+	{
+		name	  = player
+		collision = playerCollision 
+	}
+}

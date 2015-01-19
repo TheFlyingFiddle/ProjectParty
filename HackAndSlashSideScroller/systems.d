@@ -1,20 +1,20 @@
 module systems;
 
-import namespace;
+import common;
 import components;
-
-
-
+import box2Dintegration;
 
 import dbox;
 class InputSystem : System
 {
 	import window.gamepad;
 	GamePad* pad;
+	b2World* bworld;
 
 	override void initialize() 
 	{
 		pad = world.app.locate!GamePad;
+		bworld = world.app.locate!(b2World);
 	}
 
 	override bool shouldAddEntity(ref Entity entity) 
@@ -33,7 +33,15 @@ class InputSystem : System
 			if(pad.isActive(input.index))
 			{
 				float2 leftThumb = pad.leftThumb(input.index);
-				phys.velocity = float2(leftThumb.x * constants.playerSpeedMultiplier, phys.velocity.y);
+				
+				if(leftThumb.x > 0.1 || leftThumb.x < -0.1f)
+					phys.velocity = float2(leftThumb.x * constants.playerSpeedMultiplier, phys.velocity.y);
+				
+				if(leftThumb.x > 0.1)
+					input.direction = float2(1, 0);
+				else if(leftThumb.x < -0.1)
+					input.direction = float2(-1, 0);
+				
 
 				if(pad.wasPressed(input.index, GamePadButton.a))
 				{
@@ -43,8 +51,50 @@ class InputSystem : System
 				{
 					pushbackStuff(phys);
 				}
+				else if(pad.wasPressed(input.index, GamePadButton.x))
+				{
+					shoot(phys, input.direction);
+				}
 			}
 		}
+	}
+
+	void shoot(Box2DPhysics* phys, float2 dir)
+	{
+		//import log;
+		//
+		//auto bullet = createCircle(bworld, phys.position + dir * (1), 0.1);
+		//bullet.SetGravityScale(0.0);
+		//bullet.SetLinearVelocity(cast(b2Vec2)(dir * 10));
+		//
+		//
+		//foreach(e; world.entities.entities[0 .. 
+		//        world.entities.entityCount])
+		//{
+		//    if(e.hasComp!(Box2DPhysics) && (e.groups & EntityGroups.bullet) ==
+		//        EntityGroups.bullet)
+		//    {
+		//        logInfo("Existing Entity Box2D ", e.id, 
+		//                " ", e.getComp!(Box2DPhysics).body_ is bullet);
+		//                    
+		//    }	
+		//}
+		//
+		//auto entity = world.entities.create();
+		//entity.addComp(Box2DPhysics(bullet, &killBullet));
+		//entity.groups |= EntityGroups.bullet;
+		//bullet.m_userData = cast(void*)entity.id;
+		//
+		//logInfo("Created a bullet ", entity.id, " ", cast(void*)bullet); 
+	}
+
+	void killBullet(Entity* entity, Entity* other)
+	{
+		auto comp = entity.getComp!(Box2DPhysics);
+		import log;
+		logInfo("Killed a bullet ", entity.id, " ", cast(void*)comp.body_); 
+
+		world.removeEntity(entity.id);
 	}
 
 	void pushbackStuff(Box2DPhysics* phys)
@@ -66,8 +116,6 @@ class InputSystem : System
 		b2AABB aabb;
 		aabb.lowerBound = cast(b2Vec2)(phys.position - float2(0.5, 0.5));
 		aabb.upperBound = cast(b2Vec2)(phys.position + float2(0.5, 0.5));
-
-		auto bworld = world.app.locate!(b2World);
 		bworld.QueryAABB(&queryCallback, aabb);
 	}
 }
@@ -91,16 +139,22 @@ class ElevatorSystem : System
 			auto elevator  = e.getComp!Elevator;
 			auto phys	   = e.getComp!Box2DPhysics;
 			
+			if(!elevator.active)
+			{
+				phys.velocity = float2.zero;
+				continue;
+			}
+	
 			float alpha = elevator.elapsed % (elevator.interval * 2);
 			if(alpha < elevator.interval)
 			{
-				phys.velocity = (elevator.p1 - elevator.p0) / elevator.interval;
+				phys.velocity = elevator.destination / elevator.interval;
 			}
 			else 
 			{
-				phys.velocity = (elevator.p0 - elevator.p1) / elevator.interval;
+				phys.velocity = elevator.destination / -elevator.interval;
 			}
-
+			
 			elevator.elapsed += time.deltaSec;
 		}
 	}

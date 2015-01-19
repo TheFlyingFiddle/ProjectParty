@@ -7,9 +7,31 @@ struct Color
 {
 	uint packedValue;
 
+	int rbits()
+	{
+		return (packedValue & 0xFF);
+	}
+
+	int gbits()
+	{
+		return (packedValue >> 8) & 0xFF;
+	}
+
+
+	int bbits()
+	{
+		return (packedValue >> 16) & 0xFF;
+	}
+
+
+	int abits()
+	{
+		return ((packedValue >> 24) & 0xFF);
+	}
+
 	@property float r() 
 	{
-		return (packedValue & 0xFF) / cast(float)0xFF; 
+		return rbits / cast(float)0xFF; 
 	}
 
 	@property void r(float value) 
@@ -19,7 +41,7 @@ struct Color
 
 	@property float g()
 	{ 
-		return ((packedValue >> 8) & 0xFF) / cast(float)0xFF; 
+		return (gbits & 0xFF) / cast(float)0xFF; 
 	}
 
 	@property void g(float value)
@@ -29,7 +51,7 @@ struct Color
 
 	@property float b() 
 	{
-		return ((packedValue >> 16) & 0xFF) / cast(float)0xFF;
+		return (bbits) / cast(float)0xFF;
 	}
 
 	@property void b(float value) 
@@ -39,7 +61,7 @@ struct Color
 
 	@property float a() 
 	{
-		return ((packedValue >> 24) & 0xFF) /  cast(float)0xFF;
+		return abits /  cast(float)0xFF;
 	}
 
 	@property void a(float value) 
@@ -84,7 +106,104 @@ struct Color
 	{
 		return float4(r,g,b,a);
 	}
+	
+	static Color fromHSV(ColorHSV hsv)
+	{	
+		double hh, p, q, t, ff;
+		long i;
 
+		float r, g, b;
+
+		if(hsv.s <= 0.0)
+		{
+			r = hsv.v;
+			g = hsv.v;
+			b = hsv.v;
+			return Color(r,g,b, 1.0f);
+		}
+
+		hh = hsv.h;
+		if(hh >= 360.0) hh = 0;
+		hh /= 60;
+
+		i  = cast(long)hh;
+		ff = hh - i;
+
+		p = hsv.v * (1.0 - hsv.s);
+		q = hsv.v * (1.0 - (hsv.s * ff));
+		t = hsv.v * (1.0 - (hsv.s * (1.0 - ff)));
+
+		switch(i) {
+			case 0:
+				r = hsv.v;
+				g = t;
+				b = p;
+				break;
+			case 1:
+				r = q;
+				g = hsv.v;
+				b = p;
+				break;
+			case 2:
+				r = p;
+				g = hsv.v;
+				b = t;
+				break;
+
+			case 3:
+				r = p;
+				g = q;
+				b = hsv.v;
+				break;
+			case 4:
+				r = t;
+				g = p;
+				b = hsv.v;
+				break;
+			case 5:
+			default:
+				r = hsv.v;
+				g = p;
+				b = q;
+				break;
+		}
+		
+		return Color(r, g, b, 1.0f);
+		
+	}
+
+	static Color interpolate(Color c0, Color c1, float t)
+	{
+		int ip(float x, float y, float t)
+		{
+			return cast(int)((1 - t) * x + t * y);
+		}
+
+		int r = ip(c0.rbits, c1.rbits, t);
+		int g = ip(c0.gbits, c1.gbits, t);
+		int b = ip(c0.bbits, c1.bbits, t);
+		int a = ip(c0.abits, c1.abits, t);
+		
+		return Color(r,g,b,a);
+	}
+
+	static Color interpolateHSV(Color a, Color b, float t)
+	{
+		float ip(float x, float y, float t)
+		{
+			return (1 - t) * x + t * y;
+		}
+
+		ColorHSV ca = ColorHSV.fromRGB(a);
+		ColorHSV cb = ColorHSV.fromRGB(b);
+		ColorHSV final_;
+
+		final_.h = ip(ca.h, cb.h, t);
+		final_.s = ip(ca.h, cb.h, t);
+		final_.v = ip(ca.h, cb.h, t);
+		
+		return Color.fromHSV(final_);
+	}
 
 	enum Color transparent = Color(0);
 	enum Color black = Color(0xFF000000);
@@ -93,6 +212,60 @@ struct Color
 	enum Color green = Color(0xFF00FF00);
 	enum Color red = Color(0xFF0000FF);
 }
+
+
+struct ColorHSV
+{
+	float h;
+	float s;
+	float v;
+
+	static ColorHSV fromRGB(Color c)
+	{
+		ColorHSV out_;
+		double min, max, delta;
+
+		float r = c.r, g = c.g, b = c.b;
+
+		min = r < g ? r : g;
+		min = min < b ? min : b;
+
+		max = r > g ? r : g;
+		max = max > b ? max : b;
+
+		out_.v = max;
+		delta  = max - min;
+
+		if(max > 0.0) 
+		{
+			out_.s = delta / max;
+		}
+		else 
+		{
+			out_.s = 0.0f;
+			out_.h = float.nan;
+			return out_;
+		}
+
+		if(r >= max)
+			out_.h = (g - b) / delta;
+		else if(g >= max)
+			out_.h = 2.0 + (b - r) / delta;
+		else 
+			out_.h = 4.0 + (r - g) / delta;
+
+		out_.h *= 60.0;
+
+		if(out_.h < 0.0)
+			out_.h += 360.0f;
+
+		return out_;
+	}
+}
+
+
+
+
 
 enum Metro : Color
 {

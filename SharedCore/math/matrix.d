@@ -367,71 +367,11 @@ struct Matrix3
 		//				  0,0,1,));
 	}
 
-	public static Matrix3 CreateRotationX(float angle)
-	{
-		float s = sin(angle);
-		float c = cos(angle);
-
-		return Matrix3(1, 0,  0,
-					   0, c, -s,
-					   0, s,  c);
-	}
-
-	unittest
-	{
-		//assertEquals(CreateRotationX(PI), 
-		//			 mat3(1,0,0,
-		//				  0,-1,0,
-		//				  0,0,-1));
-	}
-
-	public static Matrix3 CreateRotationY(float angle)
-	{
-		float s = sin(angle);
-		float c = cos(angle);
-
-		return Matrix3( c, 0, s,
-						0, 1, 0,
-					   -s, 0, c);
-	}
-
-	unittest
-	{
-		//assertEquals(CreateRotationY(PI), 
-		//			 mat3(-1,0,0,
-		//				  0,1,0,
-		//				  0,0,-1));
-	}
-
-	public static Matrix3 CreateRotation(float x, float y, float z)
-	{
-		float Cx = cos(x), Sx = sin(x);
-		float Cy = cos(y), Sy = sin(y);
-		float Cz = cos(z), Sz = sin(z);
-
-		return Matrix3(		Cy*Cz,				-Cy*Sz,			   Sy,
-							Sx*Sy*Cz + Cx*Sz,  -Sx*Sy*Sz + Cx*Cz, -Sx*Cy,
-					   -Cx*Sy*Cz + Sx*Sz,   Cx*Sy*Sz + Sx*Cz,  Cx*Cy);
-
-	}
-
-	unittest
-	{
-		float xAngle = 1.312f, yAngle = 5.245f, zAngle = 3.415;
-		auto rotX = CreateRotationX(xAngle);
-		auto rotY = CreateRotationY(yAngle);
-		auto rotZ = CreateRotationZ(zAngle);
-
-		auto rotXYZ = rotX*rotY*rotZ;
-
-		//assertEquals(CreateRotation(xAngle, yAngle, zAngle), rotXYZ);
-	}
-
-	public static Matrix3 CreateScale(float x, float y, float z)
+	public static Matrix3 CreateScale(float x, float y)
 	{
 		return Matrix3( x, 0, 0,
 						0, y, 0,
-					   0, 0, z);
+					   0, 0, 1);
 	}
 
 	unittest
@@ -441,6 +381,24 @@ struct Matrix3
 							0, y, 0,
 						   0, 0, z);
 		//assertEquals(CreateScale(x,y,z), mat);
+	}
+
+
+	public static Matrix3 CreateTranslation(float2 pos)
+	{
+		return Matrix3(1, 0, pos.x,
+					   0, 1, pos.y,
+					   0, 0, 1);
+	}
+
+
+	public static Matrix3 CreateTransform(float2 pos, float2 scale, float rotation)
+	{
+		mat3 tmp = Matrix3.CreateRotationZ(rotation);
+		tmp      = tmp * Matrix3.CreateScale(scale.x, scale.y);
+		tmp		 = tmp * Matrix3.CreateTranslation(pos);
+
+		return tmp;
 	}
 
 	///Needs to be tested: Integration style

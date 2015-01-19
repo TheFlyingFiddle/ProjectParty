@@ -18,13 +18,14 @@ import log;
 
 import core.sys.windows.windows;
 import core.runtime;
-import namespace;
+import common;
 
 void main()
 {
-	init_dlls();
+
 	try
 	{
+		init_dlls();
 		auto config = fromSDLFile!DesktopAppConfig(Mallocator.it, "config.sdl");
 		logInfo("start");
 		run(config);

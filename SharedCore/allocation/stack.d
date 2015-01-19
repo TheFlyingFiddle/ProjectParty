@@ -76,9 +76,6 @@ struct ScopeStack
 
 	~this()
 	{
-		import log;
-		logInfo("Stack destructor!");
-
 		Throwable err = null;
 		for(auto fin = _chain; fin; fin = fin.chain)
 		{

@@ -2,6 +2,7 @@ module window.keyboard;
 
 import derelict.glfw3.glfw3;
 import window.window;
+import log;
 
 enum KeyState : ubyte
 {
@@ -46,8 +47,6 @@ struct Keyboard
 
 	void onCharInput(char[] input)
 	{
-		import log;
-		logInfo(input);
 
 		charInput[inputSize .. inputSize + input.length] = input;
 		inputSize += input.length;
@@ -55,8 +54,10 @@ struct Keyboard
 
 	void onKeyInput(Key key, KeyEventAction action, KeyModifiers modifiers)
 	{
-		if(action == KeyEventAction.repeat)
+		if(action == KeyEventAction.repeat) 
+		{
 			repeatKey = key;
+		}
 	}
 
 	char[] unicodeInput()
@@ -84,10 +85,10 @@ struct Keyboard
 
 				keystates[i] = KeyState.released;
 			}
-			else if(state == GLFW_REPEAT)
+			
+			if(i == repeatKey)
 			{
-				import log;
-				logInfo("repeat state");
+				changed[i] = true;
 			}
 		}
 	}
@@ -103,9 +104,9 @@ struct Keyboard
 		return keystates[key] == KeyState.pressed;
 	}
 
-	bool isModifiersDown(KeyModifiers modifiers)
+	bool isModifiersDown(int modifiers)
 	{
-		KeyModifiers modifier;
+		int modifier;
 		if(isDown(Key.leftAlt) || isDown(Key.rightAlt))
 			modifier |= KeyModifiers.alt;
 		if(isDown(Key.leftShift) || isDown(Key.rightShift))

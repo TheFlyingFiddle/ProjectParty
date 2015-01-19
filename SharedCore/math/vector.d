@@ -23,6 +23,9 @@ alias ubyte4  = Vector!(4, ubyte);
 
 struct Vector(size_t size, T) 
 {
+	enum staticLength = size;
+
+
 	union
 	{
 		T[size] data;	
@@ -120,7 +123,7 @@ struct Vector(size_t size, T)
 		if(is(U : T) && op == "+" || op == "-" || op == "*")
 		{
 			foreach(i; staticIota!(0, size)) 
-				mixin(format("this.data[%s] %s= vec.data[%s];", i, op, i));
+				mixin(format("this.data[%s] = this.data[%s] %s vec.data[%s];", i, i, op, i));
 
 			return this;
 		}

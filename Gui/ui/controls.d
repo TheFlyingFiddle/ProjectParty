@@ -39,7 +39,6 @@ struct GuiElement
 	}
 }
 
-
 struct GuiToggle
 {	
 	struct Style
@@ -203,12 +202,14 @@ struct GuiLabel
 }
 
 bool label(ref Gui gui, Rect rect, const(char)[] text, 
+		   HorizontalAlignment horiz = HorizontalAlignment.left,
+		   VerticalAlignment vert = VerticalAlignment.center,
 		   HashID labelID = "label")
 {
 	gui.handleControl(rect);
 
 	auto style = gui.fetchStyle!(GuiLabel.Style)(labelID);
-	gui.drawText(text, rect.xy + float2(0, style.font.size.x / 5), rect, style.font);
+	gui.drawText(text, rect, style.font,  horiz, vert);
 	return false;
 }
 
@@ -288,13 +289,14 @@ private bool updateSlider(ref Gui gui, ref Rect rect, ref float value, float min
 	else 
 		percent = clamp(gui.mouse.location.y - rect.y, 0, rect.h) / rect.h;
 
+
 	float newVal = percent * (max - min) + min;
 	bool result  = newVal != value;
 	value = newVal;
 	return result;
 }
 
-private bool updateSliderScroll(ref Gui gui, ref float value, float min, float max)
+package bool updateSliderScroll(ref Gui gui, ref float value, float min, float max)
 {
 	import math;
 	value = clamp(value + gui.mouse.scrollDelta.y * (max - min) / 50, min, max);
@@ -350,6 +352,8 @@ bool scrollbar(ref Gui gui, Rect rect,
 	bool result = false;
 	if(gui.wasDown(rect))
 		result = updateSlider(gui, rect, value, min, max);
+	if(gui.isHovering(rect) && gui.mouse.scrollDelta.y != 0)
+		result |= updateSliderScroll(gui, value, min, max);
 
 	renderSlider(gui, rect, value, min, max, style);
 	return result;
@@ -373,7 +377,6 @@ struct GuiScrollArea
 	}
 }
 
-
 bool scrollarea(ref Gui gui, 
 				Rect rect, 
 				ref float2 scroll, 
@@ -396,31 +399,32 @@ bool scrollarea(ref Gui gui,
 		modified.y += style.scrollWidth;
 		modified.h -= style.scrollWidth;
 	}
+
 	if(rect.h < state.area.h)
 		modified.w -= style.scrollWidth;
 
-	if(rect.h >= state.area.h && 
-	   rect.w >= state.area.w)
+	if(state.area == rect)
 		scroll = float2.zero;
 
 
 	gui.drawQuad(modified, style.bg);
+
+	float2 size  = float2(state.area.w - modified.w, state.area.h - modified.h);
+	float2 start = float2(state.area.x - modified.x, state.area.y - modified.y);
+
 	if(modified.y > rect.y)
 		result  = gui.scrollbar(Rect(rect.x, rect.y, modified.w, style.scrollWidth),
-								scroll.x, 0, state.area.w - modified.w, style.scrollID);
+								scroll.x, start.x, start.x + size.x, style.scrollID);
 	if(modified.w < rect.w)
 		result  = gui.scrollbar(Rect(modified.x + modified.w, modified.y, style.scrollWidth, modified.h),
-								scroll.y, 0, state.area.h - modified.h, style.scrollID);
-
-	//Handle mouse scroll.
-
-	if(gui.mouse.scrollDelta.y != 0)
-		scroll.y = max(0, min(state.area.h - modified.h, scroll.y + gui.mouse.scrollDelta.y * 10));
-
-
+								scroll.y, start.y, start.y + size.y, style.scrollID);
 
 	auto savedState = gui.beginSubArea(modified, scroll * -1, state.focused);
 	scope(exit) gui.endSubArea(savedState);
+
+	scroll.x = clamp(scroll.x, start.x, start.x + size.x);
+	scroll.y = clamp(scroll.y, start.y, start.y + size.y);
+
 
 	controls(gui);
 	if(isFocused) 
@@ -438,7 +442,11 @@ bool scrollarea(ref Gui gui,
 	if(fullArea == Rect.empty)
 		state.area = Rect(gui.guiState.fullArea);
 	else 
+	{
+		fullArea.x += rect.x;
+		fullArea.y += rect.y;
 		state.area = fullArea;
+	}
 
 	gui.state(hash, state);
 	return result;

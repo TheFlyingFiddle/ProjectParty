@@ -4,6 +4,8 @@ module math.polar;
 import std.math;
 import math.vector;
 
+alias Polarf = Polar!(float);
+
 struct Polar(T)
 {
 	T angle;

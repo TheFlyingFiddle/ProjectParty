@@ -1,0 +1,60 @@
+numServices = 100
+numComponents = 100
+name = MapEditor
+phoneResourceDir = |..\compiled_resources\hack_and_slash\phone|
+
+contentConfig =
+{
+	maxResources = 512
+	resourceFolder = |..\compiled_resources\hack_and_slash\desktop|
+}
+
+renderConfig =
+{
+	maxBatchSize = 0xffff
+	batchCount   = 3
+}
+
+windowConfig = 
+{
+	size = 
+	{
+		x=1067 
+		y=600
+	}
+
+	fullScreen = false
+	blocking   = true
+	decorated  = true
+	title      = |Tile Editor|
+}
+
+serverConfig = 
+{
+	maxConnections = 20
+	broadcastPort  = 7331
+	maxMessageSize = 0xffff
+	broadcastInterval = 1.0
+	connectionTimeout = 15
+}
+
+concurencyConfig = 
+{
+	numThreads   = 4
+	stackSize    = 1024_000 //1mb
+	inboxSize    = 0xFFFF   
+}
+
+//soundConfig =
+//{
+//	freq = 22050
+//	numChannels = 32
+//	bufferSize = 4096
+//	
+//	musicVolume  = 1.0
+//	soundVolume  = 1.0 
+//	masterVolume = 0.5
+//	muted        = false
+//
+//	musicFoulderPath = ||
+//}

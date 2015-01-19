@@ -33,11 +33,12 @@ struct TabPage
 }
 
 import std.range;
-bool tabs(Pages)(ref Gui gui, Rect rect, ref int selected, Pages pages, HashID s = "tabs")
+bool tabs(Pages)(ref Gui gui, Rect rect, ref int selected, 
+				 Pages pages, HashID s = "tabs")
 if(isRandomAccessRange!Pages)
 {
 	auto style = gui.skin[s].get!(GuiTabs.Style);
-	auto ptr = bytesHash(s) in gui.old;
+	auto ptr   = bytesHash(rect) in gui.old;
 	auto state = ptr ? (*ptr).get!(GuiTabs.State) : GuiTabs.State(float2.zero, -1, false);
 
 	auto subgui = Gui(gui, rect, float2.zero, state.focused, state.focusLocked);

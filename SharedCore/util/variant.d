@@ -49,6 +49,11 @@ struct VariantN(size_t size)
 	}
 }
 
+VariantN!(size) variant(size_t size, T)(T t)
+{
+	return VariantN!size(t);
+}
+
 struct VariantTable(size_t size)
 {
 	private Table!(HashID, VariantN!size) _rep;
@@ -74,14 +79,14 @@ struct VariantTable(size_t size)
 		return *ptr;
 	}
 
-	void opIndexAssign(T)(string name, auto ref T value)
+	void opIndexAssign(T)(auto ref T value, string name)
 	{
 		this[bytesHash(name)] = value;
 	}	
 
-	void opIndexAssign(T)(HashID id, auto ref T value)
+	void opIndexAssign(T)(auto ref T value, HashID id)
 	{
-		_rep[id] = value;
+		_rep[id] = VariantN!size(value);
 	}
 
 	ref VariantN!size opDispatch(string name)()
@@ -99,6 +104,12 @@ struct VariantTable(size_t size)
 	void add(T)(string name, auto ref T t)
 	{
 		_rep[bytesHash(name)] = VariantN!size(t);
+	}
+
+
+	void add(string name, VariantN!size t)
+	{
+		_rep[bytesHash(name)] = t;
 	}
 }
 

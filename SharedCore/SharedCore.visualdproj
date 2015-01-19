@@ -31,7 +31,7 @@
   <useArrayBounds>0</useArrayBounds>
   <noboundscheck>1</noboundscheck>
   <useSwitchError>0</useSwitchError>
-  <useUnitTests>0</useUnitTests>
+  <useUnitTests>1</useUnitTests>
   <useInline>1</useInline>
   <release>0</release>
   <preservePaths>0</preservePaths>
@@ -474,6 +474,7 @@
    <File path="util\hash.d" />
    <File path="util\servicelocator.d" />
    <File path="util\strings.d" />
+   <File path="util\traits.d" />
    <File path="util\variant.d" />
   </Folder>
   <Folder name="window">

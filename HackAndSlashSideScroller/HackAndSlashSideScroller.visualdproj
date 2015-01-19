@@ -49,7 +49,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>..\Derelict; ..\SharedCore; ..\Graphics; ..\ContentCore; ..\NetworkGame; ..\EntityFramework; ..\Box2D</imppath>
+  <imppath>..\Derelict; ..\SharedCore; ..\Graphics; ..\ContentCore; ..\NetworkGame; ..\EntityFramework; ..\Box2D; ..\SharedComponents;</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -85,8 +85,8 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>SharedCore.lib Graphics.lib Derelict.lib Framework.lib EntityFramework.lib Box2D.lib</libfiles>
-  <libpaths>..\SharedCore\Debug ..\Graphics\Debug ..\Derelict\Debug  ..\ContentConfig\Debug ../NetworkGame/Debug ..\EntityFramework\Debug ..\Box2D\Release</libpaths>
+  <libfiles>SharedCore.lib Graphics.lib Derelict.lib Framework.lib EntityFramework.lib Box2D.lib SharedComponents.lib</libfiles>
+  <libpaths>..\SharedCore\Debug ..\Graphics\Debug ..\Derelict\Debug  ..\ContentConfig\Debug ../NetworkGame/Debug ..\EntityFramework\Debug ..\Box2D\Debug ..\SharedComponents\Debug</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
@@ -195,17 +195,25 @@
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Folder name="HackAndSlashSideScroller">
-  <Folder name="particles" />
-  <File path="box2Dhelpers.d" />
+  <Folder name="particles">
+   <File path="particles\bindings.d" />
+   <File path="particles\generators.d" />
+   <File path="particles\package.d" />
+   <File path="particles\renderer.d" />
+   <File path="particles\system.d" />
+   <File path="particles\updaters.d" />
+  </Folder>
+  <File path="startData.sdl" />
+  <File path="worldData.sdl" />
   <File path="box2Dintegration.d" />
-  <File path="components.d" />
+  <File path="collision_resolve.d" />
   <File path="config.sdl" />
   <File path="constants.sdl" />
-  <File path="factories.d" />
+  <File path="entityTest.sdl" />
   <File path="main.d" />
   <File path="mainscreen.d" />
-  <File path="namespace.d" />
+  <File path="particleTest.sdl" />
+  <File path="particle_system.d" />
   <File path="systems.d" />
-  <File path="tilemap.d" />
  </Folder>
 </DProject>

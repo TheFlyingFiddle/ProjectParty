@@ -58,6 +58,12 @@ struct Rect
 	}
 
 	static Rect empty() { return Rect(0,0,0,0); }
+
+
+	float left() { return x; }
+	float right() { return x + w; }
+	float top() { return y + h; }
+	float bottom() { return y; }
 }
 
 Rect intersection(ref Rect first, ref Rect second)
@@ -397,6 +403,11 @@ struct Gui
 		renderer.drawQuad(rect, atlas.asset[frame.frame], frame.color, guiState.area);
 	}
 
+	void drawQuad(Frame)(Rect rect, auto ref Frame frame, Rect bounds)
+	{
+		renderer.drawQuad(rect, atlas.asset[frame.frame], frame.color, bounds);
+	}
+
 
 
 	void drawQuadOutline(Frame)(Rect rect, float width, auto ref Frame frame)
@@ -411,12 +422,18 @@ struct Gui
 
 	void drawText(const(char[]) text, float2 pos, Rect rect, ref GuiFont font)
 	{
-		renderer.drawText(text, pos, font.size, fonts.asset[font.font], 
-						  font.color, font.thresholds, intersection(rect, guiState.area));
+		drawText(text, pos, rect, font, guiState.area);
 	}
 
-	void drawText(const(char[]) text, Rect rect, ref GuiFont font,
-				  HorizontalAlignment horizontal, VerticalAlignment vertical)
+	void drawText(const(char[]) text, float2 pos, Rect rect, ref GuiFont font, Rect bounds)
+	{
+		renderer.drawText(text, pos, font.size, fonts.asset[font.font], 
+						  font.color, font.thresholds, intersection(rect, bounds));
+	}
+
+	void drawText(const(char[]) text, Rect rect, ref GuiFont font, Rect bounds,
+				  HorizontalAlignment horizontal = HorizontalAlignment.left, 
+				  VerticalAlignment vertical = VerticalAlignment.center)
 	{
 		auto f = &fonts.asset[font.font];
 		auto textSize = f.measure(text) * font.size;
@@ -432,7 +449,15 @@ struct Gui
 		else if(horizontal == HorizontalAlignment.right)
 			fontPos.x += rect.w - textSize.x;
 
-		drawText(text, fontPos, rect, font);
+		drawText(text, fontPos, rect, font, bounds);
+	}
+
+
+	void drawText(const(char[]) text, Rect rect, ref GuiFont font,
+				  HorizontalAlignment horizontal = HorizontalAlignment.left, 
+				  VerticalAlignment vertical = VerticalAlignment.center)
+	{
+		drawText(text, rect, font, guiState.area, horizontal, vertical);
 	}
 
 	void begin()
@@ -459,7 +484,7 @@ struct Gui
 	{
 		if(guiState.focus >= 0 && guiState.focus < guiState.controlCount)
 		{
-			renderer.drawQuadOutline(intersection(guiState.area, guiState.focusRect), 1.0f, atlas.asset.pixel, Color.black);
+			//renderer.drawQuadOutline(intersection(guiState.area, guiState.focusRect), 1.0f, atlas.asset.pixel, Color.black);
 		}
 	}
 

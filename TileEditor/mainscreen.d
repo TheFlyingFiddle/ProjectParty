@@ -96,32 +96,6 @@ class MainScreen : Screen
 	}
 }
 
-struct Map
-{
-	int tileSize;
-	int width, height;
-	int[] tiles;
-	float2[] lines;
-}
-
-
-struct EditorMenu
-{
-	void File() { }
-	void Edit() { }
-}
-
-struct File
-{
-	
-		
-	void Random()
-	{
-
-	}
-}
-
-
 struct MapView
 {
 	struct State
@@ -137,58 +111,6 @@ struct TileView
 		float2 scroll;
 	}
 }
-
-void tileview(ref Gui gui,
-			  Rect rect,
-			  ref int selected,
-			  float2 tileSize,
-			  ref TextureAtlas atlas)
-{
-	auto hash = HashID(rect, "tileview");
-	auto state = gui.fetchState(hash, TileView.State(float2.zero));
-	scope(exit) gui.state(hash, state);
-
-	void del(ref Gui g)
-	{
-		float row = rect.y , column = rect.x;
-		foreach(i, frame; atlas)
-		{
-			if(column + tileSize.x > rect.x + rect.w)
-			{
-				column = rect.x;
-				row	  += tileSize.y;
-			}
-
-			Rect quad = Rect(column, row, tileSize.x, tileSize.y);
-			gui.drawQuad(quad, frame, Color.white);
-
-			if(selected == i)
-			{
-				gui.drawQuadOutline(quad, 2, GuiFrame("pixel", Color(0xFF0000FF)));
-			}
-
-			column += tileSize.x;
-		}
-
-		if(gui.wasClicked(rect))
-		{
-			float2 screenLoc = gui.mouse.location - rect.xy;
-
-			int tileX = cast(int)(screenLoc.x / tileSize.x);
-			int tileY = cast(int)(screenLoc.y / tileSize.y);
-
-			int tile  = tileY * (cast(int)(rect.w / tileSize.x)) + tileX;
-
-			selected = tile;
-		}
-	}
-
-	import std.algorithm;
-
-	gui.scrollarea(rect, state.scroll, &del, 
-				   Rect(0,0, rect.w, max(atlas.length * tileSize.y / (rect.w / tileSize.x), rect.h)));
-}
-
 
 void mapview(ref Gui gui, 
 			 Rect rect, 

@@ -7,6 +7,7 @@ import std.conv;
 auto logChnl = LogChannel("ALLOCATION");
 auto destChnl = LogChannel("DESTRUCTOR ERROR");
 
+
 void destructor(T)(void* ptr) if(is(T == struct))
 {
 	try
@@ -68,7 +69,7 @@ final class CAllocator(T) : IAllocator
 
 	void deallocate_impl(void[] memory)
 	{
-		return _allocator.deallocate_impl(memory);
+		_allocator.deallocate_impl(memory);
 	}
 }
 
@@ -180,7 +181,6 @@ unittest
 	auto region = RegionAllocator(Mallocator.cit, 1024, 16);
 	testOutOfMemory(region, 1025);
 }
-
 
 version(unittest)
 {

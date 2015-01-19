@@ -4,6 +4,15 @@ import std.traits;
 import allocation.common;
 import std.conv;
 
+template isList(T)
+{
+	static if(is(T t == List!U, U) || 
+			  is(T t == GrowingList!U, U))
+		enum isList = true;
+	else 
+		enum isList = false;
+}
+
 struct List(T)
 {
 	import std.range : isInputRange, isForwardRange, isBidirectionalRange, isRandomAccessRange;
@@ -199,6 +208,11 @@ struct List(T)
 			put(d);
 	}
 
+	void put(const(T[]) data)
+	{
+		put(cast(T[])data);
+	}
+
 	//Need to work around strings. (They are annoying)
 	static if(is(T == char))
 	{
@@ -221,6 +235,151 @@ struct List(T)
 			foreach(char c; s)
 				this ~= c;
 		}
+	}
+}
+
+struct GrowingList(T)
+{
+	enum defaultStartCapacity = 10;
+
+	import std.range : isInputRange, isForwardRange, isBidirectionalRange, isRandomAccessRange;
+	List!(T) base_;
+	alias base_ this;
+
+	static assert(isInputRange!(List!T));
+	static assert(isForwardRange!(List!T));
+	static assert(isBidirectionalRange!(List!T));
+	static assert(isRandomAccessRange!(List!T));
+
+	IAllocator allocator;
+
+	@property const(T)[] array()
+	{
+		return buffer[0 .. length];
+	}
+
+	this(IAllocator allocator, size_t startCapacity = defaultStartCapacity)
+	{
+		this.allocator = allocator;
+		this.base_	   = List!T(allocator, startCapacity);
+	}
+
+	void reallocate()
+	{
+		auto new_ = List!T(allocator, cast(size_t)(base_.capacity * 1.5));
+		new_.length = base_.capacity;
+		(cast(T[])new_.array)[] = base_.array;
+
+		base_.deallocate(allocator);
+		base_ = new_;
+	}
+
+	void deallocate()
+	{
+		base_.deallocate(allocator);
+	}
+
+	ref T opIndex(size_t index)
+	{
+		return base_[index];
+	}
+
+	void opOpAssign(string s : "~")(auto ref T value)
+	{
+		if(base_.capacity == base_.length)
+			reallocate();
+
+		base_.opOpAssign!s(value);
+	}
+
+	void opOpAssign(string s : "~", Range)(Range range)
+	{
+		base_.opOpAssign!s(range);
+	}
+
+	void opIndexAssign(ref T value, size_t index)
+	{
+		base_.opIndexAssign(value, index);
+	}
+
+	void opIndexAssign(T value, size_t index)
+	{
+		base_.opIndexAssign(value, index);
+	}
+
+	void opSliceAssign()(auto ref T value)
+	{
+		base_.opSliceAssign(value);
+	}
+
+	void opSliceAssign()(auto ref T value,
+						 size_t x,
+						 size_t y)
+	{
+		base_.opSliceAssign(value, x, y);
+	}
+
+
+	uint opDollar(size_t pos)()
+	{
+		return base_.opDollar!(pos)();
+	}
+
+	bool opEquals(ref GrowingList!T other)
+	{
+		return base_.opEquals(other.base_);
+	}
+
+	List!T opSlice()
+	{
+		return base_.opSlice();
+	}
+
+	List!T opSlice(size_t x, size_t y)
+	{
+		return base_.opSlice(x, y);
+	}	
+
+	int opApply(int delegate(ref T) dg)
+	{
+		return base_.opApply(dg);
+	}
+
+	int opApply(int delegate(uint, ref T) dg)
+	{
+		return base_.opApply(dg);
+	}
+
+	void clear()
+	{
+		base_.clear();
+	}
+
+	void insert(size_t index, T value)
+	{
+		if(base_.capacity == base_.length)
+			reallocate();
+
+		base_.insert(index, value);
+	}
+
+	void insert(size_t index, const(T)[] range)
+	{
+		while(base_.capacity >= base_.length + range.length)
+			reallocate();
+
+		base_.insert(index, range);
+	}
+
+	bool remove(SwapStrategy s = SwapStrategy.stable)(ref T value)
+	{
+		return base_.remove!(s, T)(value);
+	}
+
+
+	bool removeAt(SwapStrategy s = SwapStrategy.stable)(size_t index)
+	{
+		return base_.removeAt!(s, T)(index);
 	}
 }
 
@@ -321,6 +480,12 @@ struct CircularList(T)
 		foreach(ref elem; range)
 			push(elem);
 	}
+
+	bool full()
+	{
+		return ((end + 1) % capacity) == start;
+	}
+
 
 	T pop() 
 	{

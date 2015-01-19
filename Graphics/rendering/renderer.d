@@ -60,8 +60,8 @@ struct Renderer(V)
 		program.uniforms.sampler = 0;
 
 		sampler = Sampler.create();
-		sampler.minFilter(TextureMinFilter.nearest);
-		sampler.magFilter(TextureMagFilter.nearest);
+		sampler.minFilter(TextureMinFilter.linear);
+		sampler.magFilter(TextureMagFilter.linear);
 
 		renderBuffer = AsyncRenderBuffer!V(config.maxBatchSize, config.batchCount, program);
 	}

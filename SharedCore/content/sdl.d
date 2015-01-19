@@ -10,6 +10,7 @@ import std.string;
 import std.range : repeat;
 import collections.list;
 import allocation;
+import math.traits, math.vector;
 
 alias TypeID = SDLObject.Type;
 
@@ -66,9 +67,29 @@ struct OptionalStruct(T)
 	this(T)(T t) { defaultValue = t; }
 }
 
-auto Convert(alias F)()
+template Convert(alias F)
 {
-	return ConvertStruct!(ReturnType!F, ParameterTypeTuple!F)(&F);
+	alias args =  ParameterTypeTuple!F;
+	static if(args.length == 1)
+		enum Convert = ConvertStruct!(ReturnType!F, ParameterTypeTuple!F)(&F);
+	else static if(args.lenght == 2)
+		enum Convert = ContextConvertStruct!(ReturnType!F, ParameterTypeTuple!F)(&F);
+	else 
+		static assert(0, "Invalid Convert Method!");
+}
+
+struct ContextConvertStruct(R, T, C)
+{
+	alias argType = T;
+	alias returnType = R;
+	alias context	 = C;
+
+	R function(T, C) convert;
+
+	this(R function(T, C) converter)
+	{
+		this.convert = converter;
+	}
 }
 
 struct ConvertStruct(R, T)
@@ -84,11 +105,33 @@ struct ConvertStruct(R, T)
 	}
 }
 
-struct SDLIterator
+struct PostModify(T, A)
 {
+	alias argType = T;
+	void function(ref A, ref T) modify;
+	this(void function(ref A,ref T) modify)
+	{
+		this.modify = modify;
+	}
+}
+
+
+struct SDLContext
+{
+	bool canRead(T)() { return false; }
+	T read(T, C)(SDLIterator!(C)* iterator) 
+	{
+		static assert(0, "Should not be instantiated!"); 
+	}
+}
+__gshared SDLContext default_context;
+
+
+struct SDLIterator(C)
+{
+	C* context;
     SDLContainer* over;
     ushort currentIndex;
-
 
     ref SDLIterator opDispatch(string name)()
 	{
@@ -103,6 +146,9 @@ struct SDLIterator
 		return over.root[currentIndex].as!T;
 	}
 	*/  
+
+	@property 
+		ref IAllocator allocator() { return over.allocator; }
 
     @property
 		bool empty() {
@@ -129,40 +175,40 @@ struct SDLIterator
 			return size;
 		}
 
-    private enum curObjObjRange =	"ForwardRange(over.root[currentIndex].objectIndex,"
+    private enum curObjObjRange  =	"ForwardRange(over.root[currentIndex].objectIndex,"
 		~	"over.source)";
 	private enum curObjNameRange =	"ForwardRange(over.root[currentIndex].nameIndex,"
 		~	"over.source)";
 
-	private string readName()
+	string readName()
 	{
 		assert(current.hasName, "Attempt to read name of nameless object!\n"~getSDLIterError);
 		auto range = mixin(curObjNameRange);
 		return readIdentifier(range);
 	}
 
-	private float readFloat()
+	float readFloat()
 	{
 		assert(SDLObject.Type._float == current.type, getSDLIterError);
 		auto range = mixin(curObjObjRange);
 		return readNumber!float(range);
 	}
 
-	private int readInt()
+	int readInt()
 	{
 		assert(SDLObject.Type._int == current.type, getSDLIterError);
 		auto range = mixin(curObjObjRange);
 		return readNumber!int(range);
 	}
 
-	private string readString()
+	string readString()
 	{
 		assert(SDLObject.Type._string == current.type, getSDLIterError);
 		auto range = mixin(curObjObjRange);
 		return .readString(range);
 	}
 
-	private string getSDLIterError()
+	string getSDLIterError()
 	{
 		auto range = mixin(curObjNameRange);
 		return "Error in object "~readIdentifier(range)~" at index "~to!string(currentIndex);
@@ -206,6 +252,13 @@ struct SDLIterator
 		this(string msg) { super(msg); }
 	}
 
+	bool hasNext()
+	{
+        SDLObject obj = over.root[currentIndex];
+        auto next = cast(ushort)obj.nextIndex;
+		return next != 0;
+	}
+
     void goToNext()
 	{
         SDLObject obj = over.root[currentIndex];
@@ -215,7 +268,36 @@ struct SDLIterator
         currentIndex = next;
 	}
 
-	T as(T)() if(isNumeric!T && !is(T==enum))
+	T as_impl(T)() if(isVector!T)
+	{
+		static if(is(T v == Vector!(len, U), int len, U))
+		{
+			goToChild();
+			enum dimensions = ["x","y","z","w"]; // This is at the same time the vector rep and the file rep. Change.
+			auto toReturn = T();
+			foreach(i; math.vector.staticIota!(0, len)) 
+			{  
+				//  Can only traverse the tree downwards
+				//  So we need to save this index to not
+				//  get lost.
+				auto firstIndex = currentIndex;
+		        goToNext!(dimensions[i]);
+	            auto range = ForwardRange(over.root[currentIndex].objectIndex, over.source);
+	            toReturn.data[i] = readNumber!U(range);
+
+				// We want to search the whole object for every name.
+				currentIndex = firstIndex;
+			}
+
+			return toReturn;
+		}
+		else 
+		{
+			static assert("Vector sdl code is wrong!");
+		}
+	}
+
+	T as_impl(T)() if(isNumeric!T && !is(T==enum))
 	{
         static if(isIntegral!T)
 			enforce(over.root[currentIndex].type == TypeID._int,
@@ -234,7 +316,7 @@ struct SDLIterator
             return cast(T)readNumber!double(range);
 	}
 
-	T as(T)() if(is(T==bool))
+	T as_impl(T)() if(is(T==bool))
 	{
 		assert(over.root[currentIndex].type == TypeID._string,
 				getSDLIterError() ~ "\n" ~
@@ -243,7 +325,7 @@ struct SDLIterator
 		return readBool(range);
 	}
 
-    T as(T, A)(ref A allocator) if(isSomeString!T)
+    T as_impl(T)() if(isSomeString!T)
 	{
         assert(over.root[currentIndex].type == TypeID._string);
 
@@ -254,7 +336,7 @@ struct SDLIterator
         return cast(T)s;
 	}
 
-    T as(T, A)(ref A allocator) if(isArray!T && !isSomeString!T)
+    T as_impl(T)() if(isArray!T && !isSomeString!T)
     {
         static if(is(T t == A[], A)) {
             auto arr = allocator.allocate!T(walkLength);
@@ -264,12 +346,7 @@ struct SDLIterator
                 auto obj = over.root[currentIndex]; //  Can only traverse the tree downwards
                 auto next = obj.nextIndex;          //  So we need to save this index to not
 													//  get lost.
-
-				static if(NeedsAllocator!A) 
-					elem = as!A(allocator);
-                else 
-					elem = as!A;
-
+				elem = as!A;
 				currentIndex = next;
 			}
             return arr;
@@ -279,7 +356,7 @@ struct SDLIterator
 	}
 
 	//TODO: Code duplication (see above) iteration might be refactored into an opApply?
-	T as(T, A)(ref A allocator) if(is(T t == List!U, U))
+	T as_impl(T)() if(is(T t == List!U, U))
 	{
         static if(is(T t == List!U, U)) {
 			auto listLength = walkLength;
@@ -289,10 +366,7 @@ struct SDLIterator
 			foreach(i; 0 .. listLength) {
 				auto obj = over.root[currentIndex];
 				auto next = obj.nextIndex;
-				static if(NeedsAllocator!U) 
-					list.put = as!U(allocator);
-				else 
-					list.put = as!U;
+				list.put = as!U;
 				currentIndex = next;
 			}
 			return list;
@@ -301,7 +375,7 @@ struct SDLIterator
 		}
 	}
 
-	T as(T)() if (is(T == enum))
+	T as_impl(T)() if (is(T == enum))
 	{
 		assert(over.root[currentIndex].type == TypeID._string,
 					 getSDLIterError() ~ "\n" ~
@@ -319,56 +393,7 @@ struct SDLIterator
 			   name ~ " is not a valid value of enum type " ~ T.stringof);
 	}
 
-    import math.vector, math.traits;
-    Vec as(Vec)() if(isVector!Vec)
-	{
-		static if (is(Vec v == Vector!(len, U), int len, U)) {
-			enum dimensions = ["x","y","z","w"]; // This is at the same time the vector rep and the file rep. Change.
-			auto toReturn = Vec();
-            goToChild();
-			foreach(i;math.vector.staticIota!(0, len)) {  
-				//  Can only traverse the tree downwards
-				//  So we need to save this index to not
-				//  get lost.
-				auto firstIndex = currentIndex;
-                goToNext!(dimensions[i]);
-                auto range = mixin(curObjObjRange);
-                mixin("toReturn." ~ dimensions[i]) = readNumber!U(range);
-
-				// We want to search the whole object for every name.
-				currentIndex = firstIndex;
-			}
-			return toReturn;
-		} else static assert(0, Vec.stringof ~ " is not a vector type.");
-	}
-
-	private template NeedsAllocator(T)
-	{
-		enum NeedsAllocator = UnknownType!T  ||
-			isSomeString!T	|| 
-			isArray!T		|| 
-			isList!T;
-	}
-
-	private template UnknownType(T)
-	{
-		enum UnknownType = !(isNumeric!T	||
-							isSomeString!T	||
-							isArray!T 		||
-							isVector!T		||
-							is(T == bool)	||
-							isList!T);
-	}
-
-	private template isList(T)
-	{
-		static if (is(T t == List!U, U)) {
-			enum isList = true;
-		} else {
-			enum isList = false;
-		}
-	}
-
+	
 	private template memberName(string fullName)
 	{
 		import std.string;
@@ -379,36 +404,49 @@ struct SDLIterator
 			enum memberName = fullName[index+1..$];
 	}
 
-    T as(T, Allocator)(ref Allocator a) if (UnknownType!T)
-	{        
-		goToChild();
-        T toReturn;
+	T as_impl(T : void*)() { return null; }
+	T as_impl(T)()
+	{
+		auto a = allocator;
 
-        foreach(i, dummy; toReturn.tupleof) {
+		goToChild();
+		T toReturn;
+        foreach(i, dummy; toReturn.tupleof) 
+		{
 			enum member = memberName!(toReturn.tupleof[i].stringof);
 
-			alias fieldType = typeof(toReturn.tupleof[i]);
-			alias attributeTypes = typeof(__traits(getAttributes, toReturn.tupleof[i]));
+			alias fieldType			= typeof(toReturn.tupleof[i]);
+			alias attributeTypes	= typeof(__traits(getAttributes, toReturn.tupleof[i]));
+
 			static if (attributeTypes.length >= 1) 
 				alias attributeType = attributeTypes[0];
 			else
 				alias attributeType = void;
+
 			//  Can only traverse the tree downwards
 			//  So we need to save this index to not
 			//  get lost.
 			auto firstIndex = currentIndex;
+
 			//Did the field have an attribute?
-			static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) {
-				static if(	is(attributeType == OptionalStruct!Type, Type)
-						&&	is(attributeType.defaultType : fieldType)) {
-					static if(is(attributeType == OptionalStruct!fieldType)) {
+			static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1)
+			{
+				static if(is(attributeType == OptionalStruct!Type, Type) &&	is(attributeType.defaultType : fieldType)) 
+				{
+					static if(is(attributeType == OptionalStruct!fieldType)) 
+					{
 						bool thrown = false;
-						try {
+
+						try 
+						{
 							goToNext!member; //Changes the index to point to the member we want.
-						} catch (ObjectNotFoundException a) {
+						}
+						catch (ObjectNotFoundException a)
+						{
 							//Set the field to the default value contained in the attribute.
 							thrown = true;
 						}
+
 						if (thrown)
 						{
 							toReturn.tupleof[i] = 
@@ -416,33 +454,40 @@ struct SDLIterator
 						}
 						else
 						{
-							static if (NeedsAllocator!fieldType)
-								toReturn.tupleof[i] = as!fieldType(a);
-							else
-								toReturn.tupleof[i] = as!fieldType;
+							toReturn.tupleof[i] = as!fieldType;
 						}
 					}
-				} else static if(is(attributeType at == ConvertStruct!(R, A), R, A)) {
+				} 
+				else static if(is(attributeType at == ConvertStruct!(R, A), R, A)) 
+				{
 					goToNext!member;
-					static assert(is(at.returnType : fieldType), 
-								  "Incorrect returntype for convert function." ~
-						" Should be "~at.returnType.stringof~" was "~fieldType.stringof);
-					static if (NeedsAllocator!(at.argType))
-						at.argType item = as!(at.argType)(a);
-					else
-						at.argType item = as!(at.argType);
-					toReturn.tupleof[i] = 
-						__traits(getAttributes, toReturn.tupleof[i])[0].convert(item);
-				} else {
-					static assert(0, "Field type mismatch: \n Field "
-						   ~member~" was of type "~fieldType.stringof~
-						   ", attribute was of type "~attributeType.stringof);
+					static assert(is(R : fieldType), "Incorrect returntype for convert function." ~ " Should be " ~ at.returnType.stringof ~" was " ~ fieldType.stringof);
+
+					at.argType item = as!(at.argType)();
+					toReturn.tupleof[i] = __traits(getAttributes, toReturn.tupleof[i])[0].convert(item);
+				} 
+				else static if(is(attributeType at == ContextConvertStruct!(R, A, C*), R, A)) 
+				{
+					goToNext!member;
+					static assert(is(R : fieldType), "Incorrect returntype for convert function." ~ " Should be " ~ at.returnType.stringof ~" was " ~ fieldType.stringof);
+
+					at.argType item = as!(at.argType)();
+					toReturn.tupleof[i] = __traits(getAttributes, toReturn.tupleof[i])[0].convert(item, context);
 				}
-			} else {
+				else
+				{
+					static assert(0, "Field type mismatch: \n Field " ~ member ~ " was of type " ~ fieldType.stringof ~ ", attribute was of type " ~ attributeType.stringof);
+				}
+			} 
+			else 
+			{
 				goToNext!member; //Changes the index to point to the member we want.
-				static if(NeedsAllocator!fieldType) {
-					toReturn.tupleof[i] = as!(fieldType, Allocator)(a);
-				} else {
+				static if(NeedsAllocator!fieldType) 
+				{
+					toReturn.tupleof[i] = as!(fieldType)();
+				} 
+				else
+				{
 					auto value_ = as!fieldType;
 					toReturn.tupleof[i] = value_;
 				}
@@ -453,88 +498,29 @@ struct SDLIterator
         return toReturn;
 	}
 
-	T as(T)() if (UnknownType!T)
-	{
-        goToChild();
-        T toReturn;
-
-        foreach(i, dummy; toReturn.tupleof) 
+    T as(T)()
+	{        
+		enum context_compiles = __traits(compiles, () => context.read!(T, C)(&this));
+		static if(context_compiles)
 		{
-			enum member = memberName!(toReturn.tupleof[i].stringof);
-			alias fieldType = typeof(toReturn.tupleof[i]);
-			//We need to be able to assign to it.
-			alias attributeTypes = typeof(__traits(getAttributes, toReturn.tupleof[i]));
-			static if (attributeTypes.length >= 1) 
-				alias attributeType = attributeTypes[0];
-			else
-				alias attributeType = void;
-			static if(isArray!fieldType) 
-				static assert(0, "Structs cotaining arrays need an allocator to be parsed.\n"~
-						"Field "~member~" was an array, and prevented parsing.");
-			else static if(is(fieldType f == List!E, E))
-				static assert(0, "Structs cotaining lists need an allocator to be parsed.\n"~
-						"Field "~member~" was a list, and prevented parsing.");
-			else 
-			{
-				//  Can only traverse the tree downwards
-				//  So we need to save this index to not
-				//  get lost.
-				auto firstIndex = currentIndex;
-				//Did the field have an attribute?
-				static if(__traits(getAttributes, toReturn.tupleof[i]).length >= 1) 
-				{
-					static if(is(attributeType == OptionalStruct!fieldType)) 
-					{
-						bool thrown = false;
-						try 
-						{
-							goToNext!member; //Changes the index to point to the member we want.
-						} 
-						catch (ObjectNotFoundException a) 
-						{
-							//Set the field to the default value contained in the attribute.
-							thrown = true;
-						}
-						
-						if (thrown)
-							toReturn.tupleof[i] = 
-								__traits(getAttributes, toReturn.tupleof[i])[0].defaultValue;
-						else
-							toReturn.tupleof[i] = as!fieldType;						
-	  				} 
-					else static if(is(attributeType at == ConvertStruct!(R, A), R, A)) 
-					{
-						goToNext!member;
-						static assert(is(at.returnType : fieldType), 
-									  "Incorrect returntype for convert function." ~
-									  " Should be "~at.returnType.stringof~" was "~fieldType.stringof);
-						static if (NeedsAllocator!(at.argType))
-							static assert(0, "Convertible field of type "~at.argType.stringof~
-										  " needs an allocator to be parsed.");
-						else
-							at.argType item = as!(at.argType);
-					
-						toReturn.tupleof[i] = __traits(getAttributes, toReturn.tupleof[i])[0].convert(item);
-					} 
-					else 
-					{
-						static assert(0, "Field type mismatch: \n Field "
-							   ~member~" was of type "~fieldType.stringof~
-							   ", attribute was of type "~attributeType.stringof);
-					}
-				} 
-				else 
-				{
-						goToNext!member;
-						import std.conv;
-						toReturn.tupleof[i] = as!fieldType;
-				}
-				// We want to search the whole object for every name.
-				currentIndex = firstIndex;
-			}
-        }
-        return toReturn;
+			pragma(msg, T.stringof);
+			return context.read!T(&this);
+		}
+
+		enum as_impl_compiles = __traits(compiles, as_impl!(T)());
+		static if(as_impl_compiles)
+		{
+			return as_impl!(T)();
+		}
+
+		static if(!context_compiles && !as_impl_compiles)
+		{
+			as_impl!(T)();
+		}
+
+		//static assert(0, "Cannot serialize this type!");
 	}
+
 
     ref SDLIterator opIndex(size_t index)
     {
@@ -551,10 +537,38 @@ struct SDLIterator
 	}
 }
 
+public template NeedsAllocator(T)
+{
+	enum NeedsAllocator = UnknownType!T  ||
+		isSomeString!T	|| 
+		isArray!T		|| 
+		isList!T;
+}
+
+private template UnknownType(T)
+{
+	enum UnknownType = !(isNumeric!T	||
+						 isSomeString!T	||
+						 isArray!T 		||
+						 isVector!T	    ||
+						 is(T == bool)	||
+							 isList!T);
+}
+
+private template isList(T)
+{
+	static if (is(T t == List!U, U)) {
+		enum isList = true;
+	} else {
+		enum isList = false;
+	}
+}
+
 struct SDLContainer
 {
-    private SDLObject* root;
+    SDLObject* root;
     private string source;
+	private IAllocator allocator;
 
     @property
 		SDLIterator opDispatch(string s)()
@@ -565,16 +579,9 @@ struct SDLContainer
         return it;
 	}
 
-    @property
-		T as(T, A)(ref A allocator)
+    @property T as(T, C)(ref C context)
 	{
-        return SDLIterator(&this, 0).as!T(allocator);
-	}
-
-	@property
-		T as(T)()
-	{
-        return SDLIterator(&this, 0).as!T;
+        return SDLIterator!(C)(&context, &this, 0).as!(T)();
 	}
 
 	private SDLObject opIndex(size_t index)
@@ -737,12 +744,13 @@ void toLua(Sink)(SDLIterator it, ref Sink sink, uint level = 0)
 	}
 }
 
+/*
 string toLuaFromSource(A)(ref A appender, string sdlSource)
 	if (__traits(compiles, appender.put('\n')))
 {
 	ubyte[5*1024] objBuf = void;
 	auto alloc = RegionAllocator(objBuf);
-	auto cont = fromSDLSource(alloc, sdlSource);
+	auto cont = fromSDLSource(alloc, sdlSource, default_context);
 
 	appender.put(cast(char[])("local sdlObject =\n{\n"));
 	toLua(SDLIterator(&cont, 1), appender, 1);
@@ -765,7 +773,7 @@ void toLuaFileFromFile(string sdlFile, string luaFile)
 
 	//Save it to a file;
 	write(luaFile, cast(void[])luaSource);
-}
+} */
 
 struct ForwardRange
 {
@@ -865,7 +873,7 @@ if (isStringOrVoid!StringOrVoid)
 }
 
 StringOrVoid readIdentifier(StringOrVoid = string)(ref ForwardRange range)
-if (isStringOrVoid!StringOrVoid)
+	if (isStringOrVoid!StringOrVoid)
 {
 	static if(isSomeString!StringOrVoid)
 		auto saved = range.save();
@@ -1190,8 +1198,17 @@ long parseHex(ForwardRange saved, ForwardRange range)
 	return acc;
 }
 
-T fromSDLSource(T = SDLContainer, A)(ref A allocator, string source)
+T fromSDLSource(T, A)(ref A allocator, string source)
 {
+	return fromSDLSource!T(allocator, source, default_context);
+}
+
+T fromSDLSource(T, A, C)(ref A allocator, string source, C context) if(is(C == struct))
+{
+	auto iall = Mallocator.it.allocate!(CAllocator!A)(allocator);
+	scope(exit) Mallocator.it.deallocate(iall);
+
+
 	import allocation.native;
     auto app = MallocAppender!SDLObject(1024);
 
@@ -1205,12 +1222,23 @@ T fromSDLSource(T = SDLContainer, A)(ref A allocator, string source)
     auto cont = fromSDL(app, source);
 	static if(is(T == SDLContainer))
 		return cont;
-    return cont.as!T(allocator);
+
+	cont.allocator = iall;
+
+    return cont.as!T(context);
 }
 
-T fromSDLFile(T = SDLContainer, A)(ref A allocator, string filePath)
+T fromSDLFile(T, A)(ref A al, string fp)
+{
+	return fromSDLFile!(T, A, SDLContext)(al, fp, default_context);
+}
+
+T fromSDLFile(T, A, C)(ref A allocator, string filePath, C context) if(is(C == struct))
 {
     import allocation.native;
+	auto iall = Mallocator.it.allocate!(CAllocator!A)(allocator);
+	scope(exit) Mallocator.it.deallocate(iall);
+
     auto app = MallocAppender!SDLObject(1024);
     auto source = readText(filePath);
 
@@ -1225,12 +1253,15 @@ T fromSDLFile(T = SDLContainer, A)(ref A allocator, string filePath)
     auto cont = fromSDL(app, source);
 	static if(is(T == SDLContainer))
 		return cont;
-    return cont.as!T(allocator);
+
+		
+	cont.allocator = iall;
+    return cont.as!T(context);
 }
 
-T fromSDL(T, A)(ref A allocator, string source)
+T fromSDL(T, A, C)(ref A allocator, string source, C context) if(is(C == struct))
 {
-	return fromSDL(allocator, source).as!T(allocator);
+	return fromSDL(allocator, source).as!T(allocator, context);
 }
 
 SDLContainer fromSDL(Sink)(ref Sink sink, string source)

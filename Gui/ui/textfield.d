@@ -60,7 +60,6 @@ struct GuiTextfield
 		this.filter = filter;
 		this.error  = error;
 		this.changed = false;
-
 	}
 
 	bool couldInsert(ref EditText text, const(char)[] input)
@@ -154,7 +153,6 @@ struct GuiTextfield
 				if(couldInsert(text, clipboard.text))
 				{
 					state.cursor += clipboard.text.length;
-					logInfo("Text:", clipboard.text, " State:", state.cursor);
 				}
 			}
 		}
@@ -263,8 +261,12 @@ struct GuiTextfield
 		if(error(this, text.array))
 			textColor   = style.errorColor;
 
+		
+		auto font = style.font;
+		font.color = textColor;
+
 		gui.drawQuad(rect, style.bg);
-		gui.drawText(text.array, rect.xy + style.padding, rect.padded(float2(style.padding.x, 0)), style.font);
+		gui.drawText(text.array, rect.xy + style.padding, rect.padded(float2(style.padding.x, 0)), font);
 
 		if(hasFocus())
 		{
@@ -335,12 +337,19 @@ float2 numberfieldSize(T)(ref Gui gui, ref T number, HashID style = HashID("text
 	import util.strings;
 	auto t        = cast(char[])text1024(T.max);
 	auto edittext = EditText(t.ptr, t.length, t.length);
+
 	return textfieldSize(gui, edittext, "", style);
 }
 
 import std.traits;
-bool numberfield(T)(ref Gui gui, Rect rect, ref T number, HashID style = HashID("textfield")) if(isNumeric!T)
+bool numberfield(T)(ref Gui gui, 
+					Rect rect, 
+					ref T number, 
+					T min_ = 0, 
+					T max_ = 0, 
+					HashID style = HashID("textfield")) if(isNumeric!T)
 {
+
 	import util.strings, util.exception;
 	static struct State
 	{
@@ -363,14 +372,39 @@ bool numberfield(T)(ref Gui gui, Rect rect, ref T number, HashID style = HashID(
 
 	}
 
+	
+
 	char[27] buffer = void;
 	auto tf = GuiTextfield(&gui, rect, style, &standardFilter, &errorFilter);
 	if(gui.nextHasFocus())
 	{
+		bool result = false;
+		if(gui.keyboard.wasPressed(Key.up))
+		{
+			number += 1;
+			result = true;
+		} else if(gui.keyboard.wasPressed(Key.down))
+		{
+			number -= 1;
+			result = true;
+		}
+		if(!(min_ == 0 && max_ == 0))
+		{
+			number = clamp(number, min_, max_);
+		}
+
+		if(result)
+		{
+			auto text_    = text(buffer, number);
+			auto edittext = EditText(cast(char*)text_.ptr, text_.length, 27);
+			tf(edittext, "");
+			return true;
+		}
+
 		auto hash = bytesHash(rect, bytesHash("numberfield"));
 		auto state = gui.fetchState(hash, State(text(buffer, number)));
 		auto edittext = EditText(state.text.ptr, state.length, 27);
-		bool result = tf(edittext, "");
+		result |= tf(edittext, "");
 
 		state = State(edittext.array);
 		gui.state(hash, state);
@@ -383,7 +417,17 @@ bool numberfield(T)(ref Gui gui, Rect rect, ref T number, HashID style = HashID(
 		}
 		else 
 		{
-			return edittext.array.tryParse(number) && result;	
+			if(edittext.array.tryParse(number))
+			{
+				if(!(min_ == 0 && max_ == 0))
+				{
+					number = clamp(number, min_, max_);
+				}
+
+				return result;
+			}
+
+			return false;
 		}
 	}
 	else 
@@ -404,7 +448,29 @@ float2 vectorfieldSize(ref Gui gui, ref float2 number, HashID style = HashID("te
 import math.vector;
 bool vectorfield(ref Gui gui, Rect rect, ref float2 vec, HashID style = HashID("textfield"))
 {
-	bool first = numberfield(gui, Rect(rect.x, rect.y, rect.w / 2 - 5, rect.h), vec.x, style);
-	bool second = numberfield(gui, Rect(rect.x + rect.w / 2, rect.y, rect.w / 2 - 5, rect.h), vec.y, style);
+	bool first = numberfield(gui, Rect(rect.x, rect.y, rect.w / 2 - 5, rect.h), vec.x, 0f, 0f, style);
+	bool second = numberfield(gui, Rect(rect.x + rect.w / 2, rect.y, rect.w / 2, rect.h), vec.y, 0f, 0f, style);
 	return first || second;
+}
+
+bool colorfield(ref Gui gui, Rect rect, ref Color color, HashID styleID = HashID("textfield"))
+{
+	int r = color.rbits, 
+		g = color.gbits,
+		b = color.bbits,
+		a = color.abits;
+
+	bool result = false;
+
+	result |= numberfield(gui, Rect(rect.x,										 rect.y, rect.w / 4 - 5, rect.h), r, 0, 255, styleID);
+	result |= numberfield(gui, Rect(rect.x + rect.w / 4,					     rect.y, rect.w / 4 - 5, rect.h), g, 0, 255, styleID);
+	result |= numberfield(gui, Rect(rect.x + rect.w / 2,					     rect.y, rect.w / 4 - 5, rect.h), b, 0, 255, styleID);
+	result |= numberfield(gui, Rect(rect.x + (rect.w  / 2) + rect.w / 4,         rect.y, rect.w / 4 - 5, rect.h), a, 0, 255, styleID);
+
+	if(result)
+	{
+		color = Color(r, g, b, a);
+	}
+
+	return result;
 }

@@ -11,7 +11,7 @@ contentConfig =
 
 renderConfig =
 {
-	maxBatchSize = 0xffff
+	maxBatchSize = 1000_00
 	batchCount   = 3
 }
 

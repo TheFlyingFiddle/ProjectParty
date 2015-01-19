@@ -1,0 +1,126 @@
+bodies = 
+[
+	{
+		name = smallCircle
+		shape = 
+		{
+			type = circle
+			radius = 0.3
+			hx   = 0.5
+			hy	 = 0.5
+		}
+	},
+	{
+		name  = smallBox 
+		friction = 0.3
+		fixedRotation = false
+		shape =
+		{
+			type = rect
+			hx   = 0.3
+			hy   = 0.3
+		}
+	},
+	{
+		type = b2_staticBody
+		name = smallStaticBox
+		friction = 0.3
+		shape = 
+		{
+			type = rect
+			hx   = 0.3
+			hy   = 0.3
+		}
+	},
+	{
+		type = b2_kinematicBody
+		name = kinematicBox
+		friction = 1.0
+		shape = 
+		{
+			type = rect
+			hx   = 1
+			hy	 = 1
+		}
+	},
+	{
+		name   = sensorBox
+		sensor = true
+		shape = 
+		{
+			type = rect
+			hx   = 0.3
+			hy   = 0.3
+		}
+	}
+]
+
+archetypes = 
+[
+	{
+		name   = player
+		groups = 0
+		components = 
+		{
+			Input = 
+			{
+				index = zero
+				direction = { x = 1 y = 0 }
+			}
+
+			Sprite = 
+			{
+				tint = 0xFFFFFFFF
+				name = baws
+			}
+
+			Box2DConfig = 
+			{
+				name	  = smallBox
+				collision = playerCollision 
+			}
+		}
+	},
+	{
+		name   = staticBox
+		groups = 0 
+		components = 
+		{
+			Box2DConfig = 
+			{
+				name	  = smallStaticBox
+				collision = playerCollision 
+			}
+		}
+	},
+	{
+		name = elevator
+		groups = 1
+		components = 
+		{
+			Elevator = 
+			{
+				destination = { x = 8 y = 0 }
+				interval = 2
+				elapsed = 0
+			}
+
+			Box2DConfig = 
+			{
+				name = kinematicBox
+			}
+		}
+	},
+	{
+		name = elevatorTrigger
+		groups = 0
+		components = 
+		{
+			Box2DConfig = 
+			{
+				name = sensorBox
+				collision = toggleElevators
+			} 
+		}
+	}
+]

@@ -164,6 +164,26 @@ class RenderComponent : IApplicationComponent
 	}
 }
 
+class TimerComponent : IApplicationComponent
+{
+	TimeKeeper keeper;
+	this(A)(ref A all, size_t maxTimers)
+	{
+		import collections.list;
+		this.keeper = TimeKeeper(List!Timer(all, maxTimers));
+	}
+
+	override void initialize()
+	{
+		app.addService(&keeper);
+	}
+
+	override void step(Time time)
+	{
+		keeper.step(time);
+	}
+}
+
 version(RELOADING)
 {
 	class ReloadingComponent : IApplicationComponent

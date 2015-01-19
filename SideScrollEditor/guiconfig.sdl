@@ -1,0 +1,185 @@
+images  = |Atlas|
+fonts   = |Fonts|
+tooltip	= { id = segoeui color = white size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+	
+palette = 
+[
+	{ id = |darkBlue|   value = 0xFF220C03 },
+	{ id = |blue|		  value = 0xFF3F2920 },
+	{ id = |darkGray|   value = 0xFF494740 },
+	{ id = |gray|		  value = 0xFFB3B0A9 },
+	{ id = |white|      value = 0xFFFFFFFF },
+	{ id = |black|      value = 0xFF000000 }
+]
+
+textfields =
+[
+	{
+		name    = textfield
+		frame	= { id = |pixel| color = |gray| } 
+		font    =  { id = segoeuil color = black size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		padding = { x = 4 y = 4 }
+		cursorColor = 0xFF000000
+		selectionColor = 0x6600aa00
+		errorColor     = 0xFF0000FF
+		flashSpeed     = 1.0
+	}
+]
+
+typefields =
+[
+	{
+		name = typefield
+		itemSpacing = 5
+		fieldSize   = 20
+		nameWidth   = 60
+		topDown		= true
+	}
+]
+
+buttons = 
+[ 
+	{	
+		name		= button
+		up			= { id = |pixel| color = |blue| }
+		down		= { id = |pixel| color = |gray| }
+		hl			= { id = |pixel| color = |darkGray| }
+		downHl		= { id = |pixel| color = |gray| }
+		font		= { id = segoeui color = white size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
+	}
+	{	
+		name		= activeToggle
+		up			= { id = |pixel| color = |gray| }
+		down		= { id = |pixel| color = |gray| }
+		hl			= { id = |pixel| color = |gray| }
+		downHl		= { id = |pixel| color = |gray| }
+		font		= { id = segoeui color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
+	},
+	{	
+		name		= unactiveToggle
+		up			= { id = |pixel| color = |blue| }
+		down		= { id = |pixel| color = |darkGray| }
+		hl			= { id = |pixel| color = |darkGray| }
+		downHl		= { id = |pixel| color = |darkGray| }
+		font		= { id = segoeui color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
+	}
+]
+
+toggles = 
+[
+	{
+		name = toggle
+		toggled		= |activeToggle|
+		untoggled	= |unactiveToggle|
+	}
+]
+
+toolbars = 
+[
+	{
+		name	= toolbar
+		id		= toggle
+		padding = 5
+	}
+]
+
+sliders =
+[
+	{
+		name	= scrollbar
+		bg		= { id = |pixel| color = |darkGray| }
+		fg		= { id = |pixel| color = |gray| }
+	}
+]
+
+
+listboxes =
+[
+	{
+		name	 = listbox
+		itemSize = 25
+		font     = { id = segoeuil color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		selected = { id = |pixel| color = |gray| }
+		stripe0	 = { id = |pixel| color = |darkBlue| }
+		stripe1  = { id = |pixel| color = |darkGray| }
+		bg		 = { id = |pixel| color = |white| }
+		scrollID = scrollbar
+	},
+	{
+		name	 = editListBox
+		itemSize = 25
+		font     = { id = segoeuil color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		selected = { id = |pixel| color = |gray| }
+		stripe0	 = { id = |pixel| color = |darkBlue| }
+		stripe1  = { id = |pixel| color = |darkGray| }
+		bg		 = { id = |pixel| color = |white| }
+		scrollID = scrollbar
+	}
+]
+
+labels = 
+[
+	{
+		name = label
+		font		= { id = segoeuil color = |black| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+	}
+]
+
+scrollareas = 
+[
+	{ 
+		name		= scrollarea
+		bg			= { id = |pixel| color = |white| } 
+		scrollID	= |scrollbar|
+		scrollWidth = 15
+	}
+]
+
+enums =
+[
+	{	
+		name		= enumfield
+		bg			= { id = pixel color = |gray| }
+		hl			= { id = pixel color = |darkGray| }
+		font		= { id = segoeuil color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.7 } }
+		padding	    = { x = 0 y = 0}
+		spacing     = 0
+	}
+]
+
+menus = 
+[
+	{
+		name  = |menu|
+		size  = 25
+		width = 100
+		iconSpace = 25
+		padding = { x = 4 y = 0 z = 4 w = 4 }
+		windowID = |menuwindow|
+		submenuIcon = |baws|
+		font		= { id = segoeuil color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.7 } }
+		focus		= { id = pixel color = |darkGray| }
+		highlight	= { id = pixel color = |gray| }
+		idle		= { id = pixel color = |blue| }
+	}
+]
+
+windows =
+[
+	{
+		name = menuwindow
+		focusColor	  = 0xFF000000
+		nonFocusColor = 0xFF000000
+		bg			  = { id = |pixel| color = darkGray }
+		closeButton   = |button|
+		padding       = { x = 4 y = 4 z = 4 w = 4 }
+		titleHeight   = 0
+		font		  = { id = |segoeuil| color = white size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.7 } } 
+	}
+]

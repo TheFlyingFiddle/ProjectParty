@@ -131,10 +131,7 @@ struct Mouse
 
 	bool wasPressed(MouseButton button)
 	{
-		import log;
-		auto status = changed[button] && buttonStates[button].isDown;
-		if(status) logInfo("Pressed!");
-		return status;
+		return changed[button] && buttonStates[button].isDown;
 	}
 
 	bool isDown(MouseButton button) 
