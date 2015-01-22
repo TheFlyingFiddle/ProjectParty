@@ -34,7 +34,7 @@ class SelectTool : Tool
 
 		if(mouse.wasPressed(MouseButton.left))
 		{
-			foreach(i, ref item; state.world.items)
+			foreach(i, ref item; state.items)
 			{
 				if(item.hasComp!(Transform))
 				{
@@ -87,7 +87,7 @@ class ChainTool : Tool
 		if(mouse.wasPressed(MouseButton.left) && 
 		   state.worldRect.contains(mouse.location))
 		{
-			float2 offset = state.scroll - state.worldRect.xy;
+			float2 offset = state.camera.offset - state.worldRect.xy;
 			float2 location = offset + mouse.location;
 			if(gui.keyboard.isModifiersDown(KeyModifiers.control) &&
 			   chain.vertices.length > 0)

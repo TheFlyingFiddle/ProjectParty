@@ -32,7 +32,7 @@ struct WorldRenderer
 		renderer.begin();
 
 		import common.components;
-		foreach(ref item; state.world.items)
+		foreach(ref item; state.items)
 		{
 		    if(item.hasComp!(Sprite) &&
 		       item.hasComp!(Transform))
@@ -40,15 +40,21 @@ struct WorldRenderer
 		        auto sprite		= item.getComp!Sprite;
 		        auto transform  = item.getComp!Transform;
 
+				import std.algorithm;
+				auto names = state.variables.images.get!(string[]);
+				auto idx   = names.countUntil!(x => x == sprite.name);
+				if(idx == -1) continue;
+
+				auto frame = state.images[idx];
 				mat3 t = mat3.CreateTransform(transform.position,
 											  transform.scale, 
 											  transform.rotation);
 		        
-		        float2 trans = transform.position + float2(200, 5) + state.scroll;
+		        float2 trans = transform.position + float2(200, 5) + state.camera.offset;
 		        float2 min = trans - transform.scale * 4;
 		        float2 max = trans + transform.scale * 4;
 		        
-		        renderer.drawQuad(float4(min.x, min.y, max.x, max.y), circle, sprite.tint);
+		        renderer.drawQuad(float4(min.x, min.y, max.x, max.y), *frame, sprite.tint);
 		
 		    }
 		}

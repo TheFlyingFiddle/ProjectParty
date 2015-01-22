@@ -13,6 +13,18 @@ template isList(T)
 		enum isList = false;
 }
 
+template isListOf(T, U)
+{
+	static if(is(T == List!U) || is(T == GrowingList!U))
+	{
+		enum isListOf = true;
+	}
+	else 
+	{
+		enum isListOf = false;
+	}
+}
+
 struct List(T)
 {
 	import std.range : isInputRange, isForwardRange, isBidirectionalRange, isRandomAccessRange;
@@ -213,6 +225,14 @@ struct List(T)
 		put(cast(T[])data);
 	}
 
+	void put(Range)(Range r)
+	{
+		foreach(ref item; r)
+		{
+			put(item);
+		}
+	}
+
 	//Need to work around strings. (They are annoying)
 	static if(is(T == char))
 	{
@@ -240,17 +260,17 @@ struct List(T)
 
 struct GrowingList(T)
 {
+	import std.range : isInputRange, isForwardRange, isBidirectionalRange, isRandomAccessRange;
+	static assert(isInputRange!(GrowingList!T));
+	static assert(isForwardRange!(GrowingList!T));
+	static assert(isBidirectionalRange!(GrowingList!T));
+	static assert(isRandomAccessRange!(GrowingList!T));
+
+
 	enum defaultStartCapacity = 10;
 
-	import std.range : isInputRange, isForwardRange, isBidirectionalRange, isRandomAccessRange;
 	List!(T) base_;
 	alias base_ this;
-
-	static assert(isInputRange!(List!T));
-	static assert(isForwardRange!(List!T));
-	static assert(isBidirectionalRange!(List!T));
-	static assert(isRandomAccessRange!(List!T));
-
 	IAllocator allocator;
 
 	@property const(T)[] array()
@@ -381,6 +401,17 @@ struct GrowingList(T)
 	{
 		return base_.removeAt!(s, T)(index);
 	}
+
+	@property GrowingList!T save() { return this; }
+	@property bool empty() { return length == 0; }
+
+	@property ref T front() { return base_.front; }
+	@property ref T back()  { return base_.back; }
+	
+	void popFront() { base_.popFront(); }
+	void popBack() { base_.popBack(); }
+	void put(T data) { base_.put(data); }
+
 }
 
 import std.algorithm : SwapStrategy, countUntil, swap;

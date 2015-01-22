@@ -9,9 +9,9 @@ import util.strings;
 struct NameGen
 {
 	bool function(int i, ref string s, void* context) func;
-	void[8] context;
+	void[16] context;
 
-	this(T)(T t, bool function(int i, ref string s, void* context) func) if(T.sizeof <= 8)
+	this(T)(T t, bool function(int i, ref string s, void* context) func) if(T.sizeof <= 16)
 	{
 		*cast(T*)(context.ptr) = t;
 		this.func = func;
@@ -221,6 +221,8 @@ NameGen itemNameGen(Items)(Items items)
 		s = items[i];
 		return true;
 	}
+
+	pragma(msg, Items.sizeof);
 
 	return NameGen(items, &impl);
 }

@@ -39,7 +39,7 @@ struct PhoneAppConfig
 Application* createDesktopApp(A)(ref A al, DesktopAppConfig config)
 {
 	Application* app = al.allocate!Application(al, config.numServices, config.numComponents, config.name);
-	auto loader	   = al.allocate!AsyncContentLoader(al, config.contentConfig);
+	auto loader	   = new AsyncContentLoader(al, config.contentConfig);
 	app.addService(loader);
 
 	auto window		= al.allocate!WindowComponent(config.windowConfig);

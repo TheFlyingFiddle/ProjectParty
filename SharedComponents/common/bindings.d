@@ -4,6 +4,8 @@ import util.traits;
 import std.typetuple;
 import common.components;
 import graphics;
+import collections.list;
+import framework.entity;
 public import content.sdl;
 
 template id(T...)
@@ -14,14 +16,16 @@ template id(T...)
 alias Components = Structs!(common.components);
 static string[] ComponentIDs = [staticMap!(id, Components) ];
 
+alias CompContext = DynmapContext!(Component, Components);
+
 struct DynmapContext(T, Types...)
 {
-	U read(U, C)(SDLIterator!(C)* iter) if(is(U == T[]))
+	U read(U, C)(SDLIterator!(C)* iter) if(is(U == T[]) || isListOf!(U, T))
 	{
 		auto all = iter.allocator;	
 		auto index = iter.currentIndex;
 		auto len   = iter.walkLength;
-		Component[] comps = all.allocate!(Component[])(len);
+		U comps = U(all, len);
 
 		iter.goToChild();
 		foreach(i; 0 .. len)
@@ -37,7 +41,7 @@ struct DynmapContext(T, Types...)
 				if(id == name)
 				{
 					auto v = iter.as!(type);
-					comps[i] = T(v);
+					comps ~= T(v);
 					found = true;
 					break;
 				}
@@ -51,6 +55,13 @@ struct DynmapContext(T, Types...)
 	}
 }
 
+unittest
+{
+	auto t = CompContext();
+	t.read!(List!Component, CompContext*)(null);
+}
+
+
 Color stringToColor(string s)
 {
 	assert(0, "Do some magic here");
@@ -61,6 +72,14 @@ Color intToColor(uint color)
 	return Color(color);
 }
 
+import math;
+GrowingList!float2 listToGrowing(List!float2 f)
+{
+	import allocation;
+	GrowingList!float2 growing = GrowingList!float2(Mallocator.cit, f.length);
+	growing ~= f;
+	return growing;
+}
 
 struct FromItems
 {

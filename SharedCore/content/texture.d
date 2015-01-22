@@ -3,6 +3,7 @@ module content.texture;
 import graphics;
 import derelict.freeimage.freeimage;
 import concurency.task;
+import allocation;
 
 package Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0, 
 							  bool flag = false, bool async = false,
@@ -42,4 +43,22 @@ package Texture2D loadTexture(const(char)* c_path, uint paramConfig = 0,
 	}
 
 	return result;
+}
+
+struct FrameLoader
+{
+	static Frame* load(IAllocator allocator, string path, bool async)
+	{
+		import util.strings;
+		auto tex = loadTexture(text1024(path, '\0').ptr, 0, false, async);
+		Frame* frame = allocator.allocate!Frame(tex);
+		return frame;		
+	}
+
+	static void unload(IAllocator allocator, Frame* frame)
+	{
+		frame.texture.obliterate();
+		auto data = cast(void*)frame;
+		allocator.deallocate(data[0 .. Frame.sizeof]);
+	}
 }

@@ -26,6 +26,7 @@ class MainScreen : Screen
 	EntityPanel   ep;
 	WorldRenderer renderer;
 
+
 	int timerID;
 
 	this() { super(false, false); }
@@ -34,51 +35,34 @@ class MainScreen : Screen
 		auto all = Mallocator.it;
 		gui = loadGui(all, app, "guiconfig.sdl");
 
-		auto doUndo		   = DoUndoCommands!(EditorState*)(2000);
-		auto variables	   = VariantTable!(32)(all, 100);
+		import common.bindings;
+		auto c = fromSDLFile!EditorStateContent(Mallocator.it, "arch.sdl", CompContext());
 
-		variables["images"] = ["Pixel", "List", "Grass", "Doodle"];
-
-		WorldState	ws = WorldState(Mallocator.cit);
-		state		   = EditorState(variables, doUndo, EditorClipboard(true), float2.zero, -1, ws, Rect.empty, &onSelectedChanged);			
+		state		   = EditorState(c, &onSelectedChanged);	
 		renderer       = WorldRenderer(&state);
 		toolBox		   = Toolbox(Mallocator.it, &state, &gui);
 
+		
+		//Make menu
 		m = Menu(all, 100); 
-
 		int file = m.addSubmenu("File");
 		int new_ = m.addSubmenu("New", file);
-
-		m.addItem("Save",  &save, file);
-		m.addItem("Load",  &load, file);
-
+		int entity_ = m.addSubmenu("Entity");
+		m.addItem("As Archetype", &asArch, entity_);
+	
 		ep = EntityPanel(Mallocator.cit, &state);
-
 		auto keeper = app.locate!(TimeKeeper);
 		timerID = keeper.startTimer(5, &onAutoSave);
-
 		components = List!Component(all, 20);
 	}
 
-	void save()
+	void asArch()
 	{
-		import content.sdl;
-		import std.array;
-		import std.file;
-
-		auto app = appender!(string);
-		//map.toSDL(app);
-
-		//write("Map.sdl", app.data);
-	}
-
-	void load()
-	{
-		import std.file;
-		import content.sdl;
-		import allocation;
-
-		//map = fromSDLFile!Map(Mallocator.it, "Map.sdl");
+		auto item = state.item(state.selected);
+		if(item)
+		{
+			state.archetypes ~= item.clone();
+		}
 	}
 
 	override void update(Time time)
@@ -120,7 +104,7 @@ class MainScreen : Screen
 		{
 			if(kboard.isModifiersDown(KeyModifiers.control))
 			{
-				state.world.items ~= state.clipboard.item.clone();
+				state.items ~= state.clipboard.item.clone();
 			}
 		}
 		
@@ -137,16 +121,19 @@ class MainScreen : Screen
 		
 		if(state.selected != -1)
 		{
-			if(state.item(state.selected).components.length !=
-			   components.length)
+			if(state.item(state.selected).components.length != components.length)
 				updateComponents();
 		}
-		
 	}	
 
 	void addItem()
 	{
 		state.doUndo.apply(&state, AddItem(&state));
+	}
+
+	void removeItem()
+	{
+		state.doUndo.apply(&state, RemoveItem(&state));
 	}
 
 	override void render(Time time)
@@ -176,14 +163,16 @@ class MainScreen : Screen
 		gui.toolbar(Rect(wr.x, wr.y + wr.h + 10, wr.w, 30), toolBox.selected, toolBox.toolIDs);
 		
 
-		Rect lp = Rect(5, wr.y, 190, wr.h + 35);
+		Rect lp = Rect(5, wr.y, 190, wr.h);
 
 		Rect newItemBox    = Rect(lp.x, lp.y, lp.w / 2 - 5, 25);
 		Rect deleteItemBox = Rect(newItemBox.right + 10, lp.y, newItemBox.w, 25);
+		Rect proto		   = Rect(lp.x, newItemBox.top + 5, lp.w, 25);
+		Rect itemBox = Rect(lp.x, proto.top + 5, lp.w, lp.h - (proto.top + 5 - lp.y));
 
-		Rect itemBox = Rect(lp.x, newItemBox.top + 5, lp.w, lp.h - 30);
+		gui.selectionfield(proto, state.archetype, state.archetypes.array.map!(x => x.name));
 		int sel = state.selected;
-		if(gui.listbox(itemBox, sel, state.world.itemNames))
+		if(gui.listbox(itemBox, sel, state.itemNames))
 		{
 			state.selected = sel;
 		}
@@ -198,7 +187,7 @@ class MainScreen : Screen
 
 		if(gui.button(deleteItemBox, "Delete"))
 		{
-			//removeItem();
+			removeItem();
 		}
 
 		Rect panel = Rect(wr.right + 5, wr.y, 290, wr.h);
@@ -313,6 +302,7 @@ struct EntityPanel
 	float2 area;
 
 	int selectedComponent;
+	List!bool active;
 
 	this(IAllocator all, EditorState* state, )
 	{
@@ -321,7 +311,9 @@ struct EntityPanel
 
 		this.scroll = float2.zero;
 		this.area   = float2.zero;
-
+		this.active = List!bool(all, 20);
+		this.active.length = 20;
+		this.active[] = false;
 	}
 	
 	void onGui(ref Gui gui, Rect panel)
@@ -353,6 +345,7 @@ struct EntityPanel
 			compTypeBox.x  = addBox.right + 5;
 			compTypeBox.w  = gui.area.w - 20 - addBox.w ;
 
+			import std.algorithm;
 			gui.selectionfield(compTypeBox, selectedComponent, ComponentIDs);
 			if(gui.button(addBox, "AddComp"))
 			{
@@ -364,12 +357,15 @@ struct EntityPanel
 					{
 						if(!item.hasComp!c)
 						{
-							state.doUndo.apply(state, AddComponent!c(state, c.ident));
+							state.doUndo.apply(state, AddComponent(state, c.ident));
 						}
 					}
 				}
 			}
 
+			offset -= 15;
+
+			int toRemove = -1;
 			foreach(i, ref component; item.components)
 			{
 				import util.traits;
@@ -382,10 +378,27 @@ struct EntityPanel
 						offset -= 25;
 						Rect r = Rect(5, offset, gui.area.w - 15, 20);
 						gui.label(r, Identifier!c, HorizontalAlignment.center);
-						comp(gui, *value, offset, gui.area.w - 15);
+						r.y += 1;
+						r.w = 18;
+						r.h -= 2;
+						gui.toggle(r, active[i], ">");
+						
+						r.x = gui.area.w - 35;
+						if(gui.button(r, "x"))
+							toRemove = i;
+					
+						if(active[i])
+							comp(gui, *value, offset, gui.area.w - 15);
+
+						offset -= 25;
+						r = Rect(5, offset, gui.area.w - 15, 20);
+						gui.separator(r, Color(0xFFB3B0A9));
 					}
 				}
 			}
+
+			if(toRemove != -1)
+				state.doUndo.apply(state, RemoveComponent(state, toRemove));
 		}
 	}
 
@@ -480,4 +493,3 @@ struct Toolbox
 		return activeTools.map!(x => x.name());
 	}
 }
-

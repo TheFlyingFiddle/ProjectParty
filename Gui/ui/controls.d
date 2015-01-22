@@ -213,6 +213,17 @@ bool label(ref Gui gui, Rect rect, const(char)[] text,
 	return false;
 }
 
+
+void separator(ref Gui gui, Rect rect, Color color = Color.black)
+{
+	gui.fixRect(rect);
+	auto frame = GuiFrame("pixel", color);
+	rect.y += rect.h / 2 - 0.5;
+	rect.h = 1;
+	gui.drawQuad(rect, frame);
+}
+
+
 struct GuiImage
 {
 	struct Style

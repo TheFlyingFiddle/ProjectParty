@@ -26,6 +26,8 @@ bool listbox(T)(ref Gui gui,
 				T items,
 				HashID s = "listbox")
 {
+	import std.algorithm;
+
 	alias Style = GuiListBox.Style;
 	alias State = GuiListBox.State;
 
@@ -33,14 +35,15 @@ bool listbox(T)(ref Gui gui,
 
 	auto style = gui.fetchStyle!(Style)(s);
 
-	auto scrollMax =  items.length * style.itemSize - rect.h;
+	auto length    = count(items);
+	auto scrollMax =  length * style.itemSize - rect.h;
 	
 	
 	auto hash  = HashID(rect);
 	auto state = gui.fetchState(hash, State(float2(0, scrollMax)));
 	scope(exit) gui.state(hash, state);
 
-	if(items.length * style.itemSize > rect.h)
+	if(length * style.itemSize > rect.h)
 	{
 		rect.w -= 10;
 		gui.slider(Rect(rect.x + rect.w, rect.y, 10, rect.h), state.scroll.y, 0, scrollMax, style.scrollID);
@@ -50,23 +53,23 @@ bool listbox(T)(ref Gui gui,
 	}
 	else 
 	{
-		state.scroll.y = -rect.h + items.length * style.itemSize;
+		state.scroll.y = -rect.h + length * style.itemSize;
 	}
 
 	bool result = false;
 	if(gui.wasClicked(rect))
 	{
-		selected = items.length - 1 - cast(int)((gui.mouse.location.y - rect.y + state.scroll.y) / style.itemSize);
-		selected = clamp(selected, -1, cast(int)(items.length - 1));
+		selected = length - 1 - cast(int)((gui.mouse.location.y - rect.y + state.scroll.y) / style.itemSize);
+		selected = clamp(selected, -1, cast(int)(length - 1));
 		result   = true;
 	}
-
 
 	gui.drawQuad(rect, style.bg);
 	Rect toDraw = Rect(rect.x, rect.y + rect.h - style.itemSize - (state.scroll.y - scrollMax),
 					   rect.w, style.itemSize);
 
-	foreach(i, item; items)
+	int i = 0;
+	foreach(item; items)
 	{
 		GuiFrame frame;
 		if(i == selected) {
@@ -79,6 +82,7 @@ bool listbox(T)(ref Gui gui,
 		gui.drawText(item, toDraw, style.font, rect);
 
 		toDraw.y -= style.itemSize;
+		i++;
 	}
 
 	return result;

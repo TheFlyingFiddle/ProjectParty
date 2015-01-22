@@ -107,7 +107,7 @@ struct Chain
 		return c;
 	}
 
-	GrowingList!float2 vertices;
+	@Convert!(listToGrowing) GrowingList!float2 vertices;
 
 	Chain clone()
 	{

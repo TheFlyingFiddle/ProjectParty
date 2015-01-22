@@ -6,60 +6,111 @@ import std.conv;
 import allocation;
 import framework.entity;
 import common.components;
+import collections.list;
 
 struct AddItem
 {
 	int    itemIndex;
-	//Need for revert.
 	int	   oldSelected;
-	
+	WorldItem item;
+
 	this(EditorState* state)
 	{
 		this.oldSelected = state.selected;
+		this.item    = state.archetypes[state.archetype].clone();
 	}
 
 	void apply(EditorState* s)
 	{
-		auto item = WorldItem("000");
-		//item.components ~= Component(Transform());
-		s.world.items ~= item;
-
-		this.itemIndex = s.world.items.length - 1;
-
+		s.items ~= item;
+		this.itemIndex = s.items.length - 1;
 		s.selected = itemIndex;
 	}
 
 	void revert(EditorState*  s)
 	{ 
 		auto item = s.item(itemIndex);
-		s.world.items.removeAt(itemIndex);
+		s.items.removeAt(itemIndex);
 		s.selected = oldSelected;
+	}
 
+	void clear()
+	{
 		item.deallocate();
 	}
 }
 
-struct AddComponent(T)
+struct RemoveItem
+{
+	int    itemIndex;
+	WorldItem item;
+
+	this(EditorState* state)
+	{
+		this.itemIndex = state.selected;
+	}
+
+	void apply(EditorState* s)
+	{
+		item = *s.item(itemIndex);
+		s.items.removeAt(itemIndex);
+		s.selected = -1;
+	}
+
+	void revert(EditorState*  s)
+	{ 
+		s.items.insert(itemIndex, item);
+		s.selected = itemIndex;
+	}
+}
+
+struct AddComponent
 {
 	int itemIndex;
-	T   component;
+	Component   component;
 
-	this(EditorState* s, T t)
+	this(T)(EditorState* s, T t)
 	{
 		this.itemIndex = s.selected;
-		this.component = t;
+		this.component = Component(t);
 	}	
 
 	void apply(EditorState* s)
 	{
 		auto item = s.item(itemIndex);
-		item.components ~= Component(component);
+		item.components ~= component;
 	}
 
 	void revert(EditorState* s)
 	{
 		auto item = s.item(itemIndex);
 		item.components.length--;
+	}
+}
+
+struct RemoveComponent
+{
+	int itemIndex;
+	int componentIndex;
+	Component component;
+
+	this(EditorState* s, int componentIndex)
+	{
+		itemIndex = s.selected;
+		this.componentIndex = componentIndex;
+		this.component = s.item(s.selected).components[componentIndex];
+	}
+
+	void apply(EditorState* s)
+	{
+		auto item = s.item(itemIndex);
+		item.components.removeAt(componentIndex);
+	}
+
+	void revert(EditorState* s)
+	{
+		auto item = s.item(itemIndex);
+		item.components.insert(componentIndex, component);
 	}
 }
 

@@ -476,7 +476,16 @@ struct SDLIterator(C)
 				}
 				else
 				{
-					static assert(0, "Field type mismatch: \n Field " ~ member ~ " was of type " ~ fieldType.stringof ~ ", attribute was of type " ~ attributeType.stringof);
+					goToNext!member; //Changes the index to point to the member we want.
+					static if(NeedsAllocator!fieldType) 
+					{
+						toReturn.tupleof[i] = as!(fieldType)();
+					} 
+					else
+					{
+						auto value_ = as!fieldType;
+						toReturn.tupleof[i] = value_;
+					}
 				}
 			} 
 			else 
@@ -520,7 +529,6 @@ struct SDLIterator(C)
 
 		//static assert(0, "Cannot serialize this type!");
 	}
-
 
     ref SDLIterator opIndex(size_t index)
     {

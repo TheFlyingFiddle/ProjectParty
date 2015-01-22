@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Content_Pipeline", "Content_Pipeline\Content_Pipeline.visualdproj", "{820E458B-F423-444D-89A8-D3F049D236F4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E640EFC2-88DD-467D-8D2E-0C6C7C5B5AED} = {E640EFC2-88DD-467D-8D2E-0C6C7C5B5AED}
@@ -114,8 +116,8 @@ Global
 		{D47811EE-3736-445F-8831-741E9B431DA8}.Release|Win32.ActiveCfg = Release|Win32
 		{D47811EE-3736-445F-8831-741E9B431DA8}.Release|Win32.Build.0 = Release|Win32
 		{D47811EE-3736-445F-8831-741E9B431DA8}.Release|x64.ActiveCfg = Release|Win32
-		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|Win32.ActiveCfg = Release|Win32
-		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|Win32.Build.0 = Release|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|Win32.Build.0 = Debug|Win32
 		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Debug|x64.ActiveCfg = Debug|Win32
 		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|Win32.ActiveCfg = Release|Win32
 		{796064A9-E6D5-425A-81C3-FB40D681C7D7}.Release|Win32.Build.0 = Release|Win32
