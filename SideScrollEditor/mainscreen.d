@@ -378,13 +378,14 @@ struct EntityPanel
 						offset -= 25;
 						Rect r = Rect(5, offset, gui.area.w - 15, 20);
 						gui.label(r, Identifier!c, HorizontalAlignment.center);
-						r.y += 1;
-						r.w = 18;
-						r.h -= 2;
-						gui.toggle(r, active[i], ">");
+						r.x += 2;
+						r.y += 2;
+						r.w = 16;
+						r.h -= 4;
+						gui.toggle(r, active[i], "", HashID("arrowToggle"));
 						
 						r.x = gui.area.w - 35;
-						if(gui.button(r, "x"))
+						if(gui.button(r, "", HashID("deleteButton")))
 							toRemove = i;
 					
 						if(active[i])

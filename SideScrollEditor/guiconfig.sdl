@@ -1,4 +1,4 @@
-images  = |Atlas|
+images  = |GuiAtlas|
 fonts   = |Fonts|
 tooltip	= { id = segoeui color = white size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
 	
@@ -68,6 +68,36 @@ buttons =
 		font		= { id = segoeui color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
 		vertical	= center
 		horizontal	= center
+	},
+	{	
+		name		= activeArrowToggle
+		up			= { id = |arrowbtn_down| color = |gray| }
+		down		= { id = |arrowbtn_down| color = |gray| }
+		hl			= { id = |arrowbtn_down| color = |gray| }
+		downHl		= { id = |arrowbtn_down| color = |gray| }
+		font		= { id = segoeui color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
+	},
+	{	
+		name		= unactiveArrowToggle
+		up			= { id = |arrowbtn_right| color = |blue| }
+		down		= { id = |arrowbtn_right| color = |blue| }
+		hl			= { id = |arrowbtn_right| color = |blue| }
+		downHl		= { id = |arrowbtn_right| color = |blue| }
+		font		= { id = segoeui color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
+	},
+	{
+		name		= deleteButton
+		up			= { id = |minusbtn| color = |white| }
+		down		= { id = |minusbtn| color = |white| }
+		hl			= { id = |minusbtn| color = |white| }
+		downHl		= { id = |minusbtn| color = |white| }
+		font		= { id = segoeui color = white size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.55 } }
+		vertical	= center
+		horizontal	= center
 	}
 ]
 
@@ -77,6 +107,11 @@ toggles =
 		name = toggle
 		toggled		= |activeToggle|
 		untoggled	= |unactiveToggle|
+	},
+	{
+		name = arrowToggle
+		toggled		= |activeArrowToggle|
+		untoggled   = |unactiveArrowToggle|
 	}
 ]
 

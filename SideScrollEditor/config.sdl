@@ -24,7 +24,7 @@ windowConfig =
 	}
 
 	fullScreen = false
-	blocking   = true
+	blocking   = false
 	decorated  = true
 	title      = |Tile Editor|
 }

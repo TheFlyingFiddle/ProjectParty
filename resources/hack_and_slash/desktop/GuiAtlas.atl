@@ -1,0 +1,18 @@
+items = 
+[
+	{ 
+		name = |pixel.psd| 
+		padding = { left = 2 top = 2 right = 2 bottom = 2 }
+	},
+	{ name = |arrowbtn_down.png| },
+	{ name = |arrowbtn_left.png| },
+	{ name = |arrowbtn_right.png| },
+	{ name = |arrowbtn_up.png| },
+	{ name = |radiobtn_off.png| },
+	{ name = |radiobtn_on.png| },
+	{ name = |plusbtn.png| },
+	{ name = |circle.png| },
+	{ name = |minusbtn.png| }
+]
+width = 1024
+height = 1024
