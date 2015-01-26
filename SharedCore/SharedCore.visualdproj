@@ -44,8 +44,6 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
-  <allinst>0</allinst>
-  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -141,8 +139,6 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
-  <allinst>0</allinst>
-  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -238,8 +234,6 @@
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
-  <allinst>0</allinst>
-  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -335,8 +329,6 @@
   <nofloat>0</nofloat>
   <Dversion>2.043</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
-  <allinst>0</allinst>
-  <stackStomp>0</stackStomp>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
@@ -461,8 +453,12 @@
    <File path="network\service.d" />
    <File path="network\util.d" />
   </Folder>
-  <Folder name="serialization">
-   <File path="serialization\base.d" />
+  <Folder name="rendering">
+   <File path="rendering\asyncrenderbuffer.d" />
+   <File path="rendering\combined.d" />
+   <File path="rendering\package.d" />
+   <File path="rendering\renderer.d" />
+   <File path="rendering\shapes.d" />
   </Folder>
   <Folder name="spatial">
    <File path="spatial\shape.d" />

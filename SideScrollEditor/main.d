@@ -19,8 +19,36 @@ import log;
 import core.sys.windows.windows;
 import core.runtime;
 
-void main()
+static HINSTANCE instance;
+
+extern (Windows) int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+    int result;
+
+	instance = hInstance;
+
+    try
+    {
+        Runtime.initialize();
+        main_start();
+        Runtime.terminate();
+    }
+    catch (Throwable e) 
+    {
+		import std.string;
+        MessageBoxA(null, e.toString().toStringz(), "Error",
+                    MB_OK | MB_ICONEXCLAMATION);
+        result = 0;     // failed
+    }
+
+    return result;
+}
+
+
+void main_start()
+{
+	initializeScratchSpace(Mallocator.it, 1024 * 1024);
+
 	import std.stdio;
 	initializeRemoteLogging("TowerDefence");
 	scope(exit) termRemoteLogging();
@@ -53,6 +81,7 @@ void run(DesktopAppConfig config)
 	auto stack = ScopeStack(region);
 
 	auto app = createDesktopApp(stack, config);
+
 
 	import screen.loading;
 	auto endScreen     = stack.allocate!(MainScreen)();

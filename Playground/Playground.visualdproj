@@ -1,0 +1,11 @@
+<DProject>
+ <ProjectGuid>4b9b4658-22d7-4c43-814a-1ddd8bb641a3</ProjectGuid>
+ <Config name="Debug">
+  <!-- default to defaults -->
+ </Config>
+ <Config name="Release">
+  </Config>
+ <Folder name="Playground">
+  <File path="main.d" />
+ </Folder>
+</DProject>

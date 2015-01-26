@@ -1,4 +1,4 @@
-imageDir = |images|
+imageDir = |..\images|
 items = [ ]	
 archetypes = 
 [

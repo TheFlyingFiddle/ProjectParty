@@ -11,6 +11,7 @@ import std.range : repeat;
 import collections.list;
 import allocation;
 import math.traits, math.vector;
+import graphics.color;
 
 alias TypeID = SDLObject.Type;
 
@@ -123,6 +124,12 @@ struct SDLContext
 	{
 		static assert(0, "Should not be instantiated!"); 
 	}
+
+	void write(T, Sink)(ref T val, ref Sink s, int level)
+	{
+		static assert(0, "Should not be instantiated!");
+	}
+
 }
 __gshared SDLContext default_context;
 
@@ -393,7 +400,11 @@ struct SDLIterator(C)
 			   name ~ " is not a valid value of enum type " ~ T.stringof);
 	}
 
-	
+	T as_impl(T)() if(is(T == Color))
+	{
+		return Color(as_impl!(uint)());
+	}
+
 	private template memberName(string fullName)
 	{
 		import std.string;
@@ -563,15 +574,6 @@ private template UnknownType(T)
 							 isList!T);
 }
 
-private template isList(T)
-{
-	static if (is(T t == List!U, U)) {
-		enum isList = true;
-	} else {
-		enum isList = false;
-	}
-}
-
 struct SDLContainer
 {
     SDLObject* root;
@@ -631,7 +633,34 @@ struct SDLContainer
 	}
 }
 
-void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(is(T == struct))
+void toSDL(T, Sink)(auto ref T value, ref Sink s)
+{
+	toSDL(value, s, &default_context);
+}
+
+void toSDL(T, Sink, C)(auto ref T value, ref Sink sink, C* context, int level = 0)
+{
+	enum context_compiles = __traits(compiles, () => context.write(value, sink, level));
+	static if(context_compiles)
+	{
+		context.write(value, sink, level);
+	}	
+	else 
+	{
+		toSDL_impl!(T, Sink, C)(value, sink, context, level);
+	}
+}
+
+void toSDL_impl(T, Sink, C)(T value, ref Sink sink, C* context, int level) if(is(T == bool))
+{
+	if(value)
+		sink.put("true");
+	else
+		sink.put("false");
+}
+
+void toSDL_impl(T, Sink, C)(T value, ref Sink sink, C* context, int level) if(is(T == struct) && !isList!(T) &&
+																			  !is(T == Color))
 {
 	if(level != 0) {
 		sink.put('\n');
@@ -655,14 +684,14 @@ void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(is(T == struct))
 			sink.put('\t'.repeat(level));
 			sink.put(cast(char[])__traits(identifier, T.tupleof[i]));
 			sink.put('=');
-			toSDL(field, sink, level + 1);
+			toSDL(field, sink, context, level + 1);
 		}
 	}
+
 //Quick note about casts to char[]
 //These exists since a non-trivial
 //amount of the underlying implementations
 //of sinks require mutability.
-
 	if(level != 0){
 		sink.put('\n');
 		sink.put('\t'.repeat(level - 1));
@@ -670,14 +699,20 @@ void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(is(T == struct))
 	}
 }
 
-void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(is(T == string))
+void toSDL_impl(T, Sink, C)(T value, ref Sink sink, C* context, int level = 0) if(is(T == Color))
+{
+	import std.format;
+	formattedWrite(sink, "0x%x", value.packedValue);
+}
+
+void toSDL_impl(T, Sink, C)(T value, ref Sink sink, C* context, int level = 0) if(is(T == string))
 {
 	sink.put(stringSeperator);
 	sink.put(cast(char[])value);
 	sink.put(stringSeperator);
 }
 
-void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isNumeric!T)
+void toSDL_impl(T, Sink, C)(T value, ref Sink sink, C* context, int level = 0) if(isNumeric!T)
 {
 	sink.put(cast(char[])value.to!string);
 	static if(isFloatingPoint!T) {
@@ -686,11 +721,11 @@ void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isNumeric!T)
 	}
 }
 
-void toSDL(T, Sink)(T value, ref Sink sink, int level = 0) if(isArray!T && !is(T == string))
+void toSDL_impl(T, Sink, C)(T value, ref Sink sink, C* context, int level = 0) if((isArray!T || isList!(T)) && !is(T == string))
 {
 	sink.put(arrayOpener);
 	foreach(i; 0 .. value.length) {
-		toSDL(value[i], sink, level + 1);
+		toSDL(value[i], sink, context, level + 1);
 		if(i != value.length - 1)
 			sink.put(',');
 	}

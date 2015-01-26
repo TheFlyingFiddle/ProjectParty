@@ -8,13 +8,16 @@ import util.hash;
 import allocation;
 import math.vector;
 import graphics;
+import std.algorithm;
 import ui.base : Rect;
+import std.file, content.texture;
 
 alias GlobalAlloc = Mallocator.it;
 
 struct EditorStateContent
 {
-	string imageDir;
+	string assetDir;
+
 	//Variables Here
 	List!WorldItem items;
 	List!WorldItem archetypes;
@@ -37,7 +40,7 @@ struct EditorState
 	void delegate(EditorState*) selectedChanged;
 	int selected_;
 
-	this(EditorStateContent c, void delegate(EditorState*) selectedChanged)
+	this(void delegate(EditorState*) selectedChanged)
 	{
 		variables   = VariantTable!(32)(GlobalAlloc, 100);
 		doUndo	    = DoUndoCommands!(EditorState*)(2000);
@@ -45,29 +48,60 @@ struct EditorState
 		camera	    = Camera(float2.zero);
 
 		worldRect   = Rect.empty;
-		archetypes  = GrowingList!WorldItem(Mallocator.cit, c.archetypes.length);
-		archetypes ~= c.archetypes;
-
+		archetypes  = GrowingList!WorldItem(Mallocator.cit, 20);
 		items		= GrowingList!WorldItem(Mallocator.cit, 1000);
-		items	   ~= c.items;
+		images = List!(Frame*)(Mallocator.it, 100);
+		this.selectedChanged = selectedChanged;
+	}
+
+	void initialize(EditorStateContent c)
+	{
+		selected_ = -1;
+		archetype = 0;
+
+		variables.clear();
+		doUndo.clear();
+		clipboard = EditorClipboard(true);
+		camera = Camera(float2.zero);
+	
+		foreach(ref a; archetypes)
+			a.deallocate();
+		foreach(ref i; items)
+			i.deallocate();
+		foreach(ref img; images)
+			FrameLoader.unload(Mallocator.cit, img);
+
+		archetypes.clear();
+		items.clear();
+		images.clear();
+
+		archetypes ~= c.archetypes;
+		items	   ~= c.items.map!(x => x.clone());
 
 		selected_ = -1;
 		archetype = 0;
 		this.selectedChanged = selectedChanged;
 
-
-		images = List!(Frame*)(Mallocator.it, 100);
 		string[] frameNames;
 
-		//Load images;
-		import std.file, content.texture;
-		foreach(entry; dirEntries(c.imageDir, SpanMode.shallow))
+		auto dir = c.imageDir;
+		import std.path;
+
+		auto p = absolutePath(c.imageDir, dirName(thisExePath));
+		foreach(entry; dirEntries(p, SpanMode.depth))
 		{
-			frameNames ~= entry.name.idup;
-			images     ~= FrameLoader.load(Mallocator.cit,  entry.name, false);
+			if(entry.name.extention == ".png")
+			{
+				frameNames ~= relativePath(p, entry.name);
+				images     ~= FrameLoader.load(Mallocator.cit,  entry.name, false);
+				
+			}
 		}
 
-		variables.images = frameNames;
+		variables.images		  = frameNames;
+		variables.bodies		  = ["bodyA", "bodyB"];
+		variables.particleEffects = ["systemA", "systemB"];
+		variables.collisions	  = ["collisionA", "collisionB"];
 	}
 
 	ref int selected() @property

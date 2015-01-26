@@ -79,6 +79,11 @@ struct VariantTable(size_t size)
 		return *ptr;
 	}
 
+	void clear()
+	{
+		_rep.clear();
+	}
+
 	void opIndexAssign(T)(auto ref T value, string name)
 	{
 		this[bytesHash(name)] = value;

@@ -1,6 +1,6 @@
 module common.bindings;
 
-import util.traits;
+import util.traits, util.hash;
 import std.typetuple;
 import common.components;
 import graphics;
@@ -53,12 +53,56 @@ struct DynmapContext(T, Types...)
 
 		return comps;
 	}
+
+	void write(U, Sink)(ref U u, ref Sink sink, int level) if(is(U == T[]) || isListOf!(U,T))
+	{
+		import std.range;
+
+		sink.put('\n');
+		sink.put('\t'.repeat(level - 1));
+		sink.put(objectOpener);
+
+		foreach(ref t; u)
+		{
+			sink.put('\n');
+			sink.put('\t'.repeat(level));
+			bool found = false;
+			foreach(type; Types)
+			{
+				enum id = __traits(identifier, type);
+				if(cHash!type == t.type)
+				{
+					sink.put(type.stringof);
+					sink.put("=");
+					auto value = cast(type)t;
+					toSDL(value, sink, &this, level + 1);
+					found = true;
+					break;
+				}
+			}
+
+			assert(found, "Can't serialize component!");
+		}
+
+
+		sink.put('\n');
+		sink.put('\t'.repeat(level - 1));
+		sink.put(objectCloser);
+	}
 }
 
 unittest
 {
 	auto t = CompContext();
 	t.read!(List!Component, CompContext*)(null);
+
+	struct Test 
+	{
+		Component[] s;
+	}
+	Test test;
+	List!char s;
+	t.write(test.s, s, 0); 
 }
 
 

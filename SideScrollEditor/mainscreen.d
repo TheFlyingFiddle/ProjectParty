@@ -14,6 +14,11 @@ import do_undo;
 import commands;
 import allocation;
 import tools;
+import common.bindings;
+
+import core.sys.windows.windows;
+
+extern(Windows) BOOL GetOpenFileNameA(LPOPENFILENAMEA);
 
 class MainScreen : Screen
 {
@@ -34,18 +39,20 @@ class MainScreen : Screen
 	{
 		auto all = Mallocator.it;
 		gui = loadGui(all, app, "guiconfig.sdl");
-
-		import common.bindings;
 		auto c = fromSDLFile!EditorStateContent(Mallocator.it, "arch.sdl", CompContext());
 
-		state		   = EditorState(c, &onSelectedChanged);	
+		state		   = EditorState(&onSelectedChanged);	
+		state.initialize(c);
+
 		renderer       = WorldRenderer(&state);
 		toolBox		   = Toolbox(Mallocator.it, &state, &gui);
-
 		
 		//Make menu
 		m = Menu(all, 100); 
 		int file = m.addSubmenu("File");
+		m.addItem("Open", &open, file);
+		m.addItem("Save", &save, file);
+
 		int new_ = m.addSubmenu("New", file);
 		int entity_ = m.addSubmenu("Entity");
 		m.addItem("As Archetype", &asArch, entity_);
@@ -54,6 +61,63 @@ class MainScreen : Screen
 		auto keeper = app.locate!(TimeKeeper);
 		timerID = keeper.startTimer(5, &onAutoSave);
 		components = List!Component(all, 20);
+	}
+
+	void open()
+	{
+		import window.window, main, std.c.string;
+
+		auto wnd = app.locate!Window;
+
+		HWND ptr = wnd.getNativeHandle();
+
+		char[256] buffer;
+		buffer[] = '\0';
+		OPENFILENAMEA ofn = OPENFILENAMEA.init;
+		memset ( &ofn, 0, OPENFILENAMEA.sizeof );
+
+		ofn.lStructSize = OPENFILENAMEA.sizeof;
+		ofn.hInstance   = instance;
+		ofn.hwndOwner   = ptr;
+		ofn.lpstrFilter = "Map\0*.sidal\0";
+		ofn.nFilterIndex = 1;
+		ofn.Flags		= 0x00001000;
+		ofn.lpstrFile   = buffer.ptr;
+		ofn.nMaxFile    = 256;
+
+		import log, std.file;
+		logInfo(thisExePath);
+		if(GetOpenFileNameA(&ofn))
+		{
+			auto len = strlen(buffer.ptr);
+			auto tmp = ScopeStack(scratch_alloc);
+			auto c = fromSDLFile!EditorStateContent(Mallocator.it, cast(string)buffer[0 .. len], CompContext());
+			state.initialize(c);
+		}
+		else 
+		{
+			
+		}
+
+		logInfo(thisExePath);
+	}
+
+	void save()
+	{
+		EditorStateContent content;
+		content.imageDir   = "images";
+		content.archetypes = state.archetypes;
+		content.items	   = state.items;
+
+		import content.sdl, common, std.array, std.stdio;
+		auto app = appender!(char[]);
+
+		CompContext c;
+		toSDL(content, app, &c);
+		
+		import std.file;
+		std.file.write("testapp.sdl", app.data);
+		writeln(app.data);
 	}
 
 	void asArch()
@@ -104,7 +168,7 @@ class MainScreen : Screen
 		{
 			if(kboard.isModifiersDown(KeyModifiers.control))
 			{
-				state.items ~= state.clipboard.item.clone();
+				state.doUndo.apply(&state, CopyItem(&state));
 			}
 		}
 		
@@ -408,11 +472,6 @@ struct EntityPanel
 		auto size = gui.typefieldHeight(t);
 		offset -= size + 5;
 		return gui.typefield(Rect(5, offset, width, size), t, &this);
-	}
-
-	bool comp(ref Gui gui, ref Box2DConfig config, ref float offset, float width)
-	{
-		return false;
 	}
 
 	bool comp(ref Gui gui, ref Shape config, ref float offset, float width)

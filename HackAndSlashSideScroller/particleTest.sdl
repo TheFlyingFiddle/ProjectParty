@@ -16,18 +16,3 @@ variables  =
 	endColor		= { min = { packedValue = 0x00000000 } max = { packedValue = 0x00000000 } }
 	lifeTime	 	= { min = 3 max = 10 }
 }
-
-particles = 
-{
-	alive	 = 0
-	capacity = 1024
-	variables =
-	[
-		|position|,
-		|velocity|,			
-		|color|, 		
-		|startColor|,   
-		|endColor|,   
-		|lifeTime|		   
-	]	
-}

@@ -17,5 +17,5 @@ RegionAllocator* scratch_alloc()
 void initializeScratchSpace(A)(ref A allocator, size_t spaceSize)
 {
 	auto mem = allocator.allocateRaw(spaceSize, 64);
-	scratch_alloc = RegionAllocator(mem);
+	p_scratch_alloc = RegionAllocator(mem);
 }

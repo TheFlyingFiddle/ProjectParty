@@ -29,8 +29,7 @@ struct DoUndoCommands(T...)
 	}
 
 	alias Command = ClassN!(ICommand, 64);
-
-	Command[] commands;
+	GrowingList!Command commands;
 	private size_t redoCount;
 
 	//Will fix this later...
@@ -38,6 +37,7 @@ struct DoUndoCommands(T...)
 	this(size_t initialSize)
 	{
 		redoCount  = 0;
+		commands   = GrowingList!(Command)(Mallocator.cit, initialSize);
 	}
 
 	bool canRedo()
@@ -81,5 +81,14 @@ struct DoUndoCommands(T...)
 			commands[$ - redoCount].apply(t);
 			redoCount--;
 		}
+	}
+
+	void clear()
+	{
+		foreach(ref cmd; commands)
+			cmd.clear();
+
+		commands.clear();
+		redoCount = 0;
 	}
 }

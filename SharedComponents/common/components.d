@@ -29,8 +29,7 @@ struct Transform
 
 struct Sprite
 {
-	@Convert!(intToColor) Color tint;
-	
+	Color tint;
 	@FromItems("images") string name;
 
 	static Sprite ident()
@@ -41,11 +40,10 @@ struct Sprite
 
 struct Emitter
 {
-	int effectID;
-
+	@FromItems("particleEffects") string effect;
 	static Emitter ident()
 	{
-		return Emitter(0);
+		return Emitter("");
 	}
 }
 
@@ -65,8 +63,8 @@ struct Elevator
 
 struct Box2DConfig
 {
-	string name;
-	@Optional("") string collision;
+	@FromItems("bodies") string name;
+	@FromItems("collisions") string collision;
 
 	static Box2DConfig ident()
 	{

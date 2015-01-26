@@ -541,4 +541,9 @@ struct Window
 	{
 		glfwSwapBuffers(_windowHandle);
 	}
+
+	void* getNativeHandle()
+	{
+		return glfwGetWin32Window(_windowHandle);
+	}
 }

@@ -40,6 +40,32 @@ struct AddItem
 	}
 }
 
+struct CopyItem
+{
+	WorldItem item;
+	int copyIndex;
+	int sel;
+
+	this(EditorState* s)
+	{
+		sel  = s.selected;
+		item = s.clipboard.item.clone();
+	}
+
+	void apply(EditorState* s)
+	{
+		s.items ~= item;
+		copyIndex = s.items.length - 1;
+		s.selected = copyIndex;
+	}
+
+	void revert(EditorState* s)
+	{
+		s.items.removeAt(copyIndex);
+		s.selected = sel;
+	}
+}
+
 struct RemoveItem
 {
 	int    itemIndex;

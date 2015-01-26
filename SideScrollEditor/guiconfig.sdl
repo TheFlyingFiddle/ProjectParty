@@ -197,7 +197,7 @@ menus =
 		iconSpace = 25
 		padding = { x = 4 y = 0 z = 4 w = 4 }
 		windowID = |menuwindow|
-		submenuIcon = |baws|
+		submenuIcon = |arrowbtn_right|
 		font		= { id = segoeuil color = |white| size = { x = 15 y = 15 } thresh = { x = 0.12 y = 0.7 } }
 		focus		= { id = pixel color = |darkGray| }
 		highlight	= { id = pixel color = |gray| }

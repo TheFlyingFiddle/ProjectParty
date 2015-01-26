@@ -78,6 +78,8 @@ Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "SideScrollEditor", "SideScr
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "SharedComponents", "SharedComponents\SharedComponents.visualdproj", "{D72E93C3-6C61-4D23-AAB9-9F96B45BE1A2}"
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "Playground", "Playground\Playground.visualdproj", "{4B9B4658-22D7-4C43-814A-1DDD8BB641A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -169,6 +171,12 @@ Global
 		{D72E93C3-6C61-4D23-AAB9-9F96B45BE1A2}.Release|Win32.ActiveCfg = Release|Win32
 		{D72E93C3-6C61-4D23-AAB9-9F96B45BE1A2}.Release|Win32.Build.0 = Release|Win32
 		{D72E93C3-6C61-4D23-AAB9-9F96B45BE1A2}.Release|x64.ActiveCfg = Release|Win32
+		{4B9B4658-22D7-4C43-814A-1DDD8BB641A3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4B9B4658-22D7-4C43-814A-1DDD8BB641A3}.Debug|Win32.Build.0 = Debug|Win32
+		{4B9B4658-22D7-4C43-814A-1DDD8BB641A3}.Debug|x64.ActiveCfg = Debug|Win32
+		{4B9B4658-22D7-4C43-814A-1DDD8BB641A3}.Release|Win32.ActiveCfg = Release|Win32
+		{4B9B4658-22D7-4C43-814A-1DDD8BB641A3}.Release|Win32.Build.0 = Release|Win32
+		{4B9B4658-22D7-4C43-814A-1DDD8BB641A3}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
